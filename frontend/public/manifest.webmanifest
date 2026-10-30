@@ -1,0 +1,17 @@
+{
+  "name": "ALPHA TERMINAL — PAPER DESK",
+  "short_name": "Alpha",
+  "description": "Private stocks + crypto PAPER trading terminal (simulated balances only).",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F2EC",
+  "theme_color": "#F4F2EC",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
