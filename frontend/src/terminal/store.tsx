@@ -1,7 +1,7 @@
 // One shared dashboard store for every page: a single refresh loop, so
 // switching tabs never refetches or flashes loaders.
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { logout } from "./api";
 import type { FeedState } from "./poller";
 import { idleSignOut, performSignOut, type SignOutState } from "./signOut";
@@ -13,6 +13,24 @@ export interface DashboardContextValue {
   signOut: SignOutState;
   doSignOut: () => void;
   dismissSignOut: () => void;
+  /** True for a moment after the backend recovers from stale/offline (drives a brief pulse). */
+  reconnected: boolean;
+}
+
+/** Brief true window when the feed goes from stale/error back to ok. */
+export function useReconnected(status: FeedState["status"]): boolean {
+  const prev = useRef(status);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const was = prev.current;
+    prev.current = status;
+    if (status === "ok" && (was === "stale" || was === "error")) {
+      setOn(true);
+      const t = window.setTimeout(() => setOn(false), 1800);
+      return () => window.clearTimeout(t);
+    }
+  }, [status]);
+  return on;
 }
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -34,6 +52,7 @@ export function DashboardProvider({
 }) {
   const { state, refresh } = useDashboard(onExpired);
   const [signOut, setSignOut] = useState<SignOutState>(idleSignOut);
+  const reconnected = useReconnected(state.status);
 
   const doSignOut = async () => {
     if (signOut.busy) return;
@@ -46,7 +65,7 @@ export function DashboardProvider({
 
   return (
     <DashboardContext.Provider
-      value={{ state, refresh, signOut, doSignOut: () => void doSignOut(), dismissSignOut: () => setSignOut(idleSignOut) }}
+      value={{ state, refresh, signOut, doSignOut: () => void doSignOut(), dismissSignOut: () => setSignOut(idleSignOut), reconnected }}
     >
       {children}
     </DashboardContext.Provider>

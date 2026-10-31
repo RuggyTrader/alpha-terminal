@@ -16,6 +16,8 @@ import { DashboardPoller, initialFeedState, type FeedState } from "./poller";
 import { idleSignOut, performSignOut, type SignOutState } from "./signOut";
 import { DashboardContext } from "./store";
 import { TerminalRoutes } from "./Terminal";
+import { AnimatedList, AnimatedNumber, prefersReducedMotion, Reveal } from "./motion";
+import { Expandable } from "./components/ui";
 import type { AlertRow, DashboardData, OrderRow, PaperPosition, RiskRow } from "./types";
 
 // ---------------------------------------------------------------- fixtures (tests only)
@@ -92,7 +94,7 @@ const ok = (data: DashboardData): FeedState => ({
 function withDash(state: FeedState, node: ReactElement, signOut: SignOutState = idleSignOut, path = "/") {
   return renderToStaticMarkup(
     <MemoryRouter initialEntries={[path]}>
-      <DashboardContext.Provider value={{ state, refresh: () => {}, signOut, doSignOut: () => {}, dismissSignOut: () => {} }}>
+      <DashboardContext.Provider value={{ state, refresh: () => {}, signOut, doSignOut: () => {}, dismissSignOut: () => {}, reconnected: false }}>
         {node}
       </DashboardContext.Provider>
     </MemoryRouter>,
@@ -439,5 +441,115 @@ describe("DashboardPoller", () => {
     p.stop();
     await vi.advanceTimersByTimeAsync(5000);
     expect(fetcher).toHaveBeenCalledTimes(4);
+  });
+});
+
+// ---------------------------------------------------------------- remember this device
+
+describe("remember this device", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("shows an unchecked toggle with the 30-day note", () => {
+    const html = renderToStaticMarkup(<LoginScreen onSignedIn={() => {}} />);
+    expect(html).toContain("Remember this device");
+    expect(html).toContain("Keep this device signed in for 30 days.");
+    expect(html).toMatch(/type="checkbox"/);
+    expect(html).not.toMatch(/type="checkbox"[^>]*checked/);
+  });
+
+  it("sends remember_device to the server and nothing else about the device", async () => {
+    const bodies: unknown[] = [];
+    vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
+      bodies.push(JSON.parse(String(init.body)));
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    });
+    const { login } = await import("./api");
+    await login("test-pass", true);
+    await login("test-pass");
+    expect(bodies).toEqual([
+      { passphrase: "test-pass", remember_device: true },
+      { passphrase: "test-pass", remember_device: false },
+    ]);
+  });
+
+  it("never stores credentials or sessions in browser storage", () => {
+    const sources = import.meta.glob(["./**/*.{ts,tsx}", "!./**/*.test.tsx"], { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+    expect(Object.keys(sources).length).toBeGreaterThan(10);
+    for (const [file, text] of Object.entries(sources)) {
+      expect(text, file).not.toMatch(/localStorage|sessionStorage|document\.cookie|indexedDB/);
+    }
+  });
+});
+
+// ---------------------------------------------------------------- motion
+
+// Read the stylesheet from disk (Vitest empties CSS imports). Typed loosely: no @types/node here.
+const nodeFs = "node:fs";
+const motionCss: string = ((await import(/* @vite-ignore */ nodeFs)) as { readFileSync: (u: URL, e: string) => string }).readFileSync(
+  new URL("./motion.css", import.meta.url),
+  "utf8",
+);
+
+describe("motion", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("detects reduced motion", () => {
+    expect(prefersReducedMotion()).toBe(false);
+    vi.stubGlobal("window", { matchMedia: () => ({ matches: true }) });
+    expect(prefersReducedMotion()).toBe(true);
+  });
+
+  it("disables non-essential motion in reduced-motion mode", () => {
+    const block = motionCss.slice(motionCss.indexOf("@media (prefers-reduced-motion: reduce)"));
+    expect(block).toContain("animation-duration: 1ms");
+    expect(block).toContain("transition-duration: 1ms");
+    expect(block).toMatch(/\.globe-float \{ animation: none/);
+    expect(block).toMatch(/\.m-reveal-pending \{ opacity: 1/);
+  });
+
+  it("never leaves an entrance animation ending invisible", () => {
+    const frames = [...motionCss.matchAll(/@keyframes ([\w-]+) \{([^@]*?)\}\s*\}/g)];
+    expect(frames.length).toBeGreaterThan(8);
+    for (const [, name, body] of frames) {
+      if (/leave|out|flash|glow|accent|close/.test(name)) continue; // exits and overlays are meant to fade away
+      const end = body.slice(Math.max(body.lastIndexOf("to {"), body.lastIndexOf("100%")));
+      expect(end, name).not.toMatch(/opacity:\s*0[;\s}]/);
+    }
+  });
+
+  it("renders the real number immediately (no animation from zero)", () => {
+    const html = renderToStaticMarkup(<AnimatedNumber id="test-num" value={1234.5} format={(n) => `$${n.toFixed(2)}`} />);
+    expect(html).toContain("$1234.50");
+  });
+
+  it("does not hide revealed sections without JavaScript", () => {
+    const html = renderToStaticMarkup(<Reveal><p>lower section</p></Reveal>);
+    expect(html).toContain("lower section");
+    expect(html).not.toContain("m-reveal-pending");
+  });
+
+  it("renders every list item visibly, staggering only the initial ones", () => {
+    const html = renderToStaticMarkup(<AnimatedList items={["a", "b", "c"]} getKey={(x) => x} render={(x) => <span>item-{x}</span>} />);
+    for (const x of ["a", "b", "c"]) expect(html).toContain(`item-${x}`);
+    expect(html).not.toContain("is-leaving");
+    expect(html).toContain("--i:2");
+  });
+
+  it("keeps expandable details accessible", () => {
+    const closed = renderToStaticMarkup(<Expandable head={<b>head</b>}>details</Expandable>);
+    expect(closed).toContain('aria-expanded="false"');
+    expect(closed).not.toContain("details");
+    const open = renderToStaticMarkup(<Expandable head={<b>head</b>} defaultOpen>details</Expandable>);
+    expect(open).toContain('aria-expanded="true"');
+    expect(open).toContain("details");
+    expect(open).toMatch(/aria-controls="([^"]+)"[\s\S]*id="\1"/);
+  });
+
+  it("navigation renders every page with the shared nav indicator", () => {
+    for (const path of ["/", "/trades", "/engine", "/activity", "/settings"]) {
+      const html = page(path, ok(dashboard()));
+      expect(html, path).toContain("bnav-ind");
+      expect(html, path).toContain('class="page"');
+    }
   });
 });

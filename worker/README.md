@@ -22,11 +22,13 @@ Two separate Worker secrets:
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/auth/login` | POST `{"passphrase": "..."}` | compares with `DASHBOARD_PASSPHRASE` server-side, sets the session cookie |
+| `/auth/login` | POST `{"passphrase": "...", "remember_device": false}` | compares with `DASHBOARD_PASSPHRASE` server-side, sets the session cookie |
 | `/auth/session` | GET | 200 when signed in, 401 otherwise |
 | `/auth/logout` | POST | deletes the session and clears the cookie |
 
-* Cookie `at_session`: `HttpOnly; Secure; SameSite=Strict; Path=/`, 12 hours, host-only.
+* Cookie `at_session`: `HttpOnly; Secure; SameSite=Strict; Path=/`, host-only. Lifetime 12 hours, or 30 days when
+  the user ticks **Remember this device** (`"remember_device": true`; anything other than boolean `true` means 12 hours).
+  A remembered session has exactly the same read-only permissions; logout or expiry ends it.
 * Only a SHA-256 hash of the token is stored (D1 `auth_sessions`).
 * `/auth/login` and `/auth/logout` require the `X-Alpha-Terminal: 1` header and a same-origin
   `Origin` (or one listed in the optional `DASHBOARD_ORIGINS` var, for local development).

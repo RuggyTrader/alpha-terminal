@@ -1,0 +1,148 @@
+/* ALPHA TERMINAL motion system.
+   One set of timing tokens and a few reusable classes. Transform + opacity only
+   (GPU friendly); every entrance ends fully visible (fill-mode: both, final opacity 1).
+   prefers-reduced-motion turns all of it off at the bottom of this file. */
+
+:root {
+  --m-fast: 160ms;
+  --m-normal: 250ms;
+  --m-slow: 480ms;
+  --m-stagger: 55ms;
+  --m-ease: cubic-bezier(0.22, 0.8, 0.24, 1);     /* standard decelerate */
+  --m-ease-out: cubic-bezier(0.16, 1, 0.3, 1);     /* soft settle */
+  --m-spring: cubic-bezier(0.34, 1.4, 0.64, 1);    /* small overshoot, for taps */
+  --m-rise: 12px;
+}
+
+/* ---------- entrances ---------- */
+@keyframes m-rise { from { opacity: 0; transform: translateY(var(--m-rise)); } to { opacity: 1; transform: none; } }
+@keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-page { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes m-pop { 0% { transform: scale(0.86); opacity: 0.4; } 60% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes m-slide-down { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes m-check-in { from { opacity: 0; transform: translateX(-6px) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes m-expand { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* exits (used only while an element is about to unmount) */
+@keyframes m-leave { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-6px) scale(0.98); } }
+@keyframes m-slide-up-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-10px); } }
+
+.m-rise { animation: m-rise var(--m-normal) var(--m-ease) both; }
+.m-fade { animation: m-fade var(--m-normal) var(--m-ease) both; }
+.m-pop { animation: m-pop var(--m-normal) var(--m-spring) both; }
+.page { animation: m-page var(--m-normal) var(--m-ease) both; }
+
+/* Children of .m-stagger enter one after another, once, when the view mounts. */
+.m-stagger > * { animation: m-rise var(--m-slow) var(--m-ease-out) both; }
+.m-stagger > :nth-child(2) { animation-delay: calc(var(--m-stagger) * 1); }
+.m-stagger > :nth-child(3) { animation-delay: calc(var(--m-stagger) * 2); }
+.m-stagger > :nth-child(4) { animation-delay: calc(var(--m-stagger) * 3); }
+.m-stagger > :nth-child(5) { animation-delay: calc(var(--m-stagger) * 4); }
+.m-stagger > :nth-child(6) { animation-delay: calc(var(--m-stagger) * 5); }
+.m-stagger > :nth-child(n + 7) { animation-delay: calc(var(--m-stagger) * 6); }
+/* a section waiting to be revealed must not be forced visible by the stagger */
+.m-stagger > .m-reveal-pending { animation: none; }
+
+/* List items: initial items stagger; items that arrive later get a brief accent. */
+.m-item { animation: m-rise var(--m-slow) var(--m-ease-out) both; animation-delay: calc(var(--i, 0) * var(--m-stagger)); }
+.m-item.is-new { animation: m-slide-down var(--m-slow) var(--m-ease-out) both; animation-delay: 0ms; }
+.m-item.is-new > .xc, .m-item.is-new > .card, .m-item.is-new > .feed-item { animation: m-new-accent 1.6s ease-out both; }
+.m-item.is-leaving { animation: m-leave var(--m-normal) var(--m-ease) both; pointer-events: none; }
+@keyframes m-new-accent { 0%, 30% { background-color: #fff6e9; } 100% { background-color: var(--m-accent-end, var(--surface)); } }
+.m-item.is-new > .feed-item { --m-accent-end: var(--surface-2); }
+
+/* Lower sections reveal once when scrolled into view. Without JS, nothing is hidden. */
+.m-reveal-pending { opacity: 0; transform: translateY(14px); }
+.m-reveal-in { animation: m-rise var(--m-slow) var(--m-ease-out) both; }
+
+/* ---------- value change highlights (brief, then settle) ---------- */
+.m-flash-up, .m-flash-down, .m-flash-neutral { position: relative; }
+.m-flash-up::after, .m-flash-down::after, .m-flash-neutral::after {
+  content: ""; position: absolute; inset: -3px -6px; border-radius: 8px; pointer-events: none;
+  animation: m-flash 900ms ease-out both;
+}
+.m-flash-up::after { background: rgba(18, 150, 90, 0.11); }
+.m-flash-down::after { background: rgba(217, 68, 58, 0.1); }
+.m-flash-neutral::after { background: rgba(242, 140, 27, 0.11); }
+@keyframes m-flash { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
+.hero .m-flash-up::after { background: rgba(61, 220, 132, 0.1); }
+.hero .m-flash-down::after { background: rgba(255, 107, 94, 0.1); }
+
+/* number roll: new value fades/slides in */
+.m-num { display: inline-block; }
+.m-num.is-changing { animation: m-num-in var(--m-slow) var(--m-ease-out); }
+@keyframes m-num-in { 0% { opacity: 0.55; transform: translateY(3px); } 100% { opacity: 1; transform: none; } }
+
+/* colours that change with data transition instead of snapping */
+.t-pos, .t-neg, .t-zero, .t-na, .t-ok, .t-bad, .t-warn, .t-muted, .sb, .conn, .hs { transition: color var(--m-normal) var(--m-ease), background-color var(--m-normal) var(--m-ease); }
+
+/* ---------- interaction feedback ---------- */
+.m-press { transition: transform var(--m-fast) var(--m-spring), filter var(--m-fast) ease, box-shadow var(--m-normal) ease; }
+.m-press:active:not(:disabled) { transform: scale(0.975); transition-duration: 90ms; }
+.m-press:disabled { transition: none; }
+@media (hover: hover) {
+  .m-lift { transition: transform var(--m-normal) var(--m-ease), box-shadow var(--m-normal) ease; }
+  .m-lift:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(22, 19, 15, 0.05), 0 12px 28px rgba(22, 19, 15, 0.09); }
+  .m-press:hover:not(:disabled) { filter: brightness(1.04); }
+}
+
+/* ---------- accordion ---------- */
+.xc-body-wrap { display: grid; grid-template-rows: 1fr; }
+.xc-body-wrap > .xc-body-inner { overflow: hidden; min-height: 0; }
+.xc-body-wrap.is-entering { animation: m-accordion-open var(--m-normal) var(--m-ease) both; }
+.xc-body-wrap.is-closing { animation: m-accordion-close var(--m-fast) var(--m-ease) both; }
+@keyframes m-accordion-open { from { grid-template-rows: 0fr; opacity: 0; } to { grid-template-rows: 1fr; opacity: 1; } }
+@keyframes m-accordion-close { from { grid-template-rows: 1fr; opacity: 1; } to { grid-template-rows: 0fr; opacity: 0; } }
+.xc-body-wrap.is-entering .checks li { animation: m-check-in var(--m-normal) var(--m-ease-out) both; }
+.xc-body-wrap.is-entering .checks li:nth-child(2) { animation-delay: 40ms; }
+.xc-body-wrap.is-entering .checks li:nth-child(3) { animation-delay: 80ms; }
+.xc-body-wrap.is-entering .checks li:nth-child(n + 4) { animation-delay: 120ms; }
+
+/* one-time accent for approved/rejected cards when they appear */
+.xc::before { animation: m-accent-in 700ms var(--m-ease-out) 120ms both; transform-origin: center; }
+@keyframes m-accent-in { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* ---------- banners ---------- */
+.m-banner-in { animation: m-slide-down var(--m-normal) var(--m-ease) both; }
+.m-banner-out { animation: m-slide-up-out var(--m-fast) var(--m-ease) both; }
+
+/* ---------- connection / state ---------- */
+.conn i { transition: background-color var(--m-normal) ease, transform var(--m-normal) ease; }
+.conn.is-reconnected i { animation: m-dot-pulse 1.4s ease-out 2; }
+@keyframes m-dot-pulse { 0% { transform: scale(1); opacity: 1; } 40% { transform: scale(1.8); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+.m-crossfade { animation: m-fade var(--m-normal) var(--m-ease) both; }
+
+/* ---------- α globe ---------- */
+.globe { position: absolute; z-index: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.globe-float { width: 100%; height: 100%; animation: m-globe-in 700ms var(--m-ease-out) both, m-globe-float 9s ease-in-out 700ms infinite; }
+.globe-react { width: 100%; height: 100%; will-change: transform; }
+.globe .hero-orb { width: 100%; height: 100%; display: block; }
+.globe-glow {
+  position: absolute; inset: 4%; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle, rgba(61, 220, 132, 0) 56%, rgba(61, 220, 132, 0.32) 68%, rgba(61, 220, 132, 0) 76%);
+}
+.globe.is-reconnected .globe-glow { animation: m-globe-glow 1.6s ease-out both; }
+@keyframes m-globe-in { from { opacity: 0; transform: scale(0.9) rotate(-6deg); } to { opacity: 1; transform: none; } }
+@keyframes m-globe-float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-3px) rotate(1.2deg); } }
+@keyframes m-globe-glow { 0% { opacity: 0; transform: scale(0.96); } 35% { opacity: 1; } 100% { opacity: 0; transform: scale(1.08); } }
+
+/* ---------- bottom nav indicator ---------- */
+.bnav-in { position: relative; }
+.bnav-ind {
+  position: absolute; top: 6px; left: 0; width: 22px; height: 3px; border-radius: 3px; background: var(--ink);
+  transform: translateX(var(--x, 0px)); opacity: var(--o, 0);
+  transition: transform var(--m-normal) var(--m-ease), opacity var(--m-fast) ease;
+}
+.bnav-item svg, .bnav-item span { transition: transform var(--m-normal) var(--m-spring), color var(--m-normal) ease; }
+.bnav-item.on svg { transform: translateY(-1px) scale(1.06); }
+.bnav-item:active svg { transform: scale(0.9); transition-duration: 90ms; }
+
+/* ---------- reduced motion: no non-essential motion, values update instantly ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important; transition-delay: 0ms !important;
+  }
+  .globe-float { animation: none !important; }
+  .m-reveal-pending { opacity: 1 !important; transform: none !important; }
+}

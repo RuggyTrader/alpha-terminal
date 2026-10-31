@@ -24,8 +24,9 @@ export function checkSession(): Promise<unknown> {
   return api.get("/auth/session");
 }
 
-export function login(passphrase: string): Promise<unknown> {
-  return api.post("/auth/login", { passphrase });
+/** remember=true asks the server for a 30-day read-only session instead of 12 hours. */
+export function login(passphrase: string, remember = false): Promise<unknown> {
+  return api.post("/auth/login", { passphrase, remember_device: remember });
 }
 
 export function logout(): Promise<unknown> {

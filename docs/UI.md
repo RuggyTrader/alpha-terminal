@@ -52,9 +52,34 @@ timestamps) use monospace inside expandable details only.
 
 ## Motion
 
-Page fade/rise (260 ms), card entrance (320 ms), expandable details (220 ms), sliding tab pill (260 ms), equity and
-P&L count from the previous real value to the new one with a soft glow, breathing ONLINE dot. No confetti, no
-generated activity, no flashing numbers. `prefers-reduced-motion` turns motion off.
+All motion lives in `src/terminal/motion.css` (tokens + classes) and `src/terminal/motion.tsx` (small hooks). Only
+`transform` and `opacity` are animated, except a one-time accordion row height and a one-time background accent on
+newly arrived items. No animation library.
+
+| Token | Value |
+|---|---|
+| `--m-fast` / `--m-normal` / `--m-slow` | 160 / 250 / 480 ms |
+| `--m-stagger` | 55 ms between cards |
+| `--m-ease`, `--m-ease-out`, `--m-spring` | decelerate, soft settle, small overshoot for taps |
+
+| Where | Behaviour |
+|---|---|
+| Page change | fade + 8 px rise (250 ms); the bottom-nav bar slides to the new tab; Engine pill keeps its own ring |
+| Page entry | cards stagger in once (`.m-stagger`, `AnimatedList`); refreshes with the same records do not replay |
+| Lower sections | `Reveal` fades them in once when scrolled into view (never hidden without JS; 2 s safety fallback) |
+| PAPER equity, today's P&L, position P&L | `AnimatedNumber` rolls from the previous real value to the new one (480 ms); first view shows the value directly; background tabs and reduced motion update instantly |
+| Changed values | `useFlash`: soft green (up), red (down) or orange (other) highlight for 0.9 s |
+| New real alerts / order intents / activity / positions | slide in with a brief warm accent; removed positions fade out (`usePresence`) |
+| Expandable details | accordion open/close (grid rows + opacity); risk check chips step in |
+| Status badges, market status, engine state, connection | crossfade / small scale-in only when the state actually changes |
+| Connection | dot pulses briefly after a reconnect only; no permanent blinking |
+| Banners | slide in, slide out (`Presence`) |
+| Buttons, tabs, nav | press scale ≈ 0.975 with spring back; desktop hover lift on cards |
+| α globe | 3 px idle float (9 s); entrance on load; tilt when the account value changes; orbit shift when the market opens/closes or the engine state changes; soft glow after reconnect; squash on tap |
+| Loading | subtle shimmer skeletons for hero, overview, positions and alerts; never placeholder numbers |
+
+`prefers-reduced-motion: reduce` collapses all durations to 1 ms, stops the globe float, removes staggers and
+reveals, and makes numbers update instantly. State changes still appear.
 
 ## Layout
 

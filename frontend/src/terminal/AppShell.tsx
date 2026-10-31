@@ -1,12 +1,15 @@
-import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Icon, Mark, type IconName } from "../components/icons";
 import { connectionLabel } from "./classify";
 import { clock } from "./fmt";
+import { Presence } from "./motion";
 import { useDash } from "./store";
 
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 export function TopBar() {
-  const { state, refresh } = useDash();
+  const { state, refresh, reconnected } = useDash();
   const conn = connectionLabel(state);
   return (
     <header className="topbar">
@@ -18,13 +21,16 @@ export function TopBar() {
         </div>
       </div>
       <div className="tb-right">
-        <span className={`conn conn-${conn.tone}`} title={state.lastSuccessAt ? `Last update ${clock(state.lastSuccessAt)}` : undefined}>
+        <span
+          className={`conn conn-${conn.tone} ${reconnected ? "is-reconnected" : ""}`}
+          title={state.lastSuccessAt ? `Last update ${clock(state.lastSuccessAt)}` : undefined}
+        >
           <i aria-hidden />
-          {conn.text}
+          <span key={conn.text} className="m-crossfade">{conn.text}</span>
         </span>
         <button
           type="button"
-          className={`icon-btn ${state.inFlight ? "is-spinning" : ""}`}
+          className={`icon-btn m-press ${state.inFlight ? "is-spinning" : ""}`}
           onClick={refresh}
           disabled={state.inFlight}
           aria-label="Refresh"
@@ -42,37 +48,37 @@ function Banners() {
   const e = state.error;
   return (
     <>
-      {signOut.error ? (
+      <Presence show={!!signOut.error}>
         <div className="banner banner-bad" role="alert">
           <div>
             <b>Sign-out failed</b>
             <p>{signOut.error}</p>
           </div>
           <div className="banner-actions">
-            <button type="button" className="btn btn-sm" onClick={doSignOut} disabled={signOut.busy}>Retry sign out</button>
-            <button type="button" className="btn btn-sm btn-ghost" onClick={dismissSignOut}>Dismiss</button>
+            <button type="button" className="btn btn-sm m-press" onClick={doSignOut} disabled={signOut.busy}>Retry sign out</button>
+            <button type="button" className="btn btn-sm btn-ghost m-press" onClick={dismissSignOut}>Dismiss</button>
           </div>
         </div>
-      ) : null}
-      {state.status === "stale" && e ? (
+      </Presence>
+      <Presence show={state.status === "stale" && !!e}>
         <div className="banner banner-warn" role="status">
           <div>
             <b>Showing data from {clock(state.lastSuccessAt)}</b>
-            <p>The last refresh failed ({e.code}). Retrying automatically.</p>
+            <p>The last refresh failed ({e?.code}). Retrying automatically.</p>
           </div>
         </div>
-      ) : null}
-      {state.status === "error" && e ? (
+      </Presence>
+      <Presence show={state.status === "error" && !!e}>
         <div className="banner banner-bad" role="alert">
           <div>
-            <b>{e.status === 0 ? "Backend unreachable" : "Backend error"}</b>
-            <p>{e.code}: {e.message}. No data has been loaded.</p>
+            <b>{e?.status === 0 ? "Backend unreachable" : "Backend error"}</b>
+            <p>{e?.code}: {e?.message}. No data has been loaded.</p>
           </div>
           <div className="banner-actions">
-            <button type="button" className="btn btn-sm" onClick={refresh}>Retry</button>
+            <button type="button" className="btn btn-sm m-press" onClick={refresh}>Retry</button>
           </div>
         </div>
-      ) : null}
+      </Presence>
     </>
   );
 }
@@ -85,18 +91,46 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: "/settings", label: "Settings", icon: "settings" },
 ];
 
+function activeIndex(pathname: string): number {
+  const seg = "/" + (pathname.split("/")[1] ?? "");
+  const i = NAV.findIndex((n) => n.to === seg);
+  return i < 0 ? 0 : i;
+}
+
+/** Bottom nav with one shared indicator that slides to the active item. */
 export function BottomNav() {
+  const loc = useLocation();
+  const inner = useRef<HTMLDivElement>(null);
+  const [ind, setInd] = useState<CSSProperties>({});
+  const idx = activeIndex(loc.pathname);
+
+  useIsoLayoutEffect(() => {
+    const place = () => {
+      const box = inner.current;
+      const el = box?.querySelectorAll<HTMLElement>("[data-nav]")[idx];
+      if (!box || !el) return;
+      const engine = NAV[idx].to === "/engine";
+      const x = el.offsetLeft + el.offsetWidth / 2 - 11;
+      // The orange Engine pill carries its own active ring, so the bar hides there.
+      setInd({ ["--x" as string]: `${x}px`, ["--o" as string]: engine ? 0 : 1 });
+    };
+    place();
+    window.addEventListener("resize", place);
+    return () => window.removeEventListener("resize", place);
+  }, [idx]);
+
   return (
     <nav className="bnav" aria-label="Main">
-      <div className="bnav-in">
+      <div className="bnav-in" ref={inner}>
+        <i className="bnav-ind" style={ind} aria-hidden />
         {NAV.map((n) =>
           n.to === "/engine" ? (
-            <NavLink key={n.to} to={n.to} className={({ isActive }) => `bnav-engine${isActive ? " on" : ""}`}>
+            <NavLink key={n.to} to={n.to} data-nav className={({ isActive }) => `bnav-engine m-press${isActive ? " on" : ""}`}>
               <Icon name="bolt" size={15} fill />
               <span>Engine</span>
             </NavLink>
           ) : (
-            <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `bnav-item${isActive ? " on" : ""}`}>
+            <NavLink key={n.to} to={n.to} end={n.end} data-nav className={({ isActive }) => `bnav-item${isActive ? " on" : ""}`}>
               <Icon name={n.icon} size={22} />
               <span>{n.label}</span>
             </NavLink>

@@ -12,7 +12,11 @@ function message(e: unknown): string {
   return `${e.code}: ${e.message}`;
 }
 
-/** The dashboard passphrase is sent once to /auth/login and never stored in the browser. */
+/**
+ * The dashboard passphrase is sent once to /auth/login and never stored in the browser.
+ * "Remember this device" only asks the server for a longer (30-day) read-only session;
+ * the browser keeps nothing but the server's HttpOnly cookie.
+ */
 export function LoginScreen({
   onSignedIn,
   offline = false,
@@ -23,6 +27,7 @@ export function LoginScreen({
   expired?: boolean;
 }) {
   const [pass, setPass] = useState("");
+  const [remember, setRemember] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(
     offline ? "Backend unreachable. Check your connection and try again." : expired ? "Session expired. Sign in again." : null,
@@ -34,7 +39,7 @@ export function LoginScreen({
     setBusy(true);
     setError(null);
     try {
-      await login(pass);
+      await login(pass, remember);
       setPass("");
       onSignedIn();
     } catch (err) {
@@ -47,7 +52,7 @@ export function LoginScreen({
 
   return (
     <div className="tlogin">
-      <form className="tlogin-card" onSubmit={submit}>
+      <form className="tlogin-card m-rise" onSubmit={submit}>
         <div className="tlogin-brand">
           <Mark size={34} />
           <h1>ALPHA TERMINAL</h1>
@@ -65,7 +70,17 @@ export function LoginScreen({
           onChange={(e) => setPass(e.target.value)}
           autoFocus
         />
-        {error ? <p className="tlogin-err" role="alert">{error}</p> : null}
+
+        <label className="remember" htmlFor="remember">
+          <input id="remember" type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+          <span className="remember-switch" aria-hidden />
+          <span className="remember-text">
+            <b>Remember this device</b>
+            <span>Keep this device signed in for 30 days.</span>
+          </span>
+        </label>
+
+        {error ? <p className="tlogin-err m-fade" role="alert">{error}</p> : null}
         <button type="submit" className="btn btn-primary" disabled={busy || !pass}>
           {busy ? "Signing in…" : "Sign in"}
         </button>

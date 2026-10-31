@@ -1,30 +1,34 @@
-import { HeroOrb } from "../../components/icons";
 import { engineTone } from "../classify";
 import { stamp } from "../fmt";
 import { EmptyState, SectionHeader } from "../components/ui";
+import { AlphaGlobe } from "../components/AlphaGlobe";
+import { useFlash } from "../motion";
 import { useDash } from "../store";
 
 function Stat({ k, v, tone }: { k: string; v: string; tone?: string }) {
+  const flash = useFlash(v);
   return (
-    <div className="eng-stat">
+    <div className={`eng-stat ${flash}`}>
       <span>{k}</span>
-      <b className={tone ? `t-${tone}` : ""}>{v}</b>
+      <b key={v} className={`m-crossfade ${tone ? `t-${tone}` : ""}`}>{v}</b>
     </div>
   );
 }
 
 /** Read-only engine view. Engine controls are intentionally not available in the browser. */
 export function EnginePage() {
-  const { state } = useDash();
+  const { state, reconnected } = useDash();
   const d = state.data;
   const e = d?.engine ?? null;
   const c = d?.counts;
+  const stateText = e ? e.state : d ? "MISSING" : "N/A";
+  const stateFlash = useFlash(e ? e.state : null);
 
   return (
-    <div className="page-narrow">
+    <div className="page-narrow m-stagger">
       <h1 className="page-title">Engine</h1>
       <section className="engine-card" aria-label="Alpha engine">
-        <HeroOrb />
+        <AlphaGlobe className="engine-globe" tiltKey={e ? `${e.state}|${e.kill_switch}` : undefined} reconnected={reconnected} />
         <div className="eng-head">
           <div>
             <div className="hero-title">ALPHA ENGINE</div>
@@ -32,7 +36,9 @@ export function EnginePage() {
           </div>
         </div>
         <div className="eng-state-label">STATE</div>
-        <div className={`eng-state eng-${e ? engineTone(e.state) : "muted"}`}>{e ? e.state : d ? "MISSING" : "N/A"}</div>
+        <div className={`eng-state eng-${e ? engineTone(e.state) : "muted"} ${stateFlash}`}>
+          <span key={stateText} className="m-crossfade">{stateText}</span>
+        </div>
         <div className="eng-grid">
           <Stat k="EXECUTION" v={d ? (d.execution === "DRY_RUN_ONLY" ? "DRY RUN" : d.execution) : "N/A"} />
           <Stat k="BROKER SUBMISSION" v={d ? (d.broker_submission ? "ON" : "OFF") : "N/A"} tone={d?.broker_submission ? "neg" : undefined} />

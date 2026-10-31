@@ -6,7 +6,7 @@ export function ActivityPage() {
   const { state } = useDash();
   const d = state.data;
   return (
-    <div className="page-narrow">
+    <div className="page-narrow m-stagger">
       <h1 className="page-title">Activity</h1>
       <section className="card feed-card" aria-label="Activity feed">
         <SectionHeader title="Alpha Engine" sub="Recorded system activity" right={d ? <span className="count">{d.recent.activity.length}</span> : null} />

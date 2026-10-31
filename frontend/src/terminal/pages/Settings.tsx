@@ -33,7 +33,7 @@ export function SettingsPage() {
   const stocks = !d ? null : a ? "ok" : acctErr?.code === "BROKER_NOT_CONFIGURED" ? "nc" : "err";
 
   return (
-    <div className="page-narrow">
+    <div className="page-narrow m-stagger">
       <h1 className="page-title">Settings</h1>
 
       <Group title="Account">
@@ -67,7 +67,7 @@ export function SettingsPage() {
         <Row k="Admin controls">Server-side only</Row>
         <div className="li">
           <span>Sign out of this browser</span>
-          <button type="button" className="btn btn-sm btn-ghost" onClick={doSignOut} disabled={signOut.busy}>
+          <button type="button" className="btn btn-sm btn-ghost m-press" onClick={doSignOut} disabled={signOut.busy}>
             <Icon name="logout" size={15} /> {signOut.busy ? "Signing out…" : "Sign out"}
           </button>
         </div>

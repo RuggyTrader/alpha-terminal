@@ -1,32 +1,40 @@
 import { money, when } from "../fmt";
+import { useFlash } from "../motion";
 import type { BrokerSnapshot } from "../types";
 import { SectionHeader } from "./ui";
 
+function Item({ k, v, raw, flag, loading }: { k: string; v: string; raw: unknown; flag?: string; loading: boolean }) {
+  const flash = useFlash(raw);
+  return (
+    <div className={`ov ${flash}`}>
+      <span className="ov-k">{k}</span>
+      {loading ? (
+        <i className="ov-skel" aria-hidden />
+      ) : (
+        <span key={v} className={`ov-v m-crossfade ${v === "N/A" ? "na" : ""} ${flag === "ok" ? "t-pos" : ""}`}>{v}</span>
+      )}
+    </div>
+  );
+}
+
 /** Horizontal overview card. Complements the hero instead of repeating it. */
-export function AccountOverview({ broker }: { broker: BrokerSnapshot | null }) {
+export function AccountOverview({ broker, loading = false }: { broker: BrokerSnapshot | null; loading?: boolean }) {
   const a = broker?.account ?? null;
   const posErr = broker?.errors.some((e) => e.source === "positions");
   const clk = broker?.clock ?? null;
-  const items: [string, string, string?][] = [
-    ["Long exposure", a ? money(a.long_market_value) : "N/A"],
-    ["Open positions", broker && !posErr ? String(broker.positions.length) : "N/A"],
-    clk
-      ? clk.is_open
-        ? ["Market closes", when(clk.next_close), "open"]
-        : ["Market opens", when(clk.next_open), "closed"]
-      : ["Market", "N/A"],
-    ["Account", a ? (a.status || "N/A") : "N/A", a?.status === "ACTIVE" ? "ok" : undefined],
-  ];
+  const posCount = broker && !posErr ? broker.positions.length : null;
   return (
     <section className="card overview" aria-label="Account overview">
       <SectionHeader title="Account overview" right={<span className="muted-s">Alpaca PAPER</span>} />
       <div className="ov-grid">
-        {items.map(([k, v, flag]) => (
-          <div key={k} className="ov">
-            <span className="ov-k">{k}</span>
-            <span className={`ov-v ${v === "N/A" ? "na" : ""} ${flag === "ok" ? "t-pos" : ""}`}>{v}</span>
-          </div>
-        ))}
+        <Item k="Long exposure" v={a ? money(a.long_market_value) : "N/A"} raw={a ? a.long_market_value : null} loading={loading} />
+        <Item k="Open positions" v={posCount === null ? "N/A" : String(posCount)} raw={posCount} loading={loading} />
+        {clk ? (
+          <Item k={clk.is_open ? "Market closes" : "Market opens"} v={when(clk.is_open ? clk.next_close : clk.next_open)} raw={clk.is_open} loading={loading} />
+        ) : (
+          <Item k="Market" v="N/A" raw={null} loading={loading} />
+        )}
+        <Item k="Account" v={a ? a.status || "N/A" : "N/A"} raw={a ? a.status : null} flag={a?.status === "ACTIVE" ? "ok" : undefined} loading={loading} />
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import { AlertCard } from "../components/AlertCard";
 import { PositionCard } from "../components/PositionCard";
 import { SafetyCard } from "../components/SafetyCard";
 import { EmptyState, SectionHeader, SkeletonCards } from "../components/ui";
+import { AnimatedList, Reveal } from "../motion";
 import { useDash } from "../store";
 
 export function PositionsSection() {
@@ -24,39 +25,43 @@ export function PositionsSection() {
       ) : rows.length === 0 ? (
         <EmptyState title="No open PAPER positions">Positions held in the Alpaca PAPER account will appear here.</EmptyState>
       ) : (
-        <div className="stack">{rows.map((p) => <PositionCard key={p.symbol} p={p} />)}</div>
+        <AnimatedList items={rows} getKey={(p) => p.symbol} render={(p) => <PositionCard p={p} />} />
       )}
     </section>
   );
 }
 
 export function HomePage() {
-  const { state } = useDash();
+  const { state, reconnected } = useDash();
   const d = state.data;
   const alerts = d?.recent.alerts ?? [];
   const total = d?.counts.alerts.total ?? 0;
   return (
     <div className="home-grid">
-      <div className="col-main">
-        <AccountHero state={state} />
-        <AccountOverview broker={d?.broker ?? null} />
+      <div className="col-main m-stagger">
+        <AccountHero state={state} reconnected={reconnected} />
+        <AccountOverview broker={d?.broker ?? null} loading={state.status === "loading" && !d} />
         <PositionsSection />
       </div>
-      <div className="col-side">
-        <section aria-label="Recent alerts">
-          <SectionHeader
-            title="Recent alerts"
-            right={d ? <Link className="link" to="/trades">{total} total · View all</Link> : null}
-          />
-          {!d ? (
-            state.status === "loading" ? <SkeletonCards count={2} /> : <EmptyState title="No data" />
-          ) : alerts.length === 0 ? (
-            <EmptyState title="No TradingView alerts yet">Alerts received by the Worker will appear here.</EmptyState>
-          ) : (
-            <div className="stack">{alerts.slice(0, 5).map((a) => <AlertCard key={a.id} a={a} />)}</div>
-          )}
-        </section>
-        <SafetyCard data={d} />
+      <div className="col-side m-stagger">
+        <Reveal>
+          <section aria-label="Recent alerts">
+            <SectionHeader
+              title="Recent alerts"
+              right={d ? <Link className="link" to="/trades">{total} total · View all</Link> : null}
+            />
+            {!d ? (
+              state.status === "loading" ? <SkeletonCards count={2} /> : <EmptyState title="No data" />
+            ) : alerts.length === 0 ? (
+              <EmptyState title="No TradingView alerts yet">Alerts received by the Worker will appear here.</EmptyState>
+            ) : (
+              <AnimatedList items={alerts.slice(0, 5)} getKey={(a) => String(a.id)} render={(a) => <AlertCard a={a} />} />
+            )}
+          </section>
+        </Reveal>
+        <Reveal>
+          <SafetyCard data={d} />
+        </Reveal>
       </div>
     </div>
   );

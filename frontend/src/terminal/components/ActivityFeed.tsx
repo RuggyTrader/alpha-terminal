@@ -1,6 +1,7 @@
 import { activityTone } from "../classify";
 import { hms } from "../fmt";
 import type { ActivityRow } from "../types";
+import { AnimatedList } from "../motion";
 import { EmptyState } from "./ui";
 
 /** Rounded feed of persisted activity_events only. Nothing is generated client-side. */
@@ -10,11 +11,14 @@ export function ActivityFeed({ rows, limit }: { rows: ActivityRow[]; limit?: num
     return <EmptyState title="No recorded activity yet.">Events appear here once the Worker records them.</EmptyState>;
   }
   return (
-    <ol className="feed" aria-label="Activity">
-      {list.map((e) => {
+    <AnimatedList
+      className="feed"
+      items={list}
+      getKey={(e) => String(e.id)}
+      render={(e) => {
         const ctx = [e.symbol, e.action?.toUpperCase()].filter(Boolean).join(" ");
         return (
-          <li key={e.id} className={`feed-item feed-${activityTone(e)}`}>
+          <div className={`feed-item feed-${activityTone(e)}`}>
             <div className="feed-meta">
               <span className="feed-time">{hms(e.ts)}</span>
               <span className="feed-cat">{(e.category || "system").toUpperCase()}</span>
@@ -24,9 +28,9 @@ export function ActivityFeed({ rows, limit }: { rows: ActivityRow[]; limit?: num
               {e.message}
               {e.error_detail ? <span className="feed-err"> — {e.error_detail}</span> : null}
             </div>
-          </li>
+          </div>
         );
-      })}
-    </ol>
+      }}
+    />
   );
 }

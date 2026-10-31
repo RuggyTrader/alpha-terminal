@@ -6,7 +6,7 @@
 //   npm --prefix ../frontend run build && npm test
 
 import { execFileSync, spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
@@ -71,6 +71,16 @@ async function waitFor(base, ms = 60000) {
 
 const H = { "X-Alpha-Terminal": "1", "Content-Type": "application/json" };
 
+function d1(sql) {
+  // shell:true on Windows joins args with spaces, so quote the SQL there.
+  const out = wrangler(["d1", "execute", "alpha-terminal-db", "--local", "--persist-to", persist, "--json",
+    "--command", WIN ? `"${sql}"` : sql]);
+  return JSON.parse(out)[0].results;
+}
+
+/** SHA-256 hex of the cookie token: the value the Worker stores in auth_sessions. */
+const tokenHash = (cookie) => createHash("sha256").update(cookie.split("=")[1]).digest("hex");
+
 function sessionCount() {
   const sql = "SELECT COUNT(*) AS n FROM auth_sessions";
   // shell:true on Windows joins args with spaces, so quote the SQL there.
@@ -79,8 +89,8 @@ function sessionCount() {
   return JSON.parse(out)[0].results[0].n;
 }
 
-async function login(base, passphrase) {
-  const r = await fetch(`${base}/auth/login`, { method: "POST", headers: H, body: JSON.stringify({ passphrase }) });
+async function login(base, passphrase, extra = {}) {
+  const r = await fetch(`${base}/auth/login`, { method: "POST", headers: H, body: JSON.stringify({ passphrase, ...extra }) });
   const body = await r.json();
   const setCookie = r.headers.getSetCookie?.() ?? [];
   const cookie = setCookie.map((c) => c.split(";")[0]).find((c) => c.startsWith("at_session=")) ?? null;
@@ -324,5 +334,83 @@ describe("static safety", () => {
       const hosts = text.match(/https:\/\/[a-z.-]*alpaca\.markets/g) ?? [];
       for (const h of hosts) assert.ok(["https://paper-api.alpaca.markets", "https://data.alpaca.markets"].includes(h), `${f}: ${h}`);
     }
+  });
+});
+
+// ---------------------------------------------------------------- remember this device
+
+describe("remember this device", () => {
+  const maxAge = (r) => Number(/Max-Age=(\d+)/.exec(r.setCookie.find((c) => c.startsWith("at_session=")))?.[1]);
+  const expiresInHours = (cookie) => {
+    const [row] = d1(`SELECT expires_at FROM auth_sessions WHERE token_hash = '${tokenHash(cookie)}'`);
+    return (Date.parse(row.expires_at) - Date.now()) / 3600000;
+  };
+
+  it("unchecked keeps the 12-hour session", async () => {
+    const r = await login(BASE, DASHBOARD_PASSPHRASE, { remember_device: false });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.remembered, false);
+    assert.equal(maxAge(r), 12 * 3600);
+    const h = expiresInHours(r.cookie);
+    assert.ok(h > 11.9 && h <= 12, `expires in ${h} h`);
+  });
+
+  it("omitted or non-boolean values do not opt in", async () => {
+    for (const extra of [{}, { remember_device: "true" }, { remember_device: 1 }]) {
+      const r = await login(BASE, DASHBOARD_PASSPHRASE, extra);
+      assert.equal(maxAge(r), 12 * 3600, JSON.stringify(extra));
+    }
+  });
+
+  it("checked creates a 30-day session with the same hardened cookie", async () => {
+    const r = await login(BASE, DASHBOARD_PASSPHRASE, { remember_device: true });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.remembered, true);
+    assert.equal(r.body.read_only, true);
+    assert.equal(maxAge(r), 30 * 24 * 3600);
+    const days = expiresInHours(r.cookie) / 24;
+    assert.ok(days > 29.9 && days <= 30, `expires in ${days} days`);
+    const c = r.setCookie.find((x) => x.startsWith("at_session="));
+    for (const flag of ["HttpOnly", "Secure", "SameSite=Strict", "Path=/"]) assert.ok(c.includes(flag), flag);
+  });
+
+  it("does not remember a wrong passphrase or ADMIN_SECRET", async () => {
+    for (const p of ["definitely-wrong", ADMIN_SECRET]) {
+      const r = await login(BASE, p, { remember_device: true });
+      assert.equal(r.status, 401);
+      assert.equal(r.cookie, null);
+    }
+  });
+
+  it("a remembered session is still read-only", async () => {
+    const { cookie } = await login(BASE, DASHBOARD_PASSPHRASE, { remember_device: true });
+    assert.equal((await fetch(`${BASE}/api/dashboard?limit=1`, { headers: { cookie } })).status, 200);
+    for (const path of ["/engine/start", "/engine/stop", "/kill", "/kill/reset", "/api/risk/preview", "/api/dry-run/order", "/api/dry-run/reconcile"]) {
+      const r = await fetch(`${BASE}${path}`, { method: "POST", headers: { ...H, cookie }, body: "{}" });
+      assert.equal(r.status, 401, path);
+    }
+    for (const path of ["/api/broker/account", "/api/broker/positions", "/api/broker/price/SPY"]) {
+      assert.equal((await fetch(`${BASE}${path}`, { headers: { cookie } })).status, 401, path);
+    }
+    for (const path of ["/webhook", "/webhook/dry-run"]) {
+      const r = await fetch(`${BASE}${path}`, { method: "POST", headers: { ...H, cookie }, body: JSON.stringify({ id: `remember-probe-${path}`, symbol: "SPY", action: "buy", qty: 1 }) });
+      assert.ok([400, 401, 403].includes(r.status), `${path} ${r.status}`);
+    }
+  });
+
+  it("logout invalidates a remembered session", async () => {
+    const { cookie } = await login(BASE, DASHBOARD_PASSPHRASE, { remember_device: true });
+    const out = await fetch(`${BASE}/auth/logout`, { method: "POST", headers: { ...H, cookie } });
+    assert.equal(out.status, 200);
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM auth_sessions WHERE token_hash = '${tokenHash(cookie)}'`)[0].n, 0);
+    assert.equal((await fetch(`${BASE}/api/dashboard`, { headers: { cookie } })).status, 401);
+  });
+
+  it("an expired remembered session is rejected", async () => {
+    const { cookie } = await login(BASE, DASHBOARD_PASSPHRASE, { remember_device: true });
+    assert.equal((await fetch(`${BASE}/auth/session`, { headers: { cookie } })).status, 200);
+    d1(`UPDATE auth_sessions SET expires_at = '2000-01-01T00:00:00.000Z' WHERE token_hash = '${tokenHash(cookie)}'`);
+    assert.equal((await fetch(`${BASE}/auth/session`, { headers: { cookie } })).status, 401);
+    assert.equal((await fetch(`${BASE}/api/dashboard`, { headers: { cookie } })).status, 401);
   });
 });

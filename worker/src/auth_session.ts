@@ -7,6 +7,9 @@
 //   x-admin-secret header. It is never accepted by /auth/login, and the
 //   dashboard never sends, stores or compares it.
 //
+// "Remember this device" (remember_device: true) only lengthens the session from
+// 12 hours to 30 days. Permissions are identical: still read-only.
+//
 // A successful login sets an HttpOnly, Secure, SameSite=Strict session cookie
 // holding a random token; only its SHA-256 hash is stored in D1
 // (auth_sessions). The session is READ-ONLY: it unlocks GET /api/dashboard*
@@ -25,7 +28,9 @@ export interface AuthEnv {
 }
 
 export const SESSION_COOKIE = "at_session";
-const SESSION_HOURS = 12;
+// Normal session, and the opt-in "Remember this device" session. Both are read-only.
+export const SESSION_SECONDS = 12 * 3600;
+export const REMEMBERED_SESSION_SECONDS = 30 * 24 * 3600;
 const LOGIN_MAX_FAILURES = 5;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_BODY = 4096;
@@ -156,9 +161,12 @@ export async function handleAuth(request: Request, env: AuthEnv, pathname: strin
       return json({ ok: false, code: "PAYLOAD_TOO_LARGE", message: "Request too large" }, 413);
     }
     let passphrase = "";
+    let remember = false;
     try {
-      const body = JSON.parse(raw) as { passphrase?: unknown };
+      const body = JSON.parse(raw) as { passphrase?: unknown; remember_device?: unknown };
       passphrase = typeof body.passphrase === "string" ? body.passphrase : "";
+      // Only an explicit boolean true opts in to the longer session.
+      remember = body.remember_device === true;
     } catch {
       return json({ ok: false, code: "INVALID_JSON", message: "Body must be JSON" }, 400);
     }
@@ -170,7 +178,8 @@ export async function handleAuth(request: Request, env: AuthEnv, pathname: strin
 
     await writeFailures(env, ip, null);
     const now = new Date();
-    const expires = new Date(now.getTime() + SESSION_HOURS * 3600 * 1000);
+    const lifetime = remember ? REMEMBERED_SESSION_SECONDS : SESSION_SECONDS;
+    const expires = new Date(now.getTime() + lifetime * 1000);
     const token = newToken();
     await env.DB.prepare("DELETE FROM auth_sessions WHERE expires_at < ?").bind(now.toISOString()).run();
     await env.DB.prepare(
@@ -178,9 +187,9 @@ export async function handleAuth(request: Request, env: AuthEnv, pathname: strin
     ).bind(await hashToken(token), now.toISOString(), expires.toISOString(), now.toISOString(), ip).run();
 
     return json(
-      { ok: true, authenticated: true, read_only: true, expires_at: expires.toISOString() },
+      { ok: true, authenticated: true, read_only: true, remembered: remember, expires_at: expires.toISOString() },
       200,
-      { "Set-Cookie": sessionCookie(token, SESSION_HOURS * 3600) },
+      { "Set-Cookie": sessionCookie(token, lifetime) },
     );
   }
 
