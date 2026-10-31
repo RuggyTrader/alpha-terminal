@@ -332,8 +332,8 @@ npx wrangler pages project create alpha-terminal --production-branch main
 npx wrangler pages deploy dist --project-name alpha-terminal
 ```
 Or connect the Git repo in Cloudflare → Workers & Pages → Create → Pages: root `frontend`, build `npm run build`, output `dist`,
-environment variable `VITE_API_BASE_URL=https://api.mydomain.com`. `public/_redirects` gives SPA routing; `public/_headers` sets
-security headers.
+environment variable `VITE_API_BASE_URL=https://api.mydomain.com`. Pages serves `index.html` for unknown paths automatically (there is no `404.html`); `public/_headers`
+sets security headers. (v1.2.0 serves the dashboard from the Worker instead; see `worker/README.md`.)
 
 ## 23. Configuring the database
 Nothing to do: SQLite lives on the Fly volume at `/data/alpha_terminal.db` (`DATABASE_URL` in `fly.toml`). Fly takes daily volume
