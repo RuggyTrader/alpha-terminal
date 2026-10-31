@@ -6,6 +6,9 @@ interface Env {
   WEBHOOK_SECRET: string;
   ADMIN_SECRET: string;
 
+  ALPACA_KEY: string;
+  ALPACA_SECRET: string;
+
   ALLOWED_SYMBOLS: string;
   ALLOW_FRACTIONAL_QTY: string;
 
@@ -18,6 +21,9 @@ interface Env {
   SHORT_SELLING_ENABLED: string;
   DAILY_LOSS_LIMIT: string;
 }
+
+const ALPACA_PAPER_BASE = "https://paper-api.alpaca.markets";
+const ALPACA_DATA_BASE = "https://data.alpaca.markets";
 
 function json(data: unknown, status = 200): Response {
   return Response.json(data, { status });
@@ -49,10 +55,7 @@ async function requireAdmin(
 ): Promise<Response | null> {
   const supplied = request.headers.get("x-admin-secret");
 
-  if (
-    !supplied ||
-    !(await secureEqual(supplied, env.ADMIN_SECRET))
-  ) {
+  if (!supplied || !(await secureEqual(supplied, env.ADMIN_SECRET))) {
     return json(
       {
         ok: false,
@@ -86,6 +89,129 @@ async function getEngine(env: Env) {
     updated_at: string;
     updated_by: string | null;
   }>();
+}
+
+function alpacaHeaders(env: Env): HeadersInit {
+  return {
+    "APCA-API-KEY-ID": env.ALPACA_KEY,
+    "APCA-API-SECRET-KEY": env.ALPACA_SECRET,
+    Accept: "application/json",
+  };
+}
+
+type AlpacaResult =
+  | {
+      ok: true;
+      status: number;
+      data: unknown;
+    }
+  | {
+      ok: false;
+      status: number;
+      code: string;
+      message: string;
+    };
+
+async function alpacaGet(
+  env: Env,
+  url: string,
+  allow404 = false
+): Promise<AlpacaResult> {
+  if (!env.ALPACA_KEY || !env.ALPACA_SECRET) {
+    return {
+      ok: false,
+      status: 503,
+      code: "BROKER_NOT_CONFIGURED",
+      message: "Alpaca PAPER keys are not configured on the server",
+    };
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      method: "GET",
+      headers: alpacaHeaders(env),
+    });
+  } catch {
+    return {
+      ok: false,
+      status: 502,
+      code: "BROKER_UNAVAILABLE",
+      message: "Could not reach Alpaca PAPER",
+    };
+  }
+
+  if (allow404 && response.status === 404) {
+    return {
+      ok: true,
+      status: 404,
+      data: null,
+    };
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    return {
+      ok: false,
+      status: 502,
+      code: "BROKER_AUTH_FAILED",
+      message: "Alpaca PAPER rejected the API keys",
+    };
+  }
+
+  if (response.status === 429) {
+    return {
+      ok: false,
+      status: 502,
+      code: "BROKER_UNAVAILABLE",
+      message: "Alpaca PAPER rate limit reached",
+    };
+  }
+
+  if (response.status >= 500) {
+    return {
+      ok: false,
+      status: 502,
+      code: "BROKER_UNAVAILABLE",
+      message: "Alpaca PAPER returned a server error",
+    };
+  }
+
+  if (response.status >= 400) {
+    let message = "Alpaca PAPER rejected the request";
+
+    try {
+      const body = (await response.json()) as {
+        message?: string;
+      };
+
+      if (body?.message) {
+        message = String(body.message).slice(0, 500);
+      }
+    } catch {}
+
+    return {
+      ok: false,
+      status: 422,
+      code: "BROKER_REJECTED",
+      message,
+    };
+  }
+
+  try {
+    return {
+      ok: true,
+      status: response.status,
+      data: await response.json(),
+    };
+  } catch {
+    return {
+      ok: false,
+      status: 502,
+      code: "BROKER_UNAVAILABLE",
+      message: "Alpaca PAPER returned invalid JSON",
+    };
+  }
 }
 
 type ValidationResult =
@@ -525,14 +651,7 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    // ---------------------------------------------------------
-    // HEALTH
-    // ---------------------------------------------------------
-
-    if (
-      url.pathname === "/health" &&
-      request.method === "GET"
-    ) {
+    if (url.pathname === "/health" && request.method === "GET") {
       try {
         const db = await env.DB.prepare(
           "SELECT 1 AS ok"
@@ -544,10 +663,11 @@ export default {
           ok: true,
           service: "alpha-terminal-api",
           mode: "PAPER",
-          database:
-            db?.ok === 1 ? "connected" : "error",
-          enable_trading:
-            env.ENABLE_TRADING === "true",
+          database: db?.ok === 1 ? "connected" : "error",
+          enable_trading: env.ENABLE_TRADING === "true",
+          alpaca_configured: Boolean(
+            env.ALPACA_KEY && env.ALPACA_SECRET
+          ),
           engine,
         });
       } catch {
@@ -564,9 +684,107 @@ export default {
       }
     }
 
-    // ---------------------------------------------------------
-    // ADMIN ENGINE CONTROLS
-    // ---------------------------------------------------------
+    if (
+      request.method === "GET" &&
+      [
+        "/api/broker/account",
+        "/api/broker/positions",
+        "/api/broker/clock",
+      ].includes(url.pathname)
+    ) {
+      const authError = await requireAdmin(request, env);
+
+      if (authError) {
+        return authError;
+      }
+
+      let target: string;
+
+      if (url.pathname === "/api/broker/account") {
+        target = `${ALPACA_PAPER_BASE}/v2/account`;
+      } else if (url.pathname === "/api/broker/positions") {
+        target = `${ALPACA_PAPER_BASE}/v2/positions`;
+      } else {
+        target = `${ALPACA_PAPER_BASE}/v2/clock`;
+      }
+
+      const result = await alpacaGet(env, target);
+
+      if (!result.ok) {
+        return json(
+          {
+            ok: false,
+            status: "error",
+            code: result.code,
+            message: result.message,
+          },
+          result.status
+        );
+      }
+
+      return json({
+        ok: true,
+        status: "ok",
+        mode: "PAPER",
+        data: result.data,
+      });
+    }
+
+    if (
+      request.method === "GET" &&
+      url.pathname.startsWith("/api/broker/price/")
+    ) {
+      const authError = await requireAdmin(request, env);
+
+      if (authError) {
+        return authError;
+      }
+
+      const symbol = decodeURIComponent(
+        url.pathname.slice("/api/broker/price/".length)
+      )
+        .trim()
+        .toUpperCase();
+
+      if (!/^[A-Z][A-Z0-9.]{0,9}$/.test(symbol)) {
+        return json(
+          {
+            ok: false,
+            status: "rejected",
+            code: "INVALID_SYMBOL",
+            message: "invalid stock symbol",
+          },
+          400
+        );
+      }
+
+      const result = await alpacaGet(
+        env,
+        `${ALPACA_DATA_BASE}/v2/stocks/${encodeURIComponent(
+          symbol
+        )}/trades/latest?feed=iex`
+      );
+
+      if (!result.ok) {
+        return json(
+          {
+            ok: false,
+            status: "error",
+            code: result.code,
+            message: result.message,
+          },
+          result.status
+        );
+      }
+
+      return json({
+        ok: true,
+        status: "ok",
+        mode: "PAPER",
+        symbol,
+        data: result.data,
+      });
+    }
 
     if (
       request.method === "POST" &&
@@ -585,10 +803,6 @@ export default {
         url.pathname
       );
     }
-
-    // ---------------------------------------------------------
-    // WEBHOOK
-    // ---------------------------------------------------------
 
     if (
       url.pathname === "/webhook" &&
@@ -613,16 +827,11 @@ export default {
         );
       }
 
-      // ---------------- AUTH ----------------
-
       const secret = body.secret;
 
       if (
         typeof secret !== "string" ||
-        !(await secureEqual(
-          secret,
-          env.WEBHOOK_SECRET
-        ))
+        !(await secureEqual(secret, env.WEBHOOK_SECRET))
       ) {
         return json(
           {
@@ -635,8 +844,6 @@ export default {
         );
       }
 
-      // ---------------- ALERT ID ----------------
-
       const rawAlertId = body.id;
 
       let alertId: string;
@@ -646,9 +853,7 @@ export default {
         Number.isInteger(rawAlertId)
       ) {
         alertId = String(rawAlertId);
-      } else if (
-        typeof rawAlertId === "string"
-      ) {
+      } else if (typeof rawAlertId === "string") {
         alertId = rawAlertId.trim();
       } else {
         return json(
@@ -663,9 +868,7 @@ export default {
         );
       }
 
-      if (
-        !/^[\x21-\x7E]{1,128}$/.test(alertId)
-      ) {
+      if (!/^[\x21-\x7E]{1,128}$/.test(alertId)) {
         return json(
           {
             ok: false,
@@ -678,13 +881,8 @@ export default {
         );
       }
 
-      // ---------------- SANITIZE ----------------
-
       const sanitized = { ...body };
-
       delete sanitized.secret;
-
-      // ---------------- CLAIM ALERT ID ----------------
 
       try {
         await env.DB.prepare(
@@ -704,9 +902,7 @@ export default {
           .bind(
             alertId,
             now,
-            request.headers.get(
-              "cf-connecting-ip"
-            ),
+            request.headers.get("cf-connecting-ip"),
             typeof body.symbol === "string"
               ? body.symbol.slice(0, 32)
               : null,
@@ -716,10 +912,7 @@ export default {
             typeof body.strategy === "string"
               ? body.strategy.slice(0, 64)
               : null,
-            JSON.stringify(sanitized).slice(
-              0,
-              4000
-            )
+            JSON.stringify(sanitized).slice(0, 4000)
           )
           .run();
       } catch {
@@ -741,8 +934,7 @@ export default {
           await env.DB.prepare(
             `UPDATE alerts
              SET
-               duplicate_count =
-                 duplicate_count + 1,
+               duplicate_count = duplicate_count + 1,
                last_duplicate_at = ?
              WHERE alert_id = ?`
           )
@@ -757,10 +949,8 @@ export default {
               "Alert id already processed; no order submitted",
             alert_id: alertId,
             data: {
-              original_status:
-                existing.status,
-              original_code:
-                existing.response_code,
+              original_status: existing.status,
+              original_code: existing.response_code,
             },
           });
         }
@@ -770,17 +960,13 @@ export default {
             ok: false,
             status: "error",
             code: "DATABASE_ERROR",
-            message:
-              "Could not persist alert",
+            message: "Could not persist alert",
           },
           500
         );
       }
 
-      // ---------------- VALIDATION ----------------
-
-      const validation =
-        validateIntent(body, env);
+      const validation = validateIntent(body, env);
 
       if (!validation.ok) {
         await env.DB.prepare(
@@ -837,8 +1023,6 @@ export default {
         )
         .run();
 
-      // ---------------- ENGINE GATE ----------------
-
       const engine = await getEngine(env);
 
       if (engine?.kill_switch === 1) {
@@ -847,8 +1031,7 @@ export default {
            SET
              status = 'rejected',
              processed_at = ?,
-             response_code =
-               'KILL_SWITCH_ACTIVE',
+             response_code = 'KILL_SWITCH_ACTIVE',
              http_status = 403,
              rejection_reason =
                'Kill switch is active; new PAPER orders are blocked'
@@ -861,8 +1044,7 @@ export default {
           {
             ok: false,
             status: "rejected",
-            code:
-              "KILL_SWITCH_ACTIVE",
+            code: "KILL_SWITCH_ACTIVE",
             message:
               "Kill switch is active; new PAPER orders are blocked",
             alert_id: alertId,
@@ -871,17 +1053,13 @@ export default {
         );
       }
 
-      if (
-        !engine ||
-        engine.state === "STOPPED"
-      ) {
+      if (!engine || engine.state === "STOPPED") {
         await env.DB.prepare(
           `UPDATE alerts
            SET
              status = 'rejected',
              processed_at = ?,
-             response_code =
-               'ENGINE_STOPPED',
+             response_code = 'ENGINE_STOPPED',
              http_status = 403,
              rejection_reason =
                'Execution engine is STOPPED; no PAPER order submitted'
@@ -909,8 +1087,7 @@ export default {
            SET
              status = 'rejected',
              processed_at = ?,
-             response_code =
-               'ENGINE_PAUSED',
+             response_code = 'ENGINE_PAUSED',
              http_status = 403,
              rejection_reason =
                'Execution engine is PAUSED; no PAPER order submitted'
@@ -932,16 +1109,13 @@ export default {
         );
       }
 
-      if (
-        env.ENABLE_TRADING !== "true"
-      ) {
+      if (env.ENABLE_TRADING !== "true") {
         await env.DB.prepare(
           `UPDATE alerts
            SET
              status = 'rejected',
              processed_at = ?,
-             response_code =
-               'EXECUTION_DISABLED',
+             response_code = 'EXECUTION_DISABLED',
              http_status = 403,
              rejection_reason =
                'ENABLE_TRADING is false on the server'
@@ -954,8 +1128,7 @@ export default {
           {
             ok: false,
             status: "rejected",
-            code:
-              "EXECUTION_DISABLED",
+            code: "EXECUTION_DISABLED",
             message:
               "ENABLE_TRADING is false on the server",
             alert_id: alertId,
@@ -963,9 +1136,6 @@ export default {
           403
         );
       }
-
-      // Broker execution intentionally not ported yet.
-      // This migration stage stays PAPER-only and locked.
 
       await env.DB.prepare(
         `UPDATE alerts
@@ -986,8 +1156,7 @@ export default {
         {
           ok: false,
           status: "error",
-          code:
-            "BROKER_EXECUTION_NOT_IMPLEMENTED",
+          code: "BROKER_EXECUTION_NOT_IMPLEMENTED",
           message:
             "Validation passed, but broker execution is not enabled in this migration stage",
           alert_id: alertId,
@@ -995,10 +1164,6 @@ export default {
         503
       );
     }
-
-    // ---------------------------------------------------------
-    // NOT FOUND
-    // ---------------------------------------------------------
 
     return json(
       {
