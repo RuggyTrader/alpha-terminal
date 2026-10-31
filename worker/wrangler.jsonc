@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "alpha-terminal-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-30",
+
+  "vars": {
+    "ENABLE_TRADING": "false",
+    "ALLOWED_SYMBOLS": "SPY,QQQ,AAPL,NVDA",
+    "ALLOW_FRACTIONAL_QTY": "false",
+    "MAX_ORDER_QTY": "10",
+    "MAX_ORDER_NOTIONAL": "5000",
+    "MAX_POSITION_EXPOSURE": "10000",
+    "MAX_TOTAL_EXPOSURE": "25000",
+    "MAX_OPEN_POSITIONS": "5",
+    "SHORT_SELLING_ENABLED": "false",
+    "DAILY_LOSS_LIMIT": "2000"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "alpha-terminal-db",
+      "database_id": "40741873-0a98-4b23-b4e2-19ac8acec80c",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
