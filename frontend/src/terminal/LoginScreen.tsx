@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { ApiError } from "../api/client";
+import { Mark } from "../components/icons";
 import { login } from "./api";
+import { StatusBadge } from "./components/ui";
 
 function message(e: unknown): string {
   if (!(e instanceof ApiError)) return "Sign-in failed.";
@@ -47,12 +49,12 @@ export function LoginScreen({
     <div className="tlogin">
       <form className="tlogin-card" onSubmit={submit}>
         <div className="tlogin-brand">
-          <span className="th-logo" aria-hidden="true">α</span>
+          <Mark size={34} />
           <h1>ALPHA TERMINAL</h1>
         </div>
         <div className="tlogin-badges">
-          <span className="tb tb-info">PAPER</span>
-          <span className="tb tb-warn">DRY RUN</span>
+          <StatusBadge tone="info">PAPER DESK</StatusBadge>
+          <StatusBadge tone="warn">DRY RUN</StatusBadge>
         </div>
         <label htmlFor="pass">Dashboard passphrase</label>
         <input
@@ -64,7 +66,7 @@ export function LoginScreen({
           autoFocus
         />
         {error ? <p className="tlogin-err" role="alert">{error}</p> : null}
-        <button type="submit" className="tbtn tbtn-primary" disabled={busy || !pass}>
+        <button type="submit" className="btn btn-primary" disabled={busy || !pass}>
           {busy ? "Signing in…" : "Sign in"}
         </button>
         <p className="tlogin-note">

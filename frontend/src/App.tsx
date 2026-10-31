@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, onUnauthorized } from "./api/client";
+import { Mark } from "./components/icons";
 import { checkSession } from "./terminal/api";
 import { LoginScreen } from "./terminal/LoginScreen";
 import { Terminal } from "./terminal/Terminal";
@@ -30,7 +31,7 @@ export function App() {
   if (auth === "checking") {
     return (
       <div className="tsplash" aria-label="Loading">
-        <span className="th-logo">α</span>
+        <Mark size={44} />
       </div>
     );
   }

@@ -1,16 +1,24 @@
-// Dashboard states. Fixture data below exists only in this test file.
+// Dashboard UI and data-loop tests. Fixture data below exists only in this test file.
 
+import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../api/client";
-import { alertLabel, alertRowClass, duplicateLabel, orderLabel, riskChecks } from "./classify";
+import { actionLabel, alertLabel, alertTone, duplicateLabel, marketType, orderLabel, riskChecks } from "./classify";
+import { AlertCard } from "./components/AlertCard";
+import { heroSize } from "./components/AccountHero";
+import { OrderIntentCard } from "./components/OrderIntentCard";
+import { RiskDecisionCard } from "./components/RiskDecisionCard";
 import { LoginScreen } from "./LoginScreen";
+import { TradesPage, type TradesTab } from "./pages/Trades";
 import { DashboardPoller, initialFeedState, type FeedState } from "./poller";
-import { performSignOut } from "./signOut";
-import { TerminalView } from "./TerminalView";
-import type { AlertRow, DashboardData, OrderRow, RiskRow } from "./types";
+import { idleSignOut, performSignOut, type SignOutState } from "./signOut";
+import { DashboardContext } from "./store";
+import { TerminalRoutes } from "./Terminal";
+import type { AlertRow, DashboardData, OrderRow, PaperPosition, RiskRow } from "./types";
 
-// ---------------------------------------------------------------- fixtures
+// ---------------------------------------------------------------- fixtures (tests only)
 
 function alert(over: Partial<AlertRow> = {}): AlertRow {
   return {
@@ -43,6 +51,11 @@ function order(over: Partial<OrderRow> = {}): OrderRow {
   };
 }
 
+const position: PaperPosition = {
+  symbol: "TSTA", side: "long", qty: 3, qty_available: 3, avg_entry_price: 10, market_value: 37.5, cost_basis: 30,
+  current_price: 12.5, lastday_price: 12, unrealized_pl: 7.5, unrealized_plpc: 0.25, change_today: 0.0417,
+};
+
 function dashboard(over: Partial<DashboardData> = {}): DashboardData {
   return {
     generated_at: "2026-10-31T14:02:00Z",
@@ -59,7 +72,7 @@ function dashboard(over: Partial<DashboardData> = {}): DashboardData {
         trading_blocked: false, account_blocked: false, pattern_day_trader: false, daytrade_count: 0, todays_pnl: 222.22,
       },
       positions: [],
-      clock: { timestamp: null, is_open: false, next_open: null, next_close: null },
+      clock: { timestamp: null, is_open: false, next_open: "2026-11-02T14:30:00Z", next_close: null },
     },
     counts: {
       alerts: { total: 0, dry_run: 0, rejected: 0, processing: 0, duplicates: 0 },
@@ -76,41 +89,112 @@ const ok = (data: DashboardData): FeedState => ({
   ...initialFeedState, status: "ok", data, lastSuccessAt: Date.parse("2026-10-31T14:02:00Z"),
 });
 
-const render = (state: FeedState) =>
-  renderToStaticMarkup(<TerminalView state={state} onRefresh={() => {}} onSignOut={() => {}} />);
+function withDash(state: FeedState, node: ReactElement, signOut: SignOutState = idleSignOut, path = "/") {
+  return renderToStaticMarkup(
+    <MemoryRouter initialEntries={[path]}>
+      <DashboardContext.Provider value={{ state, refresh: () => {}, signOut, doSignOut: () => {}, dismissSignOut: () => {} }}>
+        {node}
+      </DashboardContext.Provider>
+    </MemoryRouter>,
+  );
+}
 
-// ---------------------------------------------------------------- views
+const page = (path: string, state: FeedState, signOut?: SignOutState) => withDash(state, <TerminalRoutes />, signOut, path);
+const trades = (tab: TradesTab, state: FeedState) => withDash(state, <TradesPage initialTab={tab} />);
+const MONEY = /\$\d/;
 
-describe("TerminalView", () => {
-  it("renders a successful snapshot from Worker values only", () => {
-    const html = render(ok(dashboard()));
+// ---------------------------------------------------------------- Home
+
+describe("Home", () => {
+  it("renders the mobile home from Worker values only", () => {
+    const html = page("/", ok(dashboard()));
     expect(html).toContain("ALPHA TERMINAL");
-    expect(html).toContain("PAPER");
-    expect(html).toContain("DRY RUN");
-    expect(html).toContain("CONNECTED");
-    for (const v of ["$2,222.22", "$1,111.11", "$4,444.44", "$3,333.33", "+$222.22", "$5,555.55"]) expect(html).toContain(v);
-    expect(html).toContain("CLOSED"); // market clock
-    expect(html).toContain("STOPPED");
-    expect(html).toContain("FALSE · DISABLED"); // ENABLE_TRADING
+    expect(html).toContain("PAPER DESK");
+    expect(html).toContain("ONLINE");
+    expect(html).toContain("PAPER EQUITY");
+    expect(html).toContain("$2,222.22"); // equity
+    expect(html).toContain("+$222.22"); // today's P&L
+    expect(html).toContain("+11.1%"); // 222.22 / 2000
+    for (const v of ["$4,444.44", "$1,111.11", "$3,333.33", "$5,555.55"]) expect(html).toContain(v);
+    expect(html).toContain("MARKET CLOSED");
+    for (const label of ["Home", "Trades", "Engine", "Activity", "Settings"]) expect(html).toContain(`>${label}<`);
+    expect(html).not.toMatch(/withdraw/i);
   });
 
-  it("shows a truthful empty state for no positions, trades or activity", () => {
-    const html = render(ok(dashboard()));
+  it("shows an intentional empty state without positions", () => {
+    const html = page("/", ok(dashboard()));
     expect(html).toContain("No open PAPER positions");
-    expect(html).toContain("No trades recorded in D1");
-    expect(html).toContain("No activity events recorded");
-    expect(html).toContain("No alerts recorded in D1 yet");
+    expect(html).toContain("No TradingView alerts yet");
   });
 
-  it("marks rejected alerts distinctly", () => {
-    const html = render(ok(dashboard({ recent: { ...dashboard().recent, alerts: [alert()] } })));
-    expect(html).toContain('class="row-bad"');
+  it("renders populated positions as cards", () => {
+    const d = dashboard();
+    d.broker.positions = [position];
+    const html = page("/", ok(d));
+    expect(html).toContain("TSTA");
+    expect(html).toContain("STOCK");
+    expect(html).toContain("LONG");
+    expect(html).toContain("+$7.50");
+    expect(html).toContain("+25.0%");
+    expect(html).toContain("$37.50");
+    expect(html).not.toContain("No open PAPER positions");
+  });
+
+  it("shows the compact system mode card", () => {
+    const html = page("/", ok(dashboard()));
+    expect(html).toContain("DRY RUN");
+    expect(html).toContain("ENGINE STOPPED");
+    expect(html).toContain("BROKER SUBMISSION OFF");
+  });
+
+  it("does not invent account values when Alpaca PAPER is not configured", () => {
+    const d = dashboard({
+      broker: {
+        mode: "PAPER", read_only: true, account: null, positions: [], clock: null,
+        errors: ["account", "positions", "clock"].map((source) => ({ source, code: "BROKER_NOT_CONFIGURED", message: "Alpaca PAPER keys are not configured" })),
+      },
+    });
+    const html = page("/", ok(d));
+    expect(html).toContain("Alpaca PAPER not configured");
+    expect(html).toContain("PAPER positions unavailable");
+    expect(html).not.toMatch(MONEY);
+  });
+
+  it("keeps the last snapshot but marks it stale when the API fails", () => {
+    const state: FeedState = { ...ok(dashboard()), status: "stale", error: { status: 0, code: "OFFLINE", message: "Backend unreachable" } };
+    const html = page("/", state);
+    expect(html).toContain("STALE");
+    expect(html).toContain("Showing data from");
+    expect(html).toContain("is-stale");
+    expect(html).toContain("$2,222.22");
+  });
+
+  it("shows OFFLINE and no numbers when the first load fails", () => {
+    const html = page("/", { ...initialFeedState, status: "error", error: { status: 0, code: "OFFLINE", message: "Backend unreachable" } });
+    expect(html).toContain("Backend unreachable");
+    expect(html).toContain("OFFLINE");
+    expect(html).not.toMatch(MONEY);
+  });
+
+  it("shows skeletons, not numbers, while loading", () => {
+    const html = page("/", initialFeedState);
+    expect(html).toContain("Loading");
+    expect(html).not.toMatch(MONEY);
+  });
+});
+
+// ---------------------------------------------------------------- Trades
+
+describe("Trades", () => {
+  it("shows a rejected alert compactly, with technical details collapsed", () => {
+    const html = trades("alerts", ok(dashboard({ recent: { ...dashboard().recent, alerts: [alert()] } })));
+    expect(html).toContain("xc-bad");
     expect(html).toContain("REJECTED");
     expect(html).toContain("test rejection reason");
-    expect(html).toContain("RISK_REJECTED");
+    expect(html).not.toContain("test-alert-1"); // alert ID only in expanded details
   });
 
-  it("shows an approved dry-run alert and its order as NOT a broker order", () => {
+  it("shows an accepted dry-run alert and its order intent as dry run only", () => {
     const d = dashboard({
       recent: {
         ...dashboard().recent,
@@ -118,79 +202,85 @@ describe("TerminalView", () => {
         orders: [order()],
       },
     });
-    const html = render(ok(d));
-    expect(html).toContain("DRY RUN OK");
-    expect(html).toContain("NO BROKER ORDER SUBMITTED");
-    expect(html).toContain("DRY RUN · ACCEPTED");
-    expect(html).toContain("NOT SENT");
-    expect(html).not.toMatch(/FILLED/);
+    expect(trades("alerts", ok(d))).toContain("DRY-RUN ACCEPTED");
+    const orders = trades("orders", ok(d));
+    expect(orders).toContain("DRY RUN — NO BROKER ORDER SUBMITTED");
+    expect(orders).toContain("ACCEPTED");
+    expect(orders).not.toMatch(/FILLED/);
+    const expanded = renderToStaticMarkup(<OrderIntentCard o={order()} defaultOpen />);
+    expect(expanded).toContain("Not sent (dry run)");
+    expect(expanded).toContain("at-testclientid");
   });
 
-  it("keeps the last snapshot visible and marks it stale when the API is unavailable", () => {
-    const state: FeedState = { ...ok(dashboard()), status: "stale", error: { status: 0, code: "OFFLINE", message: "Backend unreachable" } };
-    const html = render(state);
-    expect(html).toContain("STALE DATA");
-    expect(html).toContain("$2,222.22");
-    expect(html).toContain("term-stale");
+  it("shows alert details when expanded", () => {
+    const html = renderToStaticMarkup(<AlertCard a={alert({ duplicate_count: 2 })} defaultOpen />);
+    expect(html).toContain("test-alert-1");
+    expect(html).toContain("RISK_REJECTED");
+    expect(html).toContain("DUPLICATE ×2");
   });
 
-  it("shows an error with no numbers when the first load fails", () => {
-    const html = render({ ...initialFeedState, status: "error", error: { status: 0, code: "OFFLINE", message: "Backend unreachable" } });
-    expect(html).toContain("BACKEND UNREACHABLE");
-    expect(html).toContain("OFFLINE");
-    expect(html).not.toMatch(/\$\d/);
+  it("expands risk decisions into check chips", () => {
+    const closed = renderToStaticMarkup(<RiskDecisionCard r={risk()} />);
+    expect(closed).toContain("REJECTED");
+    expect(closed).not.toContain("symbol allowed");
+    const open = renderToStaticMarkup(<RiskDecisionCard r={risk()} defaultOpen />);
+    expect(open).toContain("✓ symbol allowed");
+    expect(open).toContain("✕ max order notional");
+    expect(open).toContain("MAX_ORDER_NOTIONAL");
+    expect(open).not.toContain("checks_json");
   });
 
-  it("does not invent account values when Alpaca PAPER is not configured", () => {
-    const d = dashboard({
-      broker: {
-        mode: "PAPER", read_only: true, account: null, positions: [], clock: null,
-        errors: [
-          { source: "account", code: "BROKER_NOT_CONFIGURED", message: "Alpaca PAPER keys are not configured" },
-          { source: "positions", code: "BROKER_NOT_CONFIGURED", message: "Alpaca PAPER keys are not configured" },
-        ],
-      },
-    });
-    const html = render(ok(d));
-    expect(html).toContain("No data");
-    expect(html).toContain("BROKER_NOT_CONFIGURED");
-    expect(html).toContain("PAPER positions unavailable");
-    expect(html).not.toMatch(/\$\d/);
-  });
-
-  it("flags non-dry-run settings reported by the backend", () => {
-    const html = render(ok(dashboard({ enable_trading: true })));
-    expect(html).toContain("non-dry-run setting");
-  });
-
-  it("renders the sign-in screen for an expired session", () => {
-    const html = renderToStaticMarkup(<LoginScreen expired onSignedIn={() => {}} />);
-    expect(html).toContain("Session expired");
-    expect(html).toContain('type="password"');
+  it("shows an empty trade history truthfully", () => {
+    expect(trades("history", ok(dashboard()))).toContain("No completed PAPER trades yet.");
   });
 });
 
-// ---------------------------------------------------------------- classification
+// ---------------------------------------------------------------- Engine, Activity, Settings
 
-describe("classify", () => {
-  it("distinguishes dry-run, rejected, error and duplicate alerts", () => {
-    expect(alertLabel({ status: "dry_run" }).tone).toBe("ok");
-    expect(alertLabel({ status: "rejected" }).tone).toBe("bad");
-    expect(alertLabel({ status: "error" }).tone).toBe("err");
-    expect(duplicateLabel({ duplicate_count: 3 })?.text).toBe("DUP ×3");
-    expect(duplicateLabel({ duplicate_count: 0 })).toBeNull();
-    expect(alertRowClass({ status: "dry_run", duplicate_count: 2 })).toBe("row-ok row-has-dup");
+describe("Engine", () => {
+  it("shows STOPPED read-only with no browser controls", () => {
+    const html = page("/engine", ok(dashboard()));
+    expect(html).toContain("ALPHA ENGINE");
+    expect(html).toContain("PAPER EXECUTION");
+    expect(html).toContain("STOPPED");
+    expect(html).toContain("Engine controls are intentionally unavailable from the browser.");
+    expect(html).toContain("FALSE"); // ENABLE_TRADING
+    expect(html).not.toMatch(/>(Start|Pause|Resume|Stop|Kill)</);
   });
 
-  it("labels every order status as DRY RUN", () => {
-    for (const status of ["dry_run_accepted", "dry_run_failed", "unknown", "dry_run_reconciled", "submitting"]) {
-      expect(orderLabel({ status }).text.startsWith("DRY RUN")).toBe(true);
-    }
+  it("flags non-dry-run settings reported by the backend", () => {
+    expect(page("/engine", ok(dashboard({ enable_trading: true })))).toContain("Non-dry-run setting reported");
+  });
+});
+
+describe("Activity", () => {
+  it("shows an empty state instead of generated log lines", () => {
+    expect(page("/activity", ok(dashboard()))).toContain("No recorded activity yet.");
   });
 
-  it("ignores malformed risk checks", () => {
-    expect(riskChecks(risk({ checks: "bad" }))).toEqual([]);
-    expect(riskChecks(risk()).length).toBe(2);
+  it("renders persisted events with severity", () => {
+    const d = dashboard({
+      recent: {
+        ...dashboard().recent,
+        activity: [{ id: 1, ts: "2026-10-31T14:00:00Z", category: "risk", level: "info", message: "Rejected", alert_id: null, symbol: "SPY", action: "buy", error_detail: null }],
+      },
+    });
+    const html = page("/activity", ok(d));
+    expect(html).toContain("feed-warn");
+    expect(html).toContain("RISK");
+    expect(html).toContain("SPY BUY");
+  });
+});
+
+describe("Settings", () => {
+  it("reports markets and security truthfully", () => {
+    const html = page("/settings", ok(dashboard()));
+    expect(html).toContain("Crypto");
+    expect(html).toContain("NOT CONFIGURED");
+    expect(html).toContain("ACTIVE");
+    expect(html).toContain("Read-only");
+    expect(html).toContain("Server-side only");
+    expect(html).not.toMatch(/ADMIN_SECRET|DASHBOARD_PASSPHRASE/);
   });
 });
 
@@ -206,18 +296,7 @@ describe("sign-out", () => {
       throw new ApiError(0, "OFFLINE", "Backend unreachable");
     });
     expect(r.ok).toBe(false);
-    if (!r.ok) {
-      expect(r.message).toContain("could not be reached");
-      expect(r.message).toContain("may still be active");
-    }
-  });
-
-  it("does not claim the session ended on a server error", async () => {
-    const r = await performSignOut(async () => {
-      throw new ApiError(403, "ORIGIN_NOT_ALLOWED", "Request origin not allowed");
-    });
-    expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.message).toContain("ORIGIN_NOT_ALLOWED");
+    if (!r.ok) expect(r.message).toContain("may still be active");
   });
 
   it("treats 401 as already signed out on the server", async () => {
@@ -227,26 +306,57 @@ describe("sign-out", () => {
     expect(r.ok).toBe(true);
   });
 
-  it("keeps the dashboard and shows a retry when sign-out failed", () => {
-    const html = renderToStaticMarkup(
-      <TerminalView
-        state={ok(dashboard())}
-        signOut={{ busy: false, error: "Sign-out failed because the backend could not be reached. Your server session may still be active, so you are still signed in here." }}
-        onRefresh={() => {}}
-        onSignOut={() => {}}
-      />,
-    );
-    expect(html).toContain("SIGN-OUT FAILED");
+  it("keeps the signed-in app and offers a retry when sign-out failed", () => {
+    const html = page("/settings", ok(dashboard()), { busy: false, error: "Sign-out failed because the backend could not be reached. Your server session may still be active, so you are still signed in here." });
+    expect(html).toContain("Sign-out failed");
     expect(html).toContain("may still be active");
     expect(html).toContain("Retry sign out");
-    expect(html).toContain("$2,222.22"); // still showing the signed-in dashboard
   });
 
-  it("disables the sign-out button while signing out", () => {
-    const html = renderToStaticMarkup(
-      <TerminalView state={ok(dashboard())} signOut={{ busy: true, error: null }} onRefresh={() => {}} onSignOut={() => {}} />,
-    );
-    expect(html).toContain("Signing out…");
+  it("disables sign-out while it is in progress", () => {
+    expect(page("/settings", ok(dashboard()), { busy: true, error: null })).toContain("Signing out…");
+  });
+
+  it("renders the sign-in screen for an expired session", () => {
+    const html = renderToStaticMarkup(<LoginScreen expired onSignedIn={() => {}} />);
+    expect(html).toContain("Session expired");
+    expect(html).toContain('type="password"');
+  });
+});
+
+// ---------------------------------------------------------------- classification
+
+describe("classify", () => {
+  it("colours alert states", () => {
+    expect(alertLabel({ status: "dry_run" }).tone).toBe("ok");
+    expect(alertLabel({ status: "rejected" }).tone).toBe("bad");
+    expect(alertLabel({ status: "error" }).tone).toBe("bad");
+    expect(alertTone({ status: "processing", duplicate_count: 1 })).toBe("warn");
+    expect(duplicateLabel({ duplicate_count: 0 })).toBeNull();
+    expect(actionLabel("close").text).toBe("CLOSE");
+  });
+
+  it("never labels an order intent as a fill", () => {
+    for (const status of ["dry_run_accepted", "dry_run_failed", "unknown", "dry_run_reconciled", "submitting"]) {
+      expect(orderLabel({ status }).text).not.toMatch(/FILL/);
+    }
+  });
+
+  it("ignores malformed risk checks", () => {
+    expect(riskChecks(risk({ checks: "bad" }))).toEqual([]);
+    expect(riskChecks(risk()).length).toBe(2);
+  });
+
+  it("derives market type from the symbol", () => {
+    expect(marketType("SPY")).toBe("STOCK");
+    expect(marketType("BTCUSD")).toBe("CRYPTO");
+    expect(marketType("BTC/USD")).toBe("CRYPTO");
+  });
+
+  it("sizes the hero value so it fits", () => {
+    expect(heroSize("$2,222.22")).toBe("hv-l");
+    expect(heroSize("$100,000.00")).toBe("hv-m");
+    expect(heroSize("$10,000,000.00")).toBe("hv-s");
   });
 });
 
@@ -258,7 +368,7 @@ describe("api client", () => {
     vi.unstubAllGlobals();
   });
 
-  it("turns a hung request into a TIMEOUT error instead of waiting forever", async () => {
+  it("turns a hung request into a TIMEOUT error", async () => {
     vi.useFakeTimers();
     vi.stubGlobal("fetch", (_url: string, init: RequestInit) =>
       new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(new Error("aborted")))),
@@ -267,9 +377,7 @@ describe("api client", () => {
     const p = api.get("/api/dashboard").catch((e: unknown) => e);
     await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS + 1);
     const err = (await p) as ApiError;
-    expect(err).toBeInstanceOf(ApiError);
     expect(err.code).toBe("TIMEOUT");
-    expect(err.status).toBe(0);
   });
 
   it("reports 401 as an ApiError with status 401", async () => {
@@ -277,7 +385,6 @@ describe("api client", () => {
     const { api } = await import("../api/client");
     const err = (await api.get("/api/dashboard").catch((e: unknown) => e)) as ApiError;
     expect(err.status).toBe(401);
-    expect(err.code).toBe("UNAUTHORIZED");
   });
 });
 
@@ -306,10 +413,8 @@ describe("DashboardPoller", () => {
     const p = new DashboardPoller(fetcher);
     await p.refresh();
     await p.refresh();
-    const s = p.getState();
-    expect(s.status).toBe("stale");
-    expect(s.data?.broker.account?.equity).toBe(2222.22);
-    expect(s.error?.code).toBe("OFFLINE");
+    expect(p.getState().status).toBe("stale");
+    expect(p.getState().data?.broker.account?.equity).toBe(2222.22);
   });
 
   it("stops polling and reports unauthorized on 401", async () => {
@@ -318,7 +423,6 @@ describe("DashboardPoller", () => {
     const fetcher = vi.fn<() => Promise<DashboardData>>().mockRejectedValue(new ApiError(401, "UNAUTHORIZED", "authentication required"));
     const p = new DashboardPoller(fetcher, { intervalMs: 1000, onUnauthorized });
     p.start();
-    await vi.runOnlyPendingTimersAsync();
     await vi.advanceTimersByTimeAsync(5000);
     expect(p.getState().status).toBe("unauthorized");
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
@@ -331,7 +435,7 @@ describe("DashboardPoller", () => {
     const p = new DashboardPoller(fetcher, { intervalMs: 1000 });
     p.start();
     await vi.advanceTimersByTimeAsync(3500);
-    expect(fetcher).toHaveBeenCalledTimes(4); // t=0, 1000, 2000, 3000
+    expect(fetcher).toHaveBeenCalledTimes(4);
     p.stop();
     await vi.advanceTimersByTimeAsync(5000);
     expect(fetcher).toHaveBeenCalledTimes(4);

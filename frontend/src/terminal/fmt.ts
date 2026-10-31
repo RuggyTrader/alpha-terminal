@@ -41,3 +41,36 @@ export function text(v: string | null | undefined): string {
 export function upper(v: string | null | undefined): string {
   return v ? v.toUpperCase() : NA;
 }
+
+function parse(iso: string | null | undefined): Date | null {
+  if (!iso) return null;
+  const v = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(iso) ? `${iso.replace(" ", "T")}Z` : iso;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** "12:22" today, otherwise "Oct 31 · 12:22". */
+export function when(iso: string | null | undefined): string {
+  const d = parse(iso);
+  if (!d) return NA;
+  const t = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return t;
+  return `${d.toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${t}`;
+}
+
+/** "12:22:01" for feeds. */
+export function hms(iso: string | null | undefined): string {
+  const d = parse(iso);
+  return d ? `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` : NA;
+}
+
+/** Today's P&L as a percentage of yesterday's close equity; null when it cannot be computed. */
+export function todayPct(todaysPnl: number | null | undefined, lastEquity: number | null | undefined): number | null {
+  const p = num(todaysPnl ?? null);
+  const base = num(lastEquity ?? null);
+  if (p === null || base === null || base <= 0) return null;
+  return (p / base) * 100;
+}
+
+export { pct, num };

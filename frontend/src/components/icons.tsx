@@ -7,6 +7,10 @@ const PATHS = {
   back: "M15 5l-7 7 7 7",
   chevron: "M9 6l6 6-6 6",
   close: "M6 6l12 12M18 6 6 18",
+  refresh: "M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5",
+  logout: "M14 4h4.5a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1-1.5 1.5H14M10 8l-4 4 4 4M6 12h10",
+  shield: "M12 3 5 6v5.5c0 4.3 3 8 7 9.5 4-1.5 7-5.2 7-9.5V6z",
+  check: "M5 12.5l4.5 4.5L19 7.5",
 } as const;
 
 export type IconName = keyof typeof PATHS;

@@ -1,31 +1,35 @@
-import { useState } from "react";
-import { logout } from "./api";
-import { idleSignOut, performSignOut, type SignOutState } from "./signOut";
-import { TerminalView } from "./TerminalView";
-import { useDashboard } from "./useDashboard";
+import type { ReactNode } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AppShell } from "./AppShell";
+import { ActivityPage } from "./pages/Activity";
+import { EnginePage } from "./pages/Engine";
+import { HomePage } from "./pages/Home";
+import { SettingsPage } from "./pages/Settings";
+import { TradesPage } from "./pages/Trades";
+import { DashboardProvider } from "./store";
+
+/** Page routes, shared by the app and tests (tests supply their own router). */
+export function TerminalRoutes(): ReactNode {
+  return (
+    <AppShell>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/trades" element={<TradesPage />} />
+        <Route path="/engine" element={<EnginePage />} />
+        <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AppShell>
+  );
+}
 
 export function Terminal({ onSignedOut, onExpired }: { onSignedOut: () => void; onExpired: () => void }) {
-  const { state, refresh } = useDashboard(onExpired);
-  const [signOut, setSignOut] = useState<SignOutState>(idleSignOut);
-
-  const doSignOut = async () => {
-    if (signOut.busy) return;
-    setSignOut({ busy: true, error: null });
-    const result = await performSignOut(logout);
-    if (result.ok) {
-      onSignedOut();
-    } else {
-      setSignOut({ busy: false, error: result.message });
-    }
-  };
-
   return (
-    <TerminalView
-      state={state}
-      signOut={signOut}
-      onRefresh={refresh}
-      onSignOut={() => void doSignOut()}
-      onDismissSignOutError={() => setSignOut(idleSignOut)}
-    />
+    <BrowserRouter>
+      <DashboardProvider onSignedOut={onSignedOut} onExpired={onExpired}>
+        <TerminalRoutes />
+      </DashboardProvider>
+    </BrowserRouter>
   );
 }

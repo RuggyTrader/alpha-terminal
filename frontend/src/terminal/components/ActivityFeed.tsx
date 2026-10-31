@@ -1,35 +1,32 @@
-import { levelTone } from "../classify";
-import { stamp } from "../fmt";
+import { activityTone } from "../classify";
+import { hms } from "../fmt";
 import type { ActivityRow } from "../types";
-import { Empty, Panel, SkeletonRows } from "./primitives";
+import { EmptyState } from "./ui";
 
-export function ActivityFeed({ rows, loading }: { rows: ActivityRow[] | null; loading: boolean }) {
+/** Rounded feed of persisted activity_events only. Nothing is generated client-side. */
+export function ActivityFeed({ rows, limit }: { rows: ActivityRow[]; limit?: number }) {
+  const list = limit ? rows.slice(0, limit) : rows;
+  if (list.length === 0) {
+    return <EmptyState title="No recorded activity yet.">Events appear here once the Worker records them.</EmptyState>;
+  }
   return (
-    <Panel title="Activity / system log" meta="D1 activity_events" className="tp-log">
-      {rows === null ? (
-        loading ? <SkeletonRows rows={4} /> : <Empty>No data</Empty>
-      ) : rows.length === 0 ? (
-        <Empty>No activity events recorded</Empty>
-      ) : (
-        <ol className="tl" aria-label="Activity log">
-          {rows.map((e) => {
-            const t = levelTone(e.level);
-            const ctx = [e.symbol, e.action?.toUpperCase(), e.alert_id].filter(Boolean).join(" ");
-            return (
-              <li key={e.id} className={`tl-row tl-${t}`}>
-                <span className="tl-ts">{stamp(e.ts)}</span>
-                <span className="tl-lvl">{(e.level || "info").toUpperCase().padEnd(5, " ")}</span>
-                <span className="tl-cat">{(e.category || "-").toUpperCase()}</span>
-                <span className="tl-msg">
-                  {e.message}
-                  {ctx ? <span className="tl-ctx"> [{ctx}]</span> : null}
-                  {e.error_detail ? <span className="tl-err"> — {e.error_detail}</span> : null}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-      )}
-    </Panel>
+    <ol className="feed" aria-label="Activity">
+      {list.map((e) => {
+        const ctx = [e.symbol, e.action?.toUpperCase()].filter(Boolean).join(" ");
+        return (
+          <li key={e.id} className={`feed-item feed-${activityTone(e)}`}>
+            <div className="feed-meta">
+              <span className="feed-time">{hms(e.ts)}</span>
+              <span className="feed-cat">{(e.category || "system").toUpperCase()}</span>
+            </div>
+            <div className="feed-msg">
+              {ctx ? <b>{ctx} </b> : null}
+              {e.message}
+              {e.error_detail ? <span className="feed-err"> — {e.error_detail}</span> : null}
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
