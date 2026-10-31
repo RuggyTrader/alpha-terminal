@@ -9,6 +9,14 @@ import {
 } from "./webhook_dry_run";
 
 import {
+  handleDashboardApi,
+} from "./dashboard_api";
+
+import {
+  handleAuth,
+} from "./auth_session";
+
+import {
   alpacaGet,
   runRiskEvaluation,
   saveRiskDecision,
@@ -215,10 +223,6 @@ async function handleEngineControl(
     );
   }
 
-  // ----------------------------------------------------------
-  // KILL
-  // ----------------------------------------------------------
-
   if (
     pathname ===
     "/kill"
@@ -259,10 +263,6 @@ async function handleEngineControl(
     });
   }
 
-  // ----------------------------------------------------------
-  // RESET KILL
-  // ----------------------------------------------------------
-
   if (
     pathname ===
     "/kill/reset"
@@ -299,10 +299,6 @@ async function handleEngineControl(
         ),
     });
   }
-
-  // ----------------------------------------------------------
-  // START
-  // ----------------------------------------------------------
 
   if (
     pathname ===
@@ -384,10 +380,6 @@ async function handleEngineControl(
       .run();
   }
 
-  // ----------------------------------------------------------
-  // PAUSE
-  // ----------------------------------------------------------
-
   if (
     pathname ===
     "/engine/pause"
@@ -425,10 +417,6 @@ async function handleEngineControl(
       .bind(now)
       .run();
   }
-
-  // ----------------------------------------------------------
-  // RESUME
-  // ----------------------------------------------------------
 
   if (
     pathname ===
@@ -488,10 +476,6 @@ async function handleEngineControl(
       .bind(now)
       .run();
   }
-
-  // ----------------------------------------------------------
-  // STOP
-  // ----------------------------------------------------------
 
   if (
     pathname ===
@@ -1347,9 +1331,6 @@ export default {
 
     // ========================================================
     // FULL TRADINGVIEW DRY-RUN WEBHOOK
-    //
-    // Uses shared trade_core.ts.
-    // No broker POST.
     // ========================================================
 
     if (
@@ -1366,9 +1347,6 @@ export default {
 
     // ========================================================
     // MAIN TRADINGVIEW WEBHOOK
-    //
-    // Uses the SAME shared validator and PAPER risk engine.
-    // Still has NO Alpaca order-submission implementation.
     // ========================================================
 
     if (
@@ -1380,10 +1358,6 @@ export default {
       const now =
         new Date()
           .toISOString();
-
-      // ------------------------------------------------------
-      // JSON
-      // ------------------------------------------------------
 
       let body:
         Record<
@@ -1417,10 +1391,6 @@ export default {
         );
       }
 
-      // ------------------------------------------------------
-      // WEBHOOK SECRET
-      // ------------------------------------------------------
-
       const secret =
         body.secret;
 
@@ -1448,10 +1418,6 @@ export default {
           401
         );
       }
-
-      // ------------------------------------------------------
-      // ALERT ID
-      // ------------------------------------------------------
 
       const rawAlertId =
         body.id;
@@ -1517,19 +1483,11 @@ export default {
         );
       }
 
-      // ------------------------------------------------------
-      // NEVER STORE WEBHOOK SECRET
-      // ------------------------------------------------------
-
       const sanitized = {
         ...body,
       };
 
       delete sanitized.secret;
-
-      // ------------------------------------------------------
-      // CLAIM ALERT / DUPLICATE GUARD
-      // ------------------------------------------------------
 
       try {
         await env.DB.prepare(
@@ -1667,10 +1625,6 @@ export default {
         );
       }
 
-      // ------------------------------------------------------
-      // SHARED VALIDATION
-      // ------------------------------------------------------
-
       const validation =
         validateIntent(
           body,
@@ -1753,10 +1707,6 @@ export default {
         )
         .run();
 
-      // ------------------------------------------------------
-      // ENGINE GATES
-      // ------------------------------------------------------
-
       const engine =
         await getEngine(
           env
@@ -1814,10 +1764,6 @@ export default {
         );
       }
 
-      // ------------------------------------------------------
-      // SERVER EXECUTION GATE
-      // ------------------------------------------------------
-
       if (
         env.ENABLE_TRADING !==
         "true"
@@ -1834,10 +1780,6 @@ export default {
           403
         );
       }
-
-      // ------------------------------------------------------
-      // SHARED PAPER RISK
-      // ------------------------------------------------------
 
       const riskResult =
         await runRiskEvaluation(
@@ -1914,10 +1856,6 @@ export default {
         riskResult.risk
       );
 
-      // ------------------------------------------------------
-      // RISK REJECTED
-      // ------------------------------------------------------
-
       if (
         !riskResult.risk
           .approved
@@ -1936,14 +1874,6 @@ export default {
           422
         );
       }
-
-      // ------------------------------------------------------
-      // IMPORTANT SAFETY BOUNDARY
-      //
-      // NO broker POST exists here.
-      // NO Alpaca PAPER order is submitted.
-      // NO live endpoint exists.
-      // ------------------------------------------------------
 
       await env.DB.prepare(
         `UPDATE alerts
@@ -2001,6 +1931,42 @@ export default {
             riskResult.risk,
         },
         503
+      );
+    }
+
+    // ========================================================
+    // DASHBOARD SIGN-IN (browser session, read-only)
+    // ========================================================
+
+    if (
+      url.pathname.startsWith(
+        "/auth/"
+      )
+    ) {
+      return handleAuth(
+        request,
+        env,
+        url.pathname
+      );
+    }
+
+    // ========================================================
+    // DASHBOARD API
+    // READ-ONLY / PAPER-ONLY
+    // ========================================================
+
+    if (
+      url.pathname ===
+        "/api/dashboard" ||
+      url.pathname.startsWith(
+        "/api/dashboard/"
+      )
+    ) {
+      return handleDashboardApi(
+        request,
+        env,
+        url.pathname,
+        url.searchParams
       );
     }
 

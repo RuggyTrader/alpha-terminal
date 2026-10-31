@@ -18,11 +18,17 @@ export function onUnauthorized(fn: () => void): () => void {
   return () => listeners.delete(fn);
 }
 
+// A request that hangs must fail, so the dashboard can mark its data stale.
+export const REQUEST_TIMEOUT_MS = 12000;
+
 async function request<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
   let resp: Response;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
   try {
     resp = await fetch(BASE + path, {
       method,
+      signal: ctrl.signal,
       credentials: "include",
       cache: "no-store",
       headers: {
@@ -33,13 +39,18 @@ async function request<T>(method: "GET" | "POST", path: string, body?: unknown):
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
-    throw new ApiError(0, "OFFLINE", "Backend unreachable");
+    clearTimeout(timer);
+    throw ctrl.signal.aborted
+      ? new ApiError(0, "TIMEOUT", "Backend did not respond in time")
+      : new ApiError(0, "OFFLINE", "Backend unreachable");
   }
   let data: unknown = null;
   try {
     data = await resp.json();
   } catch {
     data = null;
+  } finally {
+    clearTimeout(timer);
   }
   if (!resp.ok) {
     const env = (data ?? {}) as Partial<ApiEnvelope>;

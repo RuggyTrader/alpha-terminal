@@ -19,3 +19,7 @@ frontend/dist/
 # misc
 .DS_Store
 *.log
+# cloudflare worker local state and local secrets
+.dev.vars
+.dev.vars.*
+.wrangler/

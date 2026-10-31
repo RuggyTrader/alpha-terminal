@@ -1,13 +1,12 @@
 {
   "name": "ALPHA TERMINAL — PAPER DESK",
   "short_name": "Alpha",
-  "description": "Private stocks + crypto PAPER trading terminal (simulated balances only).",
+  "description": "Private PAPER trading terminal, dry-run only (simulated balances, no broker orders).",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#F4F2EC",
-  "theme_color": "#F4F2EC",
+    "background_color": "#0B0E13",
+  "theme_color": "#0B0E13",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
