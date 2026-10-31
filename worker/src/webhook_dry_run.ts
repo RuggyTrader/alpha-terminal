@@ -1,33 +1,19 @@
 import {
+  runRiskEvaluation,
+  saveRiskDecision,
+  secureEqual,
+  validateIntent,
+  type TradeCoreEnv,
+} from "./trade_core";
+
+import {
   createDryRunOrder,
 } from "./dry_run_orders";
 
-interface DryRunWebhookEnv {
-  DB: D1Database;
-
+interface DryRunWebhookEnv
+  extends TradeCoreEnv {
   WEBHOOK_SECRET: string;
-
-  ALPACA_KEY: string;
-  ALPACA_SECRET: string;
-
-  ALLOWED_SYMBOLS: string;
-  ALLOW_FRACTIONAL_QTY: string;
-
-  MAX_ORDER_QTY: string;
-  MAX_ORDER_NOTIONAL: string;
-  MAX_POSITION_EXPOSURE: string;
-  MAX_TOTAL_EXPOSURE: string;
-  MAX_OPEN_POSITIONS: string;
-
-  SHORT_SELLING_ENABLED: string;
-  DAILY_LOSS_LIMIT: string;
 }
-
-const PAPER =
-  "https://paper-api.alpaca.markets";
-
-const DATA =
-  "https://data.alpaca.markets";
 
 function json(
   data: unknown,
@@ -39,397 +25,17 @@ function json(
   );
 }
 
-async function secureEqual(
-  a: string,
-  b: string
-) {
-  const encoder =
-    new TextEncoder();
-
-  const [aHash, bHash] =
-    await Promise.all([
-      crypto.subtle.digest(
-        "SHA-256",
-        encoder.encode(a)
-      ),
-      crypto.subtle.digest(
-        "SHA-256",
-        encoder.encode(b)
-      ),
-    ]);
-
-  const aa =
-    new Uint8Array(aHash);
-
-  const bb =
-    new Uint8Array(bHash);
-
-  let diff = 0;
-
-  for (
-    let i = 0;
-    i < aa.length;
-    i++
-  ) {
-    diff |= aa[i] ^ bb[i];
-  }
-
-  return diff === 0;
-}
-
-function n(
-  value: unknown
-): number {
-  const valueNumber =
-    Number(value);
-
-  return Number.isFinite(
-    valueNumber
-  )
-    ? valueNumber
-    : 0;
-}
-
-function flag(
-  value: string
-): boolean {
-  return (
-    value
-      .trim()
-      .toLowerCase() ===
-    "true"
-  );
-}
-
-function object(
-  value: unknown
-): Record<
-  string,
-  unknown
-> {
-  if (
-    value &&
-    typeof value ===
-      "object" &&
-    !Array.isArray(value)
-  ) {
-    return value as Record<
-      string,
-      unknown
-    >;
-  }
-
-  return {};
-}
-
-function array(
-  value: unknown
-): Record<
-  string,
-  unknown
->[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value.filter(
-    (item) =>
-      item &&
-      typeof item ===
-        "object" &&
-      !Array.isArray(item)
-  ) as Record<
-    string,
-    unknown
-  >[];
-}
-
-function headers(
-  env: DryRunWebhookEnv
-): HeadersInit {
-  return {
-    "APCA-API-KEY-ID":
-      env.ALPACA_KEY,
-    "APCA-API-SECRET-KEY":
-      env.ALPACA_SECRET,
-    Accept:
-      "application/json",
-  };
-}
-
-async function get(
-  env: DryRunWebhookEnv,
-  url: string,
-  allow404 = false
-): Promise<
-  | {
-      ok: true;
-      data: unknown;
-    }
-  | {
-      ok: false;
-      code: string;
-      message: string;
-    }
-> {
-  let response: Response;
-
-  try {
-    response =
-      await fetch(url, {
-        method: "GET",
-        headers:
-          headers(env),
-      });
-  } catch {
-    return {
-      ok: false,
-      code:
-        "BROKER_UNAVAILABLE",
-      message:
-        "Could not reach Alpaca PAPER",
-    };
-  }
-
-  if (
-    allow404 &&
-    response.status === 404
-  ) {
-    return {
-      ok: true,
-      data: null,
-    };
-  }
-
-  if (
-    response.status === 401 ||
-    response.status === 403
-  ) {
-    return {
-      ok: false,
-      code:
-        "BROKER_AUTH_FAILED",
-      message:
-        "Alpaca PAPER rejected the API keys",
-    };
-  }
-
-  if (!response.ok) {
-    return {
-      ok: false,
-      code:
-        "BROKER_UNAVAILABLE",
-      message:
-        `Alpaca PAPER HTTP ${response.status}`,
-    };
-  }
-
-  try {
-    return {
-      ok: true,
-      data:
-        await response.json(),
-    };
-  } catch {
-    return {
-      ok: false,
-      code:
-        "BROKER_UNAVAILABLE",
-      message:
-        "Alpaca returned invalid JSON",
-    };
-  }
-}
-
-type Intent = {
-  symbol: string;
-  action:
-    | "buy"
-    | "sell"
-    | "close";
-  qty: number | null;
-  strategy: string;
-};
-
-function validate(
-  body: Record<
-    string,
-    unknown
-  >,
-  env: DryRunWebhookEnv
-):
-  | {
-      ok: true;
-      intent: Intent;
-    }
-  | {
-      ok: false;
-      code: string;
-      message: string;
-    } {
-  if (
-    typeof body.symbol !==
-    "string"
-  ) {
-    return {
-      ok: false,
-      code:
-        "MISSING_FIELD",
-      message:
-        "symbol is required",
-    };
-  }
-
-  let symbol =
-    body.symbol
-      .trim()
-      .toUpperCase();
-
-  if (
-    symbol.includes(":")
-  ) {
-    symbol =
-      symbol.split(
-        ":",
-        2
-      )[1];
-  }
-
-  if (
-    !/^[A-Z][A-Z0-9.]{0,9}$/.test(
-      symbol
-    )
-  ) {
-    return {
-      ok: false,
-      code:
-        "INVALID_SYMBOL",
-      message:
-        "invalid stock symbol",
-    };
-  }
-
-  const allowed =
-    env.ALLOWED_SYMBOLS
-      .split(",")
-      .map(
-        (s) =>
-          s
-            .trim()
-            .toUpperCase()
-      );
-
-  if (
-    !allowed.includes(
-      symbol
-    )
-  ) {
-    return {
-      ok: false,
-      code:
-        "INVALID_SYMBOL",
-      message:
-        `${symbol} is not allowed`,
-    };
-  }
-
-  if (
-    typeof body.action !==
-    "string"
-  ) {
-    return {
-      ok: false,
-      code:
-        "MISSING_FIELD",
-      message:
-        "action is required",
-    };
-  }
-
-  const action =
-    body.action
-      .trim()
-      .toLowerCase();
-
-  if (
-    action !== "buy" &&
-    action !== "sell" &&
-    action !== "close"
-  ) {
-    return {
-      ok: false,
-      code:
-        "INVALID_ACTION",
-      message:
-        "action must be buy, sell or close",
-    };
-  }
-
-  let qty:
-    number | null =
-    null;
-
-  if (action !== "close") {
-    qty =
-      Number(body.qty);
-
-    if (
-      !Number.isFinite(
-        qty
-      ) ||
-      qty <= 0
-    ) {
-      return {
-        ok: false,
-        code:
-          "INVALID_QUANTITY",
-        message:
-          "qty must be greater than zero",
-      };
-    }
-
-    if (
-      !flag(
-        env.ALLOW_FRACTIONAL_QTY
-      ) &&
-      !Number.isInteger(
-        qty
-      )
-    ) {
-      return {
-        ok: false,
-        code:
-          "INVALID_QUANTITY",
-        message:
-          "fractional quantities are disabled",
-      };
-    }
-  }
-
-  return {
-    ok: true,
-    intent: {
-      symbol,
-      action:
-        action as
-          | "buy"
-          | "sell"
-          | "close",
-      qty,
-      strategy:
-        String(
-          body.strategy ??
-          "UNSPECIFIED"
-        ).slice(0, 64),
-    },
-  };
-}
-
-export async function
-handleDryRunWebhook(
+export async function handleDryRunWebhook(
   request: Request,
   env: DryRunWebhookEnv
 ): Promise<Response> {
+  const now =
+    new Date().toISOString();
+
+  // ==========================================================
+  // PARSE BODY
+  // ==========================================================
+
   let body:
     Record<
       string,
@@ -448,35 +54,85 @@ handleDryRunWebhook(
     return json(
       {
         ok: false,
-        code:
-          "INVALID_JSON",
+        status: "rejected",
+        code: "INVALID_JSON",
+        message:
+          "body is not valid JSON",
+        broker_request_sent:
+          false,
       },
       400
     );
   }
 
+  // ==========================================================
+  // WEBHOOK SECRET
+  // ==========================================================
+
+  const suppliedSecret =
+    body.secret;
+
   if (
-    typeof body.secret !==
+    typeof suppliedSecret !==
       "string" ||
     !(await secureEqual(
-      body.secret,
+      suppliedSecret,
       env.WEBHOOK_SECRET
     ))
   ) {
     return json(
       {
         ok: false,
-        code:
-          "UNAUTHORIZED",
+        status: "rejected",
+        code: "UNAUTHORIZED",
+        message:
+          "invalid webhook secret",
+        broker_request_sent:
+          false,
       },
       401
     );
   }
 
-  const alertId =
-    String(
-      body.id ?? ""
-    ).trim();
+  // ==========================================================
+  // ALERT ID
+  // ==========================================================
+
+  const rawAlertId =
+    body.id;
+
+  let alertId: string;
+
+  if (
+    typeof rawAlertId ===
+      "number" &&
+    Number.isInteger(
+      rawAlertId
+    )
+  ) {
+    alertId =
+      String(rawAlertId);
+  } else if (
+    typeof rawAlertId ===
+    "string"
+  ) {
+    alertId =
+      rawAlertId.trim();
+  } else {
+    return json(
+      {
+        ok: false,
+        status: "rejected",
+        code:
+          "INVALID_ALERT_ID",
+        message:
+          "id must be 1-128 printable characters without spaces",
+        broker_request_sent:
+          false,
+      },
+      400
+    );
+  }
 
   if (
     !/^[\x21-\x7E]{1,128}$/.test(
@@ -486,55 +142,19 @@ handleDryRunWebhook(
     return json(
       {
         ok: false,
+        status: "rejected",
         code:
           "INVALID_ALERT_ID",
+        message:
+          "id must be 1-128 printable characters without spaces",
+        broker_request_sent:
+          false,
       },
       400
     );
   }
 
-  const existing =
-    await env.DB.prepare(
-      `SELECT
-         alert_id,
-         status,
-         response_code
-       FROM alerts
-       WHERE alert_id=?`
-    )
-      .bind(alertId)
-      .first();
-
-  if (existing) {
-    return json({
-      ok: true,
-      status:
-        "duplicate",
-      code:
-        "DUPLICATE",
-      alert_id:
-        alertId,
-      broker_request_sent:
-        false,
-    });
-  }
-
-  const validation =
-    validate(
-      body,
-      env
-    );
-
-  if (!validation.ok) {
-    return json(
-      validation,
-      400
-    );
-  }
-
-  const now =
-    new Date()
-      .toISOString();
+  // Never store the secret in D1.
 
   const sanitized = {
     ...body,
@@ -542,137 +162,94 @@ handleDryRunWebhook(
 
   delete sanitized.secret;
 
-  await env.DB.prepare(
-    `INSERT INTO alerts
-    (
-      alert_id,
-      received_at,
-      symbol,
-      action,
-      strategy,
-      payload_json,
-      status,
-      validation_result
-    )
-    VALUES (
-      ?, ?, ?, ?, ?, ?,
-      'processing',
-      'passed'
-    )`
-  )
-    .bind(
-      alertId,
-      now,
-      validation.intent
-        .symbol,
-      validation.intent
-        .action,
-      validation.intent
-        .strategy,
-      JSON.stringify(
-        sanitized
-      ).slice(
-        0,
-        4000
+  // ==========================================================
+  // CLAIM ALERT
+  // Unique alert_id gives us duplicate protection.
+  // ==========================================================
+
+  try {
+    await env.DB.prepare(
+      `INSERT INTO alerts
+      (
+        alert_id,
+        received_at,
+        source_ip,
+        symbol,
+        action,
+        strategy,
+        payload_json,
+        status
       )
+      VALUES (
+        ?, ?, ?, ?, ?, ?, ?,
+        'processing'
+      )`
     )
-    .run();
+      .bind(
+        alertId,
 
-  const accountResult =
-    await get(
-      env,
-      `${PAPER}/v2/account`
-    );
+        now,
 
-  if (!accountResult.ok) {
-    return json(
-      accountResult,
-      502
-    );
-  }
+        request.headers.get(
+          "cf-connecting-ip"
+        ),
 
-  const positionsResult =
-    await get(
-      env,
-      `${PAPER}/v2/positions`
-    );
+        typeof body.symbol ===
+          "string"
+          ? body.symbol.slice(
+              0,
+              32
+            )
+          : null,
 
-  if (!positionsResult.ok) {
-    return json(
-      positionsResult,
-      502
-    );
-  }
+        typeof body.action ===
+          "string"
+          ? body.action.slice(
+              0,
+              16
+            )
+          : null,
 
-  const positionResult =
-    await get(
-      env,
-      `${PAPER}/v2/positions/${encodeURIComponent(
-        validation.intent
-          .symbol
-      )}`,
-      true
-    );
+        typeof body.strategy ===
+          "string"
+          ? body.strategy.slice(
+              0,
+              64
+            )
+          : null,
 
-  if (!positionResult.ok) {
-    return json(
-      positionResult,
-      502
-    );
-  }
-
-  const account =
-    object(
-      accountResult.data
-    );
-
-  const positions =
-    array(
-      positionsResult.data
-    );
-
-  const position =
-    positionResult.data ===
-      null
-      ? null
-      : object(
-          positionResult.data
-        );
-
-  const posQty =
-    position
-      ? n(position.qty)
-      : 0;
-
-  const available =
-    position
-      ? Math.abs(
-          n(
-            position.qty_available ??
-              position.qty
-          )
+        JSON.stringify(
+          sanitized
+        ).slice(
+          0,
+          4000
         )
-      : 0;
+      )
+      .run();
+  } catch {
+    const existing =
+      await env.DB.prepare(
+        `SELECT
+          status,
+          response_code
+         FROM alerts
+         WHERE alert_id = ?`
+      )
+        .bind(alertId)
+        .first<{
+          status: string;
+          response_code:
+            string | null;
+        }>();
 
-  let side:
-    "buy" | "sell";
-
-  let finalQty: number;
-
-  if (
-    validation.intent
-      .action ===
-    "close"
-  ) {
-    if (posQty === 0) {
+    if (existing) {
       await env.DB.prepare(
         `UPDATE alerts
          SET
-           status='rejected',
-           processed_at=?,
-           response_code='NO_POSITION',
-           rejection_reason='no open PAPER position to close'
-         WHERE alert_id=?`
+           duplicate_count =
+             duplicate_count + 1,
+           last_duplicate_at = ?
+         WHERE alert_id = ?`
       )
         .bind(
           now,
@@ -680,330 +257,413 @@ handleDryRunWebhook(
         )
         .run();
 
-      return json(
-        {
-          ok: false,
-          code:
-            "NO_POSITION",
-          broker_request_sent:
-            false,
+      return json({
+        ok: true,
+        status: "duplicate",
+        code: "DUPLICATE",
+        message:
+          "Alert id already processed; no order intent created",
+        mode: "PAPER",
+        execution:
+          "DRY_RUN_ONLY",
+        broker_request_sent:
+          false,
+        alert_id:
+          alertId,
+        data: {
+          original_status:
+            existing.status,
+          original_code:
+            existing.response_code,
         },
-        422
-      );
+      });
     }
 
-    side =
-      posQty > 0
-        ? "sell"
-        : "buy";
-
-    finalQty =
-      available;
-  } else {
-    finalQty =
-      validation.intent
-        .qty ?? 0;
-
-    if (
-      finalQty >
-      Number(
-        env.MAX_ORDER_QTY
-      )
-    ) {
-      return json(
-        {
-          ok: false,
-          code:
-            "MAX_ORDER_QTY",
-          broker_request_sent:
-            false,
-        },
-        422
-      );
-    }
-
-    if (
-      validation.intent
-        .action ===
-      "sell"
-    ) {
-      if (
-        posQty <= 0 &&
-        !flag(
-          env.SHORT_SELLING_ENABLED
-        )
-      ) {
-        return json(
-          {
-            ok: false,
-            code:
-              "NO_POSITION",
-            broker_request_sent:
-              false,
-          },
-          422
-        );
-      }
-
-      if (
-        posQty > 0 &&
-        finalQty >
-          posQty
-      ) {
-        return json(
-          {
-            ok: false,
-            code:
-              "SELL_EXCEEDS_POSITION",
-            broker_request_sent:
-              false,
-          },
-          422
-        );
-      }
-
-      side = "sell";
-    } else {
-      side = "buy";
-    }
+    return json(
+      {
+        ok: false,
+        status: "error",
+        code:
+          "DATABASE_ERROR",
+        message:
+          "Could not persist alert",
+        broker_request_sent:
+          false,
+      },
+      500
+    );
   }
 
-  let price:
-    number | null =
-    null;
+  // ==========================================================
+  // SHARED VALIDATION
+  // Same validator used by the main PAPER path.
+  // ==========================================================
 
-  if (
-    side === "buy" ||
-    (
-      side === "sell" &&
-      posQty <= 0
+  const validation =
+    validateIntent(
+      body,
+      env
+    );
+
+  if (!validation.ok) {
+    await env.DB.prepare(
+      `UPDATE alerts
+       SET
+         status = 'rejected',
+         processed_at = ?,
+         validation_result = 'failed',
+         response_code = ?,
+         http_status = 400,
+         rejection_reason = ?
+       WHERE alert_id = ?`
     )
-  ) {
-    const priceResult =
-      await get(
-        env,
-        `${DATA}/v2/stocks/${encodeURIComponent(
-          validation.intent
-            .symbol
-        )}/trades/latest?feed=iex`
-      );
-
-    if (
-      !priceResult.ok
-    ) {
-      return json(
-        priceResult,
-        502
-      );
-    }
-
-    const priceBody =
-      object(
-        priceResult.data
-      );
-
-    const trade =
-      object(
-        priceBody.trade
-      );
-
-    price =
-      n(trade.p);
-
-    if (
-      !price ||
-      price <= 0
-    ) {
-      return json(
-        {
-          ok: false,
-          code:
-            "MARKET_DATA_UNAVAILABLE",
-        },
-        422
-      );
-    }
-
-    const notional =
-      finalQty *
-      price;
-
-    if (
-      notional >
-      Number(
-        env.MAX_ORDER_NOTIONAL
+      .bind(
+        now,
+        validation.code,
+        validation.message,
+        alertId
       )
-    ) {
-      return json(
-        {
-          ok: false,
-          code:
-            "MAX_ORDER_NOTIONAL",
-          broker_request_sent:
-            false,
-        },
-        422
-      );
-    }
+      .run();
 
-    if (
-      notional >
-      n(
-        account.buying_power
-      )
-    ) {
-      return json(
-        {
-          ok: false,
-          code:
-            "INSUFFICIENT_BUYING_POWER",
-          broker_request_sent:
-            false,
-        },
-        422
-      );
-    }
+    return json(
+      {
+        ok: false,
+        status: "rejected",
+        code:
+          validation.code,
+        message:
+          validation.message,
+        alert_id:
+          alertId,
+        mode: "PAPER",
+        execution:
+          "DRY_RUN_ONLY",
+        broker_request_sent:
+          false,
+      },
+      400
+    );
+  }
 
-    const exposure =
-      positions.reduce(
-        (
-          total,
-          item
-        ) =>
-          total +
-          Math.abs(
-            n(
-              item.market_value
-            )
+  await env.DB.prepare(
+    `UPDATE alerts
+     SET
+       symbol = ?,
+       action = ?,
+       strategy = ?,
+       order_type = ?,
+       requested_qty = ?,
+       validation_result = 'passed'
+     WHERE alert_id = ?`
+  )
+    .bind(
+      validation.symbol,
+      validation.action,
+      validation.strategy,
+      validation.orderType,
+
+      validation.qty ===
+        null
+        ? null
+        : String(
+            validation.qty
           ),
-        0
-      ) +
-      notional;
 
-    if (
-      exposure >
-      Number(
-        env.MAX_TOTAL_EXPOSURE
+      alertId
+    )
+    .run();
+
+  // ==========================================================
+  // SHARED PAPER RISK ENGINE
+  // Reads real PAPER account/position/market information.
+  // Does NOT submit an order.
+  // ==========================================================
+
+  const riskResult =
+    await runRiskEvaluation(
+      env,
+      validation
+    );
+
+  if (!riskResult.ok) {
+    await env.DB.prepare(
+      `UPDATE alerts
+       SET
+         status = 'error',
+         processed_at = ?,
+         response_code = ?,
+         http_status = ?,
+         rejection_reason = ?
+       WHERE alert_id = ?`
+    )
+      .bind(
+        new Date()
+          .toISOString(),
+
+        riskResult.code,
+
+        riskResult.status,
+
+        riskResult.message,
+
+        alertId
       )
-    ) {
-      return json(
-        {
-          ok: false,
-          code:
-            "MAX_TOTAL_EXPOSURE",
-          broker_request_sent:
-            false,
-        },
-        422
-      );
-    }
+      .run();
 
-    const today =
-      n(account.equity) -
-      n(
-        account.last_equity
-      );
-
-    if (
-      Number(
-        env.DAILY_LOSS_LIMIT
-      ) > 0 &&
-      today <=
-        -Number(
-          env.DAILY_LOSS_LIMIT
-        )
-    ) {
-      return json(
-        {
-          ok: false,
-          code:
-            "DAILY_LOSS_LIMIT",
-          broker_request_sent:
-            false,
-        },
-        422
-      );
-    }
+    return json(
+      {
+        ok: false,
+        status: "error",
+        code:
+          riskResult.code,
+        message:
+          riskResult.message,
+        alert_id:
+          alertId,
+        mode: "PAPER",
+        execution:
+          "DRY_RUN_ONLY",
+        broker_request_sent:
+          false,
+      },
+      riskResult.status
+    );
   }
 
   const alertRow =
     await env.DB.prepare(
       `SELECT id
        FROM alerts
-       WHERE alert_id=?`
+       WHERE alert_id = ?`
     )
       .bind(alertId)
       .first<{
         id: number;
       }>();
 
-  const order =
+  // Persist every shared risk result.
+
+  await saveRiskDecision(
+    env,
+    alertRow?.id ?? null,
+    riskResult.risk
+  );
+
+  // ==========================================================
+  // RISK REJECTED
+  // ==========================================================
+
+  if (
+    !riskResult.risk
+      .approved
+  ) {
+    await env.DB.prepare(
+      `UPDATE alerts
+       SET
+         status = 'rejected',
+         processed_at = ?,
+         response_code = ?,
+         http_status = 422,
+         rejection_reason = ?
+       WHERE alert_id = ?`
+    )
+      .bind(
+        new Date()
+          .toISOString(),
+
+        riskResult.risk.code,
+
+        riskResult.risk.reason,
+
+        alertId
+      )
+      .run();
+
+    return json(
+      {
+        ok: false,
+        status: "rejected",
+        code:
+          riskResult.risk.code,
+        message:
+          riskResult.risk.reason,
+        alert_id:
+          alertId,
+        mode: "PAPER",
+        execution:
+          "DRY_RUN_ONLY",
+        broker_request_sent:
+          false,
+        risk:
+          riskResult.risk,
+      },
+      422
+    );
+  }
+
+  // ==========================================================
+  // APPROVED DRY-RUN ORDER INTENT
+  //
+  // IMPORTANT:
+  // createDryRunOrder writes the intent to D1.
+  // It NEVER sends an Alpaca POST.
+  // ==========================================================
+
+  if (
+    !riskResult.risk.side ||
+    riskResult.risk.finalQty ===
+      null ||
+    riskResult.risk.finalQty <=
+      0
+  ) {
+    await env.DB.prepare(
+      `UPDATE alerts
+       SET
+         status = 'error',
+         processed_at = ?,
+         response_code =
+           'INVALID_RISK_OUTPUT',
+         http_status = 500,
+         rejection_reason =
+           'Approved risk result did not contain a valid side and quantity'
+       WHERE alert_id = ?`
+    )
+      .bind(
+        new Date()
+          .toISOString(),
+        alertId
+      )
+      .run();
+
+    return json(
+      {
+        ok: false,
+        status: "error",
+        code:
+          "INVALID_RISK_OUTPUT",
+        message:
+          "Approved risk result did not contain a valid side and quantity",
+        alert_id:
+          alertId,
+        broker_request_sent:
+          false,
+      },
+      500
+    );
+  }
+
+  const dryRunOrder =
     await createDryRunOrder(
       env,
       {
         alertId,
+
         alertFk:
           alertRow?.id ??
           null,
+
         symbol:
-          validation.intent
-            .symbol,
-        side,
+          validation.symbol,
+
+        side:
+          riskResult.risk.side,
+
         qty:
-          finalQty,
+          riskResult.risk
+            .finalQty,
+
         orderType:
-          "market",
+          validation.orderType,
+
         timeInForce:
-          "day",
+          validation.timeInForce,
       }
     );
+
+  // ==========================================================
+  // MARK ALERT COMPLETE
+  // ==========================================================
+
+  const completedAt =
+    new Date()
+      .toISOString();
 
   await env.DB.prepare(
     `UPDATE alerts
      SET
-       status='dry_run',
-       processed_at=?,
-       accepted_qty=?,
-       response_code='DRY_RUN_ACCEPTED',
-       http_status=200,
-       rejection_reason=NULL
-     WHERE alert_id=?`
+       status = 'dry_run',
+       processed_at = ?,
+       accepted_qty = ?,
+       response_code =
+         'DRY_RUN_ACCEPTED',
+       http_status = 200,
+       rejection_reason = NULL
+     WHERE alert_id = ?`
   )
     .bind(
-      new Date()
-        .toISOString(),
-      String(finalQty),
+      completedAt,
+
+      String(
+        riskResult.risk
+          .finalQty
+      ),
+
       alertId
     )
     .run();
 
   return json({
     ok: true,
+
     status:
       "dry_run",
+
     code:
       "DRY_RUN_ACCEPTED",
+
+    message:
+      "PAPER risk approved and dry-run order intent persisted. No broker order was submitted.",
+
     mode:
       "PAPER",
+
     execution:
       "DRY_RUN_ONLY",
+
     broker_request_sent:
       false,
+
     alert_id:
       alertId,
+
     intent: {
       symbol:
-        validation.intent
-          .symbol,
-      side,
+        validation.symbol,
+
+      action:
+        validation.action,
+
+      side:
+        riskResult.risk.side,
+
       qty:
-        finalQty,
+        riskResult.risk
+          .finalQty,
+
       strategy:
-        validation.intent
-          .strategy,
+        validation.strategy,
+
+      order_type:
+        validation.orderType,
+
+      time_in_force:
+        validation.timeInForce,
     },
-    reference_price:
-      price,
-    order,
+
+    risk:
+      riskResult.risk,
+
+    order:
+      dryRunOrder,
   });
 }
