@@ -15,6 +15,7 @@ interface DashboardEnv
   extends TradeCoreEnv {
   ADMIN_SECRET: string;
   ENABLE_TRADING: string;
+  DASHBOARD_PASSPHRASE?: string;
 }
 
 const ALPACA_PAPER_BASE =
@@ -60,8 +61,9 @@ function clampLimit(
   );
 }
 
-// Accepts either the x-admin-secret header (scripts / curl) or a browser
-// dashboard session cookie (see auth_session.ts). This API is GET-only, so a
+// Accepts either the x-admin-secret header (admin scripts / curl) or a
+// read-only browser dashboard session cookie created with
+// DASHBOARD_PASSPHRASE (see auth_session.ts). This API is GET-only, so a
 // browser session can read the dashboard but never change execution state.
 async function requireAdmin(
   request: Request,

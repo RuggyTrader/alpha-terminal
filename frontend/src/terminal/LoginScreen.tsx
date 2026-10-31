@@ -10,7 +10,7 @@ function message(e: unknown): string {
   return `${e.code}: ${e.message}`;
 }
 
-/** The passphrase is sent once to /auth/login and never stored in the browser. */
+/** The dashboard passphrase is sent once to /auth/login and never stored in the browser. */
 export function LoginScreen({
   onSignedIn,
   offline = false,

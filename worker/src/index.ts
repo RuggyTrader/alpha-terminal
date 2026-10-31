@@ -29,7 +29,11 @@ interface Env extends TradeCoreEnv {
   ENABLE_TRADING: string;
 
   WEBHOOK_SECRET: string;
+  // Admin scripts only (x-admin-secret header). Never used by /auth/login.
   ADMIN_SECRET: string;
+  // Dashboard sign-in only (/auth/login). Read-only session; no admin access.
+  DASHBOARD_PASSPHRASE?: string;
+  DASHBOARD_ORIGINS?: string;
 }
 
 const ALPACA_PAPER_BASE =

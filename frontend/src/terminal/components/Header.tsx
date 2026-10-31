@@ -14,10 +14,12 @@ function Field({ k, children }: { k: string; children: React.ReactNode }) {
 
 export function Header({
   state,
+  signingOut = false,
   onRefresh,
   onSignOut,
 }: {
   state: FeedState;
+  signingOut?: boolean;
   onRefresh: () => void;
   onSignOut: () => void;
 }) {
@@ -67,8 +69,8 @@ export function Header({
         <button type="button" className="tbtn" onClick={onRefresh} disabled={state.inFlight}>
           {state.inFlight ? "Refreshing…" : "Refresh"}
         </button>
-        <button type="button" className="tbtn tbtn-ghost" onClick={onSignOut}>
-          Sign out
+        <button type="button" className="tbtn tbtn-ghost" onClick={onSignOut} disabled={signingOut}>
+          {signingOut ? "Signing out…" : "Sign out"}
         </button>
       </div>
     </header>

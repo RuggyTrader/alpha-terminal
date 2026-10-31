@@ -6,6 +6,7 @@ import { ApiError } from "../api/client";
 import { alertLabel, alertRowClass, duplicateLabel, orderLabel, riskChecks } from "./classify";
 import { LoginScreen } from "./LoginScreen";
 import { DashboardPoller, initialFeedState, type FeedState } from "./poller";
+import { performSignOut } from "./signOut";
 import { TerminalView } from "./TerminalView";
 import type { AlertRow, DashboardData, OrderRow, RiskRow } from "./types";
 
@@ -190,6 +191,62 @@ describe("classify", () => {
   it("ignores malformed risk checks", () => {
     expect(riskChecks(risk({ checks: "bad" }))).toEqual([]);
     expect(riskChecks(risk()).length).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------- sign-out
+
+describe("sign-out", () => {
+  it("reports success only when /auth/logout succeeds", async () => {
+    expect(await performSignOut(async () => ({ ok: true }))).toEqual({ ok: true });
+  });
+
+  it("does not claim the session ended when the backend is unreachable", async () => {
+    const r = await performSignOut(async () => {
+      throw new ApiError(0, "OFFLINE", "Backend unreachable");
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.message).toContain("could not be reached");
+      expect(r.message).toContain("may still be active");
+    }
+  });
+
+  it("does not claim the session ended on a server error", async () => {
+    const r = await performSignOut(async () => {
+      throw new ApiError(403, "ORIGIN_NOT_ALLOWED", "Request origin not allowed");
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toContain("ORIGIN_NOT_ALLOWED");
+  });
+
+  it("treats 401 as already signed out on the server", async () => {
+    const r = await performSignOut(async () => {
+      throw new ApiError(401, "UNAUTHORIZED", "Not signed in");
+    });
+    expect(r.ok).toBe(true);
+  });
+
+  it("keeps the dashboard and shows a retry when sign-out failed", () => {
+    const html = renderToStaticMarkup(
+      <TerminalView
+        state={ok(dashboard())}
+        signOut={{ busy: false, error: "Sign-out failed because the backend could not be reached. Your server session may still be active, so you are still signed in here." }}
+        onRefresh={() => {}}
+        onSignOut={() => {}}
+      />,
+    );
+    expect(html).toContain("SIGN-OUT FAILED");
+    expect(html).toContain("may still be active");
+    expect(html).toContain("Retry sign out");
+    expect(html).toContain("$2,222.22"); // still showing the signed-in dashboard
+  });
+
+  it("disables the sign-out button while signing out", () => {
+    const html = renderToStaticMarkup(
+      <TerminalView state={ok(dashboard())} signOut={{ busy: true, error: null }} onRefresh={() => {}} onSignOut={() => {}} />,
+    );
+    expect(html).toContain("Signing out…");
   });
 });
 

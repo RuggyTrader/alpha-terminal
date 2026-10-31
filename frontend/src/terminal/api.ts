@@ -1,5 +1,7 @@
-// Dashboard calls to the ALPHA TERMINAL Worker. The browser sends only the
-// HttpOnly session cookie (set by /auth/login); it never sees ADMIN_SECRET.
+// Dashboard calls to the ALPHA TERMINAL Worker. The user signs in with the
+// dashboard passphrase (Worker secret DASHBOARD_PASSPHRASE, separate from the
+// admin credential); after that the browser sends only the HttpOnly session
+// cookie, which it cannot read. The admin credential is never used here.
 
 import { api, ApiError } from "../api/client";
 import type { DashboardData, DashboardEnvelope } from "./types";

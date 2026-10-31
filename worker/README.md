@@ -10,9 +10,19 @@ clock, latest price).
 
 ## Dashboard sign-in
 
+Two separate Worker secrets:
+
+| Secret | Used by | Grants |
+|---|---|---|
+| `DASHBOARD_PASSPHRASE` | the dashboard sign-in screen, `/auth/login` only | a read-only browser session |
+| `ADMIN_SECRET` | admin scripts, as the `x-admin-secret` header | engine controls, kill switch, broker, risk preview, dry-run admin routes, dashboard API |
+
+`/auth/login` never accepts `ADMIN_SECRET`; if `DASHBOARD_PASSPHRASE` is not set it returns
+`503 AUTH_NOT_CONFIGURED`. Use two different long random values.
+
 | Route | Method | Purpose |
 |---|---|---|
-| `/auth/login` | POST `{"passphrase": "..."}` | compares with `ADMIN_SECRET` server-side, sets the session cookie |
+| `/auth/login` | POST `{"passphrase": "..."}` | compares with `DASHBOARD_PASSPHRASE` server-side, sets the session cookie |
 | `/auth/session` | GET | 200 when signed in, 401 otherwise |
 | `/auth/logout` | POST | deletes the session and clears the cookie |
 
@@ -22,17 +32,22 @@ clock, latest price).
   `Origin` (or one listed in the optional `DASHBOARD_ORIGINS` var, for local development).
 * 5 wrong passphrases per IP in 15 minutes → `429` (tracked in `app_meta`).
 * **A browser session is read-only.** It unlocks `GET /api/dashboard*` only. Engine controls,
-  the kill switch and `/api/broker/*` still need the `x-admin-secret` header, so the browser
-  cannot change execution state. The header still works for scripts on every admin route.
-* The browser never receives `ADMIN_SECRET`: it is not in the bundle, storage, URLs or env vars.
+  the kill switch, `/api/broker/*`, `/api/risk/preview` and `/api/dry-run/*` still need the
+  `x-admin-secret` header, and webhooks need `WEBHOOK_SECRET`, so the browser cannot change
+  execution state. The header still works for scripts on every admin route.
+* The dashboard never sends, stores or compares `ADMIN_SECRET`. Neither secret is in the
+  bundle, browser storage, URLs or client env vars; the cookie is not readable by JavaScript.
+* Sign out only shows "signed out" after `/auth/logout` succeeds. If it fails, the dashboard
+  says the server session may still be active and offers a retry.
 
 ## Local development
 
 ```bash
 cd worker
 npx wrangler d1 migrations apply alpha-terminal-db --local
-# create worker/.dev.vars (git-ignored) with ADMIN_SECRET, WEBHOOK_SECRET and
-# DASHBOARD_ORIGINS=http://localhost:5173 ; leave Alpaca keys out unless testing PAPER
+# create worker/.dev.vars (git-ignored) with DASHBOARD_PASSPHRASE, ADMIN_SECRET,
+# WEBHOOK_SECRET and DASHBOARD_ORIGINS=http://localhost:5173 ; leave Alpaca keys out
+# unless testing PAPER
 npx wrangler dev --local --port 8787
 ```
 
@@ -49,8 +64,10 @@ npx wrangler deploy --dry-run           # check bindings: ENABLE_TRADING must re
 npx wrangler deploy
 ```
 
-Secrets are set with `npx wrangler secret put ADMIN_SECRET` (and `WEBHOOK_SECRET`,
-`ALPACA_KEY`, `ALPACA_SECRET` for Alpaca **PAPER** keys), typed into your own terminal.
+Secrets are set with `npx wrangler secret put DASHBOARD_PASSPHRASE` and
+`npx wrangler secret put ADMIN_SECRET` (plus `WEBHOOK_SECRET`, `ALPACA_KEY`, `ALPACA_SECRET`
+for Alpaca **PAPER** keys), typed into your own terminal. `DASHBOARD_PASSPHRASE` is a secret,
+not a `vars` entry in `wrangler.jsonc`.
 Never put them in `wrangler.jsonc`, the frontend or chat.
 
 If Cloudflare Access protects the dashboard hostname, exclude `/webhook*` from the Access

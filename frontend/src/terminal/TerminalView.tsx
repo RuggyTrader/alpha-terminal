@@ -3,6 +3,7 @@
 
 import { clock, stamp } from "./fmt";
 import type { FeedState } from "./poller";
+import { idleSignOut, type SignOutState } from "./signOut";
 import { AccountSummary } from "./components/AccountSummary";
 import { ActivityFeed } from "./components/ActivityFeed";
 import { AlertsPanel } from "./components/AlertsPanel";
@@ -36,14 +37,35 @@ function StatusBanner({ state, onRefresh }: { state: FeedState; onRefresh: () =>
   return null;
 }
 
+function SignOutBanner({ s, onRetry, onDismiss }: { s: SignOutState; onRetry: () => void; onDismiss?: () => void }) {
+  if (!s.error) return null;
+  return (
+    <div className="tbanner tbanner-err" role="alert">
+      <b>SIGN-OUT FAILED</b> {s.error}
+      <button type="button" className="tbtn tbtn-sm" onClick={onRetry} disabled={s.busy}>
+        Retry sign out
+      </button>
+      {onDismiss ? (
+        <button type="button" className="tbtn tbtn-sm tbtn-ghost" onClick={onDismiss}>
+          Dismiss
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function TerminalView({
   state,
+  signOut = idleSignOut,
   onRefresh,
   onSignOut,
+  onDismissSignOutError,
 }: {
   state: FeedState;
+  signOut?: SignOutState;
   onRefresh: () => void;
   onSignOut: () => void;
+  onDismissSignOutError?: () => void;
 }) {
   const d = state.data;
   const loading = state.status === "loading";
@@ -51,7 +73,8 @@ export function TerminalView({
 
   return (
     <div className={`term${state.status === "stale" ? " term-stale" : ""}`}>
-      <Header state={state} onRefresh={onRefresh} onSignOut={onSignOut} />
+      <Header state={state} signingOut={signOut.busy} onRefresh={onRefresh} onSignOut={onSignOut} />
+      <SignOutBanner s={signOut} onRetry={onSignOut} onDismiss={onDismissSignOutError} />
       <StatusBanner state={state} onRefresh={onRefresh} />
 
       <main className="tg">

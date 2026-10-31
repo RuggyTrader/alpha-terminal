@@ -1,19 +1,24 @@
 // Dashboard sign-in for the browser.
 //
-// The browser never holds ADMIN_SECRET. The user types the passphrase once on
-// the sign-in screen; the Worker compares it server-side and answers with an
-// HttpOnly, Secure, SameSite=Strict session cookie. Only a SHA-256 hash of the
-// session token is stored in D1 (auth_sessions).
+// Two separate credentials:
+// * DASHBOARD_PASSPHRASE (Worker secret) - typed on the dashboard sign-in
+//   screen and compared ONLY by /auth/login. It creates a read-only session.
+// * ADMIN_SECRET (Worker secret) - server/admin scripts only, sent as the
+//   x-admin-secret header. It is never accepted by /auth/login, and the
+//   dashboard never sends, stores or compares it.
 //
-// A session is READ-ONLY: it unlocks the GET dashboard API only. Engine
-// controls, kill switch and other admin POST routes still require the
-// x-admin-secret header, so the browser cannot change execution state.
+// A successful login sets an HttpOnly, Secure, SameSite=Strict session cookie
+// holding a random token; only its SHA-256 hash is stored in D1
+// (auth_sessions). The session is READ-ONLY: it unlocks GET /api/dashboard*
+// only. Engine controls, kill switch, broker, risk preview, dry-run admin and
+// webhook routes do not accept it.
 
 import { secureEqual } from "./trade_core";
 
 export interface AuthEnv {
   DB: D1Database;
-  ADMIN_SECRET: string;
+  // Worker secret used only by /auth/login. Missing -> AUTH_NOT_CONFIGURED.
+  DASHBOARD_PASSPHRASE?: string;
   // Optional, comma separated. Extra origins allowed to call /auth/* (local
   // development through the Vite proxy). Production is same-origin.
   DASHBOARD_ORIGINS?: string;
@@ -136,7 +141,8 @@ export async function handleAuth(request: Request, env: AuthEnv, pathname: strin
     if (!sameOriginOk(request, env)) {
       return json({ ok: false, code: "ORIGIN_NOT_ALLOWED", message: "Request origin not allowed" }, 403);
     }
-    if (!env.ADMIN_SECRET) {
+    const expected = env.DASHBOARD_PASSPHRASE ?? "";
+    if (!expected) {
       return json({ ok: false, code: "AUTH_NOT_CONFIGURED", message: "Sign-in is not configured" }, 503);
     }
     const ip = clientIp(request);
@@ -157,7 +163,7 @@ export async function handleAuth(request: Request, env: AuthEnv, pathname: strin
       return json({ ok: false, code: "INVALID_JSON", message: "Body must be JSON" }, 400);
     }
 
-    if (!passphrase || !(await secureEqual(passphrase, env.ADMIN_SECRET))) {
+    if (!passphrase || !(await secureEqual(passphrase, expected))) {
       await writeFailures(env, ip, { n: failures.n + 1, start: failures.start });
       return json({ ok: false, code: "INVALID_PASSPHRASE", message: "Wrong passphrase" }, 401);
     }

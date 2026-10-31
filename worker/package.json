@@ -1,10 +1,12 @@
 {
   "name": "worker",
   "version": "1.0.0",
-  "description": "",
+  "description": "ALPHA TERMINAL Cloudflare Worker (PAPER, dry-run only)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/*.test.mjs",
+    "build:frontend": "npm --prefix ../frontend run build",
+    "check": "wrangler deploy --dry-run --outdir .wrangler/dry-run"
   },
   "keywords": [],
   "author": "",
