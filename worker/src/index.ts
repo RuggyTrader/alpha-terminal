@@ -4,6 +4,10 @@ import {
   simulateReconcile,
 } from "./dry_run_orders";
 
+import {
+  handleDryRunWebhook,
+} from "./webhook_dry_run";
+
 interface Env {
   DB: D1Database;
 
@@ -1654,6 +1658,22 @@ export default {
         request,
         env,
         url.pathname
+      );
+    }
+
+    // --------------------------------------------------------
+    // TRADINGVIEW FULL DRY-RUN WEBHOOK
+    // Runs validation + PAPER data/risk + D1 order intent.
+    // Never submits an Alpaca order.
+    // --------------------------------------------------------
+
+    if (
+      url.pathname === "/webhook/dry-run" &&
+      request.method === "POST"
+    ) {
+      return handleDryRunWebhook(
+        request,
+        env
       );
     }
 
