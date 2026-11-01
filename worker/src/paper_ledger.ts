@@ -136,9 +136,9 @@ export async function ledgerRiskSnapshot(env: LedgerEnv, symbol: string) {
 // FILLS
 // ============================================================
 
-export interface DryRunFill {
+export interface DryRunCommit {
   alertId: string;
-  orderId: number;
+  alertFk: number | null;
   clientOrderId: string;
   riskDecisionId: number | null;
   symbol: string;
@@ -149,43 +149,65 @@ export interface DryRunFill {
   priceSource: string;
   priceAt: string;
   strategy: string;
+  orderType: "market";
+  timeInForce: "day";
 }
 
-export type FillResult =
+export type CommitResult =
   | {
       ok: true;
       kind: "OPEN" | "ADD" | "REDUCE" | "CLOSE";
+      order: Record<string, unknown>;
       fill: Record<string, unknown>;
       position: PositionRow;
       trade: Record<string, unknown> | null;
     }
-  | { ok: false; code: string; message: string };
+  | { ok: false; code: string; message: string; committed: boolean };
 
+// One row is always selected: when the position guard does not match, p.* is NULL and the NOT NULL
+// columns of paper_fills reject the insert, which rolls back the whole batch.
 const FILL_FROM_POSITION = `
   INSERT INTO paper_fills
     (order_fk, client_order_id, alert_id, risk_decision_fk, position_fk, symbol, side, kind, qty, price,
      price_source, price_at, realized_pnl, position_qty_after, avg_entry_after, filled_at)
-  SELECT ?, ?, ?, ?, p.id, p.symbol, ?, %KIND%, ?, ?, ?, ?, %REALIZED%, p.qty, p.avg_entry_price, ?
-  FROM paper_positions p
-  WHERE %WHERE% AND p.last_order_id = ?`;
+  SELECT (SELECT id FROM orders WHERE client_order_id = ?), ?, ?, ?, p.id, p.symbol, ?, %KIND%, ?, ?, ?, ?,
+     %REALIZED%, p.qty, p.avg_entry_price, ?
+  FROM (SELECT 1) AS one
+  LEFT JOIN paper_positions p ON %WHERE% AND p.last_order_id = ?`;
 
 /**
- * Applies one accepted DRY-RUN order intent to the ledger in a single D1 batch (one transaction):
- * position change + fill (+ trade when the position closes). The fill and trade are written only if the
- * position row was changed by THIS order (last_order_id), and paper_fills.order_fk is UNIQUE, so a
- * duplicate or a racing request changes nothing.
+ * Commits one approved DRY-RUN signal as ONE D1 batch (a single transaction):
+ *   order intent → position change → simulated fill → (trade on full close) → alert DRY_RUN_ACCEPTED.
+ * Either all of it is durable or none of it is. The position change is guarded (BUY: the one OPEN row;
+ * SELL/CLOSE: the exact row version read, via last_order_id), and the fill insert fails unless that guarded
+ * change happened, so a concurrent change or an injected failure rolls everything back. Order intents and
+ * fills are UNIQUE per alert, so a retry can never apply twice.
  */
-export async function applyDryRunFill(env: LedgerEnv, f: DryRunFill): Promise<FillResult> {
+export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<CommitResult> {
   const instrument = getInstrument(f.symbol);
-  if (!instrument) return { ok: false, code: "INVALID_SYMBOL", message: `${f.symbol} is not a supported instrument` };
+  if (!instrument) return { ok: false, code: "INVALID_SYMBOL", message: `${f.symbol} is not a supported instrument`, committed: false };
   if (!(f.price > 0) || !(f.qty > 0)) {
-    return { ok: false, code: "INVALID_FILL", message: "a simulated fill needs a positive truthful price and quantity" };
+    return { ok: false, code: "INVALID_FILL", message: "a simulated fill needs a positive truthful price and quantity", committed: false };
   }
   const now = new Date().toISOString();
-  const statements: D1PreparedStatement[] = [];
+  const statements: D1PreparedStatement[] = [
+    // 1. The dry-run order intent (never sent to a broker).
+    env.DB.prepare(
+      `INSERT INTO orders
+        (alert_fk, source, client_order_id, symbol, side, qty, order_type, time_in_force, status,
+         market_open_at_submit, submitted_at, filled_qty, updated_at, error_detail)
+       VALUES (?, 'dry_run', ?, ?, ?, ?, ?, ?, 'submitting', NULL, ?, '0', ?, 'DRY RUN: no broker request sent')`
+    ).bind(f.alertFk, f.clientOrderId, f.symbol, f.side, String(f.qty), f.orderType, f.timeInForce, now, now),
+    env.DB.prepare(
+      `UPDATE orders SET status = 'dry_run_accepted', updated_at = ?,
+         error_detail = 'DRY RUN: committed together with its ALPHA PAPER fill; no broker request sent'
+       WHERE client_order_id = ?`
+    ).bind(now, f.clientOrderId),
+  ];
 
+  let fillQty = f.qty;
   if (f.side === "buy") {
-    // Open, or add to the one OPEN position (weighted average entry, computed from the stored row).
+    // 2. Open, or add to the one OPEN position (weighted average entry from the stored row).
     statements.push(
       env.DB.prepare(
         `INSERT INTO paper_positions
@@ -212,13 +234,14 @@ export async function applyDryRunFill(env: LedgerEnv, f: DryRunFill): Promise<Fi
         f.alertId, f.clientOrderId, f.clientOrderId, now
       )
     );
+    // 3. The fill.
     statements.push(
       env.DB.prepare(
         FILL_FROM_POSITION.replace("%KIND%", "CASE WHEN p.open_order_id = ? THEN 'OPEN' ELSE 'ADD' END")
           .replace("%REALIZED%", "0")
           .replace("%WHERE%", "p.symbol = ? AND p.status = 'OPEN'")
       ).bind(
-        f.orderId, f.clientOrderId, f.alertId, f.riskDecisionId, "buy", f.clientOrderId,
+        f.clientOrderId, f.clientOrderId, f.alertId, f.riskDecisionId, "buy", f.clientOrderId,
         f.qty, f.price, f.priceSource, f.priceAt, now, f.symbol, f.clientOrderId
       )
     );
@@ -227,12 +250,14 @@ export async function applyDryRunFill(env: LedgerEnv, f: DryRunFill): Promise<Fi
     const pos = await env.DB.prepare(
       `SELECT * FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`
     ).bind(f.symbol).first<PositionRow>();
-    if (!pos) return { ok: false, code: "NO_POSITION", message: `no open ${LEDGER_LABEL} position in ${f.symbol}` };
+    if (!pos) return { ok: false, code: "NO_POSITION", message: `no open ${LEDGER_LABEL} position in ${f.symbol}`, committed: false };
     const q = f.action === "close" ? pos.qty : f.qty;
     if (q > pos.qty + QTY_EPSILON) {
-      return { ok: false, code: "SELL_EXCEEDS_POSITION", message: `SELL ${q} is greater than the ${LEDGER_LABEL} position ${pos.qty}` };
+      return { ok: false, code: "SELL_EXCEEDS_POSITION", message: `SELL ${q} is greater than the ${LEDGER_LABEL} position ${pos.qty}`, committed: false };
     }
+    fillQty = q;
     const closes = pos.qty - q <= QTY_EPSILON;
+    // 2. Reduce/close exactly the row version that was read (last_order_id), or nothing.
     statements.push(
       env.DB.prepare(
         `UPDATE paper_positions SET
@@ -248,7 +273,7 @@ export async function applyDryRunFill(env: LedgerEnv, f: DryRunFill): Promise<Fi
            logged_unrealized_pnl = NULL,
            last_order_id = ?,
            updated_at = ?
-         WHERE id = ? AND status = 'OPEN' AND qty >= ? - ${QTY_EPSILON}`
+         WHERE id = ? AND status = 'OPEN' AND last_order_id = ?`
       ).bind(
         f.price, q,
         q,
@@ -261,20 +286,22 @@ export async function applyDryRunFill(env: LedgerEnv, f: DryRunFill): Promise<Fi
         f.price, f.priceAt, f.priceSource,
         f.clientOrderId,
         now,
-        pos.id, q
+        pos.id, pos.last_order_id
       )
     );
+    // 3. The fill.
     statements.push(
       env.DB.prepare(
         FILL_FROM_POSITION.replace("%KIND%", "CASE WHEN p.status = 'CLOSED' THEN 'CLOSE' ELSE 'REDUCE' END")
           .replace("%REALIZED%", "(? - p.avg_entry_price) * ? * p.multiplier")
           .replace("%WHERE%", "p.id = ?")
       ).bind(
-        f.orderId, f.clientOrderId, f.alertId, f.riskDecisionId, "sell",
+        f.clientOrderId, f.clientOrderId, f.alertId, f.riskDecisionId, "sell",
         q, f.price, f.priceSource, f.priceAt, f.price, q, now, pos.id, f.clientOrderId
       )
     );
     if (closes) {
+      // 4. The trade (fails, and rolls back, unless this order closed the position).
       statements.push(
         env.DB.prepare(
           `INSERT INTO trades
@@ -291,38 +318,51 @@ export async function applyDryRunFill(env: LedgerEnv, f: DryRunFill): Promise<Fi
              (SELECT json_group_array(client_order_id) FROM (SELECT client_order_id FROM paper_fills WHERE position_fk = p.id ORDER BY id)),
              'ALPHA_PAPER', p.id, p.close_alert_id,
              (SELECT group_concat(DISTINCT price_source) FROM paper_fills WHERE position_fk = p.id)
-           FROM paper_positions p
-           WHERE p.id = ? AND p.last_order_id = ? AND p.status = 'CLOSED'`
+           FROM (SELECT 1) AS one
+           LEFT JOIN paper_positions p ON p.id = ? AND p.last_order_id = ? AND p.status = 'CLOSED'`
         ).bind(pos.id, f.clientOrderId)
       );
     }
   }
 
+  // 5. The alert becomes DRY_RUN_ACCEPTED in the same transaction.
+  statements.push(
+    env.DB.prepare(
+      `UPDATE alerts SET status = 'dry_run', processed_at = ?, accepted_qty = ?, response_code = 'DRY_RUN_ACCEPTED',
+         http_status = 200, rejection_reason = NULL
+       WHERE alert_id = ?`
+    ).bind(now, String(fillQty), f.alertId)
+  );
+
   try {
     await env.DB.batch(statements);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (/UNIQUE/i.test(msg) && /paper_fills/i.test(msg)) {
-      return { ok: false, code: "LEDGER_DUPLICATE", message: "this order intent was already applied; no position change" };
+    // The batch is one transaction; confirm that nothing from it is visible.
+    const leftover = await env.DB.prepare(`SELECT id FROM orders WHERE client_order_id = ?`).bind(f.clientOrderId).first();
+    if (leftover) {
+      return { ok: false, code: "LEDGER_INCONSISTENT", message: `order intent exists after a failed ledger batch: ${msg.slice(0, 200)}`, committed: true };
     }
-    return { ok: false, code: "LEDGER_ERROR", message: `ledger update failed: ${msg.slice(0, 200)}` };
+    return {
+      ok: false,
+      code: /UNIQUE/i.test(msg) ? "LEDGER_DUPLICATE" : "LEDGER_ERROR",
+      message: `nothing was committed (order intent, fill and position unchanged): ${msg.slice(0, 200)}`,
+      committed: false,
+    };
   }
 
-  const fill = await env.DB.prepare(`SELECT * FROM paper_fills WHERE order_fk = ?`).bind(f.orderId).first();
-  if (!fill) {
-    // The position guard (status/qty/last_order_id) did not match, so nothing was written.
-    return { ok: false, code: "LEDGER_CONFLICT", message: "the position changed concurrently; the fill was not applied" };
-  }
+  const order = (await env.DB.prepare(`SELECT * FROM orders WHERE client_order_id = ?`).bind(f.clientOrderId).first()) as Record<string, unknown>;
+  const fill = (await env.DB.prepare(`SELECT * FROM paper_fills WHERE client_order_id = ?`).bind(f.clientOrderId).first()) as Record<string, unknown>;
   const position = (await env.DB.prepare(`SELECT * FROM paper_positions WHERE id = ?`)
     .bind(fill.position_fk).first<PositionRow>()) as PositionRow;
   const trade = fill.kind === "CLOSE"
     ? await env.DB.prepare(`SELECT * FROM trades WHERE position_fk = ?`).bind(position.id).first()
     : null;
-  return { ok: true, kind: fill.kind as "OPEN" | "ADD" | "REDUCE" | "CLOSE", fill, position, trade };
+  return { ok: true, kind: fill.kind as "OPEN" | "ADD" | "REDUCE" | "CLOSE", order, fill, position, trade };
 }
 
 /** One concise activity line for a ledger change. */
-export function fillActivity(r: Extract<FillResult, { ok: true }>, f: DryRunFill): ActivityInput {
+export function fillActivity(r: Extract<CommitResult, { ok: true }>, f: DryRunCommit): ActivityInput {
   const p = r.position;
   const at = `${fmtQty(Number(r.fill.qty))} @ ${fmtPrice(Number(r.fill.price))}`;
   const realized = Number(r.fill.realized_pnl);

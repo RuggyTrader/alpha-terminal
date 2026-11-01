@@ -121,10 +121,15 @@ alert → risk decision → dry-run order intent → paper_fills → paper_posit
   need one; without it they are rejected `MARKET_DATA_UNAVAILABLE` and the position is unchanged.
 * **BUY** opens or adds (weighted average entry). **SELL** only reduces an existing long (shorts stay disabled).
   **CLOSE** sells the whole remaining quantity. One OPEN position per symbol.
-* **Atomic and idempotent:** each change is one D1 batch (position + fill + trade). `paper_fills.order_fk` is
-  UNIQUE and the fill/trade inserts only apply if the position was changed by that same order, so duplicates
-  and races change nothing. Constraints forbid negative quantities, an OPEN position with qty 0 and two OPEN
-  positions for one symbol.
+* **One transaction per signal:** the dry-run order intent, the position change, the fill, the trade (on a
+  full close) and the alert's `DRY_RUN_ACCEPTED` status are one D1 batch: all of it is durable or none of it
+  is. The position change is guarded (SELL/CLOSE must match the exact row version read), and the fill insert
+  fails unless that change happened, so a race or any failure rolls the whole batch back. Order intents and
+  fills are UNIQUE per alert, so nothing can apply twice. Constraints forbid negative quantities, an OPEN
+  position with qty 0 and two OPEN positions for one symbol.
+* **Retry:** when an attempt commits nothing (alert status `error`, or stuck in `processing` for over 60 s),
+  resending the *same* alert (identical payload) processes it again; `attempt_count` records it. Accepted and
+  rejected alerts stay final (`DUPLICATE`). A retry is priced when it runs, not when the first attempt ran.
 * **Risk on the dry-run path** reads positions and exposure from this ledger (valued at the last mark), not from
   Alpaca. Account checks (status, buying power, daily loss) still use the Alpaca PAPER account.
 * **Unrealized P&L** = (mark − average entry) × qty × multiplier (1 for crypto; the futures point value once a

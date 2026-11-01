@@ -324,3 +324,135 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.equal(h.enable_trading, false);
   });
 });
+
+// ---------------------------------------------------------------- atomic commit + recovery
+
+/**
+ * Test-only fault injection, done to the local D1 file itself (no hook in the Worker): a trigger that
+ * aborts an INSERT, so the Worker's commit batch fails part-way, after the order-intent statements ran.
+ */
+function d1Write(sql) {
+  const dir = join(persist, "v3", "d1", "miniflare-D1DatabaseObject");
+  const file = readdirSync(dir).find((f) => f.endsWith(".sqlite") && f !== "metadata.sqlite");
+  const db = new DatabaseSync(join(dir, file));
+  try { db.exec("PRAGMA busy_timeout = 5000"); db.exec(sql); } finally { db.close(); }
+}
+const failInsertsInto = (table) =>
+  d1Write(`CREATE TRIGGER test_fault_${table} BEFORE INSERT ON ${table} BEGIN SELECT RAISE(ABORT, 'forced test failure in ${table}'); END;`);
+const clearFault = (table) => d1Write(`DROP TRIGGER IF EXISTS test_fault_${table}`);
+const eth = () => d1(`SELECT * FROM paper_positions WHERE symbol = 'ETHUSD' AND status = 'OPEN'`);
+const forAlert = (id) => ({
+  orders: d1(`SELECT COUNT(*) AS n FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${id}'`)[0].n,
+  fills: d1(`SELECT COUNT(*) AS n FROM paper_fills WHERE alert_id = '${id}'`)[0].n,
+  alert: d1(`SELECT status, response_code, attempt_count FROM alerts WHERE alert_id = '${id}'`)[0],
+});
+
+describe("order intent + ledger are one atomic, recoverable outcome", () => {
+  it("BUY: failure after the order statements commits nothing; the same alert then completes exactly once", needsBroker, async () => {
+    market.prices.ETHUSD = 2000;
+    const body = signal("ETHUSD", "BUY", 1);
+    failInsertsInto("paper_fills");
+    let r;
+    try {
+      r = await post(body);
+    } finally {
+      clearFault("paper_fills");
+    }
+    assert.equal(r.status, 500, JSON.stringify(r.json));
+    assert.equal(r.json.code, "LEDGER_ERROR");
+    assert.equal(r.json.committed, false);
+    assert.equal(r.json.retryable, true);
+    assert.equal(r.json.broker_request_sent, false);
+    let s = forAlert(body.id);
+    assert.equal(s.orders, 0, "no orphan order intent");
+    assert.equal(s.fills, 0);
+    assert.equal(eth().length, 0, "no position");
+    assert.equal(s.alert.status, "error");
+
+    r = await post(body); // TradingView / operator resend of the same alert
+    assert.equal(r.status, 200, JSON.stringify(r.json));
+    assert.equal(r.json.code, "DRY_RUN_ACCEPTED");
+    assert.equal(r.json.paper.kind, "OPEN");
+    s = forAlert(body.id);
+    assert.deepEqual([s.orders, s.fills, s.alert.status, s.alert.attempt_count], [1, 1, "dry_run", 2]);
+    assert.equal(eth()[0].qty, 1);
+
+    r = await post(body); // and again: now a true duplicate
+    assert.equal(r.json.code, "DUPLICATE");
+    s = forAlert(body.id);
+    assert.deepEqual([s.orders, s.fills], [1, 1]);
+    assert.equal(eth()[0].qty, 1);
+  });
+
+  it("CLOSE: failure while writing the trade rolls back the order, fill and position change; retry closes once", needsBroker, async () => {
+    market.prices.ETHUSD = 2100;
+    const before = eth()[0];
+    const body = signal("ETHUSD", "CLOSE");
+    failInsertsInto("trades");
+    let r;
+    try {
+      r = await post(body);
+    } finally {
+      clearFault("trades");
+    }
+    assert.equal(r.status, 500, JSON.stringify(r.json));
+    assert.equal(r.json.committed, false);
+    let s = forAlert(body.id);
+    assert.deepEqual([s.orders, s.fills, s.alert.status], [0, 0, "error"]);
+    const unchanged = eth()[0];
+    assert.equal(unchanged.status, "OPEN");
+    assert.equal(unchanged.qty, before.qty);
+    assert.equal(unchanged.realized_pnl, before.realized_pnl);
+    assert.equal(unchanged.last_order_id, before.last_order_id);
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM trades WHERE symbol = 'ETHUSD'`)[0].n, 0);
+
+    r = await post(body);
+    assert.equal(r.status, 200, JSON.stringify(r.json));
+    assert.equal(r.json.paper.kind, "CLOSE");
+    assert.equal(eth().length, 0);
+    const trades = d1(`SELECT * FROM trades WHERE symbol = 'ETHUSD'`);
+    assert.equal(trades.length, 1);
+    close8(trades[0].realized_pnl, 100); // (2100 − 2000) × 1
+    assert.equal((await post(body)).json.code, "DUPLICATE");
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM trades WHERE symbol = 'ETHUSD'`)[0].n, 1);
+    s = forAlert(body.id);
+    assert.deepEqual([s.orders, s.fills], [1, 1]);
+  });
+
+  it("an alert stuck in 'processing' with nothing committed is processed on resend; a fresh one is not stolen", needsBroker, async () => {
+    const insertProcessing = (body, at) => {
+      const { secret: _s, ...payload } = body;
+      d1Write(`INSERT INTO alerts (alert_id, received_at, symbol, action, strategy, payload_json, status)
+        VALUES ('${body.id}', '${at}', 'ETHUSD', 'BUY', 'OTE Pro Strat', '${JSON.stringify(payload)}', 'processing')`);
+    };
+    const stuck = signal("ETHUSD", "BUY", 0.5);
+    insertProcessing(stuck, new Date(Date.now() - 5 * 60_000).toISOString());
+    let r = await post(stuck);
+    assert.equal(r.status, 200, JSON.stringify(r.json));
+    assert.equal(r.json.paper.kind, "OPEN");
+    assert.equal(forAlert(stuck.id).alert.attempt_count, 2);
+
+    const inFlight = signal("ETHUSD", "BUY", 0.5);
+    insertProcessing(inFlight, new Date().toISOString());
+    r = await post(inFlight);
+    assert.equal(r.json.code, "DUPLICATE");
+    assert.equal(forAlert(inFlight.id).orders, 0);
+  });
+
+  it("rejections stay final, and a different payload under a failed alert id is not retried", needsBroker, async () => {
+    const rejected = signal("ETHUSD", "BUY", 100); // $200,000
+    assert.equal((await post(rejected)).json.code, "MAX_ORDER_NOTIONAL");
+    assert.equal((await post(rejected)).json.code, "DUPLICATE");
+
+    const body = signal("ETHUSD", "BUY", 0.25);
+    failInsertsInto("paper_fills");
+    try {
+      assert.equal((await post(body)).status, 500);
+    } finally {
+      clearFault("paper_fills");
+    }
+    const changed = { ...body, qty: 2 };
+    assert.equal((await post(changed)).json.code, "DUPLICATE");
+    assert.equal(forAlert(body.id).orders, 0);
+  });
+});

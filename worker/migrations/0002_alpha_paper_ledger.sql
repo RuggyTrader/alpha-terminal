@@ -72,7 +72,8 @@ CREATE INDEX IF NOT EXISTS idx_paper_fills_position
   ON paper_fills(position_fk);
 
 -- Trades: a closed ALPHA PAPER position becomes one trade (UNIQUE position_fk).
-ALTER TABLE trades ADD COLUMN source TEXT NOT NULL DEFAULT 'ALPHA_PAPER';
+-- source has no default: the ledger always writes 'ALPHA_PAPER' explicitly; other rows stay NULL (unspecified).
+ALTER TABLE trades ADD COLUMN source TEXT;
 ALTER TABLE trades ADD COLUMN position_fk INTEGER;
 ALTER TABLE trades ADD COLUMN close_alert_id TEXT;
 ALTER TABLE trades ADD COLUMN price_sources TEXT;
@@ -82,5 +83,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_trades_position
 
 -- Activity: link ledger events to their position.
 ALTER TABLE activity_events ADD COLUMN position_fk INTEGER;
+
+-- Alerts: retry bookkeeping. An alert whose attempt committed nothing (status 'error', or stuck in
+-- 'processing') can be resent and processed again; attempt_count records how many times.
+ALTER TABLE alerts ADD COLUMN attempt_count INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE alerts ADD COLUMN last_attempt_at TEXT;
 
 UPDATE app_meta SET value = '2' WHERE key = 'schema_version';

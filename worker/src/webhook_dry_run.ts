@@ -7,14 +7,17 @@ import {
 } from "./trade_core";
 
 import {
-  createDryRunOrder,
+  clientOrderIdForAlert,
 } from "./dry_run_orders";
 
 import {
-  applyDryRunFill,
+  commitDryRun,
   fillActivity,
   logActivity,
 } from "./paper_ledger";
+
+// An alert stuck in 'processing' this long (e.g. the Worker was stopped mid-request) may be retried.
+const STUCK_PROCESSING_MS = 60_000;
 
 interface DryRunWebhookEnv
   extends TradeCoreEnv {
@@ -168,6 +171,19 @@ export async function handleDryRunWebhook(
 
   delete sanitized.secret;
 
+  const payloadJson =
+    JSON.stringify(
+      sanitized
+    ).slice(
+      0,
+      4000
+    );
+
+  const clientOrderId =
+    await clientOrderIdForAlert(
+      alertId
+    );
+
   // ==========================================================
   // CLAIM ALERT
   // Unique alert_id gives us duplicate protection.
@@ -224,12 +240,7 @@ export async function handleDryRunWebhook(
             )
           : null,
 
-        JSON.stringify(
-          sanitized
-        ).slice(
-          0,
-          4000
-        )
+        payloadJson
       )
       .run();
   } catch {
@@ -248,7 +259,60 @@ export async function handleDryRunWebhook(
             string | null;
         }>();
 
-    if (existing) {
+    // RETRY: the same alert (identical payload) may be processed again only if its earlier attempt
+    // ended in an error, or is stuck in 'processing', AND committed no order intent. The claim is one
+    // conditional UPDATE, so concurrent retries cannot both win. Rejections are final.
+    const retry =
+      existing
+        ? await env.DB.prepare(
+            `UPDATE alerts
+             SET
+               status = 'processing',
+               processed_at = NULL,
+               response_code = NULL,
+               http_status = NULL,
+               rejection_reason = NULL,
+               attempt_count = attempt_count + 1,
+               last_attempt_at = ?
+             WHERE alert_id = ?
+               AND payload_json = ?
+               AND (
+                 status = 'error'
+                 OR (
+                   status = 'processing'
+                   AND COALESCE(last_attempt_at, received_at) < ?
+                 )
+               )
+               AND NOT EXISTS (
+                 SELECT 1 FROM orders
+                 WHERE client_order_id = ?
+               )`
+          )
+            .bind(
+              now,
+              alertId,
+              payloadJson,
+              new Date(
+                Date.parse(now) -
+                  STUCK_PROCESSING_MS
+              ).toISOString(),
+              clientOrderId
+            )
+            .run()
+        : null;
+
+    if (
+      retry?.meta &&
+      retry.meta.changes === 1
+    ) {
+      await logActivity(env, {
+        category: "alert",
+        level: "info",
+        message:
+          "Retry of an alert whose earlier attempt committed nothing · processing again",
+        alertId,
+      });
+    } else if (existing) {
       await env.DB.prepare(
         `UPDATE alerts
          SET
@@ -301,19 +365,21 @@ export async function handleDryRunWebhook(
       });
     }
 
-    return json(
-      {
-        ok: false,
-        status: "error",
-        code:
-          "DATABASE_ERROR",
-        message:
-          "Could not persist alert",
-        broker_request_sent:
-          false,
-      },
-      500
-    );
+    if (!existing) {
+      return json(
+        {
+          ok: false,
+          status: "error",
+          code:
+            "DATABASE_ERROR",
+          message:
+            "Could not persist alert",
+          broker_request_sent:
+            false,
+        },
+        500
+      );
+    }
   }
 
   // ==========================================================
@@ -621,8 +687,8 @@ export async function handleDryRunWebhook(
   // APPROVED DRY-RUN ORDER INTENT
   //
   // IMPORTANT:
-  // createDryRunOrder writes the intent to D1.
-  // It NEVER sends an Alpaca POST.
+  // commitDryRun writes the intent and its ALPHA PAPER fill to D1
+  // in one transaction. It NEVER sends an Alpaca POST.
   // ==========================================================
 
   if (
@@ -689,103 +755,65 @@ export async function handleDryRunWebhook(
       "APPROVED",
   });
 
-  const dryRunOrder =
-    await createDryRunOrder(
-      env,
-      {
-        alertId,
+  // ==========================================================
+  // ONE TRANSACTION: order intent + ALPHA PAPER fill + position
+  // (+ trade on full close) + alert DRY_RUN_ACCEPTED.
+  // Simulated fill at the risk decision's truthful price.
+  // Nothing is sent to a broker.
+  // ==========================================================
 
-        alertFk:
-          alertRow?.id ??
-          null,
-
-        symbol:
-          validation.symbol,
-
-        side:
-          riskResult.risk.side,
-
-        qty:
-          riskResult.risk
-            .finalQty,
-
-        orderType:
-          validation.orderType,
-
-        timeInForce:
-          validation.timeInForce,
-      }
-    );
-
-  const orderRow =
-    dryRunOrder.order as
-      | {
-          id: number;
-          client_order_id: string;
-        }
-      | null;
-
-  await logActivity(env, {
-    category: "order",
-    level: "info",
-    message:
-      `Dry-run order intent created · ${riskResult.risk.side.toUpperCase()} ${riskResult.risk.finalQty} · no broker request`,
+  const commitInput = {
     alertId,
+    alertFk:
+      alertRow?.id ??
+      null,
+    clientOrderId,
+    riskDecisionId,
     symbol:
       validation.symbol,
     action:
       validation.action,
-    strategy:
-      validation.strategy,
+    side:
+      riskResult.risk.side,
     qty:
       riskResult.risk.finalQty,
-  });
-
-  // ==========================================================
-  // ALPHA PAPER LEDGER
-  // Simulated fill at the risk decision's truthful price.
-  // Internal only: nothing is sent to a broker.
-  // ==========================================================
+    price:
+      riskResult.risk.referencePrice ??
+      0,
+    priceSource:
+      riskResult.risk.priceSource ??
+      "",
+    priceAt:
+      riskResult.risk.priceAt ??
+      new Date().toISOString(),
+    strategy:
+      validation.strategy,
+    orderType:
+      validation.orderType,
+    timeInForce:
+      validation.timeInForce,
+  };
 
   const ledger =
-    orderRow &&
     riskResult.risk.referencePrice !==
       null &&
     riskResult.risk.priceSource
-      ? await applyDryRunFill(env, {
-          alertId,
-          orderId:
-            orderRow.id,
-          clientOrderId:
-            orderRow.client_order_id,
-          riskDecisionId,
-          symbol:
-            validation.symbol,
-          action:
-            validation.action,
-          side:
-            riskResult.risk.side,
-          qty:
-            riskResult.risk.finalQty,
-          price:
-            riskResult.risk.referencePrice,
-          priceSource:
-            riskResult.risk.priceSource,
-          priceAt:
-            riskResult.risk.priceAt ??
-            new Date().toISOString(),
-          strategy:
-            validation.strategy,
-        })
+      ? await commitDryRun(
+          env,
+          commitInput
+        )
       : {
           ok: false as const,
           code:
             "LEDGER_NO_PRICE",
           message:
-            "approved intent had no truthful fill price; the ledger was not changed",
+            "approved intent had no truthful fill price; nothing was committed",
+          committed: false,
         };
 
   if (!ledger.ok) {
+    // Nothing was committed, so this alert stays retryable: resending the same
+    // alert processes it again (see RETRY above).
     await env.DB.prepare(
       `UPDATE alerts
        SET
@@ -809,7 +837,9 @@ export async function handleDryRunWebhook(
       category: "paper",
       level: "error",
       message:
-        `ALPHA PAPER ledger not updated · ${ledger.code}`,
+        ledger.committed
+          ? `ALPHA PAPER ledger inconsistent · ${ledger.code}`
+          : `Dry-run intent and ALPHA PAPER fill not committed · ${ledger.code} · resend the alert to retry`,
       alertId,
       symbol:
         validation.symbol,
@@ -829,77 +859,51 @@ export async function handleDryRunWebhook(
           ledger.message,
         alert_id:
           alertId,
+        committed:
+          ledger.committed,
+        retryable:
+          !ledger.committed,
         mode: "PAPER",
         execution:
           "DRY_RUN_ONLY",
         broker_request_sent:
           false,
-        order:
-          dryRunOrder,
       },
       500
     );
   }
 
+  const dryRunOrder = {
+    ok: true,
+    duplicate: false,
+    clientOrderId,
+    order:
+      ledger.order,
+  };
+
+  await logActivity(env, {
+    category: "order",
+    level: "info",
+    message:
+      `Dry-run order intent created · ${riskResult.risk.side.toUpperCase()} ${riskResult.risk.finalQty} · no broker request`,
+    alertId,
+    symbol:
+      validation.symbol,
+    action:
+      validation.action,
+    strategy:
+      validation.strategy,
+    qty:
+      riskResult.risk.finalQty,
+  });
+
   await logActivity(
     env,
-    fillActivity(ledger, {
-      alertId,
-      orderId:
-        orderRow?.id ?? 0,
-      clientOrderId:
-        orderRow?.client_order_id ?? "",
-      riskDecisionId,
-      symbol:
-        validation.symbol,
-      action:
-        validation.action,
-      side:
-        riskResult.risk.side,
-      qty:
-        riskResult.risk.finalQty,
-      price:
-        riskResult.risk.referencePrice as number,
-      priceSource:
-        riskResult.risk.priceSource as string,
-      priceAt:
-        riskResult.risk.priceAt ?? "",
-      strategy:
-        validation.strategy,
-    })
-  );
-
-  // ==========================================================
-  // MARK ALERT COMPLETE
-  // ==========================================================
-
-  const completedAt =
-    new Date()
-      .toISOString();
-
-  await env.DB.prepare(
-    `UPDATE alerts
-     SET
-       status = 'dry_run',
-       processed_at = ?,
-       accepted_qty = ?,
-       response_code =
-         'DRY_RUN_ACCEPTED',
-       http_status = 200,
-       rejection_reason = NULL
-     WHERE alert_id = ?`
-  )
-    .bind(
-      completedAt,
-
-      String(
-        riskResult.risk
-          .finalQty
-      ),
-
-      alertId
+    fillActivity(
+      ledger,
+      commitInput
     )
-    .run();
+  );
 
   return json({
     ok: true,
