@@ -25,6 +25,12 @@ import {
   type TradeCoreEnv,
 } from "./trade_core";
 
+import {
+  getInstrument,
+  normalizeSymbol,
+  referencePrice,
+} from "./instruments";
+
 interface Env extends TradeCoreEnv {
   ENABLE_TRADING: string;
 
@@ -38,9 +44,6 @@ interface Env extends TradeCoreEnv {
 
 const ALPACA_PAPER_BASE =
   "https://paper-api.alpaca.markets";
-
-const ALPACA_DATA_BASE =
-  "https://data.alpaca.markets";
 
 // ============================================================
 // RESPONSE
@@ -714,20 +717,23 @@ export default {
       }
 
       const symbol =
-        decodeURIComponent(
-          url.pathname.slice(
-            "/api/broker/price/"
-              .length
+        normalizeSymbol(
+          decodeURIComponent(
+            url.pathname.slice(
+              "/api/broker/price/"
+                .length
+            )
           )
-        )
-          .trim()
-          .toUpperCase();
+        );
 
-      if (
-        !/^[A-Z][A-Z0-9.]{0,9}$/.test(
-          symbol
-        )
-      ) {
+      const instrument =
+        symbol === null
+          ? null
+          : getInstrument(
+              symbol
+            );
+
+      if (!instrument) {
         return json(
           {
             ok: false,
@@ -739,19 +745,16 @@ export default {
               "INVALID_SYMBOL",
 
             message:
-              "invalid stock symbol",
+              "not one of the supported instruments",
           },
           400
         );
       }
 
+      // Same truthful source the risk engine uses; no price is estimated.
       const result =
-        await alpacaGet(
-          env,
-
-          `${ALPACA_DATA_BASE}/v2/stocks/${encodeURIComponent(
-            symbol
-          )}/trades/latest?feed=iex`
+        await referencePrice(
+          instrument
         );
 
       if (
@@ -774,6 +777,30 @@ export default {
         );
       }
 
+      if (
+        result.price ===
+        null
+      ) {
+        return json(
+          {
+            ok: false,
+
+            status:
+              "unavailable",
+
+            code:
+              "MARKET_DATA_UNAVAILABLE",
+
+            message:
+              result.reason,
+
+            symbol:
+              instrument.symbol,
+          },
+          503
+        );
+      }
+
       return json({
         ok: true,
 
@@ -783,10 +810,19 @@ export default {
         mode:
           "PAPER",
 
-        symbol,
+        symbol:
+          instrument.symbol,
 
-        data:
-          result.data,
+        data: {
+          price:
+            result.price,
+
+          source:
+            result.source,
+
+          fetched_at:
+            result.at,
+        },
       });
     }
 

@@ -67,39 +67,52 @@ function tradingViewBody(alertMessage) {
 }
 
 const hookMsg = pineHookMsg();
-const bar = (ticker, isoTime) => ({ ticker, period: "1", timenow: Date.parse(isoTime) });
-// entryMsg = hookMsg(dir == 1 ? "BUY" : "SELL", ",\"qty\":" + str.tostring(math.floor(qty)))
-const buyAlert = (qty, b) => hookMsg("BUY", `,"qty":${Math.floor(qty)}`, b);
+// syminfo.type: "crypto" for the crypto pairs, "futures" for MES/MNQ, "cfd" for TVC:GOLD.
+const bar = (ticker, isoTime, type = "crypto") => ({ ticker, type, period: "1", timenow: Date.parse(isoTime) });
+// hookQty = syminfo.type == "futures" ? str.tostring(math.floor(qty))
+//         : str.tostring(qty, "0.########")
+const pineQty = (qty, type) =>
+  type === "futures" ? String(Math.floor(qty)) : qty.toFixed(8).replace(/\.?0+$/, "");
+const buyAlert = (qty, b) => hookMsg("BUY", `,"qty":${pineQty(qty, b.type)}`, b);
 const closeAlert = (b) => hookMsg("CLOSE", "", b);
 
 describe("Pine alert matches the webhook contract", () => {
   it("produces the fields the Worker reads, and nothing secret", () => {
-    const body = JSON.parse(tradingViewBody(buyAlert(1, bar("SPY", "2026-11-02T14:31:05Z"))));
+    const body = JSON.parse(tradingViewBody(buyAlert(0.5, bar("SOLUSD", "2026-11-02T14:31:05Z"))));
     assert.deepEqual(Object.keys(body), ["secret", "id", "symbol", "timeframe", "action", "strategy", "qty", "timestamp"]);
-    assert.equal(body.id, "OTE-SPY-1-2026-11-02T14:31:05Z-BUY");
+    assert.equal(body.id, "OTE-SOLUSD-1-2026-11-02T14:31:05Z-BUY");
     assert.match(body.id, /^[!-~]{1,128}$/);
-    assert.equal(body.symbol, "SPY");
+    assert.equal(body.symbol, "SOLUSD");
     assert.equal(body.timeframe, "1");
     assert.equal(body.action, "BUY");
-    assert.equal(body.qty, 1);
+    assert.equal(body.qty, 0.5);
     assert.equal(body.timestamp, "2026-11-02T14:31:05Z");
-    assert.equal(JSON.parse(tradingViewBody(buyAlert(13.97, bar("SPY", "2026-11-02T14:31:05Z")))).qty, 13);
-    assert.equal("qty" in JSON.parse(tradingViewBody(closeAlert(bar("SPY", "2026-11-02T14:31:05Z")))), false);
+    assert.equal("qty" in JSON.parse(tradingViewBody(closeAlert(bar("SOLUSD", "2026-11-02T14:31:05Z")))), false);
+  });
+
+  it("crypto qty keeps 8 decimals; futures send whole contracts", () => {
+    const t = "2026-11-02T14:31:05Z";
+    assert.equal(JSON.parse(tradingViewBody(buyAlert(0.0347123446, bar("BTCUSD", t)))).qty, 0.03471234);
+    assert.equal(JSON.parse(tradingViewBody(buyAlert(4123.98, bar("KAITOUSD", t)))).qty, 4123.98);
+    const mes = JSON.parse(tradingViewBody(buyAlert(3.9, bar("MES1!", t, "futures"))));
+    assert.equal(mes.qty, 3);
+    assert.equal(mes.symbol, "MES1!");
   });
 
   it("alert_message holds no ordinary TradingView placeholders (they are not expanded inside it)", () => {
-    for (const msg of [buyAlert(1, bar("SPY", "2026-11-02T14:31:05Z")), closeAlert(bar("QQQ", "2026-11-02T14:31:05Z"))]) {
+    for (const msg of [buyAlert(1, bar("BTCUSD", "2026-11-02T14:31:05Z")), closeAlert(bar("MES1!", "2026-11-02T14:31:05Z", "futures"))]) {
       for (const ph of ["{{ticker}}", "{{interval}}", "{{timenow}}"]) assert.ok(!msg.includes(ph), `${ph} in alert_message`);
       assert.ok(!msg.includes("{{"), `placeholder in alert_message: ${msg}`);
     }
     const code = pine.replace(/^\s*\/\/.*$/gm, "");
     assert.ok(!code.includes("{{"), "the Pine code (outside comments) contains a TradingView placeholder");
     assert.deepEqual(DIALOG_MESSAGE.match(/\{\{[^}]*\}\}/g), ["{{strategy.order.alert_message}}"]);
-    assert.ok(!tradingViewBody(closeAlert(bar("SPY", "2026-11-02T14:31:05Z"))).includes("{{"));
+    assert.ok(!tradingViewBody(closeAlert(bar("ETHUSD", "2026-11-02T14:31:05Z"))).includes("{{"));
   });
 
-  it("entries send BUY/SELL with whole-share qty, every exit sends CLOSE", () => {
-    assert.match(pine, /entryMsg = hookMsg\(dir == 1 \? "BUY" : "SELL", ",\\"qty\\":" \+ str\.tostring\(math\.floor\(qty\)\)\)/);
+  it("entries send BUY/SELL with the instrument's qty format, every exit sends CLOSE", () => {
+    assert.ok(pine.includes('string hookQty = syminfo.type == "futures" ? str.tostring(math.floor(qty)) : str.tostring(qty, "0.########")'));
+    assert.ok(pine.includes('string entryMsg = hookMsg(dir == 1 ? "BUY" : "SELL", ",\\"qty\\":" + hookQty)'));
     for (const v of ["tpMsg", "slMsg", "timeMsg"]) assert.match(pine, new RegExp(`string ${v}\\s+= hookMsg\\("CLOSE", ""\\)`));
     assert.match(pine, /strategy\.entry\(eid, [^\n]*alert_message=entryMsg\)/);
     assert.match(pine, /strategy\.exit\([^\n]*alert_profit=tpMsg, alert_loss=slMsg\)/);
@@ -181,31 +194,37 @@ after(() => {
 });
 
 describe("Pine signal through the PAPER dry-run pipeline", () => {
-  const validBody = tradingViewBody(buyAlert(1, bar("SPY", "2026-11-02T14:31:05Z")));
+  // SOLUSD: priced from Kraken, positions read from Alpaca PAPER.
+  const validBody = tradingViewBody(buyAlert(0.5, bar("SOLUSD", "2026-11-02T14:31:05Z")));
   const validId = JSON.parse(validBody).id;
+  const ordersFor = (id) => d1(`SELECT COUNT(*) AS n FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${id}'`)[0].n;
 
   it("health reports PAPER with trading disabled", async () => {
     const h = await (await fetch(`${BASE}/health`)).json();
     assert.equal(JSON.stringify(h).includes('"enable_trading":false'), true, JSON.stringify(h));
   });
 
-  let spyBefore;
-  const spyQty = (d) => (d.broker?.positions ?? []).find((p) => p.symbol === "SPY")?.qty ?? null;
+  let solBefore;
+  const solQty = (d) => (d.broker?.positions ?? []).find((p) => p.symbol === "SOLUSD")?.qty ?? null;
 
-  it("VALID: BUY 1 SPY → risk APPROVED → DRY_RUN_ACCEPTED, intent saved, no broker request", needsBroker, async () => {
-    spyBefore = spyQty(await dashboard());
+  it("VALID: BUY 0.5 SOLUSD → risk APPROVED (Kraken price) → DRY_RUN_ACCEPTED, intent saved, no broker request", needsBroker, async () => {
+    solBefore = solQty(await dashboard());
     const r = await post(validBody);
     assert.equal(r.status, 200, JSON.stringify(r.json));
     assert.equal(r.json.code, "DRY_RUN_ACCEPTED");
     assert.equal(r.json.broker_request_sent, false);
     assert.equal(r.json.risk.approved, true);
+    assert.ok(r.json.risk.referencePrice > 0);
+    assert.equal(r.json.risk.estimatedNotional, Math.round(0.5 * r.json.risk.referencePrice * 100) / 100);
+    assert.equal(r.json.intent.symbol, "SOLUSD");
     assert.equal(r.json.intent.side, "buy");
-    assert.equal(r.json.intent.qty, 1);
+    assert.equal(r.json.intent.qty, 0.5);
 
     const [alert] = d1(`SELECT status, response_code, validation_result, strategy, action FROM alerts WHERE alert_id = '${validId}'`);
     assert.deepEqual(alert, { status: "dry_run", response_code: "DRY_RUN_ACCEPTED", validation_result: "passed", strategy: "OTE Pro Strat", action: "buy" });
-    const orders = d1(`SELECT o.side, o.qty, o.alpaca_order_id FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${validId}'`);
+    const orders = d1(`SELECT o.symbol, o.side, o.qty, o.alpaca_order_id FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${validId}'`);
     assert.equal(orders.length, 1);
+    assert.equal(orders[0].symbol, "SOLUSD");
     assert.equal(orders[0].alpaca_order_id, null);
     const [risk] = d1(`SELECT r.approved, r.code FROM risk_decisions r JOIN alerts a ON a.id = r.alert_fk WHERE a.alert_id = '${validId}'`);
     assert.equal(risk.code, "APPROVED");
@@ -216,39 +235,63 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(r.status, 200);
     assert.equal(r.json.code, "DUPLICATE");
     assert.equal(r.json.broker_request_sent, false);
-    const [{ n }] = d1(`SELECT COUNT(*) AS n FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${validId}'`);
-    assert.equal(n, 1);
+    assert.equal(ordersFor(validId), 1);
     const [{ duplicate_count }] = d1(`SELECT duplicate_count FROM alerts WHERE alert_id = '${validId}'`);
     assert.equal(duplicate_count, 1);
   });
 
-  it("REJECTED: BUY 11 SPY breaks MAX_ORDER_QTY=10 → 422 with the reason, no intent", needsBroker, async () => {
-    const body = tradingViewBody(buyAlert(11, bar("SPY", "2026-11-02T14:32:05Z")));
+  it("REJECTED: BUY 1 BTCUSD breaks MAX_ORDER_NOTIONAL=$5,000 → 422 with the reason, no intent", needsBroker, async () => {
+    const body = tradingViewBody(buyAlert(1, bar("BTCUSD", "2026-11-02T14:32:05Z")));
     const id = JSON.parse(body).id;
     const r = await post(body);
     assert.equal(r.status, 422, JSON.stringify(r.json));
-    assert.equal(r.json.code, "MAX_ORDER_QTY");
+    assert.equal(r.json.code, "MAX_ORDER_NOTIONAL");
     assert.equal(r.json.broker_request_sent, false);
     const [alert] = d1(`SELECT status, response_code, rejection_reason FROM alerts WHERE alert_id = '${id}'`);
     assert.equal(alert.status, "rejected");
-    assert.equal(alert.response_code, "MAX_ORDER_QTY");
-    assert.ok(alert.rejection_reason.length > 0);
-    const [{ n }] = d1(`SELECT COUNT(*) AS n FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${id}'`);
-    assert.equal(n, 0);
+    assert.equal(alert.response_code, "MAX_ORDER_NOTIONAL");
+    assert.match(alert.rejection_reason, /above the limit \$5000/);
+    assert.equal(ordersFor(id), 0);
   });
 
-  it("CLOSE with no PAPER position → NO_POSITION, no intent", needsBroker, async (t) => {
-    const held = new Set(((await dashboard()).broker?.positions ?? []).map((p) => p.symbol));
-    const symbol = ["QQQ", "AAPL", "NVDA", "SPY"].find((s) => !held.has(s));
-    if (!symbol) return t.skip("PAPER account holds every allowed symbol");
-    const body = tradingViewBody(closeAlert(bar(symbol, "2026-11-02T14:33:05Z")));
+  it("CLOSE KAITOUSD with no PAPER position → NO_POSITION (no PAPER broker holds KAITO), no intent", needsBroker, async () => {
+    const body = tradingViewBody(closeAlert(bar("KAITOUSD", "2026-11-02T14:33:05Z")));
     const id = JSON.parse(body).id;
     const r = await post(body);
     assert.equal(r.status, 422, JSON.stringify(r.json));
     assert.equal(r.json.code, "NO_POSITION");
+    assert.match(r.json.message, /no PAPER broker account can hold KAITOUSD/);
     assert.equal(r.json.broker_request_sent, false);
-    const [{ n }] = d1(`SELECT COUNT(*) AS n FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${id}'`);
-    assert.equal(n, 0);
+    assert.equal(ordersFor(id), 0);
+  });
+
+  it("MES and GOLD BUY → MARKET_DATA_UNAVAILABLE with the reason; no price is invented", needsBroker, async () => {
+    for (const [ticker, type, sym, why] of [["MES1!", "futures", "MES", /licensed CME/], ["GOLD", "cfd", "GOLD", /Gold\.com, Inc\. stock, not gold/]]) {
+      const body = tradingViewBody(buyAlert(1, bar(ticker, "2026-11-02T14:34:05Z", type)));
+      const r = await post(body);
+      assert.equal(r.status, 422, JSON.stringify(r.json));
+      assert.equal(r.json.code, "MARKET_DATA_UNAVAILABLE");
+      assert.match(r.json.message, why);
+      assert.equal(r.json.risk.referencePrice, null);
+      assert.equal(r.json.risk.estimatedNotional, null);
+      assert.equal(r.json.broker_request_sent, false);
+      assert.equal(ordersFor(JSON.parse(body).id), 0);
+      const [alert] = d1(`SELECT symbol FROM alerts WHERE alert_id = '${JSON.parse(body).id}'`);
+      assert.equal(alert.symbol, sym);
+    }
+  });
+
+  it("validation: old stock tickers are INVALID_SYMBOL; fractional futures are INVALID_QUANTITY", async () => {
+    for (const ticker of ["SPY", "AAPL"]) {
+      const r = await post(tradingViewBody(buyAlert(1, bar(ticker, "2026-11-02T14:35:05Z", "stock"))));
+      assert.equal(r.status, 400);
+      assert.equal(r.json.code, "INVALID_SYMBOL");
+    }
+    const frac = JSON.parse(tradingViewBody(buyAlert(1, bar("MNQ1!", "2026-11-02T14:36:05Z", "futures"))));
+    frac.qty = 1.5;
+    const r = await post(JSON.stringify(frac));
+    assert.equal(r.status, 400);
+    assert.equal(r.json.code, "INVALID_QUANTITY");
   });
 
   it("dashboard shows the persisted alerts, risk decisions and the one dry-run intent", needsBroker, async () => {
@@ -256,17 +299,18 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     const alerts = d.recent.alerts;
     const accepted = alerts.find((a) => a.alert_id === validId);
     assert.equal(accepted.response_code, "DRY_RUN_ACCEPTED");
+    assert.equal(accepted.symbol, "SOLUSD");
     assert.equal(accepted.strategy, "OTE Pro Strat");
     assert.equal(accepted.duplicate_count, 1);
-    const rejected = alerts.find((a) => a.response_code === "MAX_ORDER_QTY");
-    assert.ok(rejected?.rejection_reason, "rejection reason on the dashboard");
-    assert.ok(alerts.some((a) => a.response_code === "NO_POSITION" && a.action === "close"));
+    assert.ok(alerts.find((a) => a.response_code === "MAX_ORDER_NOTIONAL")?.rejection_reason);
+    assert.ok(alerts.some((a) => a.response_code === "NO_POSITION" && a.action === "close" && a.symbol === "KAITOUSD"));
+    assert.ok(alerts.some((a) => a.response_code === "MARKET_DATA_UNAVAILABLE" && a.symbol === "MES"));
     assert.ok(d.recent.risk.some((r) => r.code === "APPROVED"));
-    assert.ok(d.recent.risk.some((r) => r.code === "MAX_ORDER_QTY"));
+    assert.ok(d.recent.risk.some((r) => r.code === "MAX_ORDER_NOTIONAL"));
     assert.equal(d.recent.orders.length, 1);
     assert.equal(d.recent.orders[0].broker_request_sent, false);
     assert.equal(d.recent.orders[0].alpaca_order_id, null);
-    // The dashboard's positions come from the PAPER broker; a dry-run intent does not change them.
-    assert.equal(spyQty(d), spyBefore);
+    // Positions come from the PAPER broker; a dry-run intent does not change them.
+    assert.equal(solQty(d), solBefore);
   });
 });

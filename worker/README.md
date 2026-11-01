@@ -75,6 +75,25 @@ Never put them in `wrangler.jsonc`, the frontend or chat.
 If Cloudflare Access protects the dashboard hostname, exclude `/webhook*` from the Access
 policy so TradingView can still reach it.
 
+## Instruments
+
+`src/instruments.ts` is the instrument list: MES, MNQ, GOLD, BTCUSD, ETHUSD, SOLUSD, HYPEUSD and KAITOUSD
+(`ALLOWED_SYMBOLS` must list the same symbols). For each one it records the truthful reference-price source and
+whether Alpaca PAPER can hold a position:
+
+| Symbol | Price for risk notional | Position read from |
+|---|---|---|
+| BTCUSD, ETHUSD, SOLUSD, HYPEUSD | Kraken public ticker (GET, no key) | Alpaca PAPER |
+| KAITOUSD | Kraken public ticker | none (Alpaca does not list KAITO) |
+| MES, MNQ | none: no licensed CME feed configured | none |
+| GOLD | none: no spot-gold feed; Alpaca's `GOLD` is a stock and is never used | none |
+
+Without a price, BUY and SELL are rejected `MARKET_DATA_UNAVAILABLE` with that reason; nothing is estimated.
+Futures trade in whole contracts (`MAX_ORDER_QTY` counts contracts, notional = contracts × price × point value);
+crypto and gold take up to 8 decimals and are limited by the USD limits. Account checks (status, buying power,
+daily loss) use the Alpaca PAPER account; crypto uses its non-marginable buying power. Sources were checked on
+2026-11-01; adding a futures or gold feed means adding a source in `instruments.ts`.
+
 ## Known gaps
 
 * The Worker does not yet write `trades` or `activity_events`, so those dashboard panels show

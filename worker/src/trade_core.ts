@@ -1,3 +1,11 @@
+import {
+  getInstrument,
+  normalizeSymbol,
+  qtyProblem,
+  referencePrice,
+  type Instrument,
+} from "./instruments";
+
 export interface TradeCoreEnv {
   DB: D1Database;
 
@@ -5,7 +13,6 @@ export interface TradeCoreEnv {
   ALPACA_SECRET: string;
 
   ALLOWED_SYMBOLS: string;
-  ALLOW_FRACTIONAL_QTY: string;
 
   MAX_ORDER_QTY: string;
   MAX_ORDER_NOTIONAL: string;
@@ -19,9 +26,6 @@ export interface TradeCoreEnv {
 
 const ALPACA_PAPER_BASE =
   "https://paper-api.alpaca.markets";
-
-const ALPACA_DATA_BASE =
-  "https://data.alpaca.markets";
 
 // ============================================================
 // SHARED HELPERS
@@ -370,34 +374,11 @@ export function validateIntent(
     };
   }
 
-  let symbol =
-    rawSymbol
-      .trim()
-      .toUpperCase();
-
-  if (
-    symbol.includes(":")
-  ) {
-    symbol =
-      symbol.split(
-        ":",
-        2
-      )[1];
-  }
-
-  if (
-    !/^[A-Z][A-Z0-9.]{0,9}$/.test(
-      symbol
-    )
-  ) {
-    return {
-      ok: false,
-      code:
-        "INVALID_SYMBOL",
-      message:
-        "symbol format is not a supported stock ticker",
-    };
-  }
+  // Only the instruments in instruments.ts, and only those listed in ALLOWED_SYMBOLS.
+  const symbol =
+    normalizeSymbol(
+      rawSymbol
+    );
 
   const allowed =
     env.ALLOWED_SYMBOLS
@@ -411,6 +392,7 @@ export function validateIntent(
       .filter(Boolean);
 
   if (
+    symbol === null ||
     !allowed.includes(
       symbol
     )
@@ -420,9 +402,14 @@ export function validateIntent(
       code:
         "INVALID_SYMBOL",
       message:
-        `${symbol} is not in the allowed symbol list`,
+        `${rawSymbol.trim().toUpperCase().slice(0, 32)} is not in the allowed instrument list (${allowed.join(", ")})`,
     };
   }
+
+  const instrument =
+    getInstrument(
+      symbol
+    ) as Instrument;
 
   const rawAction =
     body.action;
@@ -586,20 +573,19 @@ export function validateIntent(
       };
     }
 
-    if (
-      !boolEnv(
-        env.ALLOW_FRACTIONAL_QTY
-      ) &&
-      !Number.isInteger(
+    const problem =
+      qtyProblem(
+        instrument,
         qty
-      )
-    ) {
+      );
+
+    if (problem) {
       return {
         ok: false,
         code:
           "INVALID_QUANTITY",
         message:
-          "fractional quantities are disabled (ALLOW_FRACTIONAL_QTY=false)",
+          problem,
       };
     }
   }
@@ -700,8 +686,17 @@ export function evaluateRisk(
     >[],
 
   price:
-    number | null
+    number | null,
+
+  // Why the price is missing, when the instrument has no truthful market-data source.
+  priceUnavailableReason:
+    string | null = null
 ): RiskResult {
+  const instrument =
+    getInstrument(
+      intent.symbol
+    );
+
   const checks:
     RiskCheck[] = [];
 
@@ -820,7 +815,11 @@ export function evaluateRisk(
     ) {
       return reject(
         "NO_POSITION",
-        `no open PAPER position in ${intent.symbol} to close`
+        instrument &&
+          instrument.alpacaPaperSymbol ===
+            null
+          ? `no open PAPER position in ${intent.symbol} to close (no PAPER broker account can hold ${intent.symbol})`
+          : `no open PAPER position in ${intent.symbol} to close`
       );
     }
 
@@ -833,7 +832,7 @@ export function evaluateRisk(
     ) {
       return reject(
         "POSITION_LOCKED",
-        "All shares are held by other open orders; nothing to close"
+        "All units are held by other open orders; nothing to close"
       );
     }
 
@@ -879,12 +878,16 @@ export function evaluateRisk(
       env.MAX_ORDER_QTY
     );
 
+  // MAX_ORDER_QTY counts futures contracts. Crypto and gold quantities are coin or ounce
+  // amounts, so they are limited by the USD notional and exposure limits below instead.
   if (
+    instrument?.qtyRule ===
+      "contracts" &&
     !add(
       "max_order_qty",
       qty <=
         maxOrderQty,
-      `${qty} <= ${maxOrderQty}`
+      `${qty} contracts <= ${maxOrderQty}`
     )
   ) {
     return reject(
@@ -925,7 +928,7 @@ export function evaluateRisk(
     ) {
       return reject(
         "SELL_EXCEEDS_AVAILABLE",
-        `Only ${posAvailable} shares are available (others held by orders)`
+        `Only ${posAvailable} units are available (others held by orders)`
       );
     }
 
@@ -1039,22 +1042,26 @@ export function evaluateRisk(
       "market_data_available",
       price !== null &&
         price > 0,
-      "latest trade price for notional estimate"
+      priceUnavailableReason ??
+        "latest trade price for notional estimate"
     )
   ) {
     return reject(
       "MARKET_DATA_UNAVAILABLE",
-      "No market price available to verify order notional"
+      priceUnavailableReason ??
+        "No market price available to verify order notional"
     );
   }
 
   const safePrice =
     price as number;
 
+  // Futures notional = contracts x price x point value.
   const notional =
     Math.round(
       qty *
         safePrice *
+        (instrument?.multiplier ?? 1) *
         100
     ) / 100;
 
@@ -1199,10 +1206,17 @@ export function evaluateRisk(
   // BUYING POWER
   // ----------------------------------------------------------
 
+  // Crypto is not marginable on Alpaca, so it uses non-marginable buying power.
   const buyingPower =
-    num(
-      account.buying_power
-    );
+    instrument?.assetClass ===
+      "crypto"
+      ? num(
+          account.non_marginable_buying_power ??
+            account.buying_power
+        )
+      : num(
+          account.buying_power
+        );
 
   if (
     !add(
@@ -1295,6 +1309,27 @@ export async function runRiskEvaluation(
       message: string;
     }
 > {
+  const instrument =
+    getInstrument(
+      intent.symbol
+    );
+
+  if (!instrument) {
+    return {
+      ok: false,
+      status: 400,
+      code:
+        "INVALID_SYMBOL",
+      message:
+        `${intent.symbol} is not a supported instrument`,
+    };
+  }
+
+  // The position is read from Alpaca PAPER only when Alpaca PAPER can hold the instrument.
+  // (Alpaca's "GOLD" is a stock, so it is never queried for gold.)
+  const paperSymbol =
+    instrument.alpacaPaperSymbol;
+
   const [
     accountResult,
     positionsResult,
@@ -1310,13 +1345,19 @@ export async function runRiskEvaluation(
       `${ALPACA_PAPER_BASE}/v2/positions`
     ),
 
-    alpacaGet(
-      env,
-      `${ALPACA_PAPER_BASE}/v2/positions/${encodeURIComponent(
-        intent.symbol
-      )}`,
-      true
-    ),
+    paperSymbol === null
+      ? Promise.resolve<AlpacaResult>({
+          ok: true,
+          status: 404,
+          data: null,
+        })
+      : alpacaGet(
+          env,
+          `${ALPACA_PAPER_BASE}/v2/positions/${encodeURIComponent(
+            paperSymbol
+          )}`,
+          true
+        ),
   ]);
 
   if (
@@ -1359,6 +1400,10 @@ export async function runRiskEvaluation(
     number | null =
     null;
 
+  let priceUnavailableReason:
+    string | null =
+    null;
+
   const needsPrice =
     intent.action ===
       "buy" ||
@@ -1375,11 +1420,8 @@ export async function runRiskEvaluation(
 
   if (needsPrice) {
     const priceResult =
-      await alpacaGet(
-        env,
-        `${ALPACA_DATA_BASE}/v2/stocks/${encodeURIComponent(
-          intent.symbol
-        )}/trades/latest?feed=iex`
+      await referencePrice(
+        instrument
       );
 
     if (
@@ -1388,25 +1430,16 @@ export async function runRiskEvaluation(
       return priceResult;
     }
 
-    const priceBody =
-      asObject(
-        priceResult.data
-      );
-
-    const trade =
-      asObject(
-        priceBody.trade
-      );
-
-    const p =
-      num(
-        trade.p
-      );
-
-    price =
-      p > 0
-        ? p
-        : null;
+    if (
+      priceResult.price ===
+      null
+    ) {
+      priceUnavailableReason =
+        priceResult.reason;
+    } else {
+      price =
+        priceResult.price;
+    }
   }
 
   return {
@@ -1419,7 +1452,8 @@ export async function runRiskEvaluation(
         account,
         position,
         positions,
-        price
+        price,
+        priceUnavailableReason
       ),
   };
 }

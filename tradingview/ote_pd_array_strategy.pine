@@ -444,9 +444,11 @@ if dir != 0 and not triggered
         float qty = pQty
         if qty > 0
             string sideWord = dir == 1 ? "LONG" : "SHORT"
-            // Long entry = BUY, short entry = SELL. ALPHA TERMINAL accepts whole shares only, so the webhook
-            // carries the strategy's size rounded down to a whole number (the strategy's own sizing is unchanged).
-            string entryMsg = hookMsg(dir == 1 ? "BUY" : "SELL", ",\"qty\":" + str.tostring(math.floor(qty)))
+            // Long entry = BUY, short entry = SELL. The webhook qty is the strategy's size in the form
+            // ALPHA TERMINAL accepts: whole contracts (rounded down) for futures, 8 decimals otherwise (crypto, gold).
+            // The strategy's own sizing is unchanged.
+            string hookQty = syminfo.type == "futures" ? str.tostring(math.floor(qty)) : str.tostring(qty, "0.########")
+            string entryMsg = hookMsg(dir == 1 ? "BUY" : "SELL", ",\"qty\":" + hookQty)
             if limitMode
                 strategy.entry(eid, dir == 1 ? strategy.long : strategy.short, qty=qty, limit=math.round_to_mintick(l705), alert_message=entryMsg)
             else
