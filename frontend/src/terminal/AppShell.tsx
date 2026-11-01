@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Icon, Mark, type IconName } from "../components/icons";
 import { connectionLabel } from "./classify";
@@ -7,6 +7,13 @@ import { markPageEntry, Presence } from "./motion";
 import { useDash } from "./store";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+// DEMO_UI_REPLAY controls (tools/demo-replay) exist only in a Vite dev server started
+// with VITE_DEMO_UI=1. `import.meta.env.DEV` is false in production builds, so this
+// branch and the demo module are removed from the bundle entirely, whatever
+// VITE_DEMO_UI is set to. As a second guard the overlay only renders on localhost.
+const DemoOverlay = import.meta.env.DEV && import.meta.env.VITE_DEMO_UI === "1" ? lazy(() => import("./demo/DemoOverlay")) : null;
+const demoHost = typeof window !== "undefined" && ["127.0.0.1", "localhost", "[::1]"].includes(window.location.hostname);
 
 export function TopBar() {
   const { state, refresh, reconnected } = useDash();
@@ -150,6 +157,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
       <div className="shell-in">
+        {DemoOverlay && demoHost ? (
+          <Suspense fallback={null}>
+            <DemoOverlay />
+          </Suspense>
+        ) : null}
         <TopBar />
         <Banners />
         <main className="page" key={section}>

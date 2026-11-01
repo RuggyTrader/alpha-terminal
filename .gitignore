@@ -23,3 +23,5 @@ frontend/dist/
 .dev.vars
 .dev.vars.*
 .wrangler/
+# local-only demo replay screenshots (simulated data, kept for review)
+docs/screenshots/demo-replay/
