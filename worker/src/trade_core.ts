@@ -6,6 +6,10 @@ import {
   type Instrument,
 } from "./instruments";
 
+import {
+  ledgerRiskSnapshot,
+} from "./paper_ledger";
+
 export interface TradeCoreEnv {
   DB: D1Database;
 
@@ -13,6 +17,9 @@ export interface TradeCoreEnv {
   ALPACA_SECRET: string;
 
   ALLOWED_SYMBOLS: string;
+
+  // Optional loopback override for tests only (see instruments.krakenBase).
+  KRAKEN_API_BASE?: string;
 
   MAX_ORDER_QTY: string;
   MAX_ORDER_NOTIONAL: string;
@@ -660,6 +667,15 @@ export type RiskResult = {
 
   checks:
     RiskCheck[];
+
+  // Where referencePrice came from and when (set by runRiskEvaluation).
+  priceSource?:
+    | string
+    | null;
+
+  priceAt?:
+    | string
+    | null;
 };
 
 export function evaluateRisk(
@@ -692,7 +708,13 @@ export function evaluateRisk(
 
   // Why the price is missing, when the instrument has no truthful market-data source.
   priceUnavailableReason:
-    string | null = null
+    string | null = null,
+
+  // requireFillPrice: SELL and CLOSE also need a truthful price, because the ALPHA PAPER
+  // ledger fills them at that price.
+  options: {
+    requireFillPrice?: boolean;
+  } = {}
 ): RiskResult {
   const instrument =
     getInstrument(
@@ -817,7 +839,9 @@ export function evaluateRisk(
     ) {
       return reject(
         "NO_POSITION",
-        instrument &&
+        options.requireFillPrice
+          ? `no open ALPHA PAPER position in ${intent.symbol} to close`
+          : instrument &&
           instrument.alpacaPaperSymbol ===
             null
           ? `no open PAPER position in ${intent.symbol} to close (no PAPER broker account can hold ${intent.symbol})`
@@ -835,6 +859,23 @@ export function evaluateRisk(
       return reject(
         "POSITION_LOCKED",
         "All units are held by other open orders; nothing to close"
+      );
+    }
+
+    if (
+      options.requireFillPrice &&
+      !add(
+        "fill_price_available",
+        price !== null &&
+          price > 0,
+        priceUnavailableReason ??
+          "truthful price for the simulated fill"
+      )
+    ) {
+      return reject(
+        "MARKET_DATA_UNAVAILABLE",
+        priceUnavailableReason ??
+          "No truthful market price to simulate this fill; the position is unchanged"
       );
     }
 
@@ -931,6 +972,23 @@ export function evaluateRisk(
       return reject(
         "SELL_EXCEEDS_AVAILABLE",
         `Only ${posAvailable} units are available (others held by orders)`
+      );
+    }
+
+    if (
+      options.requireFillPrice &&
+      !add(
+        "fill_price_available",
+        price !== null &&
+          price > 0,
+        priceUnavailableReason ??
+          "truthful price for the simulated fill"
+      )
+    ) {
+      return reject(
+        "MARKET_DATA_UNAVAILABLE",
+        priceUnavailableReason ??
+          "No truthful market price to simulate this fill; the position is unchanged"
       );
     }
 
@@ -1345,7 +1403,14 @@ export async function runRiskEvaluation(
     TradeCoreEnv,
 
   intent:
-    ValidIntent
+    ValidIntent,
+
+  // "ledger": positions come from the ALPHA PAPER ledger (dry-run path), not Alpaca.
+  opts: {
+    positionSource?:
+      | "alpaca"
+      | "ledger";
+  } = {}
 ): Promise<
   | {
       ok: true;
@@ -1379,6 +1444,10 @@ export async function runRiskEvaluation(
   const paperSymbol =
     instrument.alpacaPaperSymbol;
 
+  const useLedger =
+    opts.positionSource ===
+    "ledger";
+
   const [
     accountResult,
     positionsResult,
@@ -1389,11 +1458,18 @@ export async function runRiskEvaluation(
       `${ALPACA_PAPER_BASE}/v2/account`
     ),
 
-    alpacaGet(
-      env,
-      `${ALPACA_PAPER_BASE}/v2/positions`
-    ),
+    useLedger
+      ? Promise.resolve<AlpacaResult>({
+          ok: true,
+          status: 200,
+          data: [],
+        })
+      : alpacaGet(
+          env,
+          `${ALPACA_PAPER_BASE}/v2/positions`
+        ),
 
+    useLedger ||
     paperSymbol === null
       ? Promise.resolve<AlpacaResult>({
           ok: true,
@@ -1432,18 +1508,32 @@ export async function runRiskEvaluation(
       accountResult.data
     );
 
-  const positions =
+  let positions =
     asArray(
       positionsResult.data
     );
 
-  const position =
+  let position =
     positionResult.data ===
       null
       ? null
       : asObject(
           positionResult.data
         );
+
+  if (useLedger) {
+    const snapshot =
+      await ledgerRiskSnapshot(
+        env,
+        intent.symbol
+      );
+
+    position =
+      snapshot.position;
+
+    positions =
+      snapshot.positions;
+  }
 
   let price:
     number | null =
@@ -1453,7 +1543,17 @@ export async function runRiskEvaluation(
     string | null =
     null;
 
+  let priceSource:
+    string | null =
+    null;
+
+  let priceAt:
+    string | null =
+    null;
+
+  // The ledger fills every action at a truthful price, so it always needs one.
   const needsPrice =
+    useLedger ||
     intent.action ===
       "buy" ||
     (
@@ -1470,7 +1570,8 @@ export async function runRiskEvaluation(
   if (needsPrice) {
     const priceResult =
       await referencePrice(
-        instrument
+        instrument,
+        env
       );
 
     if (
@@ -1488,22 +1589,48 @@ export async function runRiskEvaluation(
     } else {
       price =
         priceResult.price;
+
+      priceSource =
+        priceResult.source;
+
+      priceAt =
+        priceResult.at;
     }
   }
+
+  const risk =
+    evaluateRisk(
+      intent,
+      env,
+      account,
+      position,
+      positions,
+      price,
+      priceUnavailableReason,
+      {
+        requireFillPrice:
+          useLedger,
+      }
+    );
 
   return {
     ok: true,
 
-    risk:
-      evaluateRisk(
-        intent,
-        env,
-        account,
-        position,
-        positions,
-        price,
-        priceUnavailableReason
-      ),
+    risk: {
+      ...risk,
+
+      priceSource:
+        risk.referencePrice ===
+        null
+          ? null
+          : priceSource,
+
+      priceAt:
+        risk.referencePrice ===
+        null
+          ? null
+          : priceAt,
+    },
   };
 }
 
@@ -1520,12 +1647,12 @@ export async function saveRiskDecision(
 
   risk:
     RiskResult
-): Promise<void> {
+): Promise<number | null> {
   const now =
     new Date()
       .toISOString();
 
-  await env.DB.prepare(
+  const result = await env.DB.prepare(
     `INSERT INTO risk_decisions
     (
       alert_fk,
@@ -1588,4 +1715,8 @@ export async function saveRiskDecision(
       )
     )
     .run();
+
+  return typeof result.meta?.last_row_id === "number"
+    ? result.meta.last_row_id
+    : null;
 }

@@ -81,8 +81,8 @@ export function activityTone(e: Pick<ActivityRow, "level" | "category">): Tone {
   const c = (e.category ?? "").toLowerCase();
   if (l === "error" || l === "critical" || l === "fatal") return "bad";
   if (l === "warn" || l === "warning") return "warn";
-  if (c.includes("risk") || c.includes("strategy")) return "warn";
   if (l === "success" || l === "ok") return "ok";
+  if (c.includes("risk") || c.includes("strategy")) return "warn";
   return "muted";
 }
 

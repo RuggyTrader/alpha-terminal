@@ -449,3 +449,11 @@ h1, h2, h3, p { margin: 0; }
   .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
+
+/* ALPHA PAPER ledger (simulated positions; never broker positions) */
+.ap-label { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px; }
+.ap-card.is-stale .pc-pnl b, .ap-card.is-stale .pc-pnl span { opacity: .55; }
+.ap-stale { margin: 10px 0 0; font-size: 12px; color: var(--amber); }
+.pc-source b { font-weight: 600; }
+.pc-pnl .na, .ov-v.na { color: var(--muted); }
+.ap-perf .ov-v { font-variant-numeric: tabular-nums; }

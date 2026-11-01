@@ -53,8 +53,8 @@ TradingView retry of the same alert is recorded as `DUPLICATE`.
 * Futures: at most 10 whole contracts and $75,000 contract notional per order (`MAX_FUTURES_ORDER_NOTIONAL`);
   the cash limits above do not apply. Today MES/MNQ stop earlier, at `MARKET_DATA_UNAVAILABLE`.
 * All: account active, at most 5 open positions, $2,000 daily loss.
-* An accepted DRY-RUN intent does not create an internal PAPER position or trade; a later CLOSE returns
-  `NO_POSITION` unless the Alpaca PAPER account itself holds the position.
+* An accepted DRY-RUN intent opens or changes an internal **ALPHA PAPER** position (simulated, not a broker
+  position) at the truthful reference price; a full CLOSE records an ALPHA PAPER trade. See `worker/README.md`.
 * With the default Pine sizing ($200 risk, $10,000 max position) many crypto signals exceed $5,000 and are
   rejected with a truthful reason; lower "Max position value (USD)" in Pine to about 4,000 to stay inside.
 * `/webhook/dry-run` never contacts the broker: an accepted signal becomes a dry-run order intent in D1, not a

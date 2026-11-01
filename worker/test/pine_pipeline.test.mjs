@@ -254,13 +254,13 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(ordersFor(id), 0);
   });
 
-  it("CLOSE KAITOUSD with no PAPER position → NO_POSITION (no PAPER broker holds KAITO), no intent", needsBroker, async () => {
+  it("CLOSE KAITOUSD with no ALPHA PAPER position → NO_POSITION, no intent", needsBroker, async () => {
     const body = tradingViewBody(closeAlert(bar("KAITOUSD", "2026-11-02T14:33:05Z")));
     const id = JSON.parse(body).id;
     const r = await post(body);
     assert.equal(r.status, 422, JSON.stringify(r.json));
     assert.equal(r.json.code, "NO_POSITION");
-    assert.match(r.json.message, /no PAPER broker account can hold KAITOUSD/);
+    assert.match(r.json.message, /no open ALPHA PAPER position in KAITOUSD to close/);
     assert.equal(r.json.broker_request_sent, false);
     assert.equal(ordersFor(id), 0);
   });

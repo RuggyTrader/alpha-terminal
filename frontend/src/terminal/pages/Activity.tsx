@@ -16,7 +16,7 @@ export function ActivityPage() {
           <ActivityFeed rows={d.recent.activity} />
         )}
       </section>
-      <p className="hint">Alerts, risk decisions and dry-run order intents are listed on the Trades tab.</p>
+      <p className="hint">Alerts, risk decisions, dry-run intents and ALPHA PAPER position changes as recorded by the Worker. Full records are on the Trades tab.</p>
     </div>
   );
 }

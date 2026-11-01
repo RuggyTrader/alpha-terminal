@@ -1,11 +1,14 @@
 import { marketType } from "../classify";
 import { percent, price, qty, signedMoney, stamp, text, tone, upper, when } from "../fmt";
 import type { TradeRow } from "../types";
-import { Expandable, KV, StatusBadge } from "./ui";
+import type { ReactNode } from "react";
+import { Code, Expandable, KV, StatusBadge } from "./ui";
 
 export function TradeCard({ t }: { t: TradeRow }) {
   const mt = marketType(t.symbol);
   const closed = t.status === "CLOSED";
+  // Ledger trades are simulated from dry-run intents, never broker fills.
+  const alphaPaper = t.source === "ALPHA_PAPER";
   return (
     <Expandable
       tone={closed ? (tone(t.realized_pnl) === "neg" ? "bad" : tone(t.realized_pnl) === "pos" ? "ok" : "muted") : "info"}
@@ -19,6 +22,7 @@ export function TradeCard({ t }: { t: TradeRow }) {
             <span className="time">{when(t.closed_at ?? t.opened_at)}</span>
           </div>
           <div className="row-b">
+            {alphaPaper ? <StatusBadge tone="info">ALPHA PAPER</StatusBadge> : null}
             <StatusBadge tone={closed ? "muted" : "info"}>{text(t.status)}</StatusBadge>
             {mt ? <StatusBadge tone="muted">{mt}</StatusBadge> : null}
             <span className="trade-pnl">
@@ -39,6 +43,16 @@ export function TradeCard({ t }: { t: TradeRow }) {
           ["Return", percent(t.return_pct)],
           ["Opened", <span key="o" className="mono-s">{stamp(t.opened_at)}</span>],
           ["Closed", <span key="c" className="mono-s">{stamp(t.closed_at)}</span>],
+          ...(alphaPaper
+            ? ([
+                ["Execution", "ALPHA PAPER · simulated, not broker-executed"],
+                ["Entry alert", <Code key="ea">{text(t.open_alert_id)}</Code>],
+                ["Exit alert", <Code key="xa">{text(t.close_alert_id)}</Code>],
+                ["Entry intent", <Code key="eo">{text(t.open_order_id)}</Code>],
+                ["Exit intent", <Code key="xo">{text(t.close_order_id)}</Code>],
+                ["Price source", text(t.price_sources)],
+              ] as [string, ReactNode][])
+            : []),
         ]}
       />
     </Expandable>

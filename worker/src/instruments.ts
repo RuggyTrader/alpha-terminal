@@ -11,7 +11,8 @@
 //   * Kraken has no spot gold (XAU/USD). No keyless, licensed CME futures feed is available.
 
 export type PriceSource =
-  | { source: "kraken"; pair: string }
+  // pair: request name; key: the name Kraken uses for it in the response.
+  | { source: "kraken"; pair: string; key: string }
   | { source: "none"; reason: string };
 
 export interface Instrument {
@@ -63,11 +64,11 @@ export const INSTRUMENTS: readonly Instrument[] = [
     },
     alpacaPaperSymbol: null,
   },
-  { symbol: "BTCUSD", name: "Bitcoin / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "XBTUSD" }, alpacaPaperSymbol: "BTCUSD" },
-  { symbol: "ETHUSD", name: "Ether / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "ETHUSD" }, alpacaPaperSymbol: "ETHUSD" },
-  { symbol: "SOLUSD", name: "Solana / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "SOLUSD" }, alpacaPaperSymbol: "SOLUSD" },
-  { symbol: "HYPEUSD", name: "Hyperliquid / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "HYPEUSD" }, alpacaPaperSymbol: "HYPEUSD" },
-  { symbol: "KAITOUSD", name: "Kaito / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "KAITOUSD" }, alpacaPaperSymbol: null },
+  { symbol: "BTCUSD", name: "Bitcoin / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "XBTUSD", key: "XXBTZUSD" }, alpacaPaperSymbol: "BTCUSD" },
+  { symbol: "ETHUSD", name: "Ether / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "ETHUSD", key: "XETHZUSD" }, alpacaPaperSymbol: "ETHUSD" },
+  { symbol: "SOLUSD", name: "Solana / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "SOLUSD", key: "SOLUSD" }, alpacaPaperSymbol: "SOLUSD" },
+  { symbol: "HYPEUSD", name: "Hyperliquid / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "HYPEUSD", key: "HYPEUSD" }, alpacaPaperSymbol: "HYPEUSD" },
+  { symbol: "KAITOUSD", name: "Kaito / USD", assetClass: "crypto", qtyRule: "decimal8", multiplier: 1, price: { source: "kraken", pair: "KAITOUSD", key: "KAITOUSD" }, alpacaPaperSymbol: null },
 ];
 
 const BY_SYMBOL = new Map(INSTRUMENTS.map((i) => [i.symbol, i]));
@@ -113,31 +114,73 @@ export type PriceResult =
   | { ok: true; price: null; source: "none"; reason: string }
   | { ok: false; status: number; code: string; message: string };
 
-const KRAKEN_TICKER = "https://api.kraken.com/0/public/Ticker";
+const KRAKEN_OFFICIAL = "https://api.kraken.com";
 
-/** Latest traded price from the instrument's truthful source. Read-only GET; never estimates. */
-export async function referencePrice(instrument: Instrument): Promise<PriceResult> {
-  const src = instrument.price;
-  if (src.source === "none") return { ok: true, price: null, source: "none", reason: src.reason };
+/**
+ * Kraken base URL. Always the official API, except a loopback address (127.0.0.1, localhost, [::1])
+ * which local tests use for a controlled price fixture. Any other value is ignored.
+ */
+export function krakenBase(configured?: string | null): string {
+  if (configured && /^http:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d{1,5})?$/.test(configured.trim())) {
+    return configured.trim();
+  }
+  return KRAKEN_OFFICIAL;
+}
 
+export interface MarketDataConfig {
+  KRAKEN_API_BASE?: string;
+}
+
+const unavailable = (symbol: string, message: string): PriceResult => ({
+  ok: false, status: 502, code: "MARKET_DATA_UNAVAILABLE", message: message.replace("{symbol}", symbol),
+});
+
+/**
+ * Latest traded prices for several instruments from their truthful sources, keyed by symbol.
+ * All Kraken instruments share ONE read-only GET. Never estimates: a missing price is an error result.
+ */
+export async function referencePrices(instruments: readonly Instrument[], cfg: MarketDataConfig = {}): Promise<Map<string, PriceResult>> {
+  const out = new Map<string, PriceResult>();
+  const kraken: { i: Instrument; pair: string; key: string }[] = [];
+  for (const i of instruments) {
+    if (out.has(i.symbol)) continue;
+    if (i.price.source === "none") out.set(i.symbol, { ok: true, price: null, source: "none", reason: i.price.reason });
+    else if (!kraken.some((k) => k.i.symbol === i.symbol)) kraken.push({ i, pair: i.price.pair, key: i.price.key });
+  }
+  if (kraken.length === 0) return out;
+
+  const pairs = kraken.map((k) => k.pair).join(",");
   let body: { error?: unknown; result?: Record<string, { c?: unknown[] }> };
   try {
-    const r = await fetch(`${KRAKEN_TICKER}?pair=${encodeURIComponent(src.pair)}`, {
+    const r = await fetch(`${krakenBase(cfg.KRAKEN_API_BASE)}/0/public/Ticker?pair=${encodeURIComponent(pairs).replace(/%2C/g, ",")}`, {
       method: "GET",
       headers: { Accept: "application/json" },
     });
     if (!r.ok) {
-      return { ok: false, status: 502, code: "MARKET_DATA_UNAVAILABLE", message: `Kraken market data returned HTTP ${r.status} for ${instrument.symbol}` };
+      for (const k of kraken) out.set(k.i.symbol, unavailable(k.i.symbol, `Kraken market data returned HTTP ${r.status} for {symbol}`));
+      return out;
     }
     body = await r.json();
   } catch {
-    return { ok: false, status: 502, code: "MARKET_DATA_UNAVAILABLE", message: `Could not reach Kraken market data for ${instrument.symbol}` };
+    for (const k of kraken) out.set(k.i.symbol, unavailable(k.i.symbol, "Could not reach Kraken market data for {symbol}"));
+    return out;
   }
   const errors = Array.isArray(body.error) ? body.error : [];
-  const entry = body.result ? Object.values(body.result)[0] : undefined;
-  const last = Number(entry?.c?.[0]);
-  if (errors.length > 0 || !(last > 0)) {
-    return { ok: false, status: 502, code: "MARKET_DATA_UNAVAILABLE", message: `Kraken returned no price for ${instrument.symbol}` };
+  const at = new Date().toISOString();
+  for (const k of kraken) {
+    const entry = body.result?.[k.key] ?? (kraken.length === 1 && body.result ? Object.values(body.result)[0] : undefined);
+    const last = Number(entry?.c?.[0]);
+    out.set(
+      k.i.symbol,
+      errors.length > 0 || !(last > 0)
+        ? unavailable(k.i.symbol, "Kraken returned no price for {symbol}")
+        : { ok: true, price: last, source: `kraken:${k.pair}`, at }
+    );
   }
-  return { ok: true, price: last, source: `kraken:${src.pair}`, at: new Date().toISOString() };
+  return out;
+}
+
+/** Latest traded price for one instrument from its truthful source. Read-only GET; never estimates. */
+export async function referencePrice(instrument: Instrument, cfg: MarketDataConfig = {}): Promise<PriceResult> {
+  return (await referencePrices([instrument], cfg)).get(instrument.symbol) as PriceResult;
 }

@@ -28,7 +28,7 @@ export function AccountOverview({ broker, loading = false }: { broker: BrokerSna
       <SectionHeader title="Account overview" right={<span className="muted-s">Alpaca PAPER</span>} />
       <div className="ov-grid">
         <Item k="Long exposure" v={a ? money(a.long_market_value) : "N/A"} raw={a ? a.long_market_value : null} loading={loading} />
-        <Item k="Open positions" v={posCount === null ? "N/A" : String(posCount)} raw={posCount} loading={loading} />
+        <Item k="Broker positions" v={posCount === null ? "N/A" : String(posCount)} raw={posCount} loading={loading} />
         {clk ? (
           <Item k={clk.is_open ? "Market closes" : "Market opens"} v={when(clk.is_open ? clk.next_close : clk.next_open)} raw={clk.is_open} loading={loading} />
         ) : (

@@ -10,6 +10,12 @@ import {
   createDryRunOrder,
 } from "./dry_run_orders";
 
+import {
+  applyDryRunFill,
+  fillActivity,
+  logActivity,
+} from "./paper_ledger";
+
 interface DryRunWebhookEnv
   extends TradeCoreEnv {
   WEBHOOK_SECRET: string;
@@ -257,6 +263,22 @@ export async function handleDryRunWebhook(
         )
         .run();
 
+      await logActivity(env, {
+        category: "alert",
+        level: "info",
+        message:
+          "Duplicate alert ignored · no new order intent, no position change",
+        alertId,
+        symbol:
+          typeof body.symbol === "string"
+            ? body.symbol.slice(0, 32)
+            : null,
+        action:
+          typeof body.action === "string"
+            ? body.action.slice(0, 16).toLowerCase()
+            : null,
+      });
+
       return json({
         ok: true,
         status: "duplicate",
@@ -325,6 +347,26 @@ export async function handleDryRunWebhook(
       )
       .run();
 
+    await logActivity(env, {
+      category: "alert",
+      level: "warn",
+      message:
+        `Alert rejected · ${validation.code}`,
+      alertId,
+      symbol:
+        typeof body.symbol === "string"
+          ? body.symbol.slice(0, 32)
+          : null,
+      action:
+        typeof body.action === "string"
+          ? body.action.slice(0, 16).toLowerCase()
+          : null,
+      validationResult:
+        "failed",
+      rejectionReason:
+        validation.message,
+    });
+
     return json(
       {
         ok: false,
@@ -373,16 +415,39 @@ export async function handleDryRunWebhook(
     )
     .run();
 
+  await logActivity(env, {
+    category: "alert",
+    level: "info",
+    message:
+      `Alert accepted (${validation.strategy})`,
+    alertId,
+    symbol:
+      validation.symbol,
+    action:
+      validation.action,
+    strategy:
+      validation.strategy,
+    qty:
+      validation.qty,
+    validationResult:
+      "passed",
+  });
+
   // ==========================================================
   // SHARED PAPER RISK ENGINE
   // Reads real PAPER account/position/market information.
   // Does NOT submit an order.
   // ==========================================================
 
+  // Positions for risk come from the ALPHA PAPER ledger, not the broker.
   const riskResult =
     await runRiskEvaluation(
       env,
-      validation
+      validation,
+      {
+        positionSource:
+          "ledger",
+      }
     );
 
   if (!riskResult.ok) {
@@ -409,6 +474,29 @@ export async function handleDryRunWebhook(
         alertId
       )
       .run();
+
+    await logActivity(env, {
+      category:
+        riskResult.code ===
+        "MARKET_DATA_UNAVAILABLE"
+          ? "market"
+          : "risk",
+      level: "error",
+      message:
+        riskResult.code ===
+        "MARKET_DATA_UNAVAILABLE"
+          ? "Market data unavailable · alert not processed, no position change"
+          : `Risk check could not run · ${riskResult.code}`,
+      alertId,
+      symbol:
+        validation.symbol,
+      action:
+        validation.action,
+      strategy:
+        validation.strategy,
+      errorDetail:
+        riskResult.message,
+    });
 
     return json(
       {
@@ -443,11 +531,12 @@ export async function handleDryRunWebhook(
 
   // Persist every shared risk result.
 
-  await saveRiskDecision(
-    env,
-    alertRow?.id ?? null,
-    riskResult.risk
-  );
+  const riskDecisionId =
+    await saveRiskDecision(
+      env,
+      alertRow?.id ?? null,
+      riskResult.risk
+    );
 
   // ==========================================================
   // RISK REJECTED
@@ -478,6 +567,33 @@ export async function handleDryRunWebhook(
         alertId
       )
       .run();
+
+    await logActivity(env, {
+      category:
+        riskResult.risk.code ===
+        "MARKET_DATA_UNAVAILABLE"
+          ? "market"
+          : "risk",
+      level: "warn",
+      message:
+        riskResult.risk.code ===
+        "MARKET_DATA_UNAVAILABLE"
+          ? "Market data unavailable · risk rejected, no position change"
+          : `Risk rejected · ${riskResult.risk.code}`,
+      alertId,
+      symbol:
+        validation.symbol,
+      action:
+        validation.action,
+      strategy:
+        validation.strategy,
+      qty:
+        validation.qty,
+      riskResult:
+        riskResult.risk.code,
+      rejectionReason:
+        riskResult.risk.reason,
+    });
 
     return json(
       {
@@ -552,6 +668,27 @@ export async function handleDryRunWebhook(
     );
   }
 
+  await logActivity(env, {
+    category: "risk",
+    level: "success",
+    message:
+      riskResult.risk.estimatedNotional ===
+      null
+        ? `Risk approved · ${riskResult.risk.side?.toUpperCase()} ${riskResult.risk.finalQty} at ${riskResult.risk.referencePrice} (${riskResult.risk.priceSource ?? "no price"})`
+        : `Risk approved · $${riskResult.risk.estimatedNotional} at ${riskResult.risk.referencePrice} (${riskResult.risk.priceSource ?? "no price"})`,
+    alertId,
+    symbol:
+      validation.symbol,
+    action:
+      validation.action,
+    strategy:
+      validation.strategy,
+    qty:
+      riskResult.risk.finalQty,
+    riskResult:
+      "APPROVED",
+  });
+
   const dryRunOrder =
     await createDryRunOrder(
       env,
@@ -579,6 +716,158 @@ export async function handleDryRunWebhook(
           validation.timeInForce,
       }
     );
+
+  const orderRow =
+    dryRunOrder.order as
+      | {
+          id: number;
+          client_order_id: string;
+        }
+      | null;
+
+  await logActivity(env, {
+    category: "order",
+    level: "info",
+    message:
+      `Dry-run order intent created · ${riskResult.risk.side.toUpperCase()} ${riskResult.risk.finalQty} · no broker request`,
+    alertId,
+    symbol:
+      validation.symbol,
+    action:
+      validation.action,
+    strategy:
+      validation.strategy,
+    qty:
+      riskResult.risk.finalQty,
+  });
+
+  // ==========================================================
+  // ALPHA PAPER LEDGER
+  // Simulated fill at the risk decision's truthful price.
+  // Internal only: nothing is sent to a broker.
+  // ==========================================================
+
+  const ledger =
+    orderRow &&
+    riskResult.risk.referencePrice !==
+      null &&
+    riskResult.risk.priceSource
+      ? await applyDryRunFill(env, {
+          alertId,
+          orderId:
+            orderRow.id,
+          clientOrderId:
+            orderRow.client_order_id,
+          riskDecisionId,
+          symbol:
+            validation.symbol,
+          action:
+            validation.action,
+          side:
+            riskResult.risk.side,
+          qty:
+            riskResult.risk.finalQty,
+          price:
+            riskResult.risk.referencePrice,
+          priceSource:
+            riskResult.risk.priceSource,
+          priceAt:
+            riskResult.risk.priceAt ??
+            new Date().toISOString(),
+          strategy:
+            validation.strategy,
+        })
+      : {
+          ok: false as const,
+          code:
+            "LEDGER_NO_PRICE",
+          message:
+            "approved intent had no truthful fill price; the ledger was not changed",
+        };
+
+  if (!ledger.ok) {
+    await env.DB.prepare(
+      `UPDATE alerts
+       SET
+         status = 'error',
+         processed_at = ?,
+         response_code = ?,
+         http_status = 500,
+         rejection_reason = ?
+       WHERE alert_id = ?`
+    )
+      .bind(
+        new Date()
+          .toISOString(),
+        ledger.code,
+        ledger.message,
+        alertId
+      )
+      .run();
+
+    await logActivity(env, {
+      category: "paper",
+      level: "error",
+      message:
+        `ALPHA PAPER ledger not updated · ${ledger.code}`,
+      alertId,
+      symbol:
+        validation.symbol,
+      action:
+        validation.action,
+      errorDetail:
+        ledger.message,
+    });
+
+    return json(
+      {
+        ok: false,
+        status: "error",
+        code:
+          ledger.code,
+        message:
+          ledger.message,
+        alert_id:
+          alertId,
+        mode: "PAPER",
+        execution:
+          "DRY_RUN_ONLY",
+        broker_request_sent:
+          false,
+        order:
+          dryRunOrder,
+      },
+      500
+    );
+  }
+
+  await logActivity(
+    env,
+    fillActivity(ledger, {
+      alertId,
+      orderId:
+        orderRow?.id ?? 0,
+      clientOrderId:
+        orderRow?.client_order_id ?? "",
+      riskDecisionId,
+      symbol:
+        validation.symbol,
+      action:
+        validation.action,
+      side:
+        riskResult.risk.side,
+      qty:
+        riskResult.risk.finalQty,
+      price:
+        riskResult.risk.referencePrice as number,
+      priceSource:
+        riskResult.risk.priceSource as string,
+      priceAt:
+        riskResult.risk.priceAt ?? "",
+      strategy:
+        validation.strategy,
+    })
+  );
 
   // ==========================================================
   // MARK ALERT COMPLETE
@@ -665,5 +954,19 @@ export async function handleDryRunWebhook(
 
     order:
       dryRunOrder,
+
+    // Internal simulated ledger, not a broker position.
+    paper: {
+      label:
+        "ALPHA PAPER",
+      kind:
+        ledger.kind,
+      fill:
+        ledger.fill,
+      position:
+        ledger.position,
+      trade:
+        ledger.trade,
+    },
   });
 }

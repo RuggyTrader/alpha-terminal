@@ -73,7 +73,7 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
         <section aria-label="Trade history" className="m-fade">
           <SectionHeader title="Trade history" right={c && c.trades.total > 0 ? <span className="muted-s">{c.trades.open} open · {c.trades.closed} closed</span> : null} />
           {loading ? <SkeletonCards count={2} /> : !d ? <EmptyState title="No data" />
-            : d.recent.trades.length === 0 ? <EmptyState title="No completed PAPER trades yet.">Only persisted trade records are shown.</EmptyState>
+            : d.recent.trades.length === 0 ? <EmptyState title="No completed ALPHA PAPER trades yet.">A trade is recorded when a simulated position is fully closed.</EmptyState>
             : <AnimatedList items={d.recent.trades} getKey={(t) => String(t.id)} render={(t) => <TradeCard t={t} />} />}
         </section>
       ) : null}

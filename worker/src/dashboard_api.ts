@@ -11,11 +11,18 @@ import {
   hasValidSession,
 } from "./auth_session";
 
+import {
+  paperSection,
+  refreshMarks,
+} from "./paper_ledger";
+
 interface DashboardEnv
   extends TradeCoreEnv {
   ADMIN_SECRET: string;
   ENABLE_TRADING: string;
   DASHBOARD_PASSPHRASE?: string;
+  PAPER_MARK_MIN_INTERVAL_SECONDS?: string;
+  PAPER_MARK_STALE_SECONDS?: string;
 }
 
 const ALPACA_PAPER_BASE =
@@ -482,9 +489,29 @@ async function getBrokerSnapshot(
 // SUMMARY
 // ============================================================
 
-async function getSummary(
+// Mark ALPHA PAPER positions from their truthful sources (throttled, read-only market data).
+// A failure here never blocks the dashboard; positions keep their last mark.
+async function refreshMarksSafely(
   env: DashboardEnv
 ) {
+  try {
+    await refreshMarks(env);
+  } catch {
+    /* marks stay as they were and are shown as stale */
+  }
+}
+
+async function getSummary(
+  env: DashboardEnv,
+  refresh = true
+) {
+  if (refresh) {
+    await refreshMarksSafely(env);
+  }
+
+  const paper =
+    await paperSection(env);
+
   const [
     engine,
     broker,
@@ -650,6 +677,9 @@ async function getSummary(
     engine,
 
     broker,
+
+    // Internal simulated ledger. Kept separate from the broker account above.
+    paper,
 
     counts: {
       alerts: {
@@ -905,7 +935,11 @@ async function getTrades(
         return_pct,
         opened_at,
         closed_at,
-        leg_order_ids_json
+        leg_order_ids_json,
+        source,
+        position_fk,
+        close_alert_id,
+        price_sources
        FROM trades
        ORDER BY id DESC
        LIMIT ?`
@@ -978,8 +1012,12 @@ async function getDashboardSnapshot(
     orders,
     trades,
     activity,
-  ] = await Promise.all([
-    getSummary(env),
+  ] = await (async () => {
+    // Refresh first so the activity read below includes any mark events it writes.
+    await refreshMarksSafely(env);
+
+    return Promise.all([
+    getSummary(env, false),
 
     getAlerts(
       env,
@@ -1005,7 +1043,8 @@ async function getDashboardSnapshot(
       env,
       limit
     ),
-  ]);
+    ]);
+  })();
 
   return {
     ...summary,

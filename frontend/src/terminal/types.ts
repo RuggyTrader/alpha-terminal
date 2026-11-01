@@ -146,6 +146,55 @@ export interface TradeRow {
   return_pct: NumLike;
   opened_at: string;
   closed_at: string | null;
+  // ALPHA PAPER ledger trades (simulated, not broker-executed).
+  source?: string | null;
+  open_alert_id?: string | null;
+  open_order_id?: string | null;
+  close_order_id?: string | null;
+  close_alert_id?: string | null;
+  price_sources?: string | null;
+}
+
+/** Internal simulated position from the ALPHA PAPER ledger. Never a broker position. */
+export interface AlphaPaperPosition {
+  id: number;
+  label: "ALPHA PAPER" | string;
+  symbol: string;
+  side: string;
+  qty: number;
+  avg_entry_price: number;
+  multiplier: number;
+  cost_basis: number;
+  mark_price: number | null;
+  mark_at: string | null;
+  mark_source: string | null;
+  mark_age_seconds: number | null;
+  /** FRESH: recent mark. STALE: last refresh failed or the mark is old. UNAVAILABLE: no mark at all. */
+  mark_status: "FRESH" | "STALE" | "UNAVAILABLE" | string;
+  mark_error: string | null;
+  market_value: number | null;
+  unrealized_pnl: number | null;
+  unrealized_pct: number | null; // percent (1.5 = 1.5 %)
+  realized_pnl: number;
+  strategy: string | null;
+  opened_at: string;
+  open_alert_id: string;
+  open_order_id: string;
+}
+
+export interface AlphaPaperSection {
+  label: "ALPHA PAPER" | string;
+  simulated: true;
+  broker_positions: false;
+  positions: AlphaPaperPosition[];
+  performance: {
+    realized_pnl: number;
+    unrealized_pnl: number | null;
+    total_pnl: number | null;
+    marks_stale: boolean;
+    open_positions: number;
+    closed_trades: number;
+  };
 }
 
 export interface ActivityRow {
@@ -175,6 +224,8 @@ export interface DashboardData {
   enable_trading: boolean;
   engine: EngineRow | null;
   broker: BrokerSnapshot;
+  /** Internal simulated ledger, separate from the broker account. Absent on older Workers. */
+  paper?: AlphaPaperSection;
   counts: DashboardCounts;
   recent: {
     alerts: AlertRow[];

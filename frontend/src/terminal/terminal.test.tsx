@@ -18,7 +18,9 @@ import { DashboardContext } from "./store";
 import { TerminalRoutes } from "./Terminal";
 import { AnimatedList, AnimatedNumber, prefersReducedMotion, Reveal } from "./motion";
 import { Expandable } from "./components/ui";
-import type { AlertRow, DashboardData, OrderRow, PaperPosition, RiskRow } from "./types";
+import { AlphaPaperPositionCard } from "./components/AlphaPaperPositionCard";
+import { TradeCard } from "./components/TradeCard";
+import type { AlertRow, AlphaPaperPosition, AlphaPaperSection, DashboardData, OrderRow, PaperPosition, RiskRow, TradeRow } from "./types";
 
 // ---------------------------------------------------------------- fixtures (tests only)
 
@@ -58,6 +60,23 @@ const position: PaperPosition = {
   current_price: 12.5, lastday_price: 12, unrealized_pl: 7.5, unrealized_plpc: 0.25, change_today: 0.0417,
 };
 
+function paperPos(over: Partial<AlphaPaperPosition> = {}): AlphaPaperPosition {
+  return {
+    id: 7, label: "ALPHA PAPER", symbol: "SOLUSD", side: "long", qty: 0.5, avg_entry_price: 100, multiplier: 1, cost_basis: 50,
+    mark_price: 110, mark_at: "2026-10-31T14:01:55Z", mark_source: "kraken:SOLUSD", mark_age_seconds: 5, mark_status: "FRESH",
+    mark_error: null, market_value: 55, unrealized_pnl: 5, unrealized_pct: 10, realized_pnl: 0, strategy: "OTE Pro Strat",
+    opened_at: "2026-10-31T14:00:00Z", open_alert_id: "test-open-1", open_order_id: "at-test-1", ...over,
+  };
+}
+
+function paper(positions: AlphaPaperPosition[] = [], perf: Partial<AlphaPaperSection["performance"]> = {}): AlphaPaperSection {
+  const unrealized = positions.reduce((t, p) => t + (p.unrealized_pnl ?? 0), 0);
+  return {
+    label: "ALPHA PAPER", simulated: true, broker_positions: false, positions,
+    performance: { realized_pnl: 0, unrealized_pnl: unrealized, total_pnl: unrealized, marks_stale: false, open_positions: positions.length, closed_trades: 0, ...perf },
+  };
+}
+
 function dashboard(over: Partial<DashboardData> = {}): DashboardData {
   return {
     generated_at: "2026-10-31T14:02:00Z",
@@ -83,6 +102,7 @@ function dashboard(over: Partial<DashboardData> = {}): DashboardData {
       trades: { total: 0, open: 0, closed: 0, realized_pnl: 0 },
     },
     recent: { alerts: [], risk: [], orders: [], trades: [], activity: [] },
+    paper: paper(),
     ...over,
   };
 }
@@ -125,8 +145,9 @@ describe("Home", () => {
 
   it("shows an intentional empty state without positions", () => {
     const html = page("/", ok(dashboard()));
-    expect(html).toContain("No open PAPER positions");
+    expect(html).toContain("No open ALPHA PAPER positions");
     expect(html).toContain("No TradingView alerts yet");
+    expect(html).not.toContain("Alpaca PAPER account positions"); // no broker positions, no broker section
   });
 
   it("renders populated positions as cards", () => {
@@ -139,7 +160,57 @@ describe("Home", () => {
     expect(html).toContain("+$7.50");
     expect(html).toContain("+25.0%");
     expect(html).toContain("$37.50");
-    expect(html).not.toContain("No open PAPER positions");
+    // Broker positions are listed separately from the ALPHA PAPER ledger.
+    expect(html).toContain("Alpaca PAPER account positions");
+    expect(html).toContain("No open ALPHA PAPER positions");
+  });
+
+  it("shows ALPHA PAPER positions, labelled and kept apart from broker equity", () => {
+    const d = dashboard({ paper: paper([paperPos()], { realized_pnl: 12.5, total_pnl: 17.5 }) });
+    const html = page("/", ok(d));
+    expect(html).toContain("ALPHA PAPER positions");
+    expect(html).toContain("ALPHA PAPER POSITION · simulated, not a broker position");
+    expect(html).toContain("SOLUSD");
+    expect(html).toContain("CRYPTO");
+    expect(html).toContain("LONG");
+    expect(html).toContain("+$5.00"); // (110 − 100) × 0.5
+    expect(html).toMatch(/t-pos[^>]*>\+\$5\.00/);
+    expect(html).toContain("+10.0%");
+    expect(html).toContain("$100.00"); // avg entry
+    expect(html).toContain("$110.00"); // current mark
+    expect(html).toContain("Kraken · 5s ago");
+    expect(html).toContain("ALPHA PAPER performance");
+    expect(html).toContain("Simulated ledger · not broker equity");
+    expect(html).toContain("+$12.50"); // realized
+    expect(html).toContain("+$17.50"); // total
+    expect(html).toContain("$2,222.22"); // broker equity is unchanged
+    expect(html).not.toContain("Alpaca PAPER account positions");
+  });
+
+  it("colours a losing ALPHA PAPER position red", () => {
+    const html = renderToStaticMarkup(<AlphaPaperPositionCard p={paperPos({ mark_price: 90, unrealized_pnl: -5, unrealized_pct: -10 })} />);
+    expect(html).toMatch(/t-neg[^>]*>−\$5\.00/);
+    expect(html).toContain("−10.0%");
+  });
+
+  it("flags a stale mark instead of showing it as current", () => {
+    const html = renderToStaticMarkup(
+      <AlphaPaperPositionCard p={paperPos({ mark_status: "STALE", mark_error: "Kraken market data returned HTTP 503 for SOLUSD", mark_age_seconds: 300 })} />,
+    );
+    expect(html).toContain("STALE");
+    expect(html).toContain("is-stale");
+    expect(html).toContain("Price refresh failed: Kraken market data returned HTTP 503 for SOLUSD.");
+    expect(html).toContain("P&amp;L shows the last real mark, not a current price.");
+    expect(html).toContain("Kraken · 5m ago");
+  });
+
+  it("shows N/A rather than a number when there is no mark", () => {
+    const html = renderToStaticMarkup(
+      <AlphaPaperPositionCard p={paperPos({ mark_price: null, mark_at: null, mark_source: null, mark_age_seconds: null, mark_status: "UNAVAILABLE", unrealized_pnl: null, unrealized_pct: null, market_value: null })} />,
+    );
+    expect(html).toContain("UNAVAILABLE");
+    expect(html).toContain("N/A");
+    expect(html).not.toContain("+$");
   });
 
   it("shows the compact system mode card", () => {
@@ -155,6 +226,7 @@ describe("Home", () => {
         mode: "PAPER", read_only: true, account: null, positions: [], clock: null,
         errors: ["account", "positions", "clock"].map((source) => ({ source, code: "BROKER_NOT_CONFIGURED", message: "Alpaca PAPER keys are not configured" })),
       },
+      paper: undefined, // broker values only; the ledger has its own section
     });
     const html = page("/", ok(d));
     expect(html).toContain("Alpaca PAPER not configured");
@@ -233,7 +305,21 @@ describe("Trades", () => {
   });
 
   it("shows an empty trade history truthfully", () => {
-    expect(trades("history", ok(dashboard()))).toContain("No completed PAPER trades yet.");
+    expect(trades("history", ok(dashboard()))).toContain("No completed ALPHA PAPER trades yet.");
+  });
+
+  it("labels ledger trades as ALPHA PAPER with their P&L", () => {
+    const t: TradeRow = {
+      id: 1, symbol: "SOLUSD", direction: "LONG", status: "CLOSED", strategy: "OTE Pro Strat", entry_qty: "2", entry_avg_price: "115",
+      exit_qty: "2", exit_avg_price: "137.5", open_qty: "0", realized_pnl: "45", return_pct: "19.565217", opened_at: "2026-10-31T14:00:00Z",
+      closed_at: "2026-10-31T15:00:00Z", source: "ALPHA_PAPER", open_alert_id: "a1", close_alert_id: "a4", open_order_id: "at-1",
+      close_order_id: "at-4", price_sources: "kraken:SOLUSD",
+    };
+    const html = renderToStaticMarkup(<TradeCard t={t} />);
+    expect(html).toContain("ALPHA PAPER");
+    expect(html).toContain("+$45.00");
+    expect(html).toContain("+19.6%");
+    expect(trades("history", ok(dashboard({ recent: { alerts: [], risk: [], orders: [], trades: [t], activity: [] } })))).toContain("SOLUSD");
   });
 });
 

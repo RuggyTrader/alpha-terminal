@@ -62,6 +62,7 @@ Then either open http://127.0.0.1:8787 (after `npm --prefix ../frontend run buil
 ```bash
 npm --prefix ../frontend ci
 npm --prefix ../frontend run build      # assets must exist before deploying
+npx wrangler d1 migrations apply alpha-terminal-db --remote   # schema first (0002 adds the ALPHA PAPER ledger)
 npx wrangler deploy --dry-run           # check bindings: ENABLE_TRADING must read "false"
 npx wrangler deploy
 ```
@@ -106,12 +107,45 @@ $75,000 allows one MES (about $38,000 at 7,600) or one MNQ per order; two MES (a
 is missing or not positive, futures orders are rejected. Today no futures feed exists, so MES/MNQ never reach
 this rule: they stop at `MARKET_DATA_UNAVAILABLE`.
 
+## ALPHA PAPER ledger (simulated positions)
+
+`src/paper_ledger.ts` turns accepted DRY-RUN order intents into internal simulated positions. They are labelled
+**ALPHA PAPER**, are never broker positions, and no broker is contacted.
+
+```
+alert → risk decision → dry-run order intent → paper_fills → paper_positions → (full close) trades
+                                    every step also writes a concise activity_events row
+```
+
+* **Fill price:** the truthful reference price the risk decision used (Kraken for crypto). SELL and CLOSE also
+  need one; without it they are rejected `MARKET_DATA_UNAVAILABLE` and the position is unchanged.
+* **BUY** opens or adds (weighted average entry). **SELL** only reduces an existing long (shorts stay disabled).
+  **CLOSE** sells the whole remaining quantity. One OPEN position per symbol.
+* **Atomic and idempotent:** each change is one D1 batch (position + fill + trade). `paper_fills.order_fk` is
+  UNIQUE and the fill/trade inserts only apply if the position was changed by that same order, so duplicates
+  and races change nothing. Constraints forbid negative quantities, an OPEN position with qty 0 and two OPEN
+  positions for one symbol.
+* **Risk on the dry-run path** reads positions and exposure from this ledger (valued at the last mark), not from
+  Alpaca. Account checks (status, buying power, daily loss) still use the Alpaca PAPER account.
+* **Unrealized P&L** = (mark − average entry) × qty × multiplier (1 for crypto; the futures point value once a
+  futures source exists). Unrealized % = that ÷ (average entry × qty × multiplier).
+* **Marks** refresh when the dashboard loads: one Kraken request for all open positions, at most every
+  `PAPER_MARK_MIN_INTERVAL_SECONDS` (default 15) across all viewers. A failed refresh keeps the last real mark
+  and flags it `STALE`; nothing is estimated. Marks older than `PAPER_MARK_STALE_SECONDS` (default 120) are
+  also `STALE`. A mark activity event is written only when unrealized P&L moves by at least
+  max($1, 0.5% of cost), or when market data becomes unavailable or available again.
+* **Trades:** a full close writes one `trades` row (`source = 'ALPHA_PAPER'`): entry/exit average prices, qty,
+  realized P&L, return % (realized ÷ total entry cost), entry/exit alert and intent IDs, all leg intents and
+  price sources.
+* MES, MNQ and GOLD have no price source, so they cannot open positions today; once a source is added in
+  `instruments.ts` the ledger handles them with their multiplier.
+
+`KRAKEN_API_BASE` exists only so local tests can point at a loopback price fixture; any value other than
+`http://127.0.0.1|localhost|[::1]` is ignored and the real Kraken API is used.
+
 ## Known gaps
 
-* An accepted DRY-RUN intent does not create an internal PAPER position or trade. Positions shown on the
-  dashboard and used by risk come only from the Alpaca PAPER account, so a later CLOSE for a dry-run BUY returns
-  `NO_POSITION`, and exposure limits do not count earlier dry-run intents.
-
-* The Worker does not yet write `trades` or `activity_events`, so those dashboard panels show
-  empty states until a later phase records them.
+* Ledger realized losses are not part of the `DAILY_LOSS_LIMIT` check, which uses the Alpaca PAPER account.
+* Buying power is the Alpaca PAPER account's; it is not reduced by open ALPHA PAPER positions.
+* Marks refresh only while a dashboard is open (no background schedule); positions keep their last mark.
 * `return_pct` in `trades` is displayed as a percentage value.

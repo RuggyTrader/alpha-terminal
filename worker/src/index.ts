@@ -754,7 +754,8 @@ export default {
       // Same truthful source the risk engine uses; no price is estimated.
       const result =
         await referencePrice(
-          instrument
+          instrument,
+          env
         );
 
       if (
