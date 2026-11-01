@@ -16,6 +16,8 @@ export interface TradeCoreEnv {
 
   MAX_ORDER_QTY: string;
   MAX_ORDER_NOTIONAL: string;
+  // Futures only: ceiling on one order's contract notional (contracts x price x point value), USD.
+  MAX_FUTURES_ORDER_NOTIONAL: string;
   MAX_POSITION_EXPOSURE: string;
   MAX_TOTAL_EXPOSURE: string;
   MAX_OPEN_POSITIONS: string;
@@ -1065,105 +1067,150 @@ export function evaluateRisk(
         100
     ) / 100;
 
-  // ----------------------------------------------------------
-  // MAX ORDER NOTIONAL
-  // ----------------------------------------------------------
+  const isFutures =
+    instrument?.assetClass ===
+    "futures";
 
-  const maxOrderNotional =
-    Number(
-      env.MAX_ORDER_NOTIONAL
+  if (isFutures) {
+    // --------------------------------------------------------
+    // FUTURES ORDER NOTIONAL (futures only)
+    //
+    // A futures contract is not a cash purchase, so the cash
+    // notional, exposure and buying-power rules below do not
+    // apply. Instead one order's contract notional must stay
+    // within MAX_FUTURES_ORDER_NOTIONAL. Contract count is
+    // already capped by MAX_ORDER_QTY. No broker margin is
+    // modelled: no PAPER broker here can hold futures.
+    // --------------------------------------------------------
+
+    const maxFuturesNotional =
+      Number(
+        env.MAX_FUTURES_ORDER_NOTIONAL
+      );
+
+    if (
+      !add(
+        "max_futures_order_notional",
+        maxFuturesNotional > 0 &&
+          notional <=
+            maxFuturesNotional,
+        `${qty} x ${safePrice} x ${instrument?.multiplier} = ${notional} <= ${maxFuturesNotional}`
+      )
+    ) {
+      return reject(
+        "MAX_FUTURES_ORDER_NOTIONAL",
+        maxFuturesNotional > 0
+          ? `Futures contract notional $${notional} is above the limit $${maxFuturesNotional}`
+          : "MAX_FUTURES_ORDER_NOTIONAL is not configured; futures orders are rejected"
+      );
+    }
+
+    add(
+      "cash_limits_not_applied",
+      true,
+      "futures: cash notional, exposure and buying-power limits do not apply; no futures margin is modelled"
     );
+  } else {
+    // ----------------------------------------------------------
+    // MAX ORDER NOTIONAL
+    // ----------------------------------------------------------
 
-  if (
-    !add(
-      "max_order_notional",
-      notional <=
-        maxOrderNotional,
-      `${notional} <= ${maxOrderNotional}`
-    )
-  ) {
-    return reject(
-      "MAX_ORDER_NOTIONAL",
-      `Estimated notional $${notional} is above the limit $${maxOrderNotional}`
-    );
-  }
+    const maxOrderNotional =
+      Number(
+        env.MAX_ORDER_NOTIONAL
+      );
 
-  // ----------------------------------------------------------
-  // POSITION EXPOSURE
-  // ----------------------------------------------------------
+    if (
+      !add(
+        "max_order_notional",
+        notional <=
+          maxOrderNotional,
+        `${notional} <= ${maxOrderNotional}`
+      )
+    ) {
+      return reject(
+        "MAX_ORDER_NOTIONAL",
+        `Estimated notional $${notional} is above the limit $${maxOrderNotional}`
+      );
+    }
 
-  const currentPositionValue =
-    position
-      ? Math.abs(
-          num(
-            position.market_value
+    // ----------------------------------------------------------
+    // POSITION EXPOSURE
+    // ----------------------------------------------------------
+
+    const currentPositionValue =
+      position
+        ? Math.abs(
+            num(
+              position.market_value
+            )
           )
-        )
-      : 0;
+        : 0;
 
-  const newPositionExposure =
-    currentPositionValue +
-    notional;
+    const newPositionExposure =
+      currentPositionValue +
+      notional;
 
-  const maxPositionExposure =
-    Number(
-      env.MAX_POSITION_EXPOSURE
-    );
+    const maxPositionExposure =
+      Number(
+        env.MAX_POSITION_EXPOSURE
+      );
 
-  if (
-    !add(
-      "max_position_exposure",
-      newPositionExposure <=
-        maxPositionExposure,
-      `${newPositionExposure} <= ${maxPositionExposure}`
-    )
-  ) {
-    return reject(
-      "MAX_POSITION_EXPOSURE",
-      `Position exposure would be $${newPositionExposure}, above $${maxPositionExposure}`
-    );
-  }
+    if (
+      !add(
+        "max_position_exposure",
+        newPositionExposure <=
+          maxPositionExposure,
+        `${newPositionExposure} <= ${maxPositionExposure}`
+      )
+    ) {
+      return reject(
+        "MAX_POSITION_EXPOSURE",
+        `Position exposure would be $${newPositionExposure}, above $${maxPositionExposure}`
+      );
+    }
 
-  // ----------------------------------------------------------
-  // TOTAL EXPOSURE
-  // ----------------------------------------------------------
+    // ----------------------------------------------------------
+    // TOTAL EXPOSURE
+    // ----------------------------------------------------------
 
-  const currentTotalExposure =
-    positions.reduce(
-      (
-        total,
-        positionItem
-      ) =>
-        total +
-        Math.abs(
-          num(
-            positionItem.market_value
-          )
-        ),
-      0
-    );
+    const currentTotalExposure =
+      positions.reduce(
+        (
+          total,
+          positionItem
+        ) =>
+          total +
+          Math.abs(
+            num(
+              positionItem.market_value
+            )
+          ),
+        0
+      );
 
-  const newTotalExposure =
-    currentTotalExposure +
-    notional;
+    const newTotalExposure =
+      currentTotalExposure +
+      notional;
 
-  const maxTotalExposure =
-    Number(
-      env.MAX_TOTAL_EXPOSURE
-    );
+    const maxTotalExposure =
+      Number(
+        env.MAX_TOTAL_EXPOSURE
+      );
 
-  if (
-    !add(
-      "max_total_exposure",
-      newTotalExposure <=
-        maxTotalExposure,
-      `${newTotalExposure} <= ${maxTotalExposure}`
-    )
-  ) {
-    return reject(
-      "MAX_TOTAL_EXPOSURE",
-      `Total PAPER exposure would be $${newTotalExposure}, above $${maxTotalExposure}`
-    );
+    if (
+      !add(
+        "max_total_exposure",
+        newTotalExposure <=
+          maxTotalExposure,
+        `${newTotalExposure} <= ${maxTotalExposure}`
+      )
+    ) {
+      return reject(
+        "MAX_TOTAL_EXPOSURE",
+        `Total PAPER exposure would be $${newTotalExposure}, above $${maxTotalExposure}`
+      );
+    }
   }
 
   // ----------------------------------------------------------
@@ -1202,34 +1249,36 @@ export function evaluateRisk(
     }
   }
 
-  // ----------------------------------------------------------
-  // BUYING POWER
-  // ----------------------------------------------------------
+  if (!isFutures) {
+    // ----------------------------------------------------------
+    // BUYING POWER
+    // ----------------------------------------------------------
 
-  // Crypto is not marginable on Alpaca, so it uses non-marginable buying power.
-  const buyingPower =
-    instrument?.assetClass ===
-      "crypto"
-      ? num(
-          account.non_marginable_buying_power ??
+    // Crypto is not marginable on Alpaca, so it uses non-marginable buying power.
+    const buyingPower =
+      instrument?.assetClass ===
+        "crypto"
+        ? num(
+            account.non_marginable_buying_power ??
+              account.buying_power
+          )
+        : num(
             account.buying_power
-        )
-      : num(
-          account.buying_power
-        );
+          );
 
-  if (
-    !add(
-      "buying_power",
-      notional <=
-        buyingPower,
-      `${notional} <= ${buyingPower}`
-    )
-  ) {
-    return reject(
-      "INSUFFICIENT_BUYING_POWER",
-      `Estimated $${notional} exceeds PAPER buying power $${buyingPower}`
-    );
+    if (
+      !add(
+        "buying_power",
+        notional <=
+          buyingPower,
+        `${notional} <= ${buyingPower}`
+      )
+    ) {
+      return reject(
+        "INSUFFICIENT_BUYING_POWER",
+        `Estimated $${notional} exceeds PAPER buying power $${buyingPower}`
+      );
+    }
   }
 
   // ----------------------------------------------------------

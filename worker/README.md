@@ -89,12 +89,27 @@ whether Alpaca PAPER can hold a position:
 | GOLD | none: no spot-gold feed; Alpaca's `GOLD` is a stock and is never used | none |
 
 Without a price, BUY and SELL are rejected `MARKET_DATA_UNAVAILABLE` with that reason; nothing is estimated.
-Futures trade in whole contracts (`MAX_ORDER_QTY` counts contracts, notional = contracts × price × point value);
-crypto and gold take up to 8 decimals and are limited by the USD limits. Account checks (status, buying power,
-daily loss) use the Alpaca PAPER account; crypto uses its non-marginable buying power. Sources were checked on
-2026-11-01; adding a futures or gold feed means adding a source in `instruments.ts`.
+Sources were checked on 2026-11-01; adding a futures or gold feed means adding a source in `instruments.ts`.
+
+### Risk rules by asset class
+
+| Rule | Crypto, gold (cash assets) | MES, MNQ (futures) |
+|---|---|---|
+| Quantity | up to 8 decimals | whole contracts; `MAX_ORDER_QTY` (10) caps contracts per order |
+| Order size | `MAX_ORDER_NOTIONAL` ($5,000) on qty × price | `MAX_FUTURES_ORDER_NOTIONAL` ($75,000) on contracts × price × point value ($5 MES, $2 MNQ) |
+| Position / total exposure | `MAX_POSITION_EXPOSURE`, `MAX_TOTAL_EXPOSURE` | not applied (cash measures) |
+| Buying power | Alpaca PAPER (crypto: non-marginable) | not applied: no PAPER broker holds futures, so no margin is modelled |
+| Account active, open positions, daily loss | applied | applied |
+
+$75,000 allows about two MES or one MNQ per order at current index levels. If `MAX_FUTURES_ORDER_NOTIONAL`
+is missing or not positive, futures orders are rejected. Today no futures feed exists, so MES/MNQ never reach
+this rule: they stop at `MARKET_DATA_UNAVAILABLE`.
 
 ## Known gaps
+
+* An accepted DRY-RUN intent does not create an internal PAPER position or trade. Positions shown on the
+  dashboard and used by risk come only from the Alpaca PAPER account, so a later CLOSE for a dry-run BUY returns
+  `NO_POSITION`, and exposure limits do not count earlier dry-run intents.
 
 * The Worker does not yet write `trades` or `activity_events`, so those dashboard panels show
   empty states until a later phase records them.
