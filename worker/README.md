@@ -101,7 +101,8 @@ Sources were checked on 2026-11-01; adding a futures or gold feed means adding a
 | Buying power | Alpaca PAPER (crypto: non-marginable) | not applied: no PAPER broker holds futures, so no margin is modelled |
 | Account active, open positions, daily loss | applied | applied |
 
-$75,000 allows about two MES or one MNQ per order at current index levels. If `MAX_FUTURES_ORDER_NOTIONAL`
+$75,000 allows one MES (about $38,000 at 7,600) or one MNQ per order; two MES (about $76,000) exceed it. Raise
+`MAX_FUTURES_ORDER_NOTIONAL` to allow more. If `MAX_FUTURES_ORDER_NOTIONAL`
 is missing or not positive, futures orders are rejected. Today no futures feed exists, so MES/MNQ never reach
 this rule: they stop at `MARKET_DATA_UNAVAILABLE`.
 
