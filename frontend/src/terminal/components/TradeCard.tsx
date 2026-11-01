@@ -31,6 +31,7 @@ export function TradeCard({ t }: { t: TradeRow }) {
     >
       <KV
         rows={[
+          ["Strategy", text(t.strategy)],
           ["Entry", `${qty(t.entry_qty)} @ ${price(t.entry_avg_price)}`],
           ["Exit", `${qty(t.exit_qty)} @ ${price(t.exit_avg_price)}`],
           ["Open qty", qty(t.open_qty)],

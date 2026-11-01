@@ -137,7 +137,9 @@ export interface PresenceItem<T> {
  */
 export function usePresence<T>(items: T[], getKey: (t: T) => string, exitMs: number = MOTION.normal): PresenceItem<T>[] {
   const firstKeys = useRef<Set<string> | null>(null);
-  if (firstKeys.current === null) firstKeys.current = new Set(items.map(getKey));
+  // Items present when the page is entered stagger in; a list that first appears later
+  // (e.g. the first real alert arriving) treats its items as new arrivals.
+  if (firstKeys.current === null) firstKeys.current = pageSettled() ? new Set() : new Set(items.map(getKey));
   const [leaving, setLeaving] = useState<Map<string, { item: T; index: number }>>(() => new Map());
   const prevItems = useRef<T[]>(items);
 
@@ -170,6 +172,16 @@ export function usePresence<T>(items: T[], getKey: (t: T) => string, exitMs: num
     out.splice(Math.min(index, out.length), 0, { item, key, phase: "leaving" });
   });
   return out;
+}
+
+// Page-entry clock: AppShell calls markPageEntry() whenever the route changes.
+let pageEnteredAt = 0;
+export function markPageEntry(now: number = Date.now()): void {
+  pageEnteredAt = now;
+}
+/** True once the current page has been visible for a moment (after its entrance). */
+export function pageSettled(now: number = Date.now()): boolean {
+  return pageEnteredAt > 0 && now - pageEnteredAt > 1200;
 }
 
 export function presenceClass(phase: PresenceItem<unknown>["phase"]): string {

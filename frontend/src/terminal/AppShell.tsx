@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Icon, Mark, type IconName } from "../components/icons";
 import { connectionLabel } from "./classify";
 import { clock } from "./fmt";
-import { Presence } from "./motion";
+import { markPageEntry, Presence } from "./motion";
 import { useDash } from "./store";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -143,12 +143,16 @@ export function BottomNav() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const loc = useLocation();
+  const section = loc.pathname.split("/")[1] || "home";
+  useEffect(() => {
+    markPageEntry();
+  }, [section]);
   return (
     <div className="shell">
       <div className="shell-in">
         <TopBar />
         <Banners />
-        <main className="page" key={loc.pathname.split("/")[1] || "home"}>
+        <main className="page" key={section}>
           {children}
         </main>
         <footer className="foot">PAPER account · dry run only · no broker orders are submitted</footer>

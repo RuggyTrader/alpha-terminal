@@ -22,10 +22,14 @@ export function PositionsSection() {
         <EmptyState title="PAPER positions unavailable" tone="warn">
           {err.code === "BROKER_NOT_CONFIGURED" ? "Alpaca PAPER keys are not configured on the server." : `${err.code}: ${err.message}`}
         </EmptyState>
-      ) : rows.length === 0 ? (
-        <EmptyState title="No open PAPER positions">Positions held in the Alpaca PAPER account will appear here.</EmptyState>
       ) : (
-        <AnimatedList items={rows} getKey={(p) => p.symbol} render={(p) => <PositionCard p={p} />} />
+        <>
+          {/* Stays mounted when empty so a closing position can fade out. */}
+          <AnimatedList items={rows} getKey={(p) => p.symbol} render={(p) => <PositionCard p={p} />} />
+          {rows.length === 0 ? (
+            <EmptyState title="No open PAPER positions">Positions held in the Alpaca PAPER account will appear here.</EmptyState>
+          ) : null}
+        </>
       )}
     </section>
   );

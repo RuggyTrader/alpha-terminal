@@ -30,6 +30,7 @@ export function AlertCard({ a, defaultOpen = false }: { a: AlertRow; defaultOpen
       <KV
         rows={[
           ["Alert ID", <Code key="id">{a.alert_id}</Code>],
+          ["Strategy", text(a.strategy)],
           ["Received", <span key="r" className="mono-s">{stamp(a.received_at)}</span>],
           ["Requested qty", qty(a.requested_qty)],
           ["Accepted qty", qty(a.accepted_qty)],
