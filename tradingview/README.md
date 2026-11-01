@@ -27,7 +27,10 @@ TradingView sends, for example:
  "action":"BUY","strategy":"OTE Pro Strat","qty":1,"timestamp":"2026-11-02T14:31:05Z"}
 ```
 
-`id` is unique per fill, so a TradingView retry of the same alert is recorded as `DUPLICATE`.
+Pine builds every field itself (`syminfo.ticker`, `timeframe.period`, and `timenow` formatted as UTC ISO-8601).
+`{{strategy.order.alert_message}}` is the only placeholder: TradingView does not expand `{{ticker}}`-style
+placeholders inside `alert_message`. `id` and `timestamp` are the time Pine placed or last updated the order, so a
+TradingView retry of the same alert is recorded as `DUPLICATE`.
 
 ## Limits that apply (Worker risk settings, unchanged)
 

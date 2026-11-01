@@ -1,8 +1,8 @@
 // Pine strategy → /webhook/dry-run → validation → PAPER risk → dry-run order intent → D1 → dashboard.
 //
 // Runs the real Worker with `wrangler dev --local` against a throwaway D1 database. Each request body is
-// built from the alert text in tradingview/ote_pd_array_strategy.pine, wrapped the way the TradingView
-// alert message wraps it. The webhook secret and dashboard passphrase are random values for this run only.
+// the alert_message that the Pine hookMsg() builds from Pine values, inserted into the TradingView alert
+// dialog message exactly as TradingView does (only {{strategy.order.alert_message}} is substituted). The webhook secret and dashboard passphrase are random values for this run only.
 //
 // The risk engine reads the real Alpaca PAPER account (GET only). Those cases need ALPACA_KEY and
 // ALPACA_SECRET for the PAPER account in worker/.dev.vars; without them they are skipped.
@@ -38,38 +38,64 @@ const needsBroker = HAS_PAPER_KEYS ? {} : { skip: "ALPACA_KEY / ALPACA_SECRET (P
 
 const pine = readFileSync(PINE, "utf8");
 
-/** The Pine hookMsg() function, evaluated as JS (its body is plain string concatenation). */
+const TS_LINE = `string ts = str.format_time(timenow, "yyyy-MM-dd'T'HH:mm:ss'Z'", "UTC")`;
+
+/**
+ * The Pine hookMsg() function, evaluated the way Pine evaluates it: with the bar's real
+ * syminfo.ticker, timeframe.period and timenow. Its result is the order's alert_message.
+ */
 function pineHookMsg() {
-  const m = pine.match(/^hookMsg\(string action, string qtyField\) =>\n((?: {4,}.*\n)+)/m);
+  const m = pine.replace(/\r\n/g, "\n").match(/^hookMsg\(string action, string qtyField\) =>\n((?: {4,}.*\n)+)/m);
   assert.ok(m, "hookMsg() not found in the Pine script");
-  const expr = m[1].split("\n").map((l) => l.trim()).join(" ");
-  return new Function("action", "qtyField", `return ${expr};`);
+  const [tsLine, ...rest] = m[1].trimEnd().split("\n").map((l) => l.trim());
+  assert.equal(tsLine, TS_LINE, "timestamp is formatted in Pine as ISO-8601 UTC");
+  const fn = new Function("action", "qtyField", "ts", "syminfo", "timeframe", `return ${rest.join(" ")};`);
+  // str.format_time(timenow, "yyyy-MM-dd'T'HH:mm:ss'Z'", "UTC")
+  const formatTime = (ms) => new Date(ms).toISOString().slice(0, 19) + "Z";
+  return (action, qtyField, bar) => fn(action, qtyField, formatTime(bar.timenow), { ticker: bar.ticker }, { period: bar.period });
 }
 
-/** What TradingView sends: the alert message template with the Pine fragment and placeholders filled. */
-function tradingViewBody(fragment, { ticker = "SPY", interval = "1", timenow = new Date().toISOString().slice(0, 19) + "Z" } = {}) {
-  const template = '{"secret":"<WEBHOOK_SECRET>",{{strategy.order.alert_message}}}';
-  return template
-    .replace("<WEBHOOK_SECRET>", WEBHOOK_SECRET)
-    .replace("{{strategy.order.alert_message}}", fragment)
-    .replaceAll("{{ticker}}", ticker)
-    .replaceAll("{{interval}}", interval)
-    .replaceAll("{{timenow}}", timenow);
+/**
+ * What TradingView sends: the alert dialog message with {{strategy.order.alert_message}} replaced by the
+ * order's alert_message. That is the only placeholder in the dialog, and nothing else is substituted.
+ */
+const DIALOG_MESSAGE = '{"secret":"<WEBHOOK_SECRET>",{{strategy.order.alert_message}}}';
+function tradingViewBody(alertMessage) {
+  return DIALOG_MESSAGE
+    .replace("<WEBHOOK_SECRET>", WEBHOOK_SECRET) // typed by the user in the dialog, not a placeholder
+    .replace("{{strategy.order.alert_message}}", alertMessage);
 }
 
 const hookMsg = pineHookMsg();
-const buyFragment = (qty) => hookMsg("BUY", `,"qty":${qty}`);
-const closeFragment = () => hookMsg("CLOSE", "");
+const bar = (ticker, isoTime) => ({ ticker, period: "1", timenow: Date.parse(isoTime) });
+// entryMsg = hookMsg(dir == 1 ? "BUY" : "SELL", ",\"qty\":" + str.tostring(math.floor(qty)))
+const buyAlert = (qty, b) => hookMsg("BUY", `,"qty":${Math.floor(qty)}`, b);
+const closeAlert = (b) => hookMsg("CLOSE", "", b);
 
 describe("Pine alert matches the webhook contract", () => {
   it("produces the fields the Worker reads, and nothing secret", () => {
-    const body = JSON.parse(tradingViewBody(buyFragment(1), { timenow: "2026-11-02T14:31:05Z" }));
+    const body = JSON.parse(tradingViewBody(buyAlert(1, bar("SPY", "2026-11-02T14:31:05Z"))));
     assert.deepEqual(Object.keys(body), ["secret", "id", "symbol", "timeframe", "action", "strategy", "qty", "timestamp"]);
     assert.equal(body.id, "OTE-SPY-1-2026-11-02T14:31:05Z-BUY");
-    assert.match(body.id, /^[\x21-\x7E]{1,128}$/);
+    assert.match(body.id, /^[!-~]{1,128}$/);
+    assert.equal(body.symbol, "SPY");
+    assert.equal(body.timeframe, "1");
     assert.equal(body.action, "BUY");
     assert.equal(body.qty, 1);
-    assert.deepEqual(Object.keys(JSON.parse(tradingViewBody(closeFragment()))).includes("qty"), false);
+    assert.equal(body.timestamp, "2026-11-02T14:31:05Z");
+    assert.equal(JSON.parse(tradingViewBody(buyAlert(13.97, bar("SPY", "2026-11-02T14:31:05Z")))).qty, 13);
+    assert.equal("qty" in JSON.parse(tradingViewBody(closeAlert(bar("SPY", "2026-11-02T14:31:05Z")))), false);
+  });
+
+  it("alert_message holds no ordinary TradingView placeholders (they are not expanded inside it)", () => {
+    for (const msg of [buyAlert(1, bar("SPY", "2026-11-02T14:31:05Z")), closeAlert(bar("QQQ", "2026-11-02T14:31:05Z"))]) {
+      for (const ph of ["{{ticker}}", "{{interval}}", "{{timenow}}"]) assert.ok(!msg.includes(ph), `${ph} in alert_message`);
+      assert.ok(!msg.includes("{{"), `placeholder in alert_message: ${msg}`);
+    }
+    const code = pine.replace(/^\s*\/\/.*$/gm, "");
+    assert.ok(!code.includes("{{"), "the Pine code (outside comments) contains a TradingView placeholder");
+    assert.deepEqual(DIALOG_MESSAGE.match(/\{\{[^}]*\}\}/g), ["{{strategy.order.alert_message}}"]);
+    assert.ok(!tradingViewBody(closeAlert(bar("SPY", "2026-11-02T14:31:05Z"))).includes("{{"));
   });
 
   it("entries send BUY/SELL with whole-share qty, every exit sends CLOSE", () => {
@@ -155,7 +181,7 @@ after(() => {
 });
 
 describe("Pine signal through the PAPER dry-run pipeline", () => {
-  const validBody = tradingViewBody(buyFragment(1), { ticker: "SPY", timenow: "2026-11-02T14:31:05Z" });
+  const validBody = tradingViewBody(buyAlert(1, bar("SPY", "2026-11-02T14:31:05Z")));
   const validId = JSON.parse(validBody).id;
 
   it("health reports PAPER with trading disabled", async () => {
@@ -197,7 +223,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
   });
 
   it("REJECTED: BUY 11 SPY breaks MAX_ORDER_QTY=10 → 422 with the reason, no intent", needsBroker, async () => {
-    const body = tradingViewBody(buyFragment(11), { ticker: "SPY", timenow: "2026-11-02T14:32:05Z" });
+    const body = tradingViewBody(buyAlert(11, bar("SPY", "2026-11-02T14:32:05Z")));
     const id = JSON.parse(body).id;
     const r = await post(body);
     assert.equal(r.status, 422, JSON.stringify(r.json));
@@ -215,7 +241,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     const held = new Set(((await dashboard()).broker?.positions ?? []).map((p) => p.symbol));
     const symbol = ["QQQ", "AAPL", "NVDA", "SPY"].find((s) => !held.has(s));
     if (!symbol) return t.skip("PAPER account holds every allowed symbol");
-    const body = tradingViewBody(closeFragment(), { ticker: symbol, timenow: "2026-11-02T14:33:05Z" });
+    const body = tradingViewBody(closeAlert(bar(symbol, "2026-11-02T14:33:05Z")));
     const id = JSON.parse(body).id;
     const r = await post(body);
     assert.equal(r.status, 422, JSON.stringify(r.json));

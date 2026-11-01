@@ -64,13 +64,15 @@ minStopPct  = input.float(0.15, "Min stop distance for sizing (% of price)", min
 maxNotional = input.float(10000.0, "Max position value (USD)", minval=1.0, step=500.0, group=GRP9, tooltip="Hard cap on entry price x quantity, in USD.")
 
 // ALPHA TERMINAL webhook alerts (sent by TradingView the moment an order fills).
-// Each message is a JSON fragment. The TradingView alert message wraps it and adds the secret:
+// Each message is a JSON fragment built from Pine values. The TradingView alert message wraps it and adds
+// the secret; {{strategy.order.alert_message}} is the only placeholder TradingView fills in:
 //   {"secret":"<WEBHOOK_SECRET>",{{strategy.order.alert_message}}}
-// No secret is stored in this script. TradingView fills in the {{...}} placeholders.
+// No secret is stored in this script. The id and timestamp are the UTC time the order was placed or updated.
 hookMsg(string action, string qtyField) =>
-    "\"id\":\"OTE-{{ticker}}-{{interval}}-{{timenow}}-" + action + "\"," +
-     "\"symbol\":\"{{ticker}}\",\"timeframe\":\"{{interval}}\",\"action\":\"" + action + "\"," +
-     "\"strategy\":\"OTE Pro Strat\"" + qtyField + ",\"timestamp\":\"{{timenow}}\""
+    string ts = str.format_time(timenow, "yyyy-MM-dd'T'HH:mm:ss'Z'", "UTC")
+    "\"id\":\"OTE-" + syminfo.ticker + "-" + timeframe.period + "-" + ts + "-" + action + "\"," +
+     "\"symbol\":\"" + syminfo.ticker + "\",\"timeframe\":\"" + timeframe.period + "\",\"action\":\"" + action + "\"," +
+     "\"strategy\":\"OTE Pro Strat\"" + qtyField + ",\"timestamp\":\"" + ts + "\""
 
 // Every exit (TP2, stop, break-even stop, time exit) closes the whole position: CLOSE.
 string tpMsg   = hookMsg("CLOSE", "")
