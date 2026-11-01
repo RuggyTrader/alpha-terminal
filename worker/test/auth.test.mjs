@@ -40,7 +40,9 @@ function wrangler(args, opts = {}) {
 function startWorker(port, inspectorPort, dir, vars) {
   const args = ["wrangler", "dev", "--local", "--port", String(port), "--inspector-port", String(inspectorPort),
     "--ip", "127.0.0.1", "--persist-to", dir];
-  for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
+  // Blank the broker keys so these tests never depend on (or call) a real Alpaca account,
+  // even when worker/.dev.vars holds PAPER keys.
+  for (const [k, v] of Object.entries({ ALPACA_KEY: "", ALPACA_SECRET: "", ...vars })) args.push("--var", `${k}:${v}`);
   const child = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   return child;
 }
