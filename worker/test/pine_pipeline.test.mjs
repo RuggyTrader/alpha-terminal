@@ -49,11 +49,18 @@ function pineHookMsg() {
   assert.ok(m, "hookMsg() not found in the Pine script");
   const [tsLine, ...rest] = m[1].trimEnd().split("\n").map((l) => l.trim());
   assert.equal(tsLine, TS_LINE, "timestamp is formatted in Pine as ISO-8601 UTC");
-  const fn = new Function("action", "qtyField", "ts", "syminfo", "timeframe", `return ${rest.join(" ")};`);
+  const fn = new Function("action", "qtyField", "ts", "syminfo", "timeframe", "alphaSupported", `return ${rest.join(" ")};`);
   // str.format_time(timenow, "yyyy-MM-dd'T'HH:mm:ss'Z'", "UTC")
   const formatTime = (ms) => new Date(ms).toISOString().slice(0, 19) + "Z";
-  return (action, qtyField, bar) => fn(action, qtyField, formatTime(bar.timenow), { ticker: bar.ticker }, { period: bar.period });
+  return (action, qtyField, bar) =>
+    fn(action, qtyField, formatTime(bar.timenow), { ticker: bar.ticker }, { period: bar.period }, PINE_SUPPORTED.includes(bar.ticker));
 }
+
+// The chart symbols the Pine script sends orders for (its `bool alphaSupported = ...` line).
+const supportedLine = pine.replace(/\r\n/g, "\n").match(/^bool alphaSupported = (.*)$/m);
+assert.ok(supportedLine, "alphaSupported not found in the Pine script");
+const PINE_SUPPORTED = [...supportedLine[1].matchAll(/syminfo\.ticker == "([^"]+)"/g)].map((m) => m[1]);
+assert.equal(supportedLine[1].replace(/syminfo\.ticker == "[^"]+"/g, "X"), Array(PINE_SUPPORTED.length).fill("X").join(" or "));
 
 /**
  * What TradingView sends: the alert dialog message with {{strategy.order.alert_message}} replaced by the
@@ -117,6 +124,25 @@ describe("Pine alert matches the webhook contract", () => {
     assert.match(pine, /strategy\.entry\(eid, [^\n]*alert_message=entryMsg\)/);
     assert.match(pine, /strategy\.exit\([^\n]*alert_profit=tpMsg, alert_loss=slMsg\)/);
     assert.match(pine, /strategy\.close_all\([^\n]*alert_message=timeMsg/);
+  });
+
+  it("Pine sends orders only for the same 8 chart symbols the Worker accepts", () => {
+    const backend = [...readFileSync(join(WORKER_DIR, "src", "instruments.ts"), "utf8").matchAll(/\["([^"]+)", "[A-Z]+"\],/g)].map((m) => m[1]);
+    assert.deepEqual(PINE_SUPPORTED, ["MNQ1!", "MES1!", "GOLD", "BTCUSD", "ETHUSD", "SOLUSD", "HYPEUSD", "KAITOUSD"]);
+    assert.deepEqual(backend, PINE_SUPPORTED);
+    assert.ok(pine.includes('string status = not alphaSupported ? "UNSUPPORTED SYMBOL (no ALPHA TERMINAL orders)"'));
+  });
+
+  it("on an unsupported chart Pine emits no order: no id, symbol, action or qty", () => {
+    const t = "2026-11-02T14:31:05Z";
+    for (const ticker of ["SPY", "QQQ", "AAPL", "NVDA", "DOGEUSD", "BTCUSDT", "ES1!", "MES2!"]) {
+      for (const msg of [buyAlert(1, bar(ticker, t, "stock")), closeAlert(bar(ticker, t, "stock")), hookMsg("SELL", ',"qty":1', bar(ticker, t))]) {
+        const body = JSON.parse(tradingViewBody(msg));
+        assert.deepEqual(Object.keys(body), ["secret", "alpha_terminal", "chart"], ticker);
+        assert.equal(body.alpha_terminal, "UNSUPPORTED_SYMBOL");
+        assert.equal(body.chart, ticker);
+      }
+    }
   });
 
   it("the Pine source holds no webhook secret", () => {
@@ -265,8 +291,8 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(ordersFor(id), 0);
   });
 
-  it("MES and GOLD BUY → MARKET_DATA_UNAVAILABLE with the reason; no price is invented", needsBroker, async () => {
-    for (const [ticker, type, sym, why] of [["MES1!", "futures", "MES", /licensed CME/], ["GOLD", "cfd", "GOLD", /Gold\.com, Inc\. stock, not gold/]]) {
+  it("MES1!, MNQ1! and GOLD BUY → MARKET_DATA_UNAVAILABLE with the reason; no price is invented", needsBroker, async () => {
+    for (const [ticker, type, sym, why] of [["MES1!", "futures", "MES", /licensed CME/], ["MNQ1!", "futures", "MNQ", /licensed CME/], ["GOLD", "cfd", "GOLD", /Gold\.com, Inc\. stock, not gold/]]) {
       const body = tradingViewBody(buyAlert(1, bar(ticker, "2026-11-02T14:34:05Z", type)));
       const r = await post(body);
       assert.equal(r.status, 422, JSON.stringify(r.json));
@@ -281,12 +307,28 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     }
   });
 
-  it("validation: old stock tickers are INVALID_SYMBOL; fractional futures are INVALID_QUANTITY", async () => {
-    for (const ticker of ["SPY", "AAPL"]) {
+  it("unsupported chart: the Pine message is rejected and nothing is recorded", async () => {
+    const before = d1(`SELECT COUNT(*) AS n FROM alerts`)[0].n;
+    for (const ticker of ["SPY", "DOGEUSD", "ES1!"]) {
       const r = await post(tradingViewBody(buyAlert(1, bar(ticker, "2026-11-02T14:35:05Z", "stock"))));
       assert.equal(r.status, 400);
-      assert.equal(r.json.code, "INVALID_SYMBOL");
+      assert.equal(r.json.code, "INVALID_ALERT_ID");
+      assert.equal(r.json.broker_request_sent, false);
     }
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM alerts`)[0].n, before);
+  });
+
+  it("Pine bypassed: the Worker itself rejects every other symbol as INVALID_SYMBOL", async () => {
+    let i = 0;
+    for (const symbol of ["SPY", "QQQ", "AAPL", "NVDA", "DOGEUSD", "XRPUSD", "BTCUSDT", "ES1!", "GC1!", "MES2!", "MESZ2026", "MES", "KRAKEN:SOLUSD", "SOL/USD", "btcusd"]) {
+      const r = await post(JSON.stringify({ secret: WEBHOOK_SECRET, id: `bypass-${++i}`, symbol, action: "BUY", qty: 1, strategy: "OTE Pro Strat" }));
+      assert.equal(r.status, 400, symbol);
+      assert.equal(r.json.code, "INVALID_SYMBOL", symbol);
+      assert.equal(d1(`SELECT COUNT(*) AS n FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = 'bypass-${i}'`)[0].n, 0);
+    }
+  });
+
+  it("validation: fractional futures are INVALID_QUANTITY", async () => {
     const frac = JSON.parse(tradingViewBody(buyAlert(1, bar("MNQ1!", "2026-11-02T14:36:05Z", "futures"))));
     frac.qty = 1.5;
     const r = await post(JSON.stringify(frac));

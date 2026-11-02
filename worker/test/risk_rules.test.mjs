@@ -74,8 +74,8 @@ describe("crypto and gold keep the cash USD limits (unchanged)", () => {
 
 describe("futures use their own rule", () => {
   it("with no futures feed (price null) MES and MNQ stop at MARKET_DATA_UNAVAILABLE", () => {
-    for (const s of ["MES", "MNQ"]) {
-      const r = evaluateRisk(intent(s, "buy", 1), ENV, ACCOUNT, null, [], null, `No market data for ${s}: no licensed CME feed`);
+    for (const s of ["MES1!", "MNQ1!"]) {
+      const r = evaluateRisk(intent(s, "buy", 1), ENV, ACCOUNT, null, [], null, `No market data: no licensed CME feed`);
       assert.equal(r.code, "MARKET_DATA_UNAVAILABLE");
       assert.equal(r.estimatedNotional, null);
     }
@@ -96,42 +96,53 @@ describe("futures use their own rule", () => {
   });
 
   it("contract notional above MAX_FUTURES_ORDER_NOTIONAL is rejected", () => {
-    const r = risk("MNQ", 2, 25000); // $100,000
+    const r = risk("MNQ1!", 2, 25000); // $100,000
     assert.equal(r.code, "MAX_FUTURES_ORDER_NOTIONAL");
     assert.match(r.reason, /\$100000 is above the limit \$75000/);
-    assert.equal(risk("MES", 3, 6800).code, "MAX_FUTURES_ORDER_NOTIONAL"); // $102,000
+    assert.equal(risk("MES1!", 3, 6800).code, "MAX_FUTURES_ORDER_NOTIONAL"); // $102,000
   });
 
   it("MAX_ORDER_QTY=10 stays the contract-count ceiling", () => {
-    assert.equal(risk("MES", 11, 1).code, "MAX_ORDER_QTY");
+    assert.equal(risk("MES1!", 11, 1).code, "MAX_ORDER_QTY");
   });
 
   it("a missing futures limit rejects futures instead of allowing them", () => {
     const { MAX_FUTURES_ORDER_NOTIONAL, ...noLimit } = ENV;
     assert.equal(MAX_FUTURES_ORDER_NOTIONAL, "75000");
-    const r = risk("MES", 1, 6800, { env: noLimit });
+    const r = risk("MES1!", 1, 6800, { env: noLimit });
     assert.equal(r.code, "MAX_FUTURES_ORDER_NOTIONAL");
     assert.match(r.reason, /not configured/);
   });
 
   it("account status, open-position count and daily loss still apply to futures", () => {
-    assert.equal(risk("MES", 1, 6800, { account: { ...ACCOUNT, status: "INACTIVE" } }).code, "ACCOUNT_RESTRICTED");
-    assert.equal(risk("MES", 1, 6800, { account: { ...ACCOUNT, equity: "22000" } }).code, "DAILY_LOSS_LIMIT");
+    assert.equal(risk("MES1!", 1, 6800, { account: { ...ACCOUNT, status: "INACTIVE" } }).code, "ACCOUNT_RESTRICTED");
+    assert.equal(risk("MES1!", 1, 6800, { account: { ...ACCOUNT, equity: "22000" } }).code, "DAILY_LOSS_LIMIT");
     const five = Array.from({ length: 5 }, () => ({ qty: "1", market_value: "1" }));
-    assert.equal(risk("MES", 1, 6800, { positions: five }).code, "MAX_OPEN_POSITIONS");
+    assert.equal(risk("MES1!", 1, 6800, { positions: five }).code, "MAX_OPEN_POSITIONS");
   });
 });
 
 describe("validation", () => {
   it("fractional futures quantities are rejected", () => {
-    for (const s of ["MES", "MNQ1!"]) {
+    for (const s of ["MES1!", "MNQ1!"]) {
       const v = validateIntent({ symbol: s, action: "buy", qty: 1.5 }, ENV);
       assert.equal(v.code, "INVALID_QUANTITY");
       assert.match(v.message, /whole contracts/);
     }
   });
 
-  it("old stock symbols are rejected", () => {
-    for (const s of ["SPY", "QQQ", "AAPL", "NVDA"]) assert.equal(validateIntent({ symbol: s, action: "buy", qty: 1 }, ENV).code, "INVALID_SYMBOL");
+  it("only the 8 symbols pass; stocks, other crypto, other futures and aliases are INVALID_SYMBOL", () => {
+    const ok = { "MNQ1!": "MNQ", "MES1!": "MES", GOLD: "GOLD", BTCUSD: "BTCUSD", ETHUSD: "ETHUSD", SOLUSD: "SOLUSD", HYPEUSD: "HYPEUSD", KAITOUSD: "KAITOUSD" };
+    for (const [raw, sym] of Object.entries(ok)) {
+      const v = validateIntent({ symbol: raw, action: "buy", qty: 1 }, ENV);
+      assert.equal(v.ok, true, raw);
+      assert.equal(v.symbol, sym);
+    }
+    for (const s of ["SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "GLD",
+      "DOGEUSD", "XRPUSD", "ADAUSD", "BTCUSDT", "ETHBTC", "PAXGUSD", "XAUUSD",
+      "ES1!", "NQ1!", "MGC1!", "GC1!", "CL1!", "MES2!", "MNQ2!", "MESZ2026", "MNQH2027", "MES", "MNQ",
+      "KRAKEN:SOLUSD", "CME_MINI:MES1!", "TVC:GOLD", "SOL/USD", "BTC/USD", "btcusd", "mes1!", "Gold", "", "KAITO", "constructor"]) {
+      assert.equal(validateIntent({ symbol: s, action: "buy", qty: 1 }, ENV).code, s === "" ? "MISSING_FIELD" : "INVALID_SYMBOL", s);
+    }
   });
 });

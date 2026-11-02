@@ -68,11 +68,15 @@ maxNotional = input.float(10000.0, "Max position value (USD)", minval=1.0, step=
 // the secret; {{strategy.order.alert_message}} is the only placeholder TradingView fills in:
 //   {"secret":"<WEBHOOK_SECRET>",{{strategy.order.alert_message}}}
 // No secret is stored in this script. The id and timestamp are the UTC time the order was placed or updated.
+// ALPHA TERMINAL accepts ONLY these 8 chart symbols. On any other chart the strategy still runs and draws, but
+// its messages carry no order (no id, action or qty), so ALPHA TERMINAL rejects them without recording anything.
+bool alphaSupported = syminfo.ticker == "MNQ1!" or syminfo.ticker == "MES1!" or syminfo.ticker == "GOLD" or syminfo.ticker == "BTCUSD" or syminfo.ticker == "ETHUSD" or syminfo.ticker == "SOLUSD" or syminfo.ticker == "HYPEUSD" or syminfo.ticker == "KAITOUSD"
 hookMsg(string action, string qtyField) =>
     string ts = str.format_time(timenow, "yyyy-MM-dd'T'HH:mm:ss'Z'", "UTC")
-    "\"id\":\"OTE-" + syminfo.ticker + "-" + timeframe.period + "-" + ts + "-" + action + "\"," +
+    alphaSupported ? ("\"id\":\"OTE-" + syminfo.ticker + "-" + timeframe.period + "-" + ts + "-" + action + "\"," +
      "\"symbol\":\"" + syminfo.ticker + "\",\"timeframe\":\"" + timeframe.period + "\",\"action\":\"" + action + "\"," +
-     "\"strategy\":\"OTE Pro Strat\"" + qtyField + ",\"timestamp\":\"" + ts + "\""
+     "\"strategy\":\"OTE Pro Strat\"" + qtyField + ",\"timestamp\":\"" + ts + "\"") :
+     ("\"alpha_terminal\":\"UNSUPPORTED_SYMBOL\",\"chart\":\"" + syminfo.ticker + "\"")
 
 // Every exit (TP2, stop, break-even stop, time exit) closes the whole position: CLOSE.
 string tpMsg   = hookMsg("CLOSE", "")
@@ -520,8 +524,8 @@ if barstate.islast and showTable
 
     string bias = not active ? "-" : dir == 1 ? "LONG (bullish leg)" : "SHORT (bearish leg)"
     string blockTxt = sleepBlocked and not hoursBlocked ? "Sleep window (no trading)" : "Outside trading hours"
-    string status = blocked and not triggered ? blockTxt : not active ? "Waiting for a swing" : triggered ? (beDone ? "IN TRADE (SL at BE)" : "IN TRADE") : (orderLive ? "ORDER PLACED - waiting fill" : (pScore < minScore ? "Need more confluence" : "Waiting for OTE tap"))
-    color statusCol = blocked and not triggered ? color.orange : triggered ? color.lime : (not active ? color.gray : (orderLive ? color.aqua : (pScore < minScore ? color.orange : color.white)))
+    string status = not alphaSupported ? "UNSUPPORTED SYMBOL (no ALPHA TERMINAL orders)" : blocked and not triggered ? blockTxt : not active ? "Waiting for a swing" : triggered ? (beDone ? "IN TRADE (SL at BE)" : "IN TRADE") : (orderLive ? "ORDER PLACED - waiting fill" : (pScore < minScore ? "Need more confluence" : "Waiting for OTE tap"))
+    color statusCol = not alphaSupported ? color.red : blocked and not triggered ? color.orange : triggered ? color.lime : (not active ? color.gray : (orderLive ? color.aqua : (pScore < minScore ? color.orange : color.white)))
     string rrTxt = (na(dE) or na(dS) or na(d2)) ? "-" : str.tostring(math.abs(d2 - dE) / math.abs(dE - dS), "#.##") + "R"
     string wr = nTrades == 0 ? "no trades yet" : "TP2 " + str.tostring(nTP2) + "/" + str.tostring(nTrades) + " (" + str.tostring(nTP2 * 100.0 / nTrades, "#.#") + "%)" + (nBE > 0 ? " | BE " + str.tostring(nBE) : "")
     string avgRR = nTrades == 0 ? "-" : str.tostring(sumRR / nTrades, "#.##") + "R"

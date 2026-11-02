@@ -12,7 +12,7 @@ const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 // The worker package is not "type": "module", so load the (self-contained) module as .mts.
 const mod = join(mkdtempSync(join(tmpdir(), "alpha-instruments-")), "instruments.mts");
 copyFileSync(join(WORKER_DIR, "src", "instruments.ts"), mod);
-const { INSTRUMENTS, getInstrument, normalizeSymbol, qtyProblem, referencePrice } = await import(pathToFileURL(mod).href);
+const { INSTRUMENTS, TRADINGVIEW_SYMBOLS, getInstrument, normalizeSymbol, qtyProblem, referencePrice } = await import(pathToFileURL(mod).href);
 const LIST = ["MES", "MNQ", "GOLD", "BTCUSD", "ETHUSD", "SOLUSD", "HYPEUSD", "KAITOUSD"];
 
 describe("instrument list", () => {
@@ -27,17 +27,20 @@ describe("instrument list", () => {
     assert.ok(!/ALLOW_FRACTIONAL_QTY/.test(cfg));
   });
 
-  it("maps TradingView tickers to the canonical symbol", () => {
+  it("accepts exactly the 8 TradingView symbols: MNQ1! → MNQ, MES1! → MES, the rest unchanged", () => {
     const cases = {
-      "KRAKEN:SOLUSD": "SOLUSD", "SOL/USD": "SOLUSD", btcusd: "BTCUSD", "COINBASE:ETHUSD": "ETHUSD",
-      HYPEUSD: "HYPEUSD", "KRAKEN:KAITOUSD": "KAITOUSD", "TVC:GOLD": "GOLD", GOLD: "GOLD",
-      "MES1!": "MES", "CME_MINI:MES1!": "MES", MESZ2026: "MES", "MNQ1!": "MNQ", MNQH2027: "MNQ", MES: "MES",
+      "MNQ1!": "MNQ", "MES1!": "MES", GOLD: "GOLD",
+      BTCUSD: "BTCUSD", ETHUSD: "ETHUSD", SOLUSD: "SOLUSD", HYPEUSD: "HYPEUSD", KAITOUSD: "KAITOUSD",
     };
     for (const [raw, want] of Object.entries(cases)) assert.equal(normalizeSymbol(raw), want, raw);
+    assert.deepEqual([...TRADINGVIEW_SYMBOLS.keys()], Object.keys(cases));
   });
 
-  it("rejects everything else, including the old stock list", () => {
-    for (const raw of ["SPY", "QQQ", "AAPL", "NVDA", "BTCUSDT", "XAUUSD", "MGC1!", "ES1!", "NQ1!", "MESX", "", "KAITO"]) {
+  it("rejects stocks, other crypto, other futures and every unmapped alias", () => {
+    for (const raw of ["SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "GLD",
+      "DOGEUSD", "XRPUSD", "ADAUSD", "BTCUSDT", "ETHBTC", "PAXGUSD", "XAUUSD",
+      "ES1!", "NQ1!", "MGC1!", "GC1!", "CL1!", "MES2!", "MNQ2!", "MESZ2026", "MNQH2027", "MES", "MNQ",
+      "KRAKEN:SOLUSD", "CME_MINI:MES1!", "TVC:GOLD", "SOL/USD", "BTC/USD", "btcusd", "mes1!", "Gold", "", "KAITO", "constructor"]) {
       assert.equal(normalizeSymbol(raw), null, raw);
     }
   });

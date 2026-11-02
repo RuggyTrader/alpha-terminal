@@ -74,17 +74,25 @@ export const INSTRUMENTS: readonly Instrument[] = [
 const BY_SYMBOL = new Map(INSTRUMENTS.map((i) => [i.symbol, i]));
 
 /**
- * Maps a TradingView ticker to a canonical symbol, or null when it is not one of the instruments.
- * Accepts an exchange prefix (KRAKEN:SOLUSD), a slash pair (SOL/USD) and futures contract tickers:
- * continuous (MES1!) or dated (MESZ2026).
+ * The ONLY TradingView chart symbols ALPHA TERMINAL accepts (syminfo.ticker), and the internal symbol each
+ * maps to. Exact match: no exchange prefixes, slash pairs, lower case, other contract months or aliases.
+ * The Pine script carries the same list.
  */
+export const TRADINGVIEW_SYMBOLS: ReadonlyMap<string, string> = new Map([
+  ["MNQ1!", "MNQ"],
+  ["MES1!", "MES"],
+  ["GOLD", "GOLD"],
+  ["BTCUSD", "BTCUSD"],
+  ["ETHUSD", "ETHUSD"],
+  ["SOLUSD", "SOLUSD"],
+  ["HYPEUSD", "HYPEUSD"],
+  ["KAITOUSD", "KAITOUSD"],
+]);
+
+/** Internal symbol for a supported TradingView symbol, or null for anything else. */
 export function normalizeSymbol(raw: string): string | null {
-  let s = raw.trim().toUpperCase();
-  if (s.includes(":")) s = s.slice(s.lastIndexOf(":") + 1);
-  s = s.replace("/", "");
-  const fut = /^(MES|MNQ)(?:\d{1,2}!|[FGHJKMNQUVXZ]\d{1,4})$/.exec(s);
-  if (fut) s = fut[1];
-  return BY_SYMBOL.has(s) ? s : null;
+  const s = TRADINGVIEW_SYMBOLS.get(raw.trim()) ?? null;
+  return s !== null && BY_SYMBOL.has(s) ? s : null;
 }
 
 export function getInstrument(symbol: string): Instrument | null {

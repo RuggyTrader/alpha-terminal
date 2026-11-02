@@ -11,18 +11,23 @@ existing ALPHA TERMINAL webhook. Strategy logic, entries, exits, TP/SL and sizin
 
 ## Instruments
 
-Only these charts are accepted (`syminfo.ticker` → ALPHA TERMINAL symbol):
+Only these 8 chart symbols are accepted, exactly as TradingView's `syminfo.ticker` gives them:
 
 | Chart | Symbol | Reference price | Result today |
 |---|---|---|---|
-| `MES1!` or a dated MES contract | `MES` | none available | BUY/SELL rejected `MARKET_DATA_UNAVAILABLE` |
-| `MNQ1!` or a dated MNQ contract | `MNQ` | none available | BUY/SELL rejected `MARKET_DATA_UNAVAILABLE` |
-| `TVC:GOLD` | `GOLD` | none available | BUY/SELL rejected `MARKET_DATA_UNAVAILABLE` |
-| `BTCUSD`, `ETHUSD`, `SOLUSD`, `HYPEUSD`, `KAITOUSD` (e.g. on Kraken) | same | Kraken public market data | full risk check |
+| `MES1!` | `MES` | none available | BUY/SELL rejected `MARKET_DATA_UNAVAILABLE` |
+| `MNQ1!` | `MNQ` | none available | BUY/SELL rejected `MARKET_DATA_UNAVAILABLE` |
+| `GOLD` | `GOLD` | none available | BUY/SELL rejected `MARKET_DATA_UNAVAILABLE` |
+| `BTCUSD`, `ETHUSD`, `SOLUSD`, `HYPEUSD`, `KAITOUSD` | same | Kraken public market data | full risk check |
 
 There is no truthful price source for MES, MNQ or GOLD yet: Alpaca has no futures and its `GOLD` ticker is a
 stock (Gold.com, Inc.), Kraken has no spot gold, and CME data needs a licensed feed. Those signals are recorded
-and rejected with that reason; no price is estimated. Any other ticker (SPY, BTCUSDT, …) is `INVALID_SYMBOL`.
+and rejected with that reason; no price is estimated.
+
+On any other chart the strategy still runs and draws, the info table shows **UNSUPPORTED SYMBOL**, and its
+alert messages carry no order (`{"alpha_terminal":"UNSUPPORTED_SYMBOL","chart":...}`), which ALPHA TERMINAL
+rejects without recording anything. The Worker enforces the same list on its own: any other symbol, alias,
+exchange prefix or contract month (SPY, DOGEUSD, BTCUSDT, ES1!, MES2!, KRAKEN:SOLUSD, …) is `INVALID_SYMBOL`.
 
 ## One alert per chart
 
