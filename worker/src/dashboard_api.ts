@@ -16,6 +16,10 @@ import {
   refreshMarks,
 } from "./paper_ledger";
 
+import {
+  engineStatusForDashboard,
+} from "./engine_status";
+
 interface DashboardEnv
   extends TradeCoreEnv {
   ADMIN_SECRET: string;
@@ -512,6 +516,10 @@ async function getSummary(
   const paper =
     await paperSection(env);
 
+  // OTE engine heartbeat (engine/): ONLINE / STALE / OFFLINE / NOT_RUNNING.
+  const bot =
+    await engineStatusForDashboard(env);
+
   const [
     engine,
     broker,
@@ -680,6 +688,8 @@ async function getSummary(
 
     // Internal simulated ledger. Kept separate from the broker account above.
     paper,
+
+    bot,
 
     counts: {
       alerts: {

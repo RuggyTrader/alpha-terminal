@@ -1,0 +1,26 @@
+# systemd unit template for a Linux VPS (not installed anywhere yet).
+#   sudo cp deploy/alpha-engine.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#   sudo systemctl enable --now alpha-engine && journalctl -u alpha-engine -f
+[Unit]
+Description=ALPHA TERMINAL OTE engine (PAPER only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=alpha
+WorkingDirectory=/opt/alpha-terminal/engine
+# Settings and the webhook secret live outside the repository:
+Environment=ENGINE_ENV_FILE=/etc/alpha-engine/engine.env
+Environment=ENGINE_DATA_DIR=/var/lib/alpha-engine
+ExecStart=/usr/bin/node src/cli/run.mjs
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/alpha-engine
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

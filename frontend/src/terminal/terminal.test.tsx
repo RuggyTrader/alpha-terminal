@@ -639,3 +639,41 @@ describe("motion", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------- OTE engine card
+
+describe("OTE engine card", () => {
+  const status = {
+    symbol: "SOLUSD", timeframe: "5m", status_text: "Waiting for OTE tap", last_candle_time: "2026-10-31T14:00:00Z", last_candle_close: 93.14,
+    position: null, trades: { closed: 3, wins: 1, losses: 1, net_pnl: 12.5 }, outbox: { pending: 0, rejected: 0, late: 0 }, last_error: null,
+  };
+
+  it("shows the engine's own state, ONLINE from the Worker's verdict", () => {
+    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 42, status } })));
+    expect(html).toContain("OTE engine");
+    expect(html).toContain("SOLUSD · 5m · PAPER simulation");
+    expect(html).toContain("ONLINE");
+    expect(html).toContain("Waiting for OTE tap");
+    expect(html).toContain("42s ago");
+    expect(html).toContain("+$12.50");
+  });
+
+  it("shows STALE / OFFLINE / NOT RUNNING truthfully, with the engine's last error", () => {
+    const stale = page("/", ok(dashboard({ bot: { state: "STALE", age_seconds: 900, status: { ...status, last_error: { at: null, where: "market-data", message: "Kraken HTTP 503" } } } })));
+    expect(stale).toContain("STALE");
+    expect(stale).toContain("15m ago");
+    expect(stale).toContain("market-data: Kraken HTTP 503");
+    expect(page("/", ok(dashboard({ bot: { state: "OFFLINE", age_seconds: 7200, status } })))).toContain("OFFLINE");
+    const never = page("/", ok(dashboard({ bot: { state: "NOT_RUNNING", age_seconds: null, status: null } })));
+    expect(never).toContain("NOT RUNNING");
+    expect(never).toContain("The engine has not reported yet.");
+  });
+
+  it("labels the engine's simulated position separately from the ALPHA PAPER ledger", () => {
+    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...status, position: { side: "LONG", qty: 12.5, entry: 93.87, stop: 93.05, tp2: 96.5, unrealized_at_last_close: -3.25 } } } })));
+    expect(html).toContain("LONG");
+    expect(html).toContain("$93.87");
+    expect(html).toContain("at last close");
+    expect(html).toContain("Engine figures use its own simulated fills");
+  });
+});

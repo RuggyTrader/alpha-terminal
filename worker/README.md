@@ -148,6 +148,14 @@ alert → risk decision → dry-run order intent → paper_fills → paper_posit
 `KRAKEN_API_BASE` exists only so local tests can point at a loopback price fixture; any value other than
 `http://127.0.0.1|localhost|[::1]` is ignored and the real Kraken API is used.
 
+## OTE engine status
+
+`POST /webhook/engine-status` takes `{secret, status}` from the standalone engine (`engine/`), authenticated with
+`WEBHOOK_SECRET`, and stores only whitelisted fields in `app_meta` (key `engine_status`). It changes no alert, order
+or position. `/api/dashboard` returns it as `bot` with a server-side verdict: `ONLINE` (heard within two candles + 2
+min), `STALE` (within 30 min), `OFFLINE`, or `NOT_RUNNING` (never heard). The engine's trading signals use the
+normal `/webhook/dry-run` path.
+
 ## Known gaps
 
 * Ledger realized losses are not part of the `DAILY_LOSS_LIMIT` check, which uses the Alpaca PAPER account.

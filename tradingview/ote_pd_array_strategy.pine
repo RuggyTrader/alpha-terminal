@@ -1,5 +1,5 @@
 //@version=5
-strategy("OTE + PD Array Strategy (Auto)", shorttitle="OTE Pro Strat", overlay=true, initial_capital=10000, pyramiding=0, margin_long=100, margin_short=100, max_boxes_count=200, max_lines_count=200, max_labels_count=200)
+strategy("OTE + PD Array Strategy (Auto)", shorttitle="OTE Pro Strat", overlay=true, initial_capital=10000, pyramiding=0, margin_long=0, margin_short=0, max_boxes_count=200, max_lines_count=200, max_labels_count=200)
 
 // ═══════════════════════════════════════════════════════════════
 //  INPUTS
@@ -30,13 +30,20 @@ GRP4 = "Display"
 showPD    = input.bool(true, "Draw PD array boxes", group=GRP4)
 maxZones  = input.int(30, "Max PD arrays tracked", minval=5, maxval=100, group=GRP4)
 showTable = input.bool(true, "Show info table", group=GRP4)
+showStop  = input.bool(true, "Draw the live stop loss line while in a trade", group=GRP4)
 
 GRP5 = "Auto trading"
 allowLong  = input.bool(true, "Allow longs", group=GRP5)
 allowShort = input.bool(true, "Allow shorts", group=GRP5)
 riskUSD    = input.float(200.0, "Risk per trade (USD $)", minval=1.0, step=10.0, group=GRP5)
-useBE      = input.bool(true, "Move SL to break-even at half the R:R", group=GRP5)
-beFrac     = input.float(0.5, "Break-even trigger (0.5 = halfway to TP2)", minval=0.1, maxval=0.95, step=0.05, group=GRP5)
+useBE      = input.bool(true, "Move SL to break-even", group=GRP5)
+beFrac     = input.float(0.2, "Break-even trigger (% of the way to TP2, 0.2 = 20%)", minval=0.05, maxval=0.95, step=0.05, group=GRP5)
+
+GRP5T = "Trailing stop"
+useTrail  = input.bool(true, "Trail SL to swing lows (longs) / swing highs (shorts)", group=GRP5T)
+trailFrac = input.float(0.5, "Start trailing at (% of the way to TP2, 0.5 = 50%)", minval=0.05, maxval=0.95, step=0.05, group=GRP5T)
+trailLen  = input.int(3, "Trailing swing length (bars each side of pivot)", minval=1, maxval=20, group=GRP5T)
+trailBuf  = input.float(0.1, "Trailing SL buffer beyond the swing (x ATR)", minval=0.0, step=0.05, group=GRP5T)
 
 GRP6 = "Trading hours"
 useHours    = input.bool(true, "Use trading hours rules", group=GRP6)
@@ -58,10 +65,7 @@ sleepFlat        = input.bool(true, "Also close open positions when the sleep wi
 GRP8 = "Notifications"
 notifyPlace = input.bool(true, "Send a notification when an order is placed", group=GRP8)
 notifyBE    = input.bool(true, "Send a notification when SL moves to break-even", group=GRP8)
-
-GRP9 = "Position limits"
-minStopPct  = input.float(0.15, "Min stop distance for sizing (% of price)", minval=0.0, step=0.05, group=GRP9, tooltip="If the real stop is closer than this, the position is sized as if the stop were this far away. You then risk less than the USD amount instead of taking a huge position.")
-maxNotional = input.float(10000.0, "Max position value (USD)", minval=1.0, step=500.0, group=GRP9, tooltip="Hard cap on entry price x quantity, in USD.")
+notifyTrail = input.bool(true, "Send a notification when the trailing SL moves", group=GRP8)
 
 // ALPHA TERMINAL webhook alerts (sent by TradingView the moment an order fills).
 // Each message is a JSON fragment built from Pine values. The TradingView alert message wraps it and adds
@@ -78,7 +82,7 @@ hookMsg(string action, string qtyField) =>
      "\"strategy\":\"OTE Pro Strat\"" + qtyField + ",\"timestamp\":\"" + ts + "\"") :
      ("\"alpha_terminal\":\"UNSUPPORTED_SYMBOL\",\"chart\":\"" + syminfo.ticker + "\"")
 
-// Every exit (TP2, stop, break-even stop, time exit) closes the whole position: CLOSE.
+// Every exit (TP2, stop, break-even stop, trailing stop, time exit) closes the whole position: CLOSE.
 string tpMsg   = hookMsg("CLOSE", "")
 string slMsg   = hookMsg("CLOSE", "")
 string timeMsg = hookMsg("CLOSE", "")
@@ -116,6 +120,10 @@ var float slP         = na
 var float tp2P        = na
 var float beLevel     = na
 var bool  beDone      = false
+var float trailLevel  = na     // price where trailing starts
+var bool  trailOn     = false  // trailing is active
+var bool  trailMoved  = false  // trailing has moved the SL at least once
+var float curStop     = na     // live stop loss (original SL, BE or trailed)
 var bool  orderLive   = false
 var float lastLimit   = na
 var int   tradeScore  = 0
@@ -125,6 +133,7 @@ var box   rewBox      = na
 var int   nTrades     = 0
 var int   nTP2        = 0
 var int   nBE         = 0
+var int   nTrail      = 0
 var float sumRR       = 0.0
 var float tradeRR     = na
 var bool  forced      = false
@@ -198,14 +207,6 @@ confluence(float zHi, float zLo, int side, int minIdx) =>
     int sc = (f ? 1 : 0) + (o ? 1 : 0) + (r ? 1 : 0)
     [sc, f, o, r]
 
-// Position size: risk the USD amount, but never size off a stop tighter than minStopPct
-// and never exceed maxNotional (USD) of position value.
-calcQty(float entryPrice, float stopPrice, float rate) =>
-    float stopDist  = math.max(math.abs(entryPrice - stopPrice), entryPrice * minStopPct / 100)
-    float riskQty   = stopDist > 0 ? riskUSD * rate / (stopDist * syminfo.pointvalue) : 0.0
-    float capQty    = maxNotional * rate / (entryPrice * syminfo.pointvalue)
-    math.max(math.min(riskQty, capQty), 0.0)
-
 // ═══════════════════════════════════════════════════════════════
 //  BASE CALCULATIONS (global scope)
 // ═══════════════════════════════════════════════════════════════
@@ -220,8 +221,18 @@ float o1 = open[1]
 float c1 = close[1]
 float h2 = high[2]
 float l2 = low[2]
-// USD -> symbol currency (USD/USDT charts are ~1) so the USD amounts size the position correctly
+// USD -> symbol currency (NQ is already USD, so this is 1) so the USD risk amount sizes the position correctly
 float usdRate = nz(request.currency_rate("USD", syminfo.currency), 1.0)
+
+// Small swings used by the trailing stop (latest confirmed swing low / swing high)
+float tPL = ta.pivotlow(low, trailLen, trailLen)
+float tPH = ta.pivothigh(high, trailLen, trailLen)
+var float tSwingLow  = na
+var float tSwingHigh = na
+if not na(tPL)
+    tSwingLow := tPL
+if not na(tPH)
+    tSwingHigh := tPH
 
 // Trading hours (based on the bar's CLOSE time, so a bar that closes at 16:45 is the last one traded)
 int  cm         = hour(time_close, hoursTz) * 60 + minute(time_close, hoursTz)
@@ -296,8 +307,12 @@ if inPos and not triggered and dir != 0
     entryP := strategy.position_avg_price
     slP := planSL
     tp2P := planTP2
+    curStop := planSL
     beDone := false
     beLevel := entryP + (tp2P - entryP) * beFrac
+    trailLevel := entryP + (tp2P - entryP) * trailFrac
+    trailOn := false
+    trailMoved := false
     tradeScore := planScore
     tradeTags := planTags
     if dir == 1
@@ -310,7 +325,7 @@ if inPos and not triggered and dir != 0
 
     float rr2 = math.abs(tp2P - entryP) / math.abs(entryP - slP)
     tradeRR := rr2
-    string txt = (dir == 1 ? "LONG" : "SHORT") + "  " + str.tostring(tradeScore) + "/3  " + tradeTags + "\n" + "Entry " + str.tostring(entryP, format.mintick) + "\n" + "SL " + str.tostring(slP, format.mintick) + "\n" + "TP2 " + str.tostring(tp2P, format.mintick) + "  (" + str.tostring(rr2, "#.##") + "R)" + "\n" + "Size " + str.tostring(math.abs(strategy.position_size), "#.####")
+    string txt = (dir == 1 ? "LONG" : "SHORT") + "  " + str.tostring(tradeScore) + "/3  " + tradeTags + "\n" + "Entry " + str.tostring(entryP, format.mintick) + "\n" + "SL " + str.tostring(slP, format.mintick) + "\n" + "TP2 " + str.tostring(tp2P, format.mintick) + "  (" + str.tostring(rr2, "#.##") + "R)"
     label.new(bar_index, dir == 1 ? low : high, txt, style=(dir == 1 ? label.style_label_up : label.style_label_down), color=(dir == 1 ? color.new(color.green, 10) : color.new(color.red, 10)), textcolor=color.white, size=size.small)
 
 // Trade finished (position is flat again)
@@ -318,21 +333,26 @@ if not inPos and triggered
     float exitPx = strategy.closedtrades.exit_price(strategy.closedtrades - 1)
     float tol = syminfo.mintick * 2
     bool wonTP2 = not forced and (dir == 1 ? exitPx >= tp2P - tol : exitPx <= tp2P + tol)
-    bool atBE   = beDone and not forced and not wonTP2 and math.abs(exitPx - entryP) <= tol
-    string endTxt = forced ? "Time exit" : (wonTP2 ? "TP2 hit" : (atBE ? "Break-even" : "SL hit"))
-    color endCol = forced ? color.gray : (wonTP2 ? color.green : (atBE ? color.gray : color.red))
+    bool trailExit = trailMoved and not forced and not wonTP2
+    bool atBE   = beDone and not forced and not wonTP2 and not trailExit and math.abs(exitPx - entryP) <= tol
+    float exitR = (dir == 1 ? exitPx - entryP : entryP - exitPx) / math.abs(entryP - slP)
+    string endTxt = forced ? "Time exit" : (wonTP2 ? "TP2 hit" : (trailExit ? "Trailing SL hit (" + (exitR >= 0 ? "+" : "") + str.tostring(exitR, "#.##") + "R)" : (atBE ? "Break-even" : "SL hit")))
+    color endCol = forced ? color.gray : (wonTP2 ? color.green : (trailExit ? color.teal : (atBE ? color.gray : color.red)))
     nTrades += 1
     sumRR += tradeRR
     if wonTP2
         nTP2 += 1
     if atBE
         nBE += 1
+    if trailExit
+        nTrail += 1
     box.set_right(riskBox, bar_index)
     box.set_right(rewBox, bar_index)
     label.new(bar_index, exitPx, endTxt, style=label.style_label_left, color=color.new(endCol, 20), textcolor=color.white, size=size.small)
     strategy.cancel_all()
     forced := false
     triggered := false
+    trailOn := false
     dir := 0
     clearFib()
 else if not inPos and justClosed and dir != 0 and not triggered
@@ -401,7 +421,6 @@ if legChanged and dir != 0
 float pEntry = na
 float pSL    = na
 float pTP2   = na
-float pQty   = na
 int   pScore = 0
 string pTags = ""
 
@@ -435,7 +454,6 @@ if dir != 0 and not triggered
     bool priceSide = dir == 1 ? close > l705 : close < l705
 
     float ep = limitMode ? l705 : close
-    pQty := calcQty(ep, slPlan, usdRate)
     bool timing = limitMode ? (armedNow and priceSide) : (armed and touched and holds and candleOk)
     bool valid  = dir == 1 ? (tp2v > ep and ep > slPlan) : (tp2v < ep and ep < slPlan)
     bool dirOk  = dir == 1 ? allowLong : allowShort
@@ -445,12 +463,11 @@ if dir != 0 and not triggered
 
     string eid = dir == 1 ? "OTE Long" : "OTE Short"
     if place
-        float qty = pQty
+        float qty = riskUSD * usdRate / (math.abs(ep - slPlan) * syminfo.pointvalue)
         if qty > 0
             string sideWord = dir == 1 ? "LONG" : "SHORT"
-            // Long entry = BUY, short entry = SELL. The webhook qty is the strategy's size in the form
-            // ALPHA TERMINAL accepts: whole contracts (rounded down) for futures, 8 decimals otherwise (crypto, gold).
-            // The strategy's own sizing is unchanged.
+            // ALPHA TERMINAL: long entry = BUY, short entry = SELL. Futures send whole contracts (rounded down),
+            // GOLD / crypto send up to 8 decimals. The strategy's own qty is unchanged.
             string hookQty = syminfo.type == "futures" ? str.tostring(math.floor(qty)) : str.tostring(qty, "0.########")
             string entryMsg = hookMsg(dir == 1 ? "BUY" : "SELL", ",\"qty\":" + hookQty)
             if limitMode
@@ -463,7 +480,7 @@ if dir != 0 and not triggered
             bool newOrder = not orderLive or (limitMode and math.abs(l705 - lastLimit) >= syminfo.mintick)
             if notifyPlace and newOrder
                 string placeHead = limitMode ? " order placed: " + (dir == 1 ? "BUY LIMIT @ " : "SELL LIMIT @ ") + str.tostring(l705, format.mintick) : " order placed (market, fills next bar)"
-                string placeMsg = "OTE " + sideWord + placeHead + " on " + syminfo.ticker + " | SL " + str.tostring(slPlan, format.mintick) + " | TP2 " + str.tostring(tp2v, format.mintick) + " | Size " + str.tostring(qty, "#.####")
+                string placeMsg = "OTE " + sideWord + placeHead + " on " + syminfo.ticker + " | SL " + str.tostring(slPlan, format.mintick) + " | TP2 " + str.tostring(tp2v, format.mintick) + " | Size " + str.tostring(qty, "#.##")
                 alert(placeMsg, alert.freq_once_per_bar_close)
             orderLive := true
             lastLimit := l705
@@ -475,20 +492,54 @@ if not (dir != 0 and not triggered)
     orderLive := false
 
 // ═══════════════════════════════════════════════════════════════
-//  TRADE MANAGEMENT (boxes + break-even at half the R:R)
+//  TRADE MANAGEMENT (boxes, break-even, trailing stop)
+//  - Break-even: once price has gone beFrac of the way to TP2, SL moves to entry
+//  - Trailing:   once price has gone trailFrac of the way to TP2, SL follows the
+//                latest swing low (longs) / swing high (shorts). It only ever
+//                tightens, so after break-even it only moves into profit.
 // ═══════════════════════════════════════════════════════════════
 if triggered and inPos
     box.set_right(riskBox, bar_index)
     box.set_right(rewBox, bar_index)
-    if useBE and not beDone and bar_index > trigBar
-        bool beHit = dir == 1 ? high >= beLevel : low <= beLevel
-        if beHit
+    if bar_index > trigBar
+        string eidT = dir == 1 ? "OTE Long" : "OTE Short"
+        float newStop = curStop
+        bool beNow = false
+        bool trailNow = false
+
+        // 1) Break-even
+        if useBE and not beDone and (dir == 1 ? high >= beLevel : low <= beLevel)
             beDone := true
-            string eidT = dir == 1 ? "OTE Long" : "OTE Short"
-            strategy.exit(eidT + " TP2", eidT, limit=math.round_to_mintick(tp2P), stop=math.round_to_mintick(entryP), alert_profit=tpMsg, alert_loss=slMsg)
-            label.new(bar_index, beLevel, "SL to BE", style=label.style_label_left, color=color.new(color.gray, 20), textcolor=color.white, size=size.small)
-            if notifyBE
-                alert("OTE: stop moved to break-even on " + syminfo.ticker + " @ " + str.tostring(entryP, format.mintick), alert.freq_once_per_bar_close)
+            if dir == 1 ? entryP > newStop : entryP < newStop
+                newStop := entryP
+                beNow := true
+
+        // 2) Trailing starts
+        if useTrail and not trailOn and (dir == 1 ? high >= trailLevel : low <= trailLevel)
+            trailOn := true
+            label.new(bar_index, trailLevel, "Trailing on", style=label.style_label_left, color=color.new(color.teal, 20), textcolor=color.white, size=size.small)
+
+        // 3) Trail to the latest swing (only if it tightens the stop and is on the right side of price)
+        if trailOn
+            float cand = dir == 1 ? tSwingLow - atr * trailBuf : tSwingHigh + atr * trailBuf
+            bool better = not na(cand) and (dir == 1 ? (cand > newStop and cand < close) : (cand < newStop and cand > close))
+            if better
+                newStop := cand
+                trailNow := true
+
+        newStop := math.round_to_mintick(newStop)
+        if newStop != curStop
+            curStop := newStop
+            if trailNow
+                trailMoved := true
+            strategy.exit(eidT + " TP2", eidT, limit=math.round_to_mintick(tp2P), stop=curStop, alert_profit=tpMsg, alert_loss=slMsg)
+            if beNow and not trailNow
+                label.new(bar_index, beLevel, "SL to BE", style=label.style_label_left, color=color.new(color.gray, 20), textcolor=color.white, size=size.small)
+                if notifyBE
+                    alert("OTE: stop moved to break-even on " + syminfo.ticker + " @ " + str.tostring(entryP, format.mintick), alert.freq_once_per_bar_close)
+            if trailNow and notifyTrail
+                float lockR = (dir == 1 ? curStop - entryP : entryP - curStop) / math.abs(entryP - slP)
+                alert("OTE: trailing stop moved on " + syminfo.ticker + " to " + str.tostring(curStop, format.mintick) + " (locks " + str.tostring(lockR, "#.##") + "R)", alert.freq_once_per_bar_close)
 
 // ═══════════════════════════════════════════════════════════════
 //  TIME EXIT: flatten + cancel orders outside trading hours / sleep window
@@ -503,37 +554,34 @@ if blocked
         strategy.cancel_all()
 
 // ═══════════════════════════════════════════════════════════════
-//  SIGNALS
+//  SIGNALS + LIVE STOP LINE
 // ═══════════════════════════════════════════════════════════════
 plotshape(longSig,  "Long",  shape.triangleup,   location.belowbar, color.green, size=size.small, text="L")
 plotshape(shortSig, "Short", shape.triangledown, location.abovebar, color.red,   size=size.small, text="S")
+plot(showStop and triggered and inPos ? curStop : na, "Live SL", color=(trailMoved ? color.teal : color.red), linewidth=2, style=plot.style_linebr)
 
 // ═══════════════════════════════════════════════════════════════
 //  INFO TABLE
 // ═══════════════════════════════════════════════════════════════
-var table info = table.new(position.top_right, 2, 12, bgcolor=color.new(color.black, 15), frame_color=color.gray, frame_width=1, border_color=color.new(color.gray, 60), border_width=1)
+var table info = table.new(position.top_right, 2, 10, bgcolor=color.new(color.black, 15), frame_color=color.gray, frame_width=1, border_color=color.new(color.gray, 60), border_width=1)
 
 if barstate.islast and showTable
     bool active = dir != 0
     float dE = triggered ? entryP : pEntry
-    float dS = triggered ? slP : pSL
+    float dS = triggered ? curStop : pSL
     float d2 = triggered ? tp2P : pTP2
-    float dQ = triggered ? math.abs(strategy.position_size) : pQty
     int   dSc = triggered ? tradeScore : pScore
     string dTg = triggered ? tradeTags : pTags
 
     string bias = not active ? "-" : dir == 1 ? "LONG (bullish leg)" : "SHORT (bearish leg)"
     string blockTxt = sleepBlocked and not hoursBlocked ? "Sleep window (no trading)" : "Outside trading hours"
-    string status = not alphaSupported ? "UNSUPPORTED SYMBOL (no ALPHA TERMINAL orders)" : blocked and not triggered ? blockTxt : not active ? "Waiting for a swing" : triggered ? (beDone ? "IN TRADE (SL at BE)" : "IN TRADE") : (orderLive ? "ORDER PLACED - waiting fill" : (pScore < minScore ? "Need more confluence" : "Waiting for OTE tap"))
+    string tradeTxt = trailOn ? "IN TRADE (trailing SL)" : (beDone ? "IN TRADE (SL at BE)" : "IN TRADE")
+    string status = not alphaSupported ? "UNSUPPORTED SYMBOL (no ALPHA TERMINAL orders)" : blocked and not triggered ? blockTxt : not active ? "Waiting for a swing" : triggered ? tradeTxt : (orderLive ? "ORDER PLACED - waiting fill" : (pScore < minScore ? "Need more confluence" : "Waiting for OTE tap"))
     color statusCol = not alphaSupported ? color.red : blocked and not triggered ? color.orange : triggered ? color.lime : (not active ? color.gray : (orderLive ? color.aqua : (pScore < minScore ? color.orange : color.white)))
-    string rrTxt = (na(dE) or na(dS) or na(d2)) ? "-" : str.tostring(math.abs(d2 - dE) / math.abs(dE - dS), "#.##") + "R"
-    string wr = nTrades == 0 ? "no trades yet" : "TP2 " + str.tostring(nTP2) + "/" + str.tostring(nTrades) + " (" + str.tostring(nTP2 * 100.0 / nTrades, "#.#") + "%)" + (nBE > 0 ? " | BE " + str.tostring(nBE) : "")
+    float rrStop = triggered ? slP : pSL
+    string rrTxt = (na(dE) or na(rrStop) or na(d2)) ? "-" : str.tostring(math.abs(d2 - dE) / math.abs(dE - rrStop), "#.##") + "R"
+    string wr = nTrades == 0 ? "no trades yet" : "TP2 " + str.tostring(nTP2) + "/" + str.tostring(nTrades) + " (" + str.tostring(nTP2 * 100.0 / nTrades, "#.#") + "%)" + (nBE > 0 ? " | BE " + str.tostring(nBE) : "") + (nTrail > 0 ? " | Trail " + str.tostring(nTrail) : "")
     string avgRR = nTrades == 0 ? "-" : str.tostring(sumRR / nTrades, "#.##") + "R"
-    // Actual USD at risk and USD position value for the shown size
-    float riskAtStop = (na(dE) or na(dS) or na(dQ)) ? na : math.abs(dE - dS) * dQ * syminfo.pointvalue / usdRate
-    float posValue   = (na(dE) or na(dQ)) ? na : dE * dQ * syminfo.pointvalue / usdRate
-    string sizeTxt   = na(dQ) ? "-" : str.tostring(dQ, "#.####") + "  (~$" + str.tostring(posValue, "#,###") + ")"
-    string riskTxt   = na(riskAtStop) ? "-" : "$" + str.tostring(riskAtStop, "#,###.##") + " of $" + str.tostring(riskUSD, "#,###")
 
     table.cell(info, 0, 0, "OTE + PD ARRAYS", text_color=color.white, text_size=size.small, bgcolor=color.new(color.blue, 40))
     table.merge_cells(info, 0, 0, 1, 0)
@@ -551,11 +599,7 @@ if barstate.islast and showTable
     table.cell(info, 1, 6, rrTxt, text_color=color.white, text_size=size.small, text_halign=text.align_left)
     table.cell(info, 0, 7, "Confluence", text_color=color.gray, text_size=size.small, text_halign=text.align_left)
     table.cell(info, 1, 7, active ? str.tostring(dSc) + "/3  " + dTg : "-", text_color=color.white, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 0, 8, "Size", text_color=color.gray, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 1, 8, active ? sizeTxt : "-", text_color=color.white, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 0, 9, "Risk at stop", text_color=color.gray, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 1, 9, active ? riskTxt : "-", text_color=color.white, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 0, 10, "Win rate", text_color=color.gray, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 1, 10, wr, text_color=color.white, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 0, 11, "Avg R:R to TP2", text_color=color.gray, text_size=size.small, text_halign=text.align_left)
-    table.cell(info, 1, 11, avgRR, text_color=color.white, text_size=size.small, text_halign=text.align_left)
+    table.cell(info, 0, 8, "Win rate", text_color=color.gray, text_size=size.small, text_halign=text.align_left)
+    table.cell(info, 1, 8, wr, text_color=color.white, text_size=size.small, text_halign=text.align_left)
+    table.cell(info, 0, 9, "Avg R:R to TP2", text_color=color.gray, text_size=size.small, text_halign=text.align_left)
+    table.cell(info, 1, 9, avgRR, text_color=color.white, text_size=size.small, text_halign=text.align_left)

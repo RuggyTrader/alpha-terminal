@@ -1,0 +1,14 @@
+{
+  "name": "alpha-terminal-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ALPHA TERMINAL OTE + PD Array PAPER engine (no TradingView, no broker orders)",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "history": "node src/cli/history.mjs",
+    "backtest": "node src/cli/backtest.mjs",
+    "start": "node src/cli/run.mjs"
+  }
+}

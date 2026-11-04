@@ -9,6 +9,10 @@ import {
 } from "./webhook_dry_run";
 
 import {
+  handleEngineStatus,
+} from "./engine_status";
+
+import {
   handleDashboardApi,
 } from "./dashboard_api";
 
@@ -1381,6 +1385,22 @@ export default {
         "POST"
     ) {
       return handleDryRunWebhook(
+        request,
+        env
+      );
+    }
+
+    // ========================================================
+    // OTE ENGINE STATUS (heartbeat from engine/, no trading)
+    // ========================================================
+
+    if (
+      url.pathname ===
+        "/webhook/engine-status" &&
+      request.method ===
+        "POST"
+    ) {
+      return handleEngineStatus(
         request,
         env
       );

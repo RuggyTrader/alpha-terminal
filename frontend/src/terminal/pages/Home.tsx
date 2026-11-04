@@ -4,6 +4,7 @@ import { AccountOverview } from "../components/AccountOverview";
 import { AlertCard } from "../components/AlertCard";
 import { AlphaPaperPerformance } from "../components/AlphaPaperPerformance";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
+import { EngineBotCard } from "../components/EngineBotCard";
 import { PositionCard } from "../components/PositionCard";
 import { SafetyCard } from "../components/SafetyCard";
 import { EmptyState, SectionHeader, SkeletonCards } from "../components/ui";
@@ -81,6 +82,7 @@ export function HomePage() {
         <BrokerPositionsSection />
       </div>
       <div className="col-side m-stagger">
+        {d?.bot ? <EngineBotCard bot={d.bot} /> : null}
         <Reveal>
           <section aria-label="Recent alerts">
             <SectionHeader

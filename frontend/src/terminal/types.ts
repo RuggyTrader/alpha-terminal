@@ -182,6 +182,23 @@ export interface AlphaPaperPosition {
   open_order_id: string;
 }
 
+/** Heartbeat from the OTE engine; `state` is decided by the Worker from the heartbeat's age. */
+export interface EngineBot {
+  state: "ONLINE" | "STALE" | "OFFLINE" | "NOT_RUNNING";
+  age_seconds: number | null;
+  status: {
+    symbol: string | null;
+    timeframe: string | null;
+    status_text: string | null;
+    last_candle_time: string | null;
+    last_candle_close: number | null;
+    position: { side: string | null; qty: number | null; entry: number | null; stop: number | null; tp2: number | null; unrealized_at_last_close: number | null } | null;
+    trades: { closed: number | null; wins: number | null; losses: number | null; net_pnl: number | null } | null;
+    outbox: { pending: number | null; rejected: number | null; late: number | null } | null;
+    last_error: { at: string | null; where: string | null; message: string | null } | null;
+  } | null;
+}
+
 export interface AlphaPaperSection {
   label: "ALPHA PAPER" | string;
   simulated: true;
@@ -226,6 +243,8 @@ export interface DashboardData {
   broker: BrokerSnapshot;
   /** Internal simulated ledger, separate from the broker account. Absent on older Workers. */
   paper?: AlphaPaperSection;
+  /** OTE engine heartbeat (engine/). Absent on older Workers. */
+  bot?: EngineBot;
   counts: DashboardCounts;
   recent: {
     alerts: AlertRow[];
