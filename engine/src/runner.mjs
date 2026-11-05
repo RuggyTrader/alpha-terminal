@@ -23,7 +23,7 @@
 // * No broker is contacted anywhere in this engine. ALPHA TERMINAL stays PAPER / DRY RUN.
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fetchCompletedCandles } from "./kraken.mjs";
 import { createState, onBar, summarize } from "./ote.mjs";
@@ -50,6 +50,9 @@ export class EngineRunner {
     this.log = log;
     this.step = cfg.intervalMin * 60_000;
     this.file = join(cfg.dataDir, `state-${cfg.symbol}-${cfg.intervalMin}m.json`);
+    // Append-only audit trail (one JSON object per line): every processed candle with the strategy's decisions,
+    // every signal result, ledger-check changes, errors and resets. Never rewritten; safe to read while running.
+    this.auditFile = cfg.audit === false ? null : join(cfg.dataDir, `audit-${cfg.symbol}-${cfg.intervalMin}m.jsonl`);
     mkdirSync(cfg.dataDir, { recursive: true });
     this.state = this.load();
   }
@@ -62,6 +65,15 @@ export class EngineRunner {
       return null;
     }
     return s;
+  }
+
+  audit(record) {
+    if (!this.auditFile) return;
+    try {
+      appendFileSync(this.auditFile, `${JSON.stringify({ at: iso(this.now()), ...record })}\n`);
+    } catch (e) {
+      this.log(`[engine] audit write failed: ${e.message ?? e}`);
+    }
   }
 
   save() {
@@ -92,6 +104,7 @@ export class EngineRunner {
     } catch (e) {
       S.lastError = { at: iso(nowMs), where: "market-data", message: String(e.message ?? e) };
       this.log(`[engine] candle fetch failed: ${S.lastError.message}`);
+      this.audit({ type: "error", where: "market-data", message: S.lastError.message });
       this.save();
       await this.heartbeat();
       return { processed: 0, error: S.lastError };
@@ -114,6 +127,7 @@ export class EngineRunner {
           barTime: iso(nowMs - (nowMs % this.step)), barClose: iso(nowMs), createdAt: iso(nowMs), status: "pending", code: null, reason: null, attempts: 0,
         });
       }
+      this.audit({ type: "reset", reason: `gap of ${missing} candles after ${iso(S.strategy.lastTime)}`, reconcile_close: outbox.at(-1)?.exitKind === "RECONCILE_AFTER_DATA_GAP" ? outbox.at(-1).id : null });
       this.fresh(`gap of ${missing} candles after ${iso(S.strategy.lastTime)}`);
       this.state.outbox = outbox;
       this.state.resets = [...resets, ...this.state.resets].slice(-20);
@@ -124,6 +138,10 @@ export class EngineRunner {
     let processed = 0;
     for (const k of candles) {
       const events = onBar(S.strategy, k);
+      this.audit({
+        type: "candle", t: iso(k.t), o: k.o, h: k.h, l: k.l, c: k.c, n: k.n ?? null, warmup,
+        status: S.strategy.status, events: events.map(({ bar: _b, ...e }) => e),
+      });
       processed += 1;
       S.candlesProcessed += 1;
       S.lastCandle = { t: iso(k.t), close: k.c };
@@ -154,6 +172,7 @@ export class EngineRunner {
     this.save();
     if (processed) this.log(`[engine] processed ${processed} candle(s) up to ${S.lastCandle.t}; status: ${S.strategy.status}`);
     await this.flush();
+    if (S.lastError) this.audit({ type: "error", ...S.lastError, at: undefined, error_at: S.lastError.at });
     await this.verifyLedger();
     await this.heartbeat();
     return { processed };
@@ -187,6 +206,7 @@ export class EngineRunner {
   final(item, status, code, reason) {
     Object.assign(item, { status, code, reason: reason ? String(reason).slice(0, 240) : null });
     this.save();
+    this.audit({ type: "signal", id: item.id, action: item.action, status, code, reason: item.reason, attempts: item.attempts, delayed_min: item.delayedMin ?? null });
   }
 
   /**
@@ -324,6 +344,11 @@ export class EngineRunner {
       ledger_position: lp ? { qty: Number(lp.qty), side: lp.side, open_alert_id: lp.open_alert_id } : null,
     };
     if (issues.length) this.log(`[engine] ledger reconciliation warning: ${issues.join("; ")}`);
+    const key = JSON.stringify([S.ledgerCheck.status, S.ledgerCheck.issues]);
+    if (key !== this.lastLedgerKey) {
+      this.lastLedgerKey = key;
+      this.audit({ type: "ledger_check", status: S.ledgerCheck.status, issues: S.ledgerCheck.issues, ledger_position: S.ledgerCheck.ledger_position });
+    }
     this.save();
   }
 
@@ -371,6 +396,13 @@ export class EngineRunner {
     };
   }
 
+  /** Audits heartbeat delivery only when it changes (ok → failing → ok), not on every poll. */
+  heartbeatState(result) {
+    if (result === this.lastHeartbeat) return;
+    this.lastHeartbeat = result;
+    this.audit({ type: "heartbeat", result });
+  }
+
   async heartbeat() {
     if (!this.cfg.sync || !this.state) return;
     try {
@@ -379,8 +411,10 @@ export class EngineRunner {
         body: JSON.stringify({ secret: this.cfg.webhookSecret, status: this.statusPayload() }),
       });
       if (!r.ok) this.log(`[engine] status update rejected: HTTP ${r.status}`);
+      this.heartbeatState(r.ok ? "ok" : `HTTP ${r.status}`);
     } catch (e) {
       this.log(`[engine] status update failed: ${e.message ?? e}`);
+      this.heartbeatState(String(e.message ?? e));
     }
   }
 }

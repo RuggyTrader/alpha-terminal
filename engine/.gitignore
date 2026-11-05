@@ -3,3 +3,4 @@ runs/
 .env
 *.local.json
 *.log
+observations/

@@ -23,6 +23,7 @@ if (existsSync(lock)) {
 writeFileSync(lock, String(process.pid));
 const release = () => { try { if (Number(readFileSync(lock, "utf8")) === process.pid) rmSync(lock); } catch { /* gone */ } };
 console.log(`${new Date().toISOString()} [engine] PAPER only, no broker orders. config ${JSON.stringify(redacted(cfg))}`);
+runner.audit({ type: "process_start", pid: process.pid, node: process.version, profile: cfg.profile, symbol: cfg.symbol, timeframe: `${cfg.intervalMin}m`, resumed: runner.state !== null });
 
 let stopping = false;
 let timer = null;
@@ -30,6 +31,7 @@ const stop = (sig) => {
   if (stopping) return;
   stopping = true;
   console.log(`${new Date().toISOString()} [engine] ${sig}: stopping after the current step`);
+  runner.audit({ type: "process_stop", pid: process.pid, signal: sig });
   if (timer) clearTimeout(timer);
   release();
   process.exit(0);
