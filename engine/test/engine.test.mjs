@@ -258,7 +258,7 @@ describe("live runner: completed candles, outbox, restarts", () => {
     down = false;
     await h.make().tick(); // restart while it was failing
     const r2 = h.make();
-    assert.equal(r2.state.outbox.filter((x) => x.status === "sent").length, 1);
+    assert.equal(r2.state.outbox.filter((x) => x.status === "accepted").length, 1);
     assert.equal(new Set(calls).size, 1, "only one signal id was ever sent");
     await r2.tick();
     assert.equal(calls.length, 2, "one failed attempt + one delivery, no more");
@@ -300,7 +300,7 @@ describe("live runner: completed candles, outbox, restarts", () => {
     assert.equal(fills.length, 1);
     assert.equal(fills[0].status, "late");
     assert.equal(h.sent.filter((s) => s.url.endsWith("/dry-run")).length,
-      r.state.outbox.filter((x) => x.status === "sent").length);
+      r.state.outbox.filter((x) => x.status === "accepted").length);
   });
 });
 
@@ -351,5 +351,179 @@ describe("env file and TradingView comparison tooling", () => {
     assert.equal(r.identical, 1);
     assert.match(r.differences[0].differences[0], /entry price TV 93.87 vs engine 93.88/);
     assert.equal(readTradingViewTrades(csv.replace(/2026-11-01 23:10/, "2026-11-01 18:10"), "America/New_York")[0].entryTime, Date.parse("2026-11-01T23:10:00Z"));
+  });
+});
+
+// ---------------------------------------------------------------- engine ↔ ALPHA PAPER ledger synchronisation
+
+const FILLS = runBacktest({ candles: CANDLES, symbol: "SOLUSD", intervalMin: 5 }).events
+  .filter((e) => e.type === "ENTRY_FILL" || e.type === "EXIT_FILL").map((e) => ({ bar: e.bar, type: e.type }));
+// Fixture trades (real data): [entry FILLS[0], exit FILLS[1]], [entry FILLS[2], exit FILLS[3]], …
+const fakeAlpha = (decide) => {
+  const calls = [];
+  const http = async (url, init) => {
+    if (url.endsWith("/webhook/engine-status")) return new Response("{}", { status: 200 });
+    const body = JSON.parse(init.body);
+    calls.push(`${body.action}:${body.id}`);
+    const [status, json] = decide(body, calls);
+    return new Response(JSON.stringify(json), { status });
+  };
+  return { http, calls };
+};
+const accept = () => [200, { code: "DRY_RUN_ACCEPTED" }];
+async function runTo(h, r, bar) { while (r.state.strategy.bar < bar) { h.advance(); await r.tick(); } }
+
+describe("engine ↔ ALPHA PAPER ledger sync", () => {
+  it("accepted entry → its CLOSE is sent after it, both accepted, position shown as MIRRORED while open", async () => {
+    const { http, calls } = fakeAlpha(accept);
+    const h = harness({ firstLive: FILLS[0].bar, http });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    assert.deepEqual(r.statusPayload().position.ledger, { status: "MIRRORED", reason: null });
+    await runTo(h, r, FILLS[1].bar);
+    assert.equal(calls.length, 2);
+    assert.match(calls[0], /^(BUY|SELL):/);
+    assert.match(calls[1], /^CLOSE:/);
+    const [entry, exit] = r.state.outbox;
+    assert.deepEqual([entry.status, exit.status, exit.entryId], ["accepted", "accepted", entry.id]);
+  });
+
+  it("rejected entry followed by a simulated exit: the CLOSE is never sent, recorded as skipped with the reason", async () => {
+    const { http, calls } = fakeAlpha((b) => (b.action === "CLOSE" ? accept() : [422, { code: "MAX_ORDER_NOTIONAL", message: "Estimated notional $40988 is above the limit $5000" }]));
+    const h = harness({ firstLive: FILLS[0].bar, http });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    const link = r.statusPayload().position.ledger;
+    assert.equal(link.status, "NOT_IN_LEDGER");
+    assert.match(link.reason, /rejected: MAX_ORDER_NOTIONAL/);
+    await runTo(h, r, FILLS[1].bar);
+    assert.equal(calls.length, 1, "only the entry was submitted");
+    const [entry, exit] = r.state.outbox;
+    assert.deepEqual([entry.status, entry.code], ["rejected", "MAX_ORDER_NOTIONAL"]);
+    assert.match(entry.reason, /above the limit/);
+    assert.deepEqual([exit.status, exit.code], ["skipped", "ENTRY_NOT_IN_LEDGER"]);
+    assert.match(exit.reason, /was rejected \(MAX_ORDER_NOTIONAL\)/);
+    assert.equal(r.statusPayload().last_rejection.status, "skipped");
+  });
+
+  it("historical warm-up position followed by a live CLOSE: nothing is sent", async () => {
+    const { http, calls } = fakeAlpha(accept);
+    const h = harness({ firstLive: FILLS[0].bar + 1, http }); // warm-up includes the entry fill
+    const r = h.make();
+    await r.tick();
+    assert.equal(r.state.outbox[0].status, "historical");
+    assert.equal(r.statusPayload().position.ledger.status, "NOT_IN_LEDGER");
+    await runTo(h, r, FILLS[1].bar);
+    assert.equal(calls.length, 0);
+    assert.deepEqual([r.state.outbox[1].status, r.state.outbox[1].code], ["skipped", "ENTRY_NOT_IN_LEDGER"]);
+    assert.match(r.state.outbox[1].reason, /was historical/);
+  });
+
+  it("network interruption: entry and exit wait while ALPHA TERMINAL is unreachable, then go out once each, in order", async () => {
+    let up = false;
+    const { http, calls } = fakeAlpha(accept);
+    const flaky = async (url, init) => { if (!up && url.endsWith("/dry-run")) throw new TypeError("fetch failed"); return http(url, init); };
+    const h = harness({ firstLive: FILLS[0].bar, http: flaky });
+    const r = h.make();
+    await r.tick();
+    // stay down while the entry and (lateBars allowing) the exit happen
+    const exitBar = FILLS[1].bar;
+    const near = exitBar - FILLS[0].bar <= 2;
+    await runTo(h, r, near ? exitBar : FILLS[0].bar);
+    assert.equal(calls.length, 0);
+    assert.ok(r.state.outbox.every((x) => x.status === "pending"));
+    assert.equal(r.state.lastError.where, "sync");
+    up = true;
+    await r.tick(); // reconnect: nothing new from the market, outbox flushes
+    await runTo(h, r, exitBar);
+    await h.make().tick(); // and a restart afterwards
+    assert.deepEqual(calls.map((c) => c.split(":")[0]), [calls[0].split(":")[0], "CLOSE"]);
+    assert.equal(new Set(calls).size, calls.length, "each signal once");
+    assert.deepEqual(h.make().state.outbox.map((x) => x.status), ["accepted", "accepted"]);
+  });
+
+  it("data gap re-warm: an open ledger position the engine would forget is closed (reconciliation), once", async () => {
+    const { http, calls } = fakeAlpha(accept);
+    const h = harness({ firstLive: FILLS[0].bar, http });
+    const r = h.make();
+    await r.tick();
+    h.advance(); // entry accepted, engine position open
+    await r.tick();
+    assert.equal(r.statusPayload().position.ledger.status, "MIRRORED");
+    // Kraken now only has candles after a hole: drop the next 3 candles from the feed.
+    const realFetch = r.fetchCandles;
+    const holeFrom = CANDLES[FILLS[0].bar + 1].t, holeTo = CANDLES[FILLS[0].bar + 3].t;
+    r.fetchCandles = async (a) => (await realFetch(a)).filter((k) => k.t < holeFrom || k.t > holeTo);
+    h.advance(5);
+    await r.tick();
+    const resync = r.state.outbox.filter((x) => x.exitKind === "RECONCILE_AFTER_DATA_GAP");
+    assert.equal(resync.length, 1);
+    assert.deepEqual([resync[0].action, resync[0].status, resync[0].entryId], ["CLOSE", "accepted", r.state.outbox[0].id]);
+    assert.equal(calls.filter((c) => c.startsWith("CLOSE")).length, 1);
+    assert.equal(r.state.resets.at(-1).reason.startsWith("gap of"), true);
+    assert.ok(r.state.warmedUpAt, "re-warmed from available history");
+  });
+
+  it("duplicate after a crash: the Worker's DUPLICATE adopts the original result (accepted or rejected)", async () => {
+    const seen = new Map();
+    const { http, calls } = fakeAlpha((b) => {
+      if (seen.has(b.id)) return [200, { code: "DUPLICATE", data: seen.get(b.id) }];
+      const res = b.action === "CLOSE" ? { original_status: "dry_run", original_code: "DRY_RUN_ACCEPTED" } : { original_status: "rejected", original_code: "SHORT_DISABLED" };
+      seen.set(b.id, res);
+      return b.action === "CLOSE" ? accept() : [422, { code: "SHORT_DISABLED" }];
+    });
+    const h = harness({ firstLive: FILLS[0].bar, http });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    const entry = r.state.outbox[0];
+    entry.status = "pending"; // crash after sending, before the result was saved
+    r.save();
+    const r2 = h.make();
+    await r2.flush();
+    assert.deepEqual([r2.state.outbox[0].status, r2.state.outbox[0].code], ["rejected", "SHORT_DISABLED"]);
+    await runTo(h, r2, FILLS[1].bar);
+    assert.equal(r2.state.outbox[1].status, "skipped", "the CLOSE of a rejected entry is still not sent");
+    assert.equal(calls.filter((c) => c.startsWith("CLOSE")).length, 0);
+  });
+
+  it("engine P&L in the status equals the engine's own closed trades", async () => {
+    const { http } = fakeAlpha(accept);
+    const h = harness({ firstLive: FILLS[0].bar, http });
+    const r = h.make();
+    await r.tick();
+    await runTo(h, r, FILLS[3].bar);
+    const st = r.statusPayload();
+    const closed = r.state.strategy.broker.closed;
+    assert.equal(st.trades.closed, closed.length);
+    assert.equal(st.trades.net_pnl, Number(closed.reduce((s, t) => s + t.pnl, 0).toFixed(2)));
+    assert.equal(st.position, null);
+    assert.equal(st.outbox.accepted, 4);
+  });
+});
+
+describe("PAPER test profile", () => {
+  it("only lowers risk per trade; every other input stays at the Pine default", async () => {
+    const { DEFAULT_INPUTS } = await import("../src/ote.mjs");
+    const base = loadConfig({ ENGINE_ENV_FILE: "x" }, join(HERE, ".."));
+    const test = loadConfig({ ENGINE_ENV_FILE: "x", ENGINE_PROFILE: "paper-test" }, join(HERE, ".."));
+    assert.deepEqual([base.profile, base.inputs], ["default", {}]);
+    assert.deepEqual([test.profile, test.inputs], ["paper-test", { riskUSD: 5 }]);
+    assert.equal(DEFAULT_INPUTS.riskUSD, 200, "the strategy default is unchanged");
+    assert.equal(loadConfig({ ENGINE_ENV_FILE: "x", ENGINE_PROFILE: "" }, join(HERE, "..")).profile, "default");
+    assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "x", ENGINE_PROFILE: "nope" }, join(HERE, "..")), /not found/);
+  });
+
+  it("on the real fixture, every paper-test order fits ALPHA TERMINAL's $5,000 per-order limit; the default does not", () => {
+    const test = runBacktest({ candles: CANDLES, symbol: "SOLUSD", intervalMin: 5, inputs: { riskUSD: 5 } });
+    const dflt = runBacktest({ candles: CANDLES, symbol: "SOLUSD", intervalMin: 5 });
+    assert.ok(test.trades.every((t) => t.qty * t.entryPrice <= 5000));
+    assert.ok(dflt.trades.some((t) => t.qty * t.entryPrice > 5000));
+    assert.deepEqual(test.trades.map((t) => [t.entryTime, t.exitTime, t.result]), dflt.trades.map((t) => [t.entryTime, t.exitTime, t.result]), "same decisions, smaller size");
   });
 });

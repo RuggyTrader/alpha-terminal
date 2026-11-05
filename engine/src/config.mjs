@@ -28,7 +28,14 @@ const INPUT_ENV = Object.fromEntries(Object.keys(DEFAULT_INPUTS).map((k) => [`ST
 
 export function loadConfig(env = process.env, baseDir = process.cwd()) {
   const fileEnv = loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env"));
-  const get = (k, d) => (env[k] ?? fileEnv[k] ?? d);
+  // Optional named profile (profiles/<name>.env), lowest precedence: environment > env file > profile > Pine defaults.
+  const profile = (env.ENGINE_PROFILE ?? fileEnv.ENGINE_PROFILE ?? "") || null;
+  if (profile !== null && !/^[a-z0-9-]{1,40}$/.test(profile)) throw new Error(`invalid ENGINE_PROFILE ${profile}`);
+  const profileFile = profile === null ? null : resolve(baseDir, "profiles", `${profile}.env`);
+  if (profileFile !== null && !existsSync(profileFile)) throw new Error(`profile ${profile} not found (profiles/${profile}.env)`);
+  const profileEnv = profileFile === null ? {} : loadEnvFile(profileFile);
+  if (Object.keys(profileEnv).some((k) => /SECRET|API_BASE|SYNC/.test(k))) throw new Error(`profile ${profile} may only hold strategy/engine settings, not secrets or sync targets`);
+  const get = (k, d) => (env[k] ?? fileEnv[k] ?? profileEnv[k] ?? d);
   const symbol = get("ENGINE_SYMBOL", "SOLUSD");
   if (!ENGINE_SYMBOLS.includes(symbol)) throw new Error(`${symbol} is not enabled for the engine (enabled: ${ENGINE_SYMBOLS.join(", ")})`);
   const intervalMin = Number(get("ENGINE_INTERVAL_MIN", "5"));
@@ -50,7 +57,7 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   if (sync && (!apiBase || !webhookSecret)) throw new Error("ENGINE_SYNC=on needs ALPHA_API_BASE and ALPHA_WEBHOOK_SECRET");
 
   return {
-    symbol, intervalMin, inputs, sync, apiBase, webhookSecret,
+    profile: profile ?? "default", symbol, intervalMin, inputs, sync, apiBase, webhookSecret,
     dataDir: resolve(baseDir, get("ENGINE_DATA_DIR", "data")),
     pollSeconds: Number(get("ENGINE_POLL_SECONDS", "20")),
     lateBars: Number(get("ENGINE_LATE_BARS", "2")),

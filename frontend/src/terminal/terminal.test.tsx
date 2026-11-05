@@ -677,3 +677,28 @@ describe("OTE engine card", () => {
     expect(html).toContain("Engine figures use its own simulated fills");
   });
 });
+
+describe("OTE engine card: engine vs ALPHA PAPER ledger", () => {
+  const base = {
+    symbol: "SOLUSD", timeframe: "5m", status_text: "IN TRADE", last_candle_time: "2026-10-31T14:00:00Z", last_candle_close: 93.14,
+    trades: { closed: 0, wins: 0, losses: 0, net_pnl: 0 }, outbox: { pending: 0, rejected: 1, late: 0 }, last_error: null,
+    profile: "paper-test", risk_usd: 5,
+  };
+  const pos = { side: "LONG", qty: 6.1, entry: 93.87, stop: 93.05, tp2: 96.5, unrealized_at_last_close: 1.2 };
+
+  it("names the test profile and says when the engine position is also in the ledger", () => {
+    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base, position: { ...pos, ledger: { status: "MIRRORED", reason: null } } } } })));
+    expect(html).toContain("paper-test profile ($5 risk)");
+    expect(html).toContain("Also open in the ALPHA PAPER ledger.");
+  });
+
+  it("flags an engine-only position and the last refused signal with its reason", () => {
+    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: {
+      ...base, profile: "default", position: { ...pos, ledger: { status: "NOT_IN_LEDGER", reason: "BUY rejected: MAX_ORDER_NOTIONAL" } },
+      last_rejection: { id: "x", action: "BUY", status: "rejected", code: "MAX_ORDER_NOTIONAL", reason: "Estimated notional $22760 is above the limit $5000" },
+    } } })));
+    expect(html).toContain("Engine-only position, not in the ALPHA PAPER ledger: BUY rejected: MAX_ORDER_NOTIONAL.");
+    expect(html).toContain("Last refused signal: BUY rejected (MAX_ORDER_NOTIONAL)");
+    expect(html).not.toContain("default profile");
+  });
+});

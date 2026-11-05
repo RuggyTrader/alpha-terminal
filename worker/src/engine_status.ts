@@ -30,18 +30,24 @@ function clean(s: Record<string, unknown>) {
   const trades = s.trades && typeof s.trades === "object" ? (s.trades as Record<string, unknown>) : {};
   const outbox = s.outbox && typeof s.outbox === "object" ? (s.outbox as Record<string, unknown>) : {};
   const err = s.last_error && typeof s.last_error === "object" ? (s.last_error as Record<string, unknown>) : null;
+  const rej = s.last_rejection && typeof s.last_rejection === "object" ? (s.last_rejection as Record<string, unknown>) : null;
+  const link = pos && pos.ledger && typeof pos.ledger === "object" ? (pos.ledger as Record<string, unknown>) : null;
+  const LINK = ["MIRRORED", "PENDING", "NOT_IN_LEDGER"];
   return {
     engine: str(s.engine, 40), version: str(s.version, 20), mode: "PAPER",
     symbol: str(s.symbol, 16), timeframe: str(s.timeframe, 8), strategy: str(s.strategy, 64),
     started_at: isoOrNull(s.started_at), warmed_up_at: isoOrNull(s.warmed_up_at), last_poll_at: isoOrNull(s.last_poll_at),
     last_candle_time: isoOrNull(s.last_candle_time), last_candle_close: num(s.last_candle_close),
     candles_processed: num(s.candles_processed), status_text: str(s.status_text, 80), sync: s.sync === true,
+    profile: str(s.profile, 40), risk_usd: num(s.risk_usd),
     position: pos ? {
       side: pos.side === "LONG" || pos.side === "SHORT" ? pos.side : null, qty: num(pos.qty), entry: num(pos.entry),
       stop: num(pos.stop), tp2: num(pos.tp2), unrealized_at_last_close: num(pos.unrealized_at_last_close),
+      ledger: link && LINK.includes(String(link.status)) ? { status: String(link.status), reason: str(link.reason, 160) } : null,
     } : null,
     trades: { closed: num(trades.closed), wins: num(trades.wins), losses: num(trades.losses), net_pnl: num(trades.net_pnl) },
-    outbox: { pending: num(outbox.pending), rejected: num(outbox.rejected), late: num(outbox.late) },
+    outbox: { pending: num(outbox.pending), accepted: num(outbox.accepted), rejected: num(outbox.rejected), skipped: num(outbox.skipped), late: num(outbox.late) },
+    last_rejection: rej ? { id: str(rej.id, 80), action: str(rej.action, 8), status: str(rej.status, 12), code: str(rej.code, 40), reason: str(rej.reason, 200) } : null,
     last_error: err ? { at: isoOrNull(err.at), where: str(err.where, 20), message: str(err.message, 200) } : null,
   };
 }

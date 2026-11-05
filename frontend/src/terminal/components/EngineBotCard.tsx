@@ -20,7 +20,7 @@ export function EngineBotCard({ bot }: { bot: EngineBot }) {
     <section className="card overview bot-card" aria-label="OTE engine">
       <SectionHeader
         title="OTE engine"
-        sub={s ? `${s.symbol ?? NA} · ${s.timeframe ?? NA} · PAPER simulation` : "Automated PAPER engine"}
+        sub={s ? `${s.symbol ?? NA} · ${s.timeframe ?? NA} · PAPER simulation${s.profile && s.profile !== "default" ? ` · ${s.profile} profile ($${s.risk_usd ?? NA} risk)` : ""}` : "Automated PAPER engine"}
         right={<StatusBadge tone={TONE[state] ?? "muted"} dot>{state === "NOT_RUNNING" ? "NOT RUNNING" : state}</StatusBadge>}
       />
       {!s ? (
@@ -41,6 +41,16 @@ export function EngineBotCard({ bot }: { bot: EngineBot }) {
               <b>{p.side}</b> {qty(p.qty)} @ {price(p.entry)} · SL {price(p.stop)} · TP2 {price(p.tp2)} ·{" "}
               <b className={`t-${tone(p.unrealized_at_last_close ?? 0)}`}>{signedMoney(p.unrealized_at_last_close)}</b> at last close
             </p>
+          ) : null}
+          {p?.ledger ? (
+            <p className={`bot-note ${p.ledger.status === "MIRRORED" ? "" : "t-warn"}`}>
+              {p.ledger.status === "MIRRORED" ? "Also open in the ALPHA PAPER ledger."
+                : p.ledger.status === "PENDING" ? `Not in the ALPHA PAPER ledger yet: ${p.ledger.reason ?? "waiting to sync"}.`
+                : `Engine-only position, not in the ALPHA PAPER ledger: ${p.ledger.reason ?? NA}.`}
+            </p>
+          ) : null}
+          {s.last_rejection ? (
+            <p className="bot-note">Last refused signal: {s.last_rejection.action} {s.last_rejection.status} ({s.last_rejection.code}){s.last_rejection.reason ? ` · ${s.last_rejection.reason}` : ""}</p>
           ) : null}
           {(s.outbox?.pending ?? 0) > 0 ? <p className="bot-note t-warn">{s.outbox?.pending} signal(s) waiting to sync</p> : null}
           {s.last_error ? <p className="bot-note t-warn">{s.last_error.where}: {s.last_error.message}</p> : null}

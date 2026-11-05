@@ -7,6 +7,11 @@
 // * Fills from candles that closed more than `lateBars` intervals ago (catch-up after downtime) and from the
 //   warm-up history are recorded but NOT sent: the Worker fills at the current price, so a stale signal would
 //   be misleading.
+// * Every exit is linked to its entry. A CLOSE is sent only if that entry was ACCEPTED into the ALPHA PAPER
+//   ledger; otherwise it is recorded as `skipped` with the reason (entry rejected / historical / late). So a
+//   rejected or warm-up entry can never produce a CLOSE against the ledger.
+// * Item statuses: pending → accepted | rejected | skipped; historical / late are never sent. Every final status
+//   keeps ALPHA TERMINAL's code and message (or the engine's reason).
 // * No broker is contacted anywhere in this engine. ALPHA TERMINAL stays PAPER / DRY RUN.
 
 import { createHash } from "node:crypto";
@@ -21,9 +26,12 @@ export const STRATEGY_NAME = "OTE Pro Strat (engine)";
 const iso = (ms) => new Date(ms).toISOString().replace(".000Z", "Z");
 const fmtQty = (q) => q.toFixed(8).replace(/\.?0+$/, "");
 
+// v2: outbox items link exits to entries (state from v1 starts a fresh warm-up).
 export function inputsHash(cfg) {
-  return createHash("sha256").update(JSON.stringify({ v: 1, symbol: cfg.symbol, tf: cfg.intervalMin, inputs: cfg.inputs ?? {} })).digest("hex").slice(0, 16);
+  return createHash("sha256").update(JSON.stringify({ v: 2, symbol: cfg.symbol, tf: cfg.intervalMin, inputs: cfg.inputs ?? {} })).digest("hex").slice(0, 16);
 }
+
+const FINAL = new Set(["accepted", "rejected", "skipped", "historical", "late"]);
 
 export class EngineRunner {
   constructor(cfg, { fetchCandles = fetchCompletedCandles, http = fetch, now = () => Date.now(), log = console.log } = {}) {
@@ -58,7 +66,7 @@ export class EngineRunner {
     this.state = {
       version: ENGINE_VERSION, inputsHash: inputsHash(this.cfg), startedAt: iso(this.now()), warmedUpAt: null, resets: [],
       strategy: createState({ symbol: this.cfg.symbol, timeframeMin: this.cfg.intervalMin, inputs: this.cfg.inputs }),
-      outbox: [], lastPollAt: null, lastError: null, candlesProcessed: 0, lastCandle: null,
+      outbox: [], openEntryId: null, lastPollAt: null, lastError: null, candlesProcessed: 0, lastCandle: null,
     };
     if (reason) this.state.resets.push({ at: iso(this.now()), reason });
   }
@@ -88,9 +96,20 @@ export class EngineRunner {
       this.log(`[engine] ${missing} candle(s) missing since ${iso(S.strategy.lastTime)}; re-warming from available history`);
       const outbox = S.outbox;
       const resets = S.resets;
+      // If the ledger holds a position the engine is about to forget, close it (at the live price) so the two
+      // cannot drift apart. Recorded as a reconciliation, not as a strategy exit.
+      const open = S.openEntryId ? outbox.find((x) => x.id === S.openEntryId) : null;
+      if (open && (open.status === "accepted" || open.status === "pending")) {
+        outbox.push({
+          id: `ENG-${this.cfg.symbol}-${this.cfg.intervalMin}-${iso(nowMs - (nowMs % this.step))}-RESYNC-CLOSE`, action: "CLOSE", kind: "EXIT",
+          entryId: open.id, qty: null, enginePrice: null, exitKind: "RECONCILE_AFTER_DATA_GAP",
+          barTime: iso(nowMs - (nowMs % this.step)), barClose: iso(nowMs), createdAt: iso(nowMs), status: "pending", code: null, reason: null, attempts: 0,
+        });
+      }
       this.fresh(`gap of ${missing} candles after ${iso(S.strategy.lastTime)}`);
       this.state.outbox = outbox;
       this.state.resets = [...resets, ...this.state.resets].slice(-20);
+      await this.flush();
       return this.tick();
     }
 
@@ -104,18 +123,22 @@ export class EngineRunner {
       const late = nowMs - closeMs > this.cfg.lateBars * this.step;
       for (const e of events) {
         if (e.type !== "ENTRY_FILL" && e.type !== "EXIT_FILL") continue;
-        const action = e.type === "EXIT_FILL" ? "CLOSE" : e.side === 1 ? "BUY" : "SELL";
+        const isExit = e.type === "EXIT_FILL";
+        const action = isExit ? "CLOSE" : e.side === 1 ? "BUY" : "SELL";
         const id = `ENG-${this.cfg.symbol}-${this.cfg.intervalMin}-${iso(k.t)}-${action}`;
+        const entryId = isExit ? S.openEntryId : null;
+        if (isExit) S.openEntryId = null; else S.openEntryId = id;
         if (S.outbox.some((x) => x.id === id)) continue;
         S.outbox.push({
-          id, action, qty: action === "CLOSE" ? null : fmtQty(e.qty), enginePrice: e.price, exitKind: e.kind ?? null,
-          barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs),
-          status: warmup ? "historical" : late ? "late" : "pending", code: null, attempts: 0,
+          id, action, kind: isExit ? "EXIT" : "ENTRY", entryId, qty: isExit ? null : fmtQty(e.qty), enginePrice: e.price,
+          exitKind: e.kind ?? null, barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs),
+          status: warmup ? "historical" : late ? "late" : "pending", code: null, reason: warmup ? "warm-up history" : late ? "candle closed too long ago" : null,
+          attempts: 0,
         });
       }
     }
     if (warmup) S.warmedUpAt = iso(nowMs);
-    S.outbox = S.outbox.slice(-200);
+    this.trimOutbox();
     S.lastError = null;
     this.save();
     if (processed) this.log(`[engine] processed ${processed} candle(s) up to ${S.lastCandle.t}; status: ${S.strategy.status}`);
@@ -124,11 +147,41 @@ export class EngineRunner {
     return { processed };
   }
 
-  /** Sends pending outbox items in order. Stops at the first retryable failure to keep BUY/CLOSE ordering. */
+  /** Keeps the outbox bounded without dropping an entry that an unfinished exit still refers to. */
+  trimOutbox(max = 300) {
+    const box = this.state.outbox;
+    if (box.length <= max) return;
+    const needed = new Set(box.filter((x) => !FINAL.has(x.status) && x.entryId).map((x) => x.entryId));
+    if (this.state.openEntryId) needed.add(this.state.openEntryId);
+    const drop = box.length - max;
+    let dropped = 0;
+    this.state.outbox = box.filter((x) => {
+      if (dropped < drop && FINAL.has(x.status) && !needed.has(x.id)) { dropped += 1; return false; }
+      return true;
+    });
+  }
+
+  /**
+   * Sends pending outbox items in order and records each result. Stops at the first retryable failure so
+   * BUY/CLOSE ordering is kept. A CLOSE goes out only when its entry was accepted into the ALPHA PAPER ledger.
+   */
   async flush() {
     if (!this.cfg.sync) return;
-    for (const item of this.state.outbox) {
+    const box = this.state.outbox;
+    for (const item of box) {
       if (item.status !== "pending") continue;
+      if (item.kind === "EXIT") {
+        const entry = item.entryId ? box.find((x) => x.id === item.entryId) : null;
+        if (!entry || entry.status !== "accepted") {
+          if (entry && entry.status === "pending") return; // still being delivered; keep order
+          item.status = "skipped";
+          item.code = "ENTRY_NOT_IN_LEDGER";
+          item.reason = entry ? `entry ${entry.action} was ${entry.status}${entry.code ? ` (${entry.code})` : ""}; nothing to close in the ALPHA PAPER ledger`
+            : "no matching entry; nothing to close in the ALPHA PAPER ledger";
+          this.save();
+          continue;
+        }
+      }
       item.attempts += 1;
       let status = 0, body = {};
       try {
@@ -142,21 +195,46 @@ export class EngineRunner {
         status = r.status;
         body = await r.json().catch(() => ({}));
       } catch (e) {
-        this.state.lastError = { at: iso(this.now()), where: "sync", message: String(e.message ?? e) };
+        this.state.lastError = { at: iso(this.now()), where: "sync", message: `${item.id}: ${e.message ?? e}` };
         this.save();
         return;
       }
-      item.code = body.code ?? `HTTP_${status}`;
-      if (status === 200) item.status = "sent"; // DRY_RUN_ACCEPTED or DUPLICATE (already recorded)
-      else if (status === 400 || status === 422) item.status = "rejected"; // final, with ALPHA TERMINAL's reason
-      else {
+      item.lastAttemptAt = iso(this.now());
+      const code = body.code ?? `HTTP_${status}`;
+      if (status === 200 && code === "DRY_RUN_ACCEPTED") {
+        Object.assign(item, { status: "accepted", code, reason: null });
+      } else if (status === 200 && code === "DUPLICATE") {
+        // Already processed earlier (e.g. crash before saving): adopt that earlier result.
+        const orig = body.data ?? {};
+        if (orig.original_code === "DRY_RUN_ACCEPTED") Object.assign(item, { status: "accepted", code: "DRY_RUN_ACCEPTED", reason: "confirmed as a duplicate of the accepted signal" });
+        else if (orig.original_status === "rejected") Object.assign(item, { status: "rejected", code: orig.original_code ?? "REJECTED", reason: "rejected earlier (confirmed as a duplicate)" });
+        else {
+          this.state.lastError = { at: iso(this.now()), where: "sync", message: `${item.id}: earlier attempt still ${orig.original_status ?? "unknown"}` };
+          this.save();
+          return;
+        }
+      } else if (status === 400 || status === 422) {
+        Object.assign(item, { status: "rejected", code, reason: String(body.message ?? "").slice(0, 200) || null });
+      } else {
         // 401 (secret), 5xx (nothing committed; retryable): keep it pending and stop here.
-        this.state.lastError = { at: iso(this.now()), where: "sync", message: `${item.id}: ${item.code} ${body.message ?? ""}`.trim() };
+        item.code = code;
+        this.state.lastError = { at: iso(this.now()), where: "sync", message: `${item.id}: ${code} ${body.message ?? ""}`.trim() };
         this.save();
         return;
       }
       this.save();
     }
+  }
+
+  /** Whether the engine's open position is mirrored in the ALPHA PAPER ledger, and if not, why. */
+  ledgerLink() {
+    const S = this.state;
+    if (!S.strategy.broker.pos) return null;
+    const entry = S.openEntryId ? S.outbox.find((x) => x.id === S.openEntryId) : null;
+    if (!entry) return { status: "NOT_IN_LEDGER", reason: "no entry signal recorded" };
+    if (entry.status === "accepted") return { status: "MIRRORED", reason: null };
+    if (entry.status === "pending") return { status: "PENDING", reason: entry.code ? `retrying (${entry.code})` : "waiting to sync" };
+    return { status: "NOT_IN_LEDGER", reason: `${entry.action} ${entry.status}${entry.code ? `: ${entry.code}` : ""}` };
   }
 
   /** Status shown on the dashboard. Engine-side numbers only; ALPHA PAPER ledger figures stay separate. */
@@ -171,17 +249,19 @@ export class EngineRunner {
       strategy: STRATEGY_NAME, started_at: S.startedAt, warmed_up_at: S.warmedUpAt, last_poll_at: S.lastPollAt,
       last_candle_time: S.lastCandle?.t ?? null, last_candle_close: lastClose, candles_processed: S.candlesProcessed,
       status_text: st.status, sync: this.cfg.sync,
+      profile: this.cfg.profile ?? "default", risk_usd: st.inputs.riskUSD,
       position: pos ? {
         side: pos.side === 1 ? "LONG" : "SHORT", qty: Number(pos.qty.toFixed(8)), entry: pos.avg,
         stop: st.curStop, tp2: st.tp2P,
         unrealized_at_last_close: lastClose === null ? null : Number(((lastClose - pos.avg) * pos.qty * pos.side).toFixed(2)),
+        ledger: this.ledgerLink(),
       } : null,
       trades: { closed: sum.trades, wins: sum.wins, losses: sum.losses, net_pnl: sum.netProfit },
-      outbox: {
-        pending: S.outbox.filter((x) => x.status === "pending").length,
-        rejected: S.outbox.filter((x) => x.status === "rejected").length,
-        late: S.outbox.filter((x) => x.status === "late").length,
-      },
+      outbox: Object.fromEntries(["pending", "accepted", "rejected", "skipped", "late"].map((k) => [k, S.outbox.filter((x) => x.status === k).length])),
+      last_rejection: (() => {
+        const r = [...S.outbox].reverse().find((x) => x.status === "rejected" || x.status === "skipped");
+        return r ? { id: r.id, action: r.action, status: r.status, code: r.code, reason: r.reason } : null;
+      })(),
       last_error: S.lastError,
     };
   }

@@ -190,11 +190,18 @@ export interface EngineBot {
     symbol: string | null;
     timeframe: string | null;
     status_text: string | null;
+    profile?: string | null;
+    risk_usd?: number | null;
     last_candle_time: string | null;
     last_candle_close: number | null;
-    position: { side: string | null; qty: number | null; entry: number | null; stop: number | null; tp2: number | null; unrealized_at_last_close: number | null } | null;
+    position: {
+      side: string | null; qty: number | null; entry: number | null; stop: number | null; tp2: number | null; unrealized_at_last_close: number | null;
+      /** Whether this engine position also exists in the ALPHA PAPER ledger, and if not, why. */
+      ledger?: { status: "MIRRORED" | "PENDING" | "NOT_IN_LEDGER" | string; reason: string | null } | null;
+    } | null;
     trades: { closed: number | null; wins: number | null; losses: number | null; net_pnl: number | null } | null;
-    outbox: { pending: number | null; rejected: number | null; late: number | null } | null;
+    outbox: { pending: number | null; accepted?: number | null; rejected: number | null; skipped?: number | null; late: number | null } | null;
+    last_rejection?: { id: string | null; action: string | null; status: string | null; code: string | null; reason: string | null } | null;
     last_error: { at: string | null; where: string | null; message: string | null } | null;
   } | null;
 }
