@@ -44,10 +44,15 @@ export function EngineBotCard({ bot }: { bot: EngineBot }) {
           ) : null}
           {p?.ledger ? (
             <p className={`bot-note ${p.ledger.status === "MIRRORED" ? "" : "t-warn"}`}>
-              {p.ledger.status === "MIRRORED" ? "Also open in the ALPHA PAPER ledger."
+              {p.ledger.status === "MIRRORED" ? "Also open in the ALPHA PAPER ledger (checked against the ledger)."
                 : p.ledger.status === "PENDING" ? `Not in the ALPHA PAPER ledger yet: ${p.ledger.reason ?? "waiting to sync"}.`
+                : p.ledger.status === "UNVERIFIED" ? `Accepted, but not verified against the ledger: ${p.ledger.reason ?? NA}.`
+                : p.ledger.status === "DIVERGED" ? `Does not match the ALPHA PAPER ledger: ${p.ledger.reason ?? NA}.`
                 : `Engine-only position, not in the ALPHA PAPER ledger: ${p.ledger.reason ?? NA}.`}
             </p>
+          ) : null}
+          {s.ledger_check?.status === "DIVERGED" && !(p?.ledger?.status === "DIVERGED") ? (
+            <p className="bot-note t-warn">Reconciliation warning: {s.ledger_check.issues[0] ?? "engine and ledger differ"}</p>
           ) : null}
           {s.last_rejection ? (
             <p className="bot-note">Last refused signal: {s.last_rejection.action} {s.last_rejection.status} ({s.last_rejection.code}){s.last_rejection.reason ? ` · ${s.last_rejection.reason}` : ""}</p>

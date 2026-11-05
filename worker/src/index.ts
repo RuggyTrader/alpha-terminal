@@ -9,6 +9,7 @@ import {
 } from "./webhook_dry_run";
 
 import {
+  handleEngineLedger,
   handleEngineStatus,
 } from "./engine_status";
 
@@ -1401,6 +1402,19 @@ export default {
         "POST"
     ) {
       return handleEngineStatus(
+        request,
+        env
+      );
+    }
+
+    // Read-only ledger view for the OTE engine's reconciliation check.
+    if (
+      url.pathname ===
+        "/webhook/engine-ledger" &&
+      request.method ===
+        "POST"
+    ) {
+      return handleEngineLedger(
         request,
         env
       );

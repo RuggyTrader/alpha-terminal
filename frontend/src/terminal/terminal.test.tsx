@@ -689,7 +689,7 @@ describe("OTE engine card: engine vs ALPHA PAPER ledger", () => {
   it("names the test profile and says when the engine position is also in the ledger", () => {
     const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base, position: { ...pos, ledger: { status: "MIRRORED", reason: null } } } } })));
     expect(html).toContain("paper-test profile ($5 risk)");
-    expect(html).toContain("Also open in the ALPHA PAPER ledger.");
+    expect(html).toContain("Also open in the ALPHA PAPER ledger (checked against the ledger).");
   });
 
   it("flags an engine-only position and the last refused signal with its reason", () => {
@@ -700,5 +700,30 @@ describe("OTE engine card: engine vs ALPHA PAPER ledger", () => {
     expect(html).toContain("Engine-only position, not in the ALPHA PAPER ledger: BUY rejected: MAX_ORDER_NOTIONAL.");
     expect(html).toContain("Last refused signal: BUY rejected (MAX_ORDER_NOTIONAL)");
     expect(html).not.toContain("default profile");
+  });
+});
+
+describe("OTE engine card: reconciliation", () => {
+  const base = {
+    symbol: "SOLUSD", timeframe: "5m", status_text: "IN TRADE", last_candle_time: "2026-10-31T14:00:00Z", last_candle_close: 93.14,
+    trades: { closed: 0, wins: 0, losses: 0, net_pnl: 0 }, outbox: { pending: 0, rejected: 0, late: 0 }, last_error: null,
+  };
+  const pos = { side: "LONG", qty: 6.1, entry: 93.87, stop: 93.05, tp2: 96.5, unrealized_at_last_close: 1.2 };
+
+  it("says when the engine position does not match the ledger, or could not be verified", () => {
+    const diverged = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base,
+      position: { ...pos, ledger: { status: "DIVERGED", reason: "ledger qty 7.1 vs engine 6.1" } },
+      ledger_check: { status: "DIVERGED", at: null, issues: ["ledger qty 7.1 vs engine 6.1"] } } } })));
+    expect(diverged).toContain("Does not match the ALPHA PAPER ledger: ledger qty 7.1 vs engine 6.1.");
+    expect(diverged).not.toContain("Also open in the ALPHA PAPER ledger");
+    const unverified = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base,
+      position: { ...pos, ledger: { status: "UNVERIFIED", reason: "ledger query failed: fetch failed" } } } } })));
+    expect(unverified).toContain("Accepted, but not verified against the ledger: ledger query failed: fetch failed.");
+  });
+
+  it("warns when the ledger holds an engine position the engine does not", () => {
+    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base, position: null,
+      ledger_check: { status: "DIVERGED", at: null, issues: ["the ledger holds an engine-opened SOLUSD position (ENG-x, qty 3) that the engine does not hold"] } } } })));
+    expect(html).toContain("Reconciliation warning: the ledger holds an engine-opened SOLUSD position");
   });
 });

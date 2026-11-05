@@ -32,7 +32,8 @@ function clean(s: Record<string, unknown>) {
   const err = s.last_error && typeof s.last_error === "object" ? (s.last_error as Record<string, unknown>) : null;
   const rej = s.last_rejection && typeof s.last_rejection === "object" ? (s.last_rejection as Record<string, unknown>) : null;
   const link = pos && pos.ledger && typeof pos.ledger === "object" ? (pos.ledger as Record<string, unknown>) : null;
-  const LINK = ["MIRRORED", "PENDING", "NOT_IN_LEDGER"];
+  const LINK = ["MIRRORED", "PENDING", "NOT_IN_LEDGER", "UNVERIFIED", "DIVERGED"];
+  const chk = s.ledger_check && typeof s.ledger_check === "object" ? (s.ledger_check as Record<string, unknown>) : null;
   return {
     engine: str(s.engine, 40), version: str(s.version, 20), mode: "PAPER",
     symbol: str(s.symbol, 16), timeframe: str(s.timeframe, 8), strategy: str(s.strategy, 64),
@@ -47,6 +48,10 @@ function clean(s: Record<string, unknown>) {
     } : null,
     trades: { closed: num(trades.closed), wins: num(trades.wins), losses: num(trades.losses), net_pnl: num(trades.net_pnl) },
     outbox: { pending: num(outbox.pending), accepted: num(outbox.accepted), rejected: num(outbox.rejected), skipped: num(outbox.skipped), late: num(outbox.late) },
+    ledger_check: chk && ["OK", "DIVERGED", "UNVERIFIED"].includes(String(chk.status)) ? {
+      status: String(chk.status), at: isoOrNull(chk.at),
+      issues: Array.isArray(chk.issues) ? chk.issues.slice(0, 5).map((x) => str(x, 200)).filter((x): x is string => x !== null) : [],
+    } : null,
     last_rejection: rej ? { id: str(rej.id, 80), action: str(rej.action, 8), status: str(rej.status, 12), code: str(rej.code, 40), reason: str(rej.reason, 200) } : null,
     last_error: err ? { at: isoOrNull(err.at), where: str(err.where, 20), message: str(err.message, 200) } : null,
   };
@@ -90,4 +95,41 @@ export async function engineStatusForDashboard(env: { DB: D1Database }) {
   // ONLINE: heard from within two candles (+2 min slack); STALE: within 30 min; otherwise OFFLINE.
   const state = age <= tfMin * 120 + 120 ? "ONLINE" : age <= 1800 ? "STALE" : "OFFLINE";
   return { state, age_seconds: age, status: s };
+}
+
+/**
+ * POST /webhook/engine-ledger {secret, symbol, alert_ids?}: READ-ONLY view of the ALPHA PAPER ledger for the engine,
+ * so it can verify what D1 really holds before claiming a position is mirrored, and learn the outcome of a signal
+ * whose delivery was uncertain. Writes nothing.
+ */
+export async function handleEngineLedger(request: Request, env: EngineStatusEnv): Promise<Response> {
+  const text = await request.text();
+  if (text.length > MAX_BYTES * 2) return json({ ok: false, code: "TOO_LARGE" }, 413);
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return json({ ok: false, code: "INVALID_JSON" }, 400);
+  }
+  if (typeof body.secret !== "string" || !(await secureEqual(body.secret, env.WEBHOOK_SECRET))) {
+    return json({ ok: false, code: "UNAUTHORIZED" }, 401);
+  }
+  const symbol = typeof body.symbol === "string" ? body.symbol : "";
+  if (!getInstrument(symbol)) return json({ ok: false, code: "INVALID_SYMBOL" }, 400);
+  const ids = Array.isArray(body.alert_ids) ? body.alert_ids : [];
+  if (ids.length > 50 || !ids.every((x) => typeof x === "string" && /^[\x21-\x7E]{1,128}$/.test(x))) {
+    return json({ ok: false, code: "INVALID_ALERT_IDS" }, 400);
+  }
+  const position = await env.DB.prepare(
+    `SELECT symbol, side, status, qty, avg_entry_price, open_alert_id, last_order_id, opened_at
+     FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`
+  ).bind(symbol).first();
+  const alerts: Record<string, { status: string; response_code: string | null; rejection_reason: string | null }> = {};
+  if (ids.length) {
+    const rows = await env.DB.prepare(
+      `SELECT alert_id, status, response_code, rejection_reason FROM alerts WHERE alert_id IN (${ids.map(() => "?").join(",")})`
+    ).bind(...(ids as string[])).all<{ alert_id: string; status: string; response_code: string | null; rejection_reason: string | null }>();
+    for (const r of rows.results) alerts[r.alert_id] = { status: r.status, response_code: r.response_code, rejection_reason: r.rejection_reason };
+  }
+  return json({ ok: true, mode: "PAPER", symbol, position: position ?? null, alerts, read_only: true });
 }

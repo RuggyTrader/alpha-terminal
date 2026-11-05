@@ -202,6 +202,8 @@ export interface EngineBot {
     trades: { closed: number | null; wins: number | null; losses: number | null; net_pnl: number | null } | null;
     outbox: { pending: number | null; accepted?: number | null; rejected: number | null; skipped?: number | null; late: number | null } | null;
     last_rejection?: { id: string | null; action: string | null; status: string | null; code: string | null; reason: string | null } | null;
+    /** The engine's check of its position against the ALPHA PAPER ledger in D1. */
+    ledger_check?: { status: "OK" | "DIVERGED" | "UNVERIFIED" | string; at: string | null; issues: string[] } | null;
     last_error: { at: string | null; where: string | null; message: string | null } | null;
   } | null;
 }

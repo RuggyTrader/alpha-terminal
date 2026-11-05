@@ -10,8 +10,16 @@
 // * Every exit is linked to its entry. A CLOSE is sent only if that entry was ACCEPTED into the ALPHA PAPER
 //   ledger; otherwise it is recorded as `skipped` with the reason (entry rejected / historical / late). So a
 //   rejected or warm-up entry can never produce a CLOSE against the ledger.
-// * Item statuses: pending → accepted | rejected | skipped; historical / late are never sent. Every final status
+// * Item statuses: pending → accepted | rejected | skipped; historical items are never sent. Every final status
 //   keeps ALPHA TERMINAL's code and message (or the engine's reason).
+// * Freshness is enforced at DELIVERY: an entry not delivered within `lateBars` candles of its candle close is
+//   never sent (skipped, SIGNAL_EXPIRED), so it cannot fill at a later price after an outage. If an earlier attempt
+//   may have reached ALPHA TERMINAL, its real outcome is read from the ledger first.
+// * Exits of accepted entries are still delivered when late (otherwise the ledger would keep a position the engine
+//   closed), but only after checking that the ledger still holds exactly that entry's position, never twice, and
+//   recorded as delayed.
+// * After every poll the engine reads the ledger (read-only) and compares it with its own position; a mismatch is
+//   reported as DIVERGED instead of being called mirrored. Nothing is auto-corrected.
 // * No broker is contacted anywhere in this engine. ALPHA TERMINAL stays PAPER / DRY RUN.
 
 import { createHash } from "node:crypto";
@@ -66,7 +74,7 @@ export class EngineRunner {
     this.state = {
       version: ENGINE_VERSION, inputsHash: inputsHash(this.cfg), startedAt: iso(this.now()), warmedUpAt: null, resets: [],
       strategy: createState({ symbol: this.cfg.symbol, timeframeMin: this.cfg.intervalMin, inputs: this.cfg.inputs }),
-      outbox: [], openEntryId: null, lastPollAt: null, lastError: null, candlesProcessed: 0, lastCandle: null,
+      outbox: [], openEntryId: null, ledgerCheck: null, lastPollAt: null, lastError: null, candlesProcessed: 0, lastCandle: null,
     };
     if (reason) this.state.resets.push({ at: iso(this.now()), reason });
   }
@@ -132,7 +140,10 @@ export class EngineRunner {
         S.outbox.push({
           id, action, kind: isExit ? "EXIT" : "ENTRY", entryId, qty: isExit ? null : fmtQty(e.qty), enginePrice: e.price,
           exitKind: e.kind ?? null, barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs),
-          status: warmup ? "historical" : late ? "late" : "pending", code: null, reason: warmup ? "warm-up history" : late ? "candle closed too long ago" : null,
+          // Exits are never dropped for lateness here: whether they go out depends on their entry (see flush).
+          status: warmup ? "historical" : late && !isExit ? "skipped" : "pending",
+          code: !warmup && late && !isExit ? "SIGNAL_EXPIRED" : null,
+          reason: warmup ? "warm-up history" : late && !isExit ? `candle closed ${Math.round((nowMs - closeMs) / 60_000)} min ago; not sent so it cannot fill at a later price` : null,
           attempts: 0,
         });
       }
@@ -143,6 +154,7 @@ export class EngineRunner {
     this.save();
     if (processed) this.log(`[engine] processed ${processed} candle(s) up to ${S.lastCandle.t}; status: ${S.strategy.status}`);
     await this.flush();
+    await this.verifyLedger();
     await this.heartbeat();
     return { processed };
   }
@@ -161,27 +173,82 @@ export class EngineRunner {
     });
   }
 
+  /** Read-only view of the ALPHA PAPER ledger: the open position for this symbol and the outcome of given signals. */
+  async ledger(alertIds = []) {
+    const r = await this.http(`${this.cfg.apiBase}/webhook/engine-ledger`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15_000),
+      body: JSON.stringify({ secret: this.cfg.webhookSecret, symbol: this.cfg.symbol, alert_ids: alertIds }),
+    });
+    const body = await r.json().catch(() => ({}));
+    if (r.status !== 200 || body.ok !== true) throw new Error(`ledger query ${body.code ?? `HTTP ${r.status}`}`);
+    return { position: body.position ?? null, alerts: body.alerts ?? {} };
+  }
+
+  final(item, status, code, reason) {
+    Object.assign(item, { status, code, reason: reason ? String(reason).slice(0, 240) : null });
+    this.save();
+  }
+
   /**
    * Sends pending outbox items in order and records each result. Stops at the first retryable failure so
-   * BUY/CLOSE ordering is kept. A CLOSE goes out only when its entry was accepted into the ALPHA PAPER ledger.
+   * BUY/CLOSE ordering is kept.
    */
   async flush() {
     if (!this.cfg.sync) return;
     const box = this.state.outbox;
+    const maxAgeMs = this.cfg.lateBars * this.step;
     for (const item of box) {
       if (item.status !== "pending") continue;
+      const ageMs = this.now() - Date.parse(item.barClose);
+
       if (item.kind === "EXIT") {
         const entry = item.entryId ? box.find((x) => x.id === item.entryId) : null;
         if (!entry || entry.status !== "accepted") {
           if (entry && entry.status === "pending") return; // still being delivered; keep order
-          item.status = "skipped";
-          item.code = "ENTRY_NOT_IN_LEDGER";
-          item.reason = entry ? `entry ${entry.action} was ${entry.status}${entry.code ? ` (${entry.code})` : ""}; nothing to close in the ALPHA PAPER ledger`
-            : "no matching entry; nothing to close in the ALPHA PAPER ledger";
-          this.save();
+          this.final(item, "skipped", "ENTRY_NOT_IN_LEDGER", entry
+            ? `entry ${entry.action} was ${entry.status}${entry.code ? ` (${entry.code})` : ""}; nothing to close in the ALPHA PAPER ledger`
+            : "no matching entry; nothing to close in the ALPHA PAPER ledger");
           continue;
         }
+        if (box.some((x) => x !== item && x.kind === "EXIT" && x.entryId === entry.id && x.status === "accepted")) {
+          this.final(item, "skipped", "ALREADY_CLOSED", `${entry.id} was already closed by another signal`);
+          continue;
+        }
+        // Close only what the ledger really holds for this entry (and learn the outcome of an earlier attempt).
+        let L;
+        try { L = await this.ledger([entry.id, item.id]); } catch (e) {
+          this.state.lastError = { at: iso(this.now()), where: "ledger", message: `${item.id}: ${e.message ?? e}` };
+          this.save();
+          return;
+        }
+        const prior = L.alerts[item.id];
+        if (prior?.response_code === "DRY_RUN_ACCEPTED") { this.final(item, "accepted", "DRY_RUN_ACCEPTED", "confirmed in the ledger (earlier attempt)"); continue; }
+        if (prior?.status === "processing") return;
+        if (!L.position || L.position.open_alert_id !== entry.id) {
+          this.final(item, "skipped", "LEDGER_NOT_HOLDING_ENTRY", L.position
+            ? `the ledger's open ${this.cfg.symbol} position was opened by ${L.position.open_alert_id}, not ${entry.id}; not closed`
+            : `the ledger has no open ${this.cfg.symbol} position for ${entry.id}; not closed`);
+          continue;
+        }
+        if (ageMs > maxAgeMs) item.delayedMin = Math.round(ageMs / 60_000);
+      } else if (ageMs > maxAgeMs) {
+        // Too old to enter at today's price. If an earlier attempt may have arrived, adopt its real outcome.
+        if (item.attempts > 0) {
+          let L;
+          try { L = await this.ledger([item.id]); } catch (e) {
+            this.state.lastError = { at: iso(this.now()), where: "ledger", message: `${item.id}: ${e.message ?? e}` };
+            this.save();
+            return;
+          }
+          const prior = L.alerts[item.id];
+          if (prior?.response_code === "DRY_RUN_ACCEPTED") { this.final(item, "accepted", "DRY_RUN_ACCEPTED", "confirmed in the ledger (earlier attempt)"); continue; }
+          if (prior?.status === "rejected") { this.final(item, "rejected", prior.response_code ?? "REJECTED", prior.rejection_reason); continue; }
+          if (prior?.status === "processing") return;
+        }
+        this.final(item, "skipped", "SIGNAL_EXPIRED", `not delivered within ${this.cfg.lateBars * this.cfg.intervalMin} min of the candle close (${Math.round(ageMs / 60_000)} min); not sent so it cannot fill at a later price`);
+        continue;
       }
+
       item.attempts += 1;
       let status = 0, body = {};
       try {
@@ -201,20 +268,21 @@ export class EngineRunner {
       }
       item.lastAttemptAt = iso(this.now());
       const code = body.code ?? `HTTP_${status}`;
+      const delayed = item.delayedMin ? `delivered ${item.delayedMin} min after the engine's exit; the ledger closed at the live price` : null;
       if (status === 200 && code === "DRY_RUN_ACCEPTED") {
-        Object.assign(item, { status: "accepted", code, reason: null });
+        this.final(item, "accepted", code, delayed);
       } else if (status === 200 && code === "DUPLICATE") {
         // Already processed earlier (e.g. crash before saving): adopt that earlier result.
         const orig = body.data ?? {};
-        if (orig.original_code === "DRY_RUN_ACCEPTED") Object.assign(item, { status: "accepted", code: "DRY_RUN_ACCEPTED", reason: "confirmed as a duplicate of the accepted signal" });
-        else if (orig.original_status === "rejected") Object.assign(item, { status: "rejected", code: orig.original_code ?? "REJECTED", reason: "rejected earlier (confirmed as a duplicate)" });
+        if (orig.original_code === "DRY_RUN_ACCEPTED") this.final(item, "accepted", "DRY_RUN_ACCEPTED", "confirmed as a duplicate of the accepted signal");
+        else if (orig.original_status === "rejected") this.final(item, "rejected", orig.original_code ?? "REJECTED", "rejected earlier (confirmed as a duplicate)");
         else {
           this.state.lastError = { at: iso(this.now()), where: "sync", message: `${item.id}: earlier attempt still ${orig.original_status ?? "unknown"}` };
           this.save();
           return;
         }
       } else if (status === 400 || status === 422) {
-        Object.assign(item, { status: "rejected", code, reason: String(body.message ?? "").slice(0, 200) || null });
+        this.final(item, "rejected", code, body.message ?? null);
       } else {
         // 401 (secret), 5xx (nothing committed; retryable): keep it pending and stop here.
         item.code = code;
@@ -222,19 +290,55 @@ export class EngineRunner {
         this.save();
         return;
       }
-      this.save();
     }
   }
 
-  /** Whether the engine's open position is mirrored in the ALPHA PAPER ledger, and if not, why. */
+  /** Compares the engine's position with what the ALPHA PAPER ledger in D1 actually holds. Reports, never fixes. */
+  async verifyLedger() {
+    if (!this.cfg.sync) return;
+    const S = this.state;
+    const pos = S.strategy.broker.pos;
+    const entry = pos && S.openEntryId ? S.outbox.find((x) => x.id === S.openEntryId) : null;
+    const at = iso(this.now());
+    let L;
+    try { L = await this.ledger(entry ? [entry.id] : []); } catch (e) {
+      S.ledgerCheck = { status: "UNVERIFIED", at, issues: [`ledger query failed: ${e.message ?? e}`], ledger_position: null };
+      this.save();
+      return;
+    }
+    const lp = L.position;
+    const issues = [];
+    if (entry && entry.status === "accepted") {
+      if (!lp) issues.push(`the ledger has no open ${this.cfg.symbol} position; the engine holds ${pos.side === 1 ? "LONG" : "SHORT"} ${fmtQty(pos.qty)} from ${entry.id}`);
+      else {
+        if (lp.open_alert_id !== entry.id) issues.push(`the ledger position was opened by ${lp.open_alert_id}, not ${entry.id}`);
+        if (Math.abs(Number(lp.qty) - Number(entry.qty)) > 1e-8) issues.push(`ledger qty ${lp.qty} vs engine ${entry.qty}`);
+        if (lp.status !== "OPEN") issues.push(`ledger position status ${lp.status}`);
+        if ((pos.side === 1 ? "long" : "short") !== lp.side) issues.push(`ledger side ${lp.side} vs engine ${pos.side === 1 ? "long" : "short"}`);
+      }
+    } else if (lp && String(lp.open_alert_id).startsWith(`ENG-${this.cfg.symbol}-`)) {
+      issues.push(`the ledger holds an engine-opened ${this.cfg.symbol} position (${lp.open_alert_id}, qty ${lp.qty}) that the engine does not hold`);
+    }
+    S.ledgerCheck = {
+      status: issues.length ? "DIVERGED" : "OK", at, issues: issues.slice(0, 5),
+      ledger_position: lp ? { qty: Number(lp.qty), side: lp.side, open_alert_id: lp.open_alert_id } : null,
+    };
+    if (issues.length) this.log(`[engine] ledger reconciliation warning: ${issues.join("; ")}`);
+    this.save();
+  }
+
+  /** Whether the engine's open position is in the ALPHA PAPER ledger, verified against D1, and if not, why. */
   ledgerLink() {
     const S = this.state;
     if (!S.strategy.broker.pos) return null;
     const entry = S.openEntryId ? S.outbox.find((x) => x.id === S.openEntryId) : null;
     if (!entry) return { status: "NOT_IN_LEDGER", reason: "no entry signal recorded" };
-    if (entry.status === "accepted") return { status: "MIRRORED", reason: null };
     if (entry.status === "pending") return { status: "PENDING", reason: entry.code ? `retrying (${entry.code})` : "waiting to sync" };
-    return { status: "NOT_IN_LEDGER", reason: `${entry.action} ${entry.status}${entry.code ? `: ${entry.code}` : ""}` };
+    if (entry.status !== "accepted") return { status: "NOT_IN_LEDGER", reason: `${entry.action} ${entry.status}${entry.code ? `: ${entry.code}` : ""}` };
+    const chk = S.ledgerCheck;
+    if (!chk || chk.status === "UNVERIFIED") return { status: "UNVERIFIED", reason: chk?.issues?.[0] ?? "not checked against the ledger yet" };
+    if (chk.status === "DIVERGED") return { status: "DIVERGED", reason: chk.issues[0] };
+    return { status: "MIRRORED", reason: null };
   }
 
   /** Status shown on the dashboard. Engine-side numbers only; ALPHA PAPER ledger figures stay separate. */
@@ -258,6 +362,7 @@ export class EngineRunner {
       } : null,
       trades: { closed: sum.trades, wins: sum.wins, losses: sum.losses, net_pnl: sum.netProfit },
       outbox: Object.fromEntries(["pending", "accepted", "rejected", "skipped", "late"].map((k) => [k, S.outbox.filter((x) => x.status === k).length])),
+      ledger_check: S.ledgerCheck ?? null,
       last_rejection: (() => {
         const r = [...S.outbox].reverse().find((x) => x.status === "rejected" || x.status === "skipped");
         return r ? { id: r.id, action: r.action, status: r.status, code: r.code, reason: r.reason } : null;

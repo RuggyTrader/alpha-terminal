@@ -35,12 +35,21 @@ stay disabled until a truthful data feed exists.
 * **Each CLOSE is linked to its entry and is sent only if that entry was accepted** into the ALPHA PAPER ledger.
   The CLOSE of a rejected, historical (warm-up) or late entry is recorded as `skipped` (`ENTRY_NOT_IN_LEDGER`)
   with the reason, so it can never act on the ledger.
-* The engine's open position is reported with its ledger link: `MIRRORED` (also in the ALPHA PAPER ledger),
-  `PENDING`, or `NOT_IN_LEDGER` with the reason. The dashboard card shows it.
+* **After every poll the engine reads the ledger** (read-only `POST /webhook/engine-ledger`) and compares symbol,
+  side, quantity, status and the opening signal with its own position. The position is reported `MIRRORED` only when
+  D1 matches; otherwise `DIVERGED` with the differences, `UNVERIFIED` when the ledger could not be read, `PENDING`, or
+  `NOT_IN_LEDGER` with the reason. A ledger position opened by the engine that the engine no longer holds is also a
+  reconciliation warning. Nothing is corrected automatically. The dashboard card shows it.
 * If the engine has to re-warm after a hole in Kraken's data while the ledger holds its position, it sends one
   reconciliation CLOSE (`…-RESYNC-CLOSE`) so the ledger is never left with a position the engine forgot.
-* Warm-up history and fills from candles that closed more than `ENGINE_LATE_BARS` intervals ago (catch-up after
-  downtime) are recorded but **not** sent: the Worker fills at the live price, so a stale signal would mislead.
+* **Freshness is enforced at delivery.** An entry not delivered within `ENGINE_LATE_BARS` candles of its candle close
+  (e.g. after an outage) is never sent: it is recorded as `skipped` / `SIGNAL_EXPIRED`, so it cannot fill at a later
+  price. If an earlier attempt may have reached ALPHA TERMINAL, its real outcome is read from the ledger first (an
+  accepted entry is adopted, not re-sent). Warm-up history is never sent.
+* **Exits of accepted entries are still delivered when late** (otherwise the ledger would keep a position the engine
+  closed), but only if the ledger still holds exactly that entry's position, never twice (`ALREADY_CLOSED`), and they
+  are recorded as delayed ("the ledger closed at the live price N min after the engine's exit"). A CLOSE whose position
+  the ledger no longer holds is `skipped` / `LEDGER_NOT_HOLDING_ENTRY`. If the ledger cannot be read, the CLOSE waits.
 * The ALPHA PAPER ledger fills at the live Kraken price when the signal arrives (up to one candle after the
   engine's simulated fill). The dashboard's **OTE engine** card shows the engine's own simulated position and P&L;
   the ALPHA PAPER cards show the ledger. They are labelled separately and are not expected to be equal.

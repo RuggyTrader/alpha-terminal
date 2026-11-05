@@ -195,15 +195,41 @@ function harness({ firstLive, http } = {}) {
     if (marketDown) throw new Error("ECONNRESET");
     return CANDLES.slice(0, visible).filter((k) => sinceMs === null || k.t > sinceMs);
   };
-  const now = () => CANDLES[visible - 1].t + STEP + 10_000; // 10 s after the newest candle closed
-  const fakeHttp = http ?? (async (url, init) => {
+  let clockSkewMs = 0;
+  const now = () => CANDLES[visible - 1].t + STEP + 10_000 + clockSkewMs; // 10 s after the newest candle closed
+  const inner = http ?? (async (url, init) => {
     const body = JSON.parse(init.body);
     sent.push({ url, body });
     if (url.endsWith("/webhook/engine-status")) return new Response(JSON.stringify({ ok: true }), { status: 200 });
     return new Response(JSON.stringify({ ok: true, code: "DRY_RUN_ACCEPTED" }), { status: 200 });
   });
+  // A tiny model of the ALPHA PAPER ledger, kept from the dry-run responses (like D1), served by the
+  // read-only /webhook/engine-ledger the engine uses for its checks. Tests can tamper with it.
+  const ledger = { position: null, alerts: {}, queries: 0, down: false };
+  const fakeHttp = async (url, init) => {
+    if (url.endsWith("/webhook/engine-ledger")) {
+      ledger.queries += 1;
+      if (ledger.down) throw new TypeError("fetch failed");
+      const ids = JSON.parse(init.body).alert_ids ?? [];
+      return new Response(JSON.stringify({ ok: true, position: ledger.position, alerts: Object.fromEntries(ids.filter((i) => ledger.alerts[i]).map((i) => [i, ledger.alerts[i]])) }), { status: 200 });
+    }
+    const res = await inner(url, init);
+    if (url.endsWith("/webhook/dry-run")) {
+      const b = JSON.parse(init.body);
+      const j = await res.clone().json().catch(() => ({}));
+      if (res.status === 200 && j.code === "DRY_RUN_ACCEPTED") {
+        ledger.alerts[b.id] = { status: "dry_run", response_code: "DRY_RUN_ACCEPTED", rejection_reason: null };
+        ledger.position = b.action === "CLOSE" ? null : { symbol: b.symbol, side: b.action === "BUY" ? "long" : "short", status: "OPEN", qty: Number(b.qty), open_alert_id: b.id };
+      } else if (res.status === 400 || res.status === 422) {
+        ledger.alerts[b.id] = { status: "rejected", response_code: j.code ?? null, rejection_reason: j.message ?? null };
+      } else if (res.status >= 500) {
+        ledger.alerts[b.id] = { status: "error", response_code: j.code ?? null, rejection_reason: null };
+      }
+    }
+    return res;
+  };
   const make = () => new EngineRunner(cfg, { fetchCandles, http: fakeHttp, now, log: () => {} });
-  return { cfg, sent, make, advance: (n = 1) => { visible += n; }, setMarketDown: (v) => { marketDown = v; } };
+  return { cfg, sent, make, ledger, advance: (n = 1) => { visible += n; }, setMarketDown: (v) => { marketDown = v; }, skewClock: (ms) => { clockSkewMs = ms; } };
 }
 
 const fillBars = runBacktest({ candles: CANDLES, symbol: "SOLUSD", intervalMin: 5 }).events
@@ -290,7 +316,7 @@ describe("live runner: completed candles, outbox, restarts", () => {
     assert.equal(r.state.lastError, null);
   });
 
-  it("catch-up after downtime: fills from candles that closed long ago are recorded as late, not sent", async () => {
+  it("catch-up after downtime: an entry from a candle that closed long ago is expired, not sent", async () => {
     const h = harness({ firstLive: firstFill });
     const r = h.make();
     await r.tick();
@@ -298,7 +324,7 @@ describe("live runner: completed candles, outbox, restarts", () => {
     await r.tick();
     const fills = r.state.outbox.filter((x) => x.barTime === new Date(CANDLES[firstFill].t).toISOString().replace(".000Z", "Z"));
     assert.equal(fills.length, 1);
-    assert.equal(fills[0].status, "late");
+    assert.deepEqual([fills[0].status, fills[0].code], ["skipped", "SIGNAL_EXPIRED"]);
     assert.equal(h.sent.filter((s) => s.url.endsWith("/dry-run")).length,
       r.state.outbox.filter((x) => x.status === "accepted").length);
   });
@@ -525,5 +551,148 @@ describe("PAPER test profile", () => {
     assert.ok(test.trades.every((t) => t.qty * t.entryPrice <= 5000));
     assert.ok(dflt.trades.some((t) => t.qty * t.entryPrice > 5000));
     assert.deepEqual(test.trades.map((t) => [t.entryTime, t.exitTime, t.result]), dflt.trades.map((t) => [t.entryTime, t.exitTime, t.result]), "same decisions, smaller size");
+  });
+});
+
+// ---------------------------------------------------------------- freshness at delivery, guarded closes, ledger checks
+
+describe("signal freshness and ledger reconciliation", () => {
+  const dryRuns = (h) => h.sent.filter((x) => x.url.endsWith("/dry-run"));
+
+  it("prolonged outage: an entry that never arrived is expired at delivery and never fills at a later price", async () => {
+    let down = true;
+    const h = harness({ firstLive: FILLS[0].bar, http: async (url, init) => {
+      if (down && url.endsWith("/dry-run")) throw new TypeError("fetch failed");
+      h.sent.push({ url, body: JSON.parse(init.body) });
+      return new Response(JSON.stringify({ code: "DRY_RUN_ACCEPTED" }), { status: 200 });
+    } });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick(); // entry attempted, network down
+    const entry = r.state.outbox[0];
+    assert.deepEqual([entry.status, entry.attempts], ["pending", 1]);
+    h.skewClock(45 * 60_000); // 45 minutes pass with nothing new from the market
+    down = false;
+    await h.make().tick(); // restart, network back
+    const after = h.make().state.outbox[0];
+    assert.deepEqual([after.status, after.code], ["skipped", "SIGNAL_EXPIRED"]);
+    assert.match(after.reason, /not sent so it cannot fill at a later price/);
+    assert.equal(dryRuns(h).length, 0, "the old entry was not delivered");
+  });
+
+  it("expired entry whose earlier attempt did reach ALPHA TERMINAL: its real (accepted) outcome is adopted, not re-sent", async () => {
+    let first = true;
+    const h = harness({ firstLive: FILLS[0].bar, http: async (url, init) => {
+      const b = JSON.parse(init.body);
+      if (url.endsWith("/dry-run") && first) {
+        first = false; // the Worker committed it, then the connection dropped before the reply
+        h.ledger.alerts[b.id] = { status: "dry_run", response_code: "DRY_RUN_ACCEPTED", rejection_reason: null };
+        h.ledger.position = { symbol: b.symbol, side: b.action === "BUY" ? "long" : "short", status: "OPEN", qty: Number(b.qty), open_alert_id: b.id };
+        throw new TypeError("socket hang up");
+      }
+      h.sent.push({ url, body: b });
+      return new Response(JSON.stringify({ code: "DRY_RUN_ACCEPTED" }), { status: 200 });
+    } });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    h.skewClock(45 * 60_000);
+    await r.tick();
+    assert.deepEqual([r.state.outbox[0].status, r.state.outbox[0].reason], ["accepted", "confirmed in the ledger (earlier attempt)"]);
+    assert.equal(r.statusPayload().position.ledger.status, "MIRRORED");
+    assert.equal(dryRuns(h).length, 0, "not re-sent");
+  });
+
+  it("an exit of an accepted entry found during catch-up is still delivered, once, and marked as delayed", async () => {
+    const h = harness({ firstLive: FILLS[0].bar });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick(); // entry accepted
+    h.advance(FILLS[1].bar - FILLS[0].bar + 6); // engine down; the exit candle is now 6 candles old
+    await r.tick();
+    const exit = r.state.outbox.find((x) => x.kind === "EXIT");
+    assert.deepEqual([exit.status, exit.code], ["accepted", "DRY_RUN_ACCEPTED"]);
+    assert.ok(exit.delayedMin >= 30);
+    assert.match(exit.reason, /delivered \d+ min after the engine's exit; the ledger closed at the live price/);
+    assert.equal(h.ledger.position, null);
+    assert.equal(dryRuns(h).filter((x) => x.body.action === "CLOSE").length, 1);
+  });
+
+  it("ledger divergence is reported, never called mirrored: wrong quantity, missing position, unknown engine position", async () => {
+    const h = harness({ firstLive: FILLS[0].bar });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    assert.equal(r.statusPayload().ledger_check.status, "OK");
+    assert.equal(r.statusPayload().position.ledger.status, "MIRRORED");
+    h.ledger.position.qty += 1; // someone changed the ledger
+    await r.tick();
+    let st = r.statusPayload();
+    assert.equal(st.ledger_check.status, "DIVERGED");
+    assert.match(st.ledger_check.issues[0], /ledger qty .* vs engine/);
+    assert.equal(st.position.ledger.status, "DIVERGED");
+    h.ledger.position = null;
+    await r.tick();
+    assert.match(r.statusPayload().ledger_check.issues[0], /the ledger has no open SOLUSD position/);
+    // engine flat but the ledger holds an engine-opened position
+    const h2 = harness({ firstLive: FILLS[0].bar - 1 });
+    const r2 = h2.make();
+    await r2.tick();
+    h2.ledger.position = { symbol: "SOLUSD", side: "long", status: "OPEN", qty: 3, open_alert_id: "ENG-SOLUSD-5-2026-10-01T00:00:00Z-BUY" };
+    await r2.tick();
+    st = r2.statusPayload();
+    assert.equal(st.position, null);
+    assert.equal(st.ledger_check.status, "DIVERGED");
+    assert.match(st.ledger_check.issues[0], /engine-opened SOLUSD position .* that the engine does not hold/);
+  });
+
+  it("a CLOSE is not sent when the ledger no longer holds that entry's position; nothing misleading is created", async () => {
+    const h = harness({ firstLive: FILLS[0].bar });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    h.ledger.position = null; // closed elsewhere (e.g. by hand)
+    await runTo(h, r, FILLS[1].bar);
+    const exit = r.state.outbox.find((x) => x.kind === "EXIT");
+    assert.deepEqual([exit.status, exit.code], ["skipped", "LEDGER_NOT_HOLDING_ENTRY"]);
+    assert.equal(dryRuns(h).filter((x) => x.body.action === "CLOSE").length, 0);
+  });
+
+  it("while the ledger cannot be read, a CLOSE waits (no blind close) and the position is UNVERIFIED", async () => {
+    const h = harness({ firstLive: FILLS[0].bar });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    h.ledger.down = true;
+    await r.tick();
+    assert.equal(r.statusPayload().position.ledger.status, "UNVERIFIED");
+    await runTo(h, r, FILLS[1].bar);
+    const exit = r.state.outbox.find((x) => x.kind === "EXIT");
+    assert.equal(exit.status, "pending");
+    assert.equal(r.state.lastError.where, "ledger");
+    h.ledger.down = false;
+    await r.tick();
+    assert.equal(exit.status, "accepted");
+    assert.equal(dryRuns(h).filter((x) => x.body.action === "CLOSE").length, 1);
+  });
+
+  it("a second CLOSE for an already-closed entry is never sent (reconciliation and strategy exits cannot double up)", async () => {
+    const h = harness({ firstLive: FILLS[0].bar });
+    const r = h.make();
+    await r.tick();
+    await runTo(h, r, FILLS[1].bar);
+    const [entry, exit] = r.state.outbox;
+    assert.equal(exit.status, "accepted");
+    r.state.outbox.push({ ...exit, id: `${exit.id}-RESYNC`, status: "pending", code: null, reason: null, attempts: 0, exitKind: "RECONCILE_AFTER_DATA_GAP" });
+    await r.flush();
+    assert.deepEqual([r.state.outbox.at(-1).status, r.state.outbox.at(-1).code], ["skipped", "ALREADY_CLOSED"]);
+    assert.equal(dryRuns(h).filter((x) => x.body.action === "CLOSE").length, 1);
+    assert.equal(entry.status, "accepted");
   });
 });

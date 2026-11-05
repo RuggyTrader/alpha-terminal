@@ -156,6 +156,9 @@ or position. `/api/dashboard` returns it as `bot` with a server-side verdict: `O
 min), `STALE` (within 30 min), `OFFLINE`, or `NOT_RUNNING` (never heard). The engine's trading signals use the
 normal `/webhook/dry-run` path.
 
+`POST /webhook/engine-ledger` `{secret, symbol, alert_ids?}` is the engine's **read-only** view of the ALPHA PAPER
+ledger: the open position for that symbol and the stored outcome of up to 50 signal ids. It writes nothing.
+
 ## Known gaps
 
 * Ledger realized losses are not part of the `DAILY_LOSS_LIMIT` check, which uses the Alpaca PAPER account.

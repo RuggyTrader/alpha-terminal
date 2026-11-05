@@ -41,7 +41,7 @@ function environment(port, profile) {
   const engineData = mkdtempSync(join(tmpdir(), "alpha-engine-sync-state-"));
   temps.push(persist, engineData);
   const base = `http://127.0.0.1:${port}`;
-  const env = { persist, base, worker: null, visible: 0, sends: [], cookie: null };
+  const env = { persist, base, worker: null, visible: 0, sends: [], cookie: null, skewMs: 0 };
   env.start = async () => {
     wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
     const args = ["wrangler", "dev", "--local", "--port", String(port), "--inspector-port", String(port + 600), "--ip", "127.0.0.1", "--persist-to", persist];
@@ -63,7 +63,7 @@ function environment(port, profile) {
   env.cfg = { ...engineCfg, sync: true, apiBase: base, webhookSecret: WEBHOOK_SECRET, dataDir: engineData, lateBars: 2 };
   env.runner = () => new EngineRunner(env.cfg, {
     fetchCandles: async ({ sinceMs }) => CANDLES.slice(0, env.visible).filter((k) => sinceMs === null || k.t > sinceMs),
-    now: () => CANDLES[env.visible - 1].t + STEP + 10_000,
+    now: () => CANDLES[env.visible - 1].t + STEP + 10_000 + env.skewMs,
     http: async (url, init) => { if (url.endsWith("/dry-run")) env.sends.push(JSON.parse(init.body).id); return fetch(url, init); },
     log: () => {},
   });
@@ -156,7 +156,20 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     assert.ok(ledgerPos, "ledger position open while the engine is in the trade");
     assert.ok(Math.abs(ledgerPos.qty - Number(enginePos.qty.toFixed(8))) < 1e-8, "same quantity");
     assert.equal(d.bot.status.position.ledger.status, "MIRRORED");
+    assert.equal(d.bot.status.ledger_check.status, "OK");
     assert.ok(ledgerPos.qty * ledgerPos.avg_entry_price <= 5000);
+
+    // Divergence against the real D1 ledger is reported, not claimed as mirrored (test-only tampering).
+    test.sql(`UPDATE paper_positions SET qty = qty + 1 WHERE status = 'OPEN'`, true);
+    await r.tick();
+    d = await test.dashboard();
+    assert.equal(d.bot.status.ledger_check.status, "DIVERGED");
+    assert.match(d.bot.status.ledger_check.issues[0], /ledger qty .* vs engine/);
+    assert.equal(d.bot.status.position.ledger.status, "DIVERGED");
+    test.sql(`UPDATE paper_positions SET qty = qty - 1 WHERE status = 'OPEN'`, true);
+    await r.tick();
+    d = await test.dashboard();
+    assert.equal(d.bot.status.ledger_check.status, "OK");
 
     await test.replayTo(r, FILLS[3]); // the LONG exit
     const close = r.state.outbox.find((x) => x.action === "CLOSE" && x.entryId === buy.id);
@@ -183,7 +196,8 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     assert.ok(r2.state.outbox.filter((x) => x.kind).every((x) => ["accepted", "rejected", "skipped"].includes(x.status)));
     assert.deepEqual(counts(), before);
 
-    // Outage across the second LONG trade's entry: kept pending, delivered once when the Worker answers again.
+    // Prolonged outage across the second LONG trade's entry: when the Worker answers again 45 minutes later,
+    // the entry is expired at delivery (never fills at a later price) and its exit is never sent.
     const r3 = test.runner();
     const realHttp = r3.http;
     let down = true;
@@ -192,10 +206,30 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     const entry2 = r3.state.outbox.at(-1);
     assert.deepEqual([entry2.action, entry2.status], ["BUY", "pending"]);
     assert.equal(r3.state.lastError.where, "sync");
+    test.skewMs = 45 * 60_000;
     down = false;
     await r3.tick();
-    assert.equal(entry2.status, "accepted");
-    assert.equal(counts().f, before.f + 1, "exactly one more fill");
+    assert.deepEqual([entry2.status, entry2.code], ["skipped", "SIGNAL_EXPIRED"]);
+    await test.replayTo(r3, FILLS[5]);
+    const exit2 = r3.state.outbox.find((x) => x.entryId === entry2.id);
+    assert.deepEqual([exit2.status, exit2.code], ["skipped", "ENTRY_NOT_IN_LEDGER"]);
+    assert.equal(test.sql(`SELECT COUNT(*) AS n FROM alerts WHERE alert_id IN ('${entry2.id}', '${exit2.id}')`)[0].n, 0, "neither reached the ledger");
+    assert.deepEqual(counts(), before, "no fill, order or trade was added");
+    test.skewMs = 0;
+  });
+
+  it("the engine's ledger view is read-only and needs the webhook secret", needsBroker, async () => {
+    const q = (body) => fetch(`${test.base}/webhook/engine-ledger`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    assert.equal((await q({ secret: "wrong", symbol: "SOLUSD" })).status, 401);
+    assert.equal((await q({ secret: WEBHOOK_SECRET, symbol: "SPY" })).status, 400);
+    assert.equal((await q({ secret: WEBHOOK_SECRET, symbol: "SOLUSD", alert_ids: ["bad id with spaces"] })).status, 400);
+    const snap = () => test.sql(`SELECT (SELECT COUNT(*) FROM alerts) a, (SELECT COUNT(*) FROM orders) o, (SELECT COUNT(*) FROM paper_positions) p, (SELECT COUNT(*) FROM activity_events) e`)[0];
+    const before = snap();
+    const buy = r.state.outbox.find((x) => x.action === "BUY");
+    const res = await (await q({ secret: WEBHOOK_SECRET, symbol: "SOLUSD", alert_ids: [buy.id] })).json();
+    assert.equal(res.read_only, true);
+    assert.equal(res.alerts[buy.id].response_code, "DRY_RUN_ACCEPTED");
+    assert.deepEqual(snap(), before);
   });
 
   it("a silent engine is shown truthfully as STALE, then OFFLINE", needsBroker, async () => {
