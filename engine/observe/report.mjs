@@ -47,22 +47,22 @@ say();
 const live = audit.filter((r) => r.type === "candle" && !r.warmup);
 const warm = audit.filter((r) => r.type === "candle" && r.warmup);
 const seen = new Map();
-for (const c of live) seen.set(c.t, (seen.get(c.t) ?? 0) + 1);
+for (const c of live) seen.set(ms(c.t), (seen.get(ms(c.t)) ?? 0) + 1); // keyed by epoch ms
 const dups = [...seen].filter(([, n]) => n > 1);
-const liveTimes = [...seen.keys()].map(ms).sort((a, b) => a - b);
+const liveTimes = [...seen.keys()].sort((a, b) => a - b);
 const missing = [];
 for (let i = 1; i < liveTimes.length; i++) for (let t = liveTimes[i - 1] + STEP; t < liveTimes[i]; t += STEP) missing.push(new Date(t).toISOString());
 say("## Candles");
 say(`- Warm-up candles (history, never sent): ${warm.length}. Live completed candles processed: ${live.length}${liveTimes.length ? ` (${new Date(liveTimes[0]).toISOString()} to ${new Date(liveTimes.at(-1)).toISOString()})` : ""}.`);
 say(`- Missing between first and last live candle: ${missing.length}${missing.length ? `: ${missing.slice(0, 30).join(", ")}${missing.length > 30 ? " ..." : ""}` : ""}.`);
-say(`- Candles processed more than once: ${dups.length}${dups.length ? `: ${dups.slice(0, 10).map(([t, n]) => `${t} x${n}`).join(", ")}` : ""}.`);
+say(`- Candles processed more than once: ${dups.length}${dups.length ? `: ${dups.slice(0, 10).map(([t, n]) => `${new Date(t).toISOString()} x${n}`).join(", ")}` : ""}.`);
 // Kraken returns trade-less 5m bars as gaps; the engine's gap handling is recorded as "reset" entries.
 if (!process.argv.includes("--no-kraken") && liveTimes.length) {
   try {
     const kr = await fetchCompletedCandles({ symbol: info.symbol, intervalMin: 5, base: krakenBase() });
     const byT = new Map(kr.map((k) => [k.t, k]));
     const covered = kr.filter((k) => k.t >= liveTimes[0] && k.t <= liveTimes.at(-1));
-    const notProcessed = covered.filter((k) => !seen.has(new Date(k.t).toISOString()));
+    const notProcessed = covered.filter((k) => !seen.has(k.t));
     const diff = [];
     for (const c of live) {
       const k = byT.get(ms(c.t));
