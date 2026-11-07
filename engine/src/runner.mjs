@@ -83,12 +83,38 @@ export class EngineRunner {
   }
 
   fresh(reason) {
+    // A website risk setting the engine already confirmed survives a re-warm (it applies to new entries only).
+    const keepSettings = this.state?.settings ?? null;
     this.state = {
       version: ENGINE_VERSION, inputsHash: inputsHash(this.cfg), startedAt: iso(this.now()), warmedUpAt: null, resets: [],
       strategy: createState({ symbol: this.cfg.symbol, timeframeMin: this.cfg.intervalMin, inputs: this.cfg.inputs }),
       outbox: [], openEntryId: null, ledgerCheck: null, lastPollAt: null, lastError: null, candlesProcessed: 0, lastCandle: null,
     };
     if (reason) this.state.resets.push({ at: iso(this.now()), reason });
+    if (keepSettings) {
+      this.state.settings = keepSettings;
+      this.state.strategy.inputs.riskUSD = keepSettings.riskUSD;
+    }
+  }
+
+  /**
+   * Website risk setting (ENGINE_REMOTE_SETTINGS=on only). A new version from ALPHA TERMINAL replaces the risk per
+   * trade for orders placed from now on; an open position keeps its size and plan. Saved before it is confirmed,
+   * and confirmed in the next status update, so the dashboard shows Applied only after the engine really uses it.
+   */
+  applySettings(next) {
+    const S = this.state;
+    if (!this.cfg.remoteSettings || !S || !next || typeof next !== "object") return false;
+    const { version, risk_usd: risk } = next;
+    if (!Number.isInteger(version) || typeof risk !== "number" || !Number.isFinite(risk) || risk < 1 || risk > 1_000_000) return false;
+    if (S.settings && S.settings.version === version && S.settings.riskUSD === risk) return false;
+    const previous = S.strategy.inputs.riskUSD;
+    S.settings = { version, riskUSD: risk, appliedAt: iso(this.now()) };
+    S.strategy.inputs.riskUSD = risk;
+    this.save();
+    this.audit({ type: "settings_applied", version, risk_usd: risk, previous_risk_usd: previous, open_position: !!S.strategy.broker.pos });
+    this.log(`[engine] risk per trade ${previous} -> ${risk} (website version ${version}); new entries only`);
+    return true;
   }
 
   /** One poll: process every new completed candle, then sync. Safe to call at any time. */
@@ -379,6 +405,8 @@ export class EngineRunner {
       last_candle_time: S.lastCandle?.t ?? null, last_candle_close: lastClose, candles_processed: S.candlesProcessed,
       status_text: st.status, sync: this.cfg.sync,
       profile: this.cfg.profile ?? "default", risk_usd: st.inputs.riskUSD,
+      remote_settings: !!this.cfg.remoteSettings,
+      settings: S.settings ? { version: S.settings.version, risk_usd: S.settings.riskUSD } : null,
       position: pos ? {
         side: pos.side === 1 ? "LONG" : "SHORT", qty: Number(pos.qty.toFixed(8)), entry: pos.avg,
         stop: st.curStop, tp2: st.tp2P,
@@ -403,7 +431,7 @@ export class EngineRunner {
     this.audit({ type: "heartbeat", result });
   }
 
-  async heartbeat() {
+  async heartbeat(confirming = false) {
     if (!this.cfg.sync || !this.state) return;
     try {
       const r = await this.http(`${this.cfg.apiBase}/webhook/engine-status`, {
@@ -412,6 +440,11 @@ export class EngineRunner {
       });
       if (!r.ok) this.log(`[engine] status update rejected: HTTP ${r.status}`);
       this.heartbeatState(r.ok ? "ok" : `HTTP ${r.status}`);
+      if (r.ok && this.cfg.remoteSettings) {
+        const body = await r.json().catch(() => null);
+        // Applied now → confirm right away (once) so the website can show Applied.
+        if (this.applySettings(body?.settings) && !confirming) await this.heartbeat(true);
+      }
     } catch (e) {
       this.log(`[engine] status update failed: ${e.message ?? e}`);
       this.heartbeatState(String(e.message ?? e));

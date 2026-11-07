@@ -62,6 +62,8 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
     pollSeconds: Number(get("ENGINE_POLL_SECONDS", "20")),
     lateBars: Number(get("ENGINE_LATE_BARS", "2")),
     krakenBase: get("KRAKEN_API_BASE", ""),
+    // Take the risk per trade set on the ALPHA TERMINAL website (versioned, confirmed back). Off by default.
+    remoteSettings: get("ENGINE_REMOTE_SETTINGS", "off") === "on",
   };
 }
 

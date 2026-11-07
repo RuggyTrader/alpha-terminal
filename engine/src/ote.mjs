@@ -39,7 +39,7 @@ export const SYMBOLS = Object.freeze({
 
 const HIST = 64; // bars of OHLC kept (largest lookback: pivots 2 × 8 + 1)
 
-export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, pivotTies } = {}) {
+export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, pivotTies, fill } = {}) {
   const sym = SYMBOLS[symbol];
   if (!sym) throw new Error(`no symbol properties for ${symbol}`);
   return {
@@ -52,7 +52,7 @@ export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, 
     curStop: null, orderLive: false, lastLimit: null, tradeScore: 0, tradeTags: "",
     nTrades: 0, nTP2: 0, nBE: 0, nTrail: 0, sumRR: 0, tradeRR: null, forced: false, lastClosed: 0,
     planSL: null, planTP2: null, planScore: 0, planTags: "", tSwingLow: null, tSwingHigh: null,
-    broker: { ...newBroker(), pointValue: sym.pointValue },
+    broker: { ...newBroker(), pointValue: sym.pointValue, ...(fill ? { opts: fill } : {}) },
     status: "", plan: null,
   };
 }

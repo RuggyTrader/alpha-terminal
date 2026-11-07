@@ -1,0 +1,21 @@
+{
+  "source": "User's TradingView Strategy Report screenshots (KRAKEN:SOLUSD 5m, chart time zone UTC), values rounded as TradingView displays them. Not a CSV export.",
+  "symbol": "SOLUSD",
+  "timeframe": "5m",
+  "period": { "from": "2026-10-18", "to": "2026-11-07" },
+  "profile": "solusd-5m",
+  "summary": { "closed_trades": 69, "net_pnl": 249.98, "max_drawdown": 21.95, "winning_trades": 32, "win_rate_pct": 46.38, "profit_factor": 3.298 },
+  "properties": {
+    "initial_capital_shown": 100, "strategy_report_other_figure": 25000, "default_order_size": "1 Quantity", "pyramiding": 0,
+    "bar_detailization": "Default (4 ticks per bar)", "script_execution": "On bar close", "commission_pct": 0,
+    "leverage_long": "Infinity", "leverage_short": "Infinity", "slippage_ticks": 0,
+    "limit_order_execution": "Requested price", "order_execution_delay": "One tick"
+  },
+  "trades": [
+    { "n": 69, "side": "LONG", "entry": "2026-11-07T15:00:00Z", "entry_price": 89.69, "exit": "2026-11-07T15:05:00Z", "exit_price": 89.54, "qty": 68.57, "pnl": -10.29 },
+    { "n": 64, "side": "LONG", "entry": "2026-11-06T22:55:00Z", "entry_price": 89.90, "exit": "2026-11-07T01:35:00Z", "exit_price": 90.35, "qty": 32.44, "pnl": 14.60 },
+    { "n": 57, "side": "LONG", "entry": "2026-11-03T14:05:00Z", "entry_price": 92.73, "exit": "2026-11-03T14:30:00Z", "exit_price": 93.34, "qty": 23.60, "pnl": 14.40 },
+    { "n": 49, "side": "SHORT", "entry": "2026-11-02T12:05:00Z", "entry_price": 94.26, "exit": "2026-11-02T12:40:00Z", "exit_price": 93.86, "qty": 36.38, "pnl": 14.55 },
+    { "n": 47, "side": "SHORT", "entry": "2026-11-01T23:10:00Z", "entry_price": 94.12, "exit": "2026-11-01T23:35:00Z", "exit_price": 94.38, "qty": 22.13, "pnl": -5.75 }
+  ]
+}

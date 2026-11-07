@@ -83,6 +83,27 @@ exist. For `compare-tv`, export TradingView's Strategy Tester "List of trades" f
 period with the same inputs. TradingView starts the strategy from its whole chart history, so the first trades of a
 window can differ while state warms up; compare a window that starts some days after the data begins.
 
+## SOLUSD 5m profile, TradingView parity and the website simulator
+
+`profiles/solusd-5m.env` holds the user's TradingView inputs for KRAKEN:SOLUSD 5m (`ENGINE_PROFILE=solusd-5m`).
+The Pine defaults and `paper-test` are unchanged. The profile starts at $10 risk per trade and sets
+`ENGINE_REMOTE_SETTINGS=on`: the engine then uses the risk per trade applied on the ALPHA TERMINAL website for new
+entries only (open positions keep their size), saves it with its state, and confirms the version in its next status
+update. Only then does the website show it as Applied.
+
+```bash
+node src/cli/history.mjs --symbol SOLUSD --interval 5 --days 25 --out data/SOLUSD-5m-25d.json
+node src/cli/parity.mjs --candles data/SOLUSD-5m-25d.json --reference parity/tv-solusd-5m-2026-11-07.json --out runs/parity-solusd-5m
+node src/cli/simulate.mjs --candles data/SOLUSD-5m-25d.json --profile solusd-5m --trades-from 2026-10-18 --upload
+```
+
+* `parity` compares the engine's trades with the TradingView figures in `parity/` (screenshot values, not a CSV
+  export). It also measures how much the start of the history, the pivot tie rule and two fill-emulator options change
+  the result, and checks that qty and P&L scale exactly with risk.
+* `simulate` builds the cached backtest the website's simulator rescales. `--upload` sends it to
+  `<ALPHA_API_BASE>/webhook/engine-backtest` with the engine's webhook secret. It is computed here, never on a Worker
+  request.
+
 ## VPS later (nothing provisioned)
 
 * `deploy/alpha-engine.service`: systemd unit (`Restart=always`, settings in `/etc/alpha-engine/engine.env`, state in

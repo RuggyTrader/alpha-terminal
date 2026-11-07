@@ -48,19 +48,28 @@ function closePos(br, price, bar, kind, events) {
 /** Works pending orders through one new bar, before the strategy script runs on that bar. */
 export function processBar(br, bar) {
   const events = [];
-  if (br.entry && br.entry.limit === null && !br.pos) fillEntry(br, bar.o, bar, events); // market entry: next open
+  // Options (research variants; defaults = TradingView's documented emulator, the behaviour above):
+  //   limitPrice "requested": a limit order that the open gaps through fills at its own price, not the open.
+  //   exitDelayTicks 1: an exit bracket can fill only from the next tick (path point) after its entry filled.
+  const opt = br.opts ?? {};
+  let entrySeg = -1;
+  if (br.entry && br.entry.limit === null && !br.pos) { fillEntry(br, bar.o, bar, events); entrySeg = 0; } // market entry: next open
   const pts = path(bar);
   const segments = [[pts[0], pts[0]], [pts[0], pts[1]], [pts[1], pts[2]], [pts[2], pts[3]]];
-  for (let [a, b] of segments) {
+  for (let si = 0; si < segments.length; si++) {
+    let [a, b] = segments[si];
     for (let guard = 0; guard < 4; guard++) {
       const cands = [];
       if (!br.pos && br.entry && br.entry.limit !== null) {
-        const p = triggerPrice(a, b, br.entry.limit, br.entry.side === -1); // buy limit fills on the way down
+        let p = triggerPrice(a, b, br.entry.limit, br.entry.side === -1); // buy limit fills on the way down
+        if (p !== null && opt.limitPrice === "requested") p = br.entry.limit;
         if (p !== null) cands.push({ p, kind: "ENTRY" });
       }
-      if (br.pos && br.exit && br.exit.from === br.pos.entryId) {
+      const exitsLive = !(opt.exitDelayTicks >= 1 && entrySeg === si);
+      if (exitsLive && br.pos && br.exit && br.exit.from === br.pos.entryId) {
         const long = br.pos.side === 1;
-        const tp = triggerPrice(a, b, br.exit.limit, long);
+        let tp = triggerPrice(a, b, br.exit.limit, long);
+        if (tp !== null && opt.limitPrice === "requested") tp = br.exit.limit;
         const sl = triggerPrice(a, b, br.exit.stop, !long);
         if (tp !== null) cands.push({ p: tp, kind: "TP" });
         if (sl !== null) cands.push({ p: sl, kind: "SL" });
@@ -68,7 +77,7 @@ export function processBar(br, bar) {
       if (cands.length === 0) break;
       cands.sort((x, y) => Math.abs(x.p - a) - Math.abs(y.p - a));
       const first = cands[0];
-      if (first.kind === "ENTRY") fillEntry(br, first.p, bar, events);
+      if (first.kind === "ENTRY") { fillEntry(br, first.p, bar, events); entrySeg = si; }
       else closePos(br, first.p, bar, first.kind, events);
       a = first.p;
     }

@@ -11,8 +11,8 @@ const arg = (name, def) => {
   return i === -1 ? def : process.argv[i + 1];
 };
 
-export function runBacktest({ candles, symbol, intervalMin, inputs = {}, pivotTies, fromMs = null }) {
-  const S = createState({ symbol, timeframeMin: intervalMin, inputs, pivotTies });
+export function runBacktest({ candles, symbol, intervalMin, inputs = {}, pivotTies, fill, fromMs = null }) {
+  const S = createState({ symbol, timeframeMin: intervalMin, inputs, pivotTies, fill });
   const events = [];
   for (const k of candles) {
     for (const e of onBar(S, k)) events.push({ ...e, time: new Date(k.t).toISOString() });
