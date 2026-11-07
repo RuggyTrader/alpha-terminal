@@ -1,9 +1,10 @@
 # Starts an isolated local PAPER observation run: a development Worker with its own throwaway D1, the OTE engine
-# (ENGINE_PROFILE=paper-test) and a metrics monitor. Each runs in its own restart loop, detached from this window,
+# (ENGINE_PROFILE=solusd-5m by default) and a metrics monitor. Each runs in its own restart loop, detached from this window,
 # so it keeps running until you call stop.ps1 (or the PC shuts down). Nothing here touches production.
-#   powershell -ExecutionPolicy Bypass -File engine\observe\start.ps1 [-Hours 48] [-Port 8787]
-param([int]$Hours = 48, [int]$Port = 8787)
+#   powershell -ExecutionPolicy Bypass -File engine\observe\start.ps1 [-Hours 48] [-Port 8787] [-Profile solusd-5m]
+param([int]$Hours = 48, [int]$Port = 8787, [string]$Profile = "solusd-5m")
 $ErrorActionPreference = "Stop"
+if (-not (Test-Path (Join-Path $PSScriptRoot "..\profiles\$Profile.env"))) { throw "Unknown engine profile $Profile" }
 $engine = Resolve-Path (Join-Path $PSScriptRoot "..")
 $worker = Resolve-Path (Join-Path $engine "..\worker")
 $obs = Join-Path $engine "observations"
@@ -32,7 +33,7 @@ function New-Secret { -join ((1..36) | ForEach-Object { "{0:x}" -f (Get-Random -
 $wh = New-Secret; $pass = New-Secret; $admin = New-Secret
 "WEBHOOK_SECRET=$wh`nDASHBOARD_PASSPHRASE=$pass`nADMIN_SECRET=$admin" | Set-Content -Encoding ascii (Join-Path $run "secrets.env")
 @"
-ENGINE_PROFILE=paper-test
+ENGINE_PROFILE=$Profile
 ENGINE_SYMBOL=SOLUSD
 ENGINE_INTERVAL_MIN=5
 ENGINE_DATA_DIR=$(Join-Path $run "engine-data")
@@ -46,7 +47,7 @@ Push-Location $worker
 Pop-Location
 if ($LASTEXITCODE -ne 0) { throw "D1 migrations failed; see $run\migrations.log" }
 
-@{ id = $id; started_at = (Get-Date).ToUniversalTime().ToString("o"); planned_hours = $Hours; port = $Port; profile = "paper-test"; symbol = "SOLUSD"; timeframe = "5m"; mode = "PAPER" } |
+@{ id = $id; started_at = (Get-Date).ToUniversalTime().ToString("o"); planned_hours = $Hours; port = $Port; profile = $Profile; symbol = "SOLUSD"; timeframe = "5m"; mode = "PAPER" } |
   ConvertTo-Json | Set-Content -Encoding ascii (Join-Path $run "run.json")
 
 # Launch each loop in its own hidden PowerShell so it keeps running after this window closes.

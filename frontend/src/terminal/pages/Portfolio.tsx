@@ -172,7 +172,8 @@ function Curve({ a, b }: { a: SimStats; b: SimStats | null }) {
 }
 
 const pctText = (x: number | null, dp = 1) => (x === null ? NA : `${(x * 100).toFixed(dp)}%`);
-const pf = (x: number | null) => (x === null ? "no losing trade" : x.toFixed(3));
+// No trades: nothing to compute (N/A). Trades but no loss: the ratio is undefined, said in words.
+const pf = (x: number | null, trades: number) => (trades === 0 ? NA : x === null ? "no losing trade" : x.toFixed(3));
 
 function StatsBlock({ title, s, extra }: { title: string; s: SimStats; extra?: string }) {
   const rows: [string, string][] = [
@@ -180,7 +181,7 @@ function StatsBlock({ title, s, extra }: { title: string; s: SimStats; extra?: s
     ["Net P&L", signedMoney(s.netPnl)],
     ["Average per trade", s.avgPnl === null ? NA : signedMoney(s.avgPnl)],
     ["Win rate", `${pctText(s.winRate)} (${s.wins}/${s.trades})`],
-    ["Profit factor", pf(s.profitFactor)],
+    ["Profit factor", pf(s.profitFactor, s.trades)],
     ["Average win / loss", `${s.avgWin === null ? NA : money(s.avgWin)} / ${s.avgLoss === null ? NA : signedMoney(s.avgLoss)}`],
     ["Max consecutive losses", String(s.maxConsecutiveLosses)],
     ["Max drawdown", `${money(s.maxDrawdownUsd)} (${pctText(s.maxDrawdownPct, 2)} of peak; start ${money(s.startEquity)})`],

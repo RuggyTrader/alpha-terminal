@@ -1,6 +1,7 @@
 # Local PAPER observation (48 h)
 
-Runs the SOLUSD 5-minute engine (`ENGINE_PROFILE=paper-test`, $5 risk) against a **local development Worker with its
+Runs the SOLUSD 5-minute engine (default `ENGINE_PROFILE=solusd-5m`, $10 risk; `-Profile paper-test` for the $5 test
+profile) against a **local development Worker with its
 own throwaway D1**, for as long as you leave it running. PAPER only: `ENABLE_TRADING` stays `"false"`, there is no
 broker code, nothing is sent to production, and the secrets are generated per run for the local Worker only.
 
@@ -9,6 +10,9 @@ broker code, nothing is sent to production, and the secrets are generated per ru
 - Keep the PC awake and powered for the whole period: **Settings → System → Power → Screen and sleep → "When plugged
   in, put my device to sleep after: Never"**, and leave it plugged in. A sleeping PC shows up in the report as a gap
   between monitor samples and as candles processed late.
+- Do not shut the PC down or press its power button during the run. The first run (2026-11-04) ended when Windows
+  powered off at 22:26 local; the System log shows a power-off like that almost every evening (Nov 1-7). Sleep and
+  hibernate were already set to Never, and no scheduled task or pending update caused it.
 - Windows updates can restart the PC. Pause updates for the period if you can (Settings → Windows Update → Pause).
 - Logging off or restarting the PC stops the run. Closing the Claude app should not, but if it does, `status.mjs`
   will show `DOWN`; see "Restart after a stop" below.

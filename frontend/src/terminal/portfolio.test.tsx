@@ -58,6 +58,20 @@ describe("risk simulator", () => {
     expect(small.netPnl).toBe(0);
   });
 
+  it("B reports average P&L and drawdown from the accepted trades' own equity record, skipping rejected ones", () => {
+    // $1,000 positions from $1,500: +20, (short refused), −30, (too big: 30 × $100 refused), −10, +50
+    const s = constrainedBacktest(bt([T(1, "LONG", 20), T(2, "SHORT", -99), T(3, "LONG", -30), T(4, "LONG", 999, 30), T(5, "LONG", -10), T(6, "LONG", 50)]), 10, 1500, LIMITS);
+    expect(s.trades).toBe(4);
+    expect(s.rejectedBy).toEqual({ SHORT_NOT_SUPPORTED: 1, INSUFFICIENT_PAPER_CAPITAL: 1 });
+    expect(s.netPnl).toBe(30);
+    expect(s.avgPnl).toBe(7.5);
+    // equity 1500 → 1520 → 1490 → 1480 → 1530: peak 1520, trough 1480
+    expect(s.curve.map((c) => c.equity)).toEqual([1500, 1520, 1490, 1480, 1530]);
+    expect(s.maxDrawdownUsd).toBe(40);
+    expect(s.maxDrawdownPct).toBeCloseTo(40 / 1520, 12);
+    expect(s.maxConsecutiveLosses).toBe(2);
+  });
+
   it("B applies the Worker's order limit", () => {
     const s = constrainedBacktest(bt([T(1, "LONG", 5, 60)]), 10, 100000, LIMITS); // 60 × $100 = $6,000
     expect(s.rejectedBy).toEqual({ MAX_ORDER_NOTIONAL: 1 });
@@ -135,6 +149,15 @@ describe("PAPER portfolio pages", () => {
     expect(html).toContain("$10.00 · v1");
     expect(html).toContain("Fixed USD at the stop");
     expect(html).not.toContain("A · Raw");
+  });
+
+  it("a PAPER-constrained result with no accepted trade shows N/A, not a profit factor", () => {
+    // $20 on SOL: every historical entry is too large or a short, so B has no trades.
+    const result = bt([T(1, "LONG", 20), T(2, "SHORT", -10)]);
+    const s = constrainedBacktest(result, 10, 20, LIMITS);
+    expect(s.trades).toBe(0);
+    expect(s.profitFactor).toBeNull();
+    expect(s.avgPnl).toBeNull();
   });
 
   it("an asset without a validated engine is a wallet only", () => {

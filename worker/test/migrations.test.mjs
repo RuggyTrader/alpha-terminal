@@ -84,4 +84,47 @@ describe("migrations from a fresh 0001", () => {
     ins();
     assert.throws(ins, /UNIQUE/);
   });
+
+  it("two fills that both passed the balance pre-check: the second one's transaction overdraws, fails and leaves no trace", () => {
+    // The Worker checks the balance first, then commits the fill as ONE D1 batch (one transaction) that also reserves
+    // the position value. If another fill used the money in between, the reserve UPDATE violates
+    // CHECK (available_micro >= 0) and the whole batch, fill and position included, rolls back. Same SQL as
+    // src/portfolio.ts (asserted below), run here as SQLite transactions like a D1 batch.
+    const RESERVE = "UPDATE portfolio_wallets SET available_micro = available_micro - ?, reserved_micro = reserved_micro + ?, updated_at = ? WHERE wallet = ?";
+    assert.ok(readFileSync(join(DIR, "..", "src", "portfolio.ts"), "utf8").includes(RESERVE), "the reserve SQL under test is the Worker's");
+    const db = new DatabaseSync(":memory:");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql"]) db.exec(sql(f));
+    const now = "2026-11-08T00:00:00Z";
+    db.prepare("UPDATE portfolio_wallets SET available_micro = 30000000, net_funding_micro = 30000000 WHERE wallet = 'SOLUSD'").run();
+    db.prepare("INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro) VALUES ('seed', 'seed', ?, 'TRANSFER_IN', 'SOLUSD', 30000000)").run(now);
+    const balance = () => db.prepare("SELECT available_micro AS a, reserved_micro AS r FROM portfolio_wallets WHERE wallet = 'SOLUSD'").get();
+    // Both fills read the balance before either commits: $30 covers $20 for each of them.
+    const seenA = balance().a, seenB = balance().a;
+    assert.ok(seenA >= 20e6 && seenB >= 20e6);
+    const fillBatch = (id) => {
+      db.exec("BEGIN");
+      try {
+        db.prepare(`INSERT INTO paper_positions (symbol, status, qty, avg_entry_price, multiplier, opened_at, entry_qty_total, entry_value_total,
+           open_alert_id, open_order_id, last_order_id, updated_at, wallet, reserved_micro) VALUES ('SOLUSD', 'OPEN', 0.2, 100, 1, ?, 0.2, 20, ?, ?, ?, ?, 'SOLUSD', 20000000)
+           ON CONFLICT(symbol) WHERE status = 'OPEN' DO UPDATE SET qty = qty + 0.2, reserved_micro = reserved_micro + 20000000, last_order_id = excluded.last_order_id`)
+          .run(now, id, id, id, now);
+        db.prepare(RESERVE).run(20e6, 20e6, now, "SOLUSD");
+        db.prepare("INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro) VALUES (?, ?, ?, 'RESERVE', 'SOLUSD', -20000000, 20000000)")
+          .run(`RESERVE:${id}`, id, now);
+        db.exec("COMMIT");
+        return "committed";
+      } catch (e) {
+        db.exec("ROLLBACK");
+        return String(e.message);
+      }
+    };
+    assert.equal(fillBatch("A"), "committed");
+    assert.match(fillBatch("B"), /CHECK constraint failed/);
+    assert.deepEqual({ ...balance() }, { a: 10e6, r: 20e6 });
+    const pos = db.prepare("SELECT qty, reserved_micro, last_order_id FROM paper_positions WHERE status = 'OPEN'").get();
+    assert.deepEqual([pos.qty, pos.reserved_micro, pos.last_order_id], [0.2, 20e6, "A"], "fill B left no position change");
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM portfolio_entries WHERE entry_key = 'RESERVE:B'").get().n, 0);
+    const sums = db.prepare("SELECT SUM(available_change_micro) AS a, SUM(reserved_change_micro) AS r FROM portfolio_entries WHERE wallet = 'SOLUSD'").get();
+    assert.deepEqual([sums.a, sums.r], [10e6, 20e6], "history still equals the balance");
+  });
 });

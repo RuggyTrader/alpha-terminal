@@ -90,6 +90,7 @@ export function ActionForm({
 }) {
   const [pass, setPass] = useState("");
   const [busy, setBusy] = useState(false);
+  // The last result stays until the user starts the next action (types the passphrase again).
   const [msg, setMsg] = useState<{ tone: "good" | "bad"; text: string } | null>(null);
   // One id per intended action: a retry after a network error reuses it, so it can never apply twice.
   const [requestId, setRequestId] = useState(newRequestId);
@@ -118,7 +119,7 @@ export function ActionForm({
       {children}
       <label className="pf-field">
         <span>Passphrase (confirms this PAPER action)</span>
-        <input type="password" autoComplete="current-password" value={pass} onChange={(e) => setPass(e.target.value)} />
+        <input type="password" autoComplete="current-password" value={pass} onChange={(e) => { setPass(e.target.value); setMsg(null); }} />
       </label>
       {note ? <p className="muted-s">{note}</p> : null}
       {msg ? <p className={`pf-msg pf-msg-${msg.tone}`} role={msg.tone === "bad" ? "alert" : "status"}>{msg.text}</p> : null}

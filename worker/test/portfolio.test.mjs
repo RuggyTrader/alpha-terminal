@@ -246,6 +246,63 @@ describe("ALPHA PAPER portfolio", needsBroker, () => {
     assert.equal((await action("/api/paper/risk", { strategy: "SOLUSD", risk_usd: 0.5, request_id: rid() })).status, 400);
   });
 
+  it("simultaneous fills competing for one balance: the funds are spent at most once and the books stay consistent", async () => {
+    market.prices.SOLUSD = 100;
+    const before = W("SOLUSD");
+    assert.equal(usd(before.available_micro), 30);
+    assert.equal(usd(before.reserved_micro), 0);
+    const fills0 = d1(`SELECT COUNT(*) AS n FROM paper_fills`)[0].n;
+    // Round 1: four $20 BUYs at once against $30 → exactly one fits.
+    const round1 = await Promise.all([1, 2, 3, 4].map(() => signal("BUY", 0.2)));
+    const ok1 = round1.filter((r) => r.status === 200);
+    const no1 = round1.filter((r) => r.status !== 200);
+    assert.equal(ok1.length, 1, round1.map((r) => `${r.status} ${r.json.code}`).join(", "));
+    for (const r of no1) {
+      assert.equal(r.status, 422);
+      assert.equal(r.json.code, "INSUFFICIENT_PAPER_CAPITAL");
+      assert.equal(d1(`SELECT status FROM alerts WHERE alert_id = '${r.id}'`)[0].status, "rejected");
+    }
+    let sol = W("SOLUSD");
+    assert.equal(usd(sol.reserved_micro), 20);
+    assert.equal(usd(sol.available_micro), 10);
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM paper_fills`)[0].n, fills0 + 1);
+    assert.equal(d1(`SELECT qty FROM paper_positions WHERE symbol = 'SOLUSD' AND status = 'OPEN'`)[0].qty, 0.2);
+    assertBooksBalance();
+
+    const mainBefore = usd(W("MAIN").available_micro);
+    // Round 2: two $8 BUYs (adding to the position) and an $8 transfer out, all at once, against the $10 left →
+    // exactly one of the three can be paid; nothing goes negative.
+    const [b1, b2, t1] = await Promise.all([
+      signal("BUY", 0.08), signal("BUY", 0.08),
+      action("/api/paper/transfer", { from: "SOLUSD", to: "MAIN", amount_usd: 8, request_id: rid() }),
+    ]);
+    const paid = [b1.status, b2.status, t1.status].filter((s) => s === 200).length;
+    assert.equal(paid, 1, `${b1.status} ${b1.json.code} / ${b2.status} ${b2.json.code} / ${t1.status} ${t1.json.code}`);
+    for (const r of [b1, b2]) if (r.status !== 200) assert.equal(r.json.code, "INSUFFICIENT_PAPER_CAPITAL");
+    if (t1.status !== 200) assert.equal(t1.json.code, "INSUFFICIENT_AVAILABLE");
+    sol = W("SOLUSD");
+    assert.equal(usd(sol.available_micro), 2);
+    const buyWon = t1.status !== 200;
+    assert.equal(usd(sol.reserved_micro), buyWon ? 28 : 20);
+    assert.equal(usd(W("MAIN").available_micro), mainBefore + (buyWon ? 0 : 8));
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM paper_fills`)[0].n, fills0 + (buyWon ? 2 : 1));
+    console.log(`round 2 winner: ${buyWon ? "a BUY" : "the transfer"}; refusals: ${[b1, b2, t1].filter((r) => r.status !== 200).map((r) => r.json.message).join(" | ")}`);
+    assertBooksBalance();
+
+    // Close at the entry price (no P&L) so the later checks keep their totals; everything reserved comes back.
+    const close = await signal("CLOSE");
+    assert.equal(close.status, 200, JSON.stringify(close.json));
+    sol = W("SOLUSD");
+    assert.equal(usd(sol.reserved_micro), 0);
+    if (t1.status === 200) {
+      assert.equal(usd(sol.available_micro), 22);
+      assert.equal((await action("/api/paper/transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 8, request_id: rid() })).status, 200);
+    }
+    assert.equal(usd(W("SOLUSD").available_micro), 30);
+    assert.equal(usd(W("SOLUSD").realized_pnl_micro), 1.5);
+    assertBooksBalance();
+  });
+
   it("the dashboard reports balances, a passing consistency check and the history", async () => {
     const p = (await dash()).portfolio;
     assert.equal(p.active, true);
