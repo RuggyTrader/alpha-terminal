@@ -6,6 +6,7 @@
 
 import { secureEqual } from "./trade_core";
 import { getInstrument } from "./instruments";
+import { engineSettingsExchange } from "./portfolio";
 
 interface EngineStatusEnv {
   DB: D1Database;
@@ -41,6 +42,8 @@ function clean(s: Record<string, unknown>) {
     last_candle_time: isoOrNull(s.last_candle_time), last_candle_close: num(s.last_candle_close),
     candles_processed: num(s.candles_processed), status_text: str(s.status_text, 80), sync: s.sync === true,
     profile: str(s.profile, 40), risk_usd: num(s.risk_usd),
+    settings_version: num(s.settings && typeof s.settings === "object" ? (s.settings as Record<string, unknown>).version : null),
+    remote_settings: s.remote_settings === true,
     position: pos ? {
       side: pos.side === "LONG" || pos.side === "SHORT" ? pos.side : null, qty: num(pos.qty), entry: num(pos.entry),
       stop: num(pos.stop), tp2: num(pos.tp2), unrealized_at_last_close: num(pos.unrealized_at_last_close),
@@ -77,7 +80,11 @@ export async function handleEngineStatus(request: Request, env: EngineStatusEnv)
   await env.DB.prepare(
     `INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`
   ).bind(KEY, JSON.stringify(record)).run();
-  return json({ ok: true, mode: "PAPER", broker_request_sent: false });
+  // Risk setting handshake: only engines that opted in (remote_settings) confirm and receive website settings.
+  const settings = status.remote_settings
+    ? await engineSettingsExchange(env.DB, status.symbol, (body.status as Record<string, unknown>).settings)
+    : null;
+  return json({ ok: true, mode: "PAPER", broker_request_sent: false, settings });
 }
 
 /** Latest engine status for the dashboard, with a server-side liveness verdict. */

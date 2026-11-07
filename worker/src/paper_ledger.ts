@@ -5,6 +5,7 @@
 // Marks come only from the instrument's configured source; when that fails the last mark is kept and
 // flagged, never estimated.
 
+import { buyStatements, sellStatements } from "./portfolio";
 import {
   getInstrument,
   referencePrices,
@@ -51,6 +52,9 @@ export interface PositionRow {
   close_alert_id: string | null;
   close_order_id: string | null;
   updated_at: string;
+  // PAPER portfolio (migration 0003): funding balance and reserved cost basis; null wallet = not in the portfolio.
+  wallet?: string | null;
+  reserved_micro?: number;
 }
 
 const round = (n: number, dp = 2) => Math.round(n * 10 ** dp) / 10 ** dp;
@@ -206,6 +210,7 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
   ];
 
   let fillQty = f.qty;
+  let sellPortfolio: D1PreparedStatement[] | null = null;
   if (f.side === "buy") {
     // 2. Open, or add to the one OPEN position (weighted average entry from the stored row).
     statements.push(
@@ -245,6 +250,8 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
         f.qty, f.price, f.priceSource, f.priceAt, now, f.symbol, f.clientOrderId
       )
     );
+    // 4. PAPER portfolio: reserve the position value from its strategy balance (fails the batch if short of funds).
+    statements.push(...(await buyStatements(env.DB, f, now)));
   } else {
     // SELL reduces, CLOSE empties. Never below zero, never a short.
     const pos = await env.DB.prepare(
@@ -300,6 +307,8 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
         q, f.price, f.priceSource, f.priceAt, f.price, q, now, pos.id, f.clientOrderId
       )
     );
+    // PAPER portfolio: release the reserved cost basis and credit the realized P&L to the position's balance.
+    sellPortfolio = sellStatements(env.DB, pos, { qty: q, price: f.price, alertId: f.alertId, clientOrderId: f.clientOrderId, closes }, now);
     if (closes) {
       // 4. The trade (fails, and rolls back, unless this order closed the position).
       statements.push(
@@ -325,6 +334,8 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     }
   }
 
+  if (sellPortfolio) statements.push(...sellPortfolio);
+
   // 5. The alert becomes DRY_RUN_ACCEPTED in the same transaction.
   statements.push(
     env.DB.prepare(
@@ -342,6 +353,9 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     const leftover = await env.DB.prepare(`SELECT id FROM orders WHERE client_order_id = ?`).bind(f.clientOrderId).first();
     if (leftover) {
       return { ok: false, code: "LEDGER_INCONSISTENT", message: `order intent exists after a failed ledger batch: ${msg.slice(0, 200)}`, committed: true };
+    }
+    if (/CHECK constraint failed/i.test(msg) && /available_micro|reserved_micro/i.test(msg)) {
+      return { ok: false, code: "INSUFFICIENT_PAPER_CAPITAL", message: `the ${f.symbol} PAPER balance cannot cover this fill; nothing was committed`, committed: false };
     }
     return {
       ok: false,

@@ -22,6 +22,11 @@ import {
 } from "./auth_session";
 
 import {
+  handleEngineBacktest,
+  handlePaperApi,
+} from "./portfolio";
+
+import {
   alpacaGet,
   runRiskEvaluation,
   saveRiskDecision,
@@ -1407,6 +1412,11 @@ export default {
       );
     }
 
+    // Verified engine backtest uploaded for the dashboard's risk simulator (cache only, no trading).
+    if (url.pathname === "/webhook/engine-backtest" && request.method === "POST") {
+      return handleEngineBacktest(request, env);
+    }
+
     // Read-only ledger view for the OTE engine's reconciliation check.
     if (
       url.pathname ===
@@ -2023,6 +2033,15 @@ export default {
         env,
         url.pathname
       );
+    }
+
+    // ========================================================
+    // PAPER PORTFOLIO ACTIONS (simulated transfers, funding, risk setting)
+    // Session + same-origin header + passphrase re-entered per action.
+    // ========================================================
+
+    if (url.pathname.startsWith("/api/paper/")) {
+      return handlePaperApi(request, env, url.pathname);
     }
 
     // ========================================================

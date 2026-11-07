@@ -20,6 +20,11 @@ import {
   engineStatusForDashboard,
 } from "./engine_status";
 
+import {
+  latestBacktest,
+  portfolioSection,
+} from "./portfolio";
+
 interface DashboardEnv
   extends TradeCoreEnv {
   ADMIN_SECRET: string;
@@ -1056,8 +1061,14 @@ async function getDashboardSnapshot(
     ]);
   })();
 
+  // ALPHA PAPER portfolio balances (after the mark refresh above).
+  const portfolio =
+    await portfolioSection(env.DB, env as unknown as Record<string, string>);
+
   return {
     ...summary,
+
+    portfolio,
 
     recent: {
       alerts,
@@ -1136,6 +1147,12 @@ export async function handleDashboardApi(
     // --------------------------------------------------------
     // SUMMARY
     // --------------------------------------------------------
+
+    // Cached, verified engine backtest for the risk simulator (computed off the request path).
+    if (pathname === "/api/dashboard/backtest") {
+      const strategy = searchParams.get("strategy") ?? "SOLUSD";
+      return json({ ok: true, data: await latestBacktest(env.DB, strategy) });
+    }
 
     if (
       pathname ===

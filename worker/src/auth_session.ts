@@ -14,7 +14,9 @@
 // holding a random token; only its SHA-256 hash is stored in D1
 // (auth_sessions). The session is READ-ONLY: it unlocks GET /api/dashboard*
 // only. Engine controls, kill switch, broker, risk preview, dry-run admin and
-// webhook routes do not accept it.
+// webhook routes do not accept it. The one exception is the simulated PAPER
+// portfolio (POST /api/paper/*: transfers, funding, risk per trade), which also
+// needs the passphrase typed again for every action (authorizePaperAction).
 
 import { secureEqual } from "./trade_core";
 
@@ -205,4 +207,36 @@ export async function handleAuth(request: Request, env: AuthEnv, pathname: strin
   }
 
   return json({ ok: false, code: "NOT_FOUND", message: "Route not found" }, 404);
+}
+
+// ---------------------------------------------------------------------------
+// PAPER portfolio actions (transfers, funding, risk setting)
+// ---------------------------------------------------------------------------
+
+/**
+ * Authenticates one PAPER portfolio action from the dashboard. The session stays read-only for everything
+ * else; each simulated money movement or setting change additionally needs: the same-origin custom header, a
+ * valid session cookie, and the dashboard passphrase typed again for that action (shares the login rate
+ * limit). Returns null when allowed, or the error response.
+ */
+export async function authorizePaperAction(request: Request, env: AuthEnv, passphrase: unknown): Promise<Response | null> {
+  if (!sameOriginOk(request, env)) {
+    return json({ ok: false, code: "ORIGIN_NOT_ALLOWED", message: "Request origin not allowed" }, 403);
+  }
+  if (!(await hasValidSession(request, env))) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "Sign in first" }, 401);
+  }
+  const expected = env.DASHBOARD_PASSPHRASE ?? "";
+  if (!expected) return json({ ok: false, code: "AUTH_NOT_CONFIGURED", message: "Sign-in is not configured" }, 503);
+  const ip = clientIp(request);
+  const failures = await readFailures(env, ip);
+  if (failures.n >= LOGIN_MAX_FAILURES) {
+    return json({ ok: false, code: "RATE_LIMITED", message: "Too many attempts. Try again later." }, 429);
+  }
+  if (typeof passphrase !== "string" || !passphrase || !(await secureEqual(passphrase, expected))) {
+    await writeFailures(env, ip, { n: failures.n + 1, start: failures.start });
+    // 403, not 401: the dashboard treats 401 as "signed out".
+    return json({ ok: false, code: "INVALID_PASSPHRASE", message: "Wrong passphrase: nothing was changed" }, 403);
+  }
+  return null;
 }

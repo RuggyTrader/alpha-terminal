@@ -1,3 +1,4 @@
+import { portfolioGate } from "./portfolio";
 import {
   runRiskEvaluation,
   saveRiskDecision,
@@ -734,6 +735,58 @@ export async function handleDryRunWebhook(
     );
   }
 
+  // ==========================================================
+  // PAPER PORTFOLIO: once funded, a BUY must fit its strategy balance
+  // (full position value, no leverage). Rejected, not retryable.
+  // ==========================================================
+
+  const capital =
+    riskResult.risk.referencePrice !== null
+      ? await portfolioGate(env.DB, {
+          symbol: validation.symbol,
+          side: riskResult.risk.side,
+          qty: riskResult.risk.finalQty,
+          price: riskResult.risk.referencePrice,
+        })
+      : null;
+
+  if (capital) {
+    await env.DB.prepare(
+      `UPDATE alerts
+       SET status = 'rejected', processed_at = ?, response_code = ?, http_status = 422, rejection_reason = ?
+       WHERE alert_id = ?`
+    )
+      .bind(new Date().toISOString(), capital.code, capital.message, alertId)
+      .run();
+
+    await logActivity(env, {
+      category: "paper",
+      level: "warn",
+      message: `PAPER portfolio rejected · ${capital.code}`,
+      alertId,
+      symbol: validation.symbol,
+      action: validation.action,
+      strategy: validation.strategy,
+      qty: riskResult.risk.finalQty,
+      riskResult: capital.code,
+      rejectionReason: capital.message,
+    });
+
+    return json(
+      {
+        ok: false,
+        status: "rejected",
+        code: capital.code,
+        message: capital.message,
+        alert_id: alertId,
+        mode: "PAPER",
+        execution: "DRY_RUN_ONLY",
+        broker_request_sent: false,
+      },
+      422
+    );
+  }
+
   await logActivity(env, {
     category: "risk",
     level: "success",
@@ -810,6 +863,14 @@ export async function handleDryRunWebhook(
             "approved intent had no truthful fill price; nothing was committed",
           committed: false,
         };
+
+  if (!ledger.ok && ledger.code === "INSUFFICIENT_PAPER_CAPITAL") {
+    // A concurrent change used the balance between the check above and the commit: a rejection, nothing committed.
+    await env.DB.prepare(
+      `UPDATE alerts SET status = 'rejected', processed_at = ?, response_code = ?, http_status = 422, rejection_reason = ? WHERE alert_id = ?`
+    ).bind(new Date().toISOString(), ledger.code, ledger.message, alertId).run();
+    return json({ ok: false, status: "rejected", code: ledger.code, message: ledger.message, alert_id: alertId, mode: "PAPER", execution: "DRY_RUN_ONLY", broker_request_sent: false }, 422);
+  }
 
   if (!ledger.ok) {
     // Nothing was committed, so this alert stays retryable: resending the same

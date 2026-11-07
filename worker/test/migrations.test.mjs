@@ -14,8 +14,8 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 and 0002", () => {
-    assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(), ["0001_initial.sql", "0002_alpha_paper_ledger.sql"]);
+  it("are exactly 0001, 0002 and 0003", () => {
+    assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(), ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql"]);
   });
 
   it("0002 applies on top of 0001 with existing rows, and does not label legacy trades ALPHA PAPER", () => {
@@ -59,5 +59,29 @@ describe("migrations from a fresh 0001", () => {
     assert.throws(ins("CLOSED", 1, now), /CHECK/); // CLOSED with qty left
     assert.throws(() => db.prepare(`UPDATE paper_positions SET qty = -1`).run(), /CHECK/);
     assert.throws(() => db.prepare(`UPDATE paper_positions SET qty = 0`).run(), /CHECK/); // OPEN and empty
+  });
+
+  it("0003 applies on top of existing ledger rows, leaves old positions outside the portfolio, and forbids negative balances", () => {
+    const db = new DatabaseSync(":memory:");
+    db.exec(sql("0001_initial.sql"));
+    db.exec(sql("0002_alpha_paper_ledger.sql"));
+    const now = "2026-11-01T00:00:00Z";
+    db.prepare(`INSERT INTO paper_positions (symbol, status, qty, avg_entry_price, multiplier, opened_at, entry_qty_total, entry_value_total,
+       open_alert_id, open_order_id, last_order_id, updated_at) VALUES ('SOLUSD', 'OPEN', 1, 100, 1, ?, 1, 100, 'a', 'o', 'o', ?)`).run(now, now);
+    db.exec(sql("0003_paper_portfolio.sql"));
+    assert.equal(db.prepare(`SELECT value FROM app_meta WHERE key = 'schema_version'`).get().value, "3");
+    const pos = db.prepare(`SELECT wallet, reserved_micro FROM paper_positions`).get();
+    assert.deepEqual([pos.wallet, pos.reserved_micro], [null, 0]);
+    assert.deepEqual(db.prepare(`SELECT wallet FROM portfolio_wallets ORDER BY wallet`).all().map((r) => r.wallet),
+      ["BTCUSD", "ETHUSD", "HYPEUSD", "KAITOUSD", "MAIN", "SOLUSD"]);
+    assert.throws(() => db.prepare(`UPDATE portfolio_wallets SET available_micro = -1 WHERE wallet = 'MAIN'`).run(), /CHECK/);
+    assert.throws(() => db.prepare(`UPDATE portfolio_wallets SET reserved_micro = 5 WHERE wallet = 'MAIN'`).run(), /CHECK/);
+    assert.throws(() => db.prepare(`UPDATE strategy_settings SET compounding = 1`).run(), /CHECK/);
+    const s = db.prepare(`SELECT version, risk_usd, status FROM strategy_settings WHERE strategy = 'SOLUSD'`).get();
+    assert.deepEqual([s.version, s.risk_usd, s.status], [1, 10, "PENDING"]);
+    // The same entry key can never be booked twice.
+    const ins = () => db.prepare(`INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro) VALUES ('k', 'g', ?, 'DEPOSIT', 'MAIN', 1)`).run(now);
+    ins();
+    assert.throws(ins, /UNIQUE/);
   });
 });
