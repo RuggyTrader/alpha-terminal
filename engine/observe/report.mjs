@@ -22,11 +22,14 @@ say(`# Observation report: ${info.id ?? run}`);
 say(`Generated ${new Date().toISOString()}. PAPER only (local dev Worker + its own D1; no broker, no production).`);
 say();
 const startedMs = ms(info.started_at);
-const endMs = info.stopped_at ? ms(info.stopped_at) : Date.now();
+// Coverage is measured to the last recorded evidence (monitor sample or audit record), never to "now": a run that
+// died (PC off, crash) must not look like it kept running.
+const lastEvidenceMs = Math.max(...metrics.map((m) => ms(m.at)).filter(Number.isFinite), ...audit.map((r) => ms(r.at)).filter(Number.isFinite), startedMs);
+const quietS = (Date.now() - lastEvidenceMs) / 1000;
 say(`- Profile: ${info.profile}, ${info.symbol} ${info.timeframe}. Planned: ${info.planned_hours} h.`);
-say(`- Started ${info.started_at}; ${info.stopped_at ? `stopped ${info.stopped_at}` : "still running"}. Elapsed: ${fmtDur((endMs - startedMs) / 1000)}.`);
-const elapsedH = (endMs - startedMs) / 3_600_000;
-say(`- Planned duration reached: ${elapsedH >= (info.planned_hours ?? 48) ? "yes" : `no (${elapsedH.toFixed(1)} of ${info.planned_hours} h)`}.`);
+say(`- Started ${info.started_at}; ${info.stopped_at ? `stopped ${info.stopped_at}` : quietS > 180 ? `NOT running: nothing recorded since ${new Date(lastEvidenceMs).toISOString()} (${fmtDur(quietS)} ago)` : "running"}.`);
+const coveredH = (lastEvidenceMs - startedMs) / 3_600_000;
+say(`- Observed span (start to last recorded evidence): ${fmtDur(coveredH * 3600)}. Planned duration covered: ${coveredH >= (info.planned_hours ?? 48) ? "yes" : `NO (${coveredH.toFixed(1)} of ${info.planned_hours} h)`}.`);
 say();
 
 // ---- Process starts / restarts / gaps in monitoring (sleep, hangs)

@@ -44,7 +44,10 @@ export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, 
   if (!sym) throw new Error(`no symbol properties for ${symbol}`);
   return {
     symbol, timeframeMin, inputs: { ...DEFAULT_INPUTS, ...inputs }, sym,
-    pivotTies: pivotTies ?? { left: "strict", right: "strict" },
+    // TradingView's ta.pivothigh/ta.pivotlow accept a tie with an OLDER bar but not with a newer one. Verified against
+    // the user's TradingView report (KRAKEN:SOLUSD 5m, solusd-5m): with strict/strict only 3 of 5 listed trades matched;
+    // with loose/strict all 5 match and the whole summary (trades, wins, profit factor, drawdown) does. engine/parity/.
+    pivotTies: pivotTies ?? { left: "loose", right: "strict" },
     bar: -1, lastTime: null, o: [], h: [], l: [], c: [], atr: newAtr(),
     zones: [], dir: 0, legStart: null, legEnd: null, legStartBar: null, legEndBar: null,
     lastHigh: null, lastLow: null, lastHighBar: null, lastLowBar: null, armed: false, triggered: false, trigBar: null,

@@ -41,7 +41,10 @@ describe("indicators (Pine equivalents)", () => {
 
   it("pivots need L bars each side; lowest/highest are na until n bars", () => {
     assert.equal(pivot([1, 2, 5, 2, 1], 2, "high"), 5);
-    assert.equal(pivot([1, 2, 5, 5, 1], 2, "high"), null); // equal neighbour: not a strict pivot
+    assert.equal(pivot([1, 2, 5, 5, 1], 2, "high"), null); // tie with a NEWER bar: not a pivot (TradingView)
+    assert.equal(pivot([1, 5, 5, 2, 1], 2, "high"), 5); // tie with an OLDER bar: still a pivot (TradingView)
+    assert.equal(pivot([9, 5, 5, 6, 9], 2, "low"), 5);
+    assert.equal(pivot([1, 5, 5, 2, 1], 2, "high", { left: "strict", right: "strict" }), null);
     assert.equal(pivot([1, 2, 5, 5, 1], 2, "high", { left: "strict", right: "loose" }), 5);
     assert.equal(pivot([5, 4, 1, 4, 5], 2, "low"), 1);
     assert.equal(pivot([1, 2, 5, 2], 2, "high"), null);

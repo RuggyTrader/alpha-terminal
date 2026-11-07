@@ -23,7 +23,9 @@ const toMs = Date.parse(`${ref.period.to}T00:00:00Z`) + 86_400_000;
 const candles = doc.candles;
 const STEP = doc.intervalMin * 60_000;
 
-const run = ({ start = candles[0].t, pivotTies, fill, inputs = {} } = {}) => {
+// --history-from: where TradingView's chart history (and so the strategy's state) starts. Default: the file's start.
+const historyFrom = arg("history-from", null) ? Date.parse(arg("history-from")) : candles[0].t;
+const run = ({ start = historyFrom, pivotTies, fill, inputs = {} } = {}) => {
   const r = runBacktest({ candles: candles.filter((k) => k.t >= start), symbol: doc.symbol, intervalMin: doc.intervalMin, inputs: { ...cfg.inputs, ...inputs }, pivotTies, fill });
   return r.trades.filter((t) => Date.parse(t.entryTime) >= fromMs && Date.parse(t.entryTime) < toMs);
 };
@@ -85,12 +87,17 @@ const report = {
   reference: { period: ref.period, summary: ref.summary, source: ref.source },
 };
 const base = run();
-report.base = { assumptions: "history from the first candle in the file; pivots strict/strict; TradingView documented emulator (limit gap fills at the open, exits may fill on the entry's tick path)", summary: summary(base), reference_trades: matchRef(base) };
+report.base = {
+  assumptions: `history from ${new Date(historyFrom).toISOString()}; engine defaults (TradingView pivot ties: older-bar ties count); TradingView documented emulator (limit gap fills at the open, exits may fill on the entry's tick path)`,
+  summary: { ...summary(base), net_pnl_sum_of_cent_rounded_trades: +base.reduce((a, t) => a + Math.round(t.pnl * 100) / 100, 0).toFixed(2) },
+  reference_trades: matchRef(base),
+  max_position_value_usd: +Math.max(...base.map((t) => t.qty * t.entryPrice)).toFixed(2),
+};
 
 // Start-history dependence: the same rules, history starting later.
 report.start_dependence = [];
 const baseIds = new Set(base.map((t) => `${t.side}${t.entryTime}${t.exitTime}`));
-for (let d = 0; d * 86_400_000 + candles[0].t < fromMs; d++) {
+for (let d = 0; d * 86_400_000 + candles[0].t < Math.max(fromMs, historyFrom) + 86_400_000; d++) {
   const start = candles[0].t + d * 86_400_000;
   const tr = run({ start });
   report.start_dependence.push({ history_from: new Date(start).toISOString(), ...summary(tr), identical_to_base: tr.filter((t) => baseIds.has(`${t.side}${t.entryTime}${t.exitTime}`)).length });

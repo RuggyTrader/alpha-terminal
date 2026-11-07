@@ -22,7 +22,7 @@ export const newAtr = () => ({ n: 0, sum: 0, value: null, prevClose: null });
  * Ties: Pine does not document how equal values are treated. Default here is strict on both sides; the
  * comparison against a TradingView export decides whether this needs changing (see engine/README.md).
  */
-export function pivot(win, L, kind, ties = { left: "strict", right: "strict" }) {
+export function pivot(win, L, kind, ties = { left: "loose", right: "strict" }) {
   if (win.length < 2 * L + 1) return null;
   const end = win.length - 1;
   const c = win[end - L];

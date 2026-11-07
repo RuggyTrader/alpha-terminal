@@ -34,9 +34,10 @@ export const STRATEGY_NAME = "OTE Pro Strat (engine)";
 const iso = (ms) => new Date(ms).toISOString().replace(".000Z", "Z");
 const fmtQty = (q) => q.toFixed(8).replace(/\.?0+$/, "");
 
-// v2: outbox items link exits to entries (state from v1 starts a fresh warm-up).
+// v2: outbox items link exits to entries. v3: TradingView pivot tie rule (older-bar ties count); saved state from
+// v2 used the old rule, so it starts a fresh warm-up.
 export function inputsHash(cfg) {
-  return createHash("sha256").update(JSON.stringify({ v: 2, symbol: cfg.symbol, tf: cfg.intervalMin, inputs: cfg.inputs ?? {} })).digest("hex").slice(0, 16);
+  return createHash("sha256").update(JSON.stringify({ v: 3, symbol: cfg.symbol, tf: cfg.intervalMin, inputs: cfg.inputs ?? {} })).digest("hex").slice(0, 16);
 }
 
 const FINAL = new Set(["accepted", "rejected", "skipped", "historical", "late"]);
