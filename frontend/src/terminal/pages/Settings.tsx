@@ -63,7 +63,7 @@ export function SettingsPage() {
 
       <Group title="Security">
         <Row k="Dashboard session"><StatusBadge tone="ok">AUTHENTICATED</StatusBadge></Row>
-        <Row k="Session access">Read-only</Row>
+        <Row k="Session access">Read-only; PAPER portfolio actions need the passphrase again</Row>
         <Row k="Admin controls">Server-side only</Row>
         <div className="li">
           <span>Sign out of this browser</span>

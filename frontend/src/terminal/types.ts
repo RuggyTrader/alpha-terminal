@@ -254,6 +254,8 @@ export interface DashboardData {
   paper?: AlphaPaperSection;
   /** OTE engine heartbeat (engine/). Absent on older Workers. */
   bot?: EngineBot;
+  /** ALPHA PAPER portfolio (migration 0003). Absent on older Workers. */
+  portfolio?: PaperPortfolio;
   counts: DashboardCounts;
   recent: {
     alerts: AlertRow[];
@@ -269,4 +271,70 @@ export interface DashboardEnvelope {
   data?: DashboardData;
   code?: string;
   message?: string;
+}
+
+// ---- ALPHA PAPER portfolio (simulated balances; never broker money) ----
+
+export interface PaperWallet {
+  wallet: string;
+  kind: "MAIN" | "STRATEGY";
+  available_usd: number;
+  reserved_usd: number;
+  realized_pnl_usd: number;
+  net_funding_usd: number;
+  unrealized_pnl_usd: number | null;
+  book_balance_usd: number;
+  equity_usd: number | null;
+  open_positions: number;
+  updated_at: string;
+}
+
+export interface RiskSettingRow {
+  version: number;
+  risk_usd: number;
+  status: "PENDING" | "APPLIED" | "SUPERSEDED";
+  requested_at: string;
+  applied_at: string | null;
+  note: string | null;
+}
+
+export interface StrategySettings {
+  strategy: string;
+  applied: RiskSettingRow | null;
+  pending: RiskSettingRow | null;
+  history: RiskSettingRow[];
+  compounding: false;
+}
+
+export interface PortfolioEntry {
+  id: number;
+  at: string;
+  kind: "DEPOSIT" | "WITHDRAW" | "TRANSFER_OUT" | "TRANSFER_IN" | "RESERVE" | "RELEASE" | "REALIZED_PNL";
+  wallet: string;
+  counterparty: string | null;
+  ref: string | null;
+  note: string | null;
+  available_change_usd: number;
+  reserved_change_usd: number;
+}
+
+export interface PaperPortfolio {
+  label: string;
+  simulated: true;
+  active: boolean;
+  wallets: PaperWallet[];
+  totals: {
+    book_balance_usd: number;
+    unallocated_usd: number;
+    available_usd: number;
+    reserved_usd: number;
+    realized_pnl_usd: number;
+    net_funding_usd: number;
+    unrealized_pnl_usd: number | null;
+  };
+  consistency: { ok: boolean; issues: string[] };
+  history: PortfolioEntry[];
+  strategies: Record<string, { validated_engine: boolean; settings: StrategySettings }>;
+  validated_engines: string[];
+  limits: { max_order_notional_usd: number | null; max_position_exposure_usd: number | null; short_selling_enabled: boolean };
 }

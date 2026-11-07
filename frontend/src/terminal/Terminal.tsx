@@ -1,3 +1,4 @@
+import { PortfolioPage, StrategyPage } from "./pages/Portfolio";
 import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./AppShell";
@@ -16,6 +17,8 @@ export function TerminalRoutes(): ReactNode {
         <Route path="/" element={<HomePage />} />
         <Route path="/trades" element={<TradesPage />} />
         <Route path="/engine" element={<EnginePage />} />
+        <Route path="/portfolio" element={<PortfolioPage />} />
+        <Route path="/portfolio/:symbol" element={<StrategyPage />} />
         <Route path="/activity" element={<ActivityPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

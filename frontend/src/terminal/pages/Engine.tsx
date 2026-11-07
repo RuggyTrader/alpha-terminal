@@ -50,7 +50,7 @@ export function EnginePage() {
       <div className="card note-card">
         <b>Engine controls are intentionally unavailable from the browser.</b>
         <p>
-          This dashboard session is read-only. Starting, pausing or stopping the engine and the kill switch are protected
+          This dashboard session cannot control the engine. Starting, pausing or stopping the engine and the kill switch are protected
           server-side admin actions.
         </p>
       </div>

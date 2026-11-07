@@ -32,3 +32,34 @@ export function login(passphrase: string, remember = false): Promise<unknown> {
 export function logout(): Promise<unknown> {
   return api.post("/auth/logout");
 }
+
+// ---- ALPHA PAPER portfolio actions (simulated; each needs the passphrase typed again) ----
+
+import type { BacktestResult } from "./simulator";
+
+/** A fresh id per user action, so a retried request can never apply twice. */
+export const newRequestId = (): string =>
+  (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 64);
+
+export interface PaperActionResult {
+  ok: boolean;
+  duplicate?: boolean;
+  message?: string;
+}
+
+export function paperFund(action: "deposit" | "withdraw", amountUsd: number, requestId: string, passphrase: string) {
+  return api.post<PaperActionResult>("/api/paper/fund", { action, amount_usd: amountUsd, request_id: requestId, passphrase });
+}
+
+export function paperTransfer(from: string, to: string, amountUsd: number, requestId: string, passphrase: string) {
+  return api.post<PaperActionResult>("/api/paper/transfer", { from, to, amount_usd: amountUsd, request_id: requestId, passphrase });
+}
+
+export function paperApplyRisk(strategy: string, riskUsd: number, requestId: string, passphrase: string) {
+  return api.post<PaperActionResult>("/api/paper/risk", { strategy, risk_usd: riskUsd, request_id: requestId, passphrase });
+}
+
+export async function fetchBacktest(strategy: string): Promise<{ cached_at: string; result: BacktestResult } | null> {
+  const env = await api.get<{ ok: boolean; data: { cached_at: string; result: BacktestResult } | null }>(`/api/dashboard/backtest?strategy=${encodeURIComponent(strategy)}`);
+  return env?.ok ? env.data : null;
+}

@@ -5,6 +5,7 @@ import { AlertCard } from "../components/AlertCard";
 import { AlphaPaperPerformance } from "../components/AlphaPaperPerformance";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
 import { EngineBotCard } from "../components/EngineBotCard";
+import { PortfolioSummaryCard } from "../components/PaperPortfolio";
 import { PositionCard } from "../components/PositionCard";
 import { SafetyCard } from "../components/SafetyCard";
 import { EmptyState, SectionHeader, SkeletonCards } from "../components/ui";
@@ -77,6 +78,7 @@ export function HomePage() {
       <div className="col-main m-stagger">
         <AccountHero state={state} reconnected={reconnected} />
         <AccountOverview broker={d?.broker ?? null} loading={state.status === "loading" && !d} />
+        {d?.portfolio ? <PortfolioSummaryCard portfolio={d.portfolio} /> : null}
         {d?.paper ? <AlphaPaperPerformance paper={d.paper} /> : null}
         <PositionsSection />
         <BrokerPositionsSection />

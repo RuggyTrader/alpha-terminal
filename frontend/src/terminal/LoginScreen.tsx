@@ -85,7 +85,7 @@ export function LoginScreen({
           {busy ? "Signing in…" : "Sign in"}
         </button>
         <p className="tlogin-note">
-          Read-only PAPER dashboard. Your session is an HttpOnly cookie; the passphrase is not stored in this browser.
+          PAPER dashboard (simulated money only). Your session is an HttpOnly cookie; the passphrase is not stored in this browser.
         </p>
       </form>
     </div>
