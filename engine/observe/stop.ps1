@@ -5,7 +5,11 @@ if (-not (Test-Path $current)) { Write-Host "No active observation run."; exit 0
 $run = Get-Content $current
 $pids = Get-Content (Join-Path $run "pids.json") | ConvertFrom-Json
 foreach ($p in $pids.PSObject.Properties) {
-  if (Get-Process -Id $p.Value -ErrorAction SilentlyContinue) { taskkill /PID $p.Value /T /F | Out-Null; Write-Host "stopped $($p.Name) ($($p.Value))" }
+  # Only a process that is really this run's loop: Windows reuses PIDs (e.g. after a reboot).
+  $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$($p.Value)" -ErrorAction SilentlyContinue
+  if ($proc -and $proc.CommandLine -like "*$($p.Name)-loop.ps1*" -and $proc.CommandLine -like "*$run*") {
+    taskkill /PID $p.Value /T /F | Out-Null; Write-Host "stopped $($p.Name) ($($p.Value))"
+  } else { Write-Host "$($p.Name) ($($p.Value)) is not running (PID not ours or gone)" }
 }
 $runInfo = Get-Content (Join-Path $run "run.json") | ConvertFrom-Json
 $runInfo | Add-Member -NotePropertyName stopped_at -NotePropertyValue (Get-Date).ToUniversalTime().ToString("o") -Force

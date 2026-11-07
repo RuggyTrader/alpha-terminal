@@ -13,7 +13,11 @@ $current = Join-Path $obs "CURRENT"
 if (Test-Path $current) {
   $prev = Get-Content $current
   if (Test-Path (Join-Path $prev "pids.json")) {
-    $alive = (Get-Content (Join-Path $prev "pids.json") | ConvertFrom-Json).PSObject.Properties | Where-Object { Get-Process -Id $_.Value -ErrorAction SilentlyContinue }
+    # Alive = the PID still runs one of that run's loop scripts (PIDs are reused after a reboot).
+    $alive = (Get-Content (Join-Path $prev "pids.json") | ConvertFrom-Json).PSObject.Properties | Where-Object {
+      $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Value)" -ErrorAction SilentlyContinue
+      $proc -and $proc.CommandLine -like "*$($_.Name)-loop.ps1*" -and $proc.CommandLine -like "*$prev*"
+    }
     if ($alive) { throw "An observation run is already active ($prev). Run stop.ps1 first." }
   }
 }

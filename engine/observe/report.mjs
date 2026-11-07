@@ -167,5 +167,7 @@ say();
 say("Raw evidence in this folder: engine-data/audit-SOLUSD-5m.jsonl, metrics.jsonl, engine.log, worker.log, restarts.log, d1/.");
 
 const text = lines.join("\n");
-writeFileSync(join(run, "report.md"), `${text}\n`);
+// --out <file> writes the report elsewhere (leaves a finished run's folder untouched); default <run>/report.md.
+const oi = process.argv.indexOf("--out");
+writeFileSync(oi > 0 && process.argv[oi + 1] ? process.argv[oi + 1] : join(run, "report.md"), `${text}\n`);
 console.log(text);
