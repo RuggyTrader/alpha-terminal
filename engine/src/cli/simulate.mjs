@@ -1,6 +1,6 @@
 // Builds the verified backtest the website's risk simulator uses, and optionally uploads it to ALPHA TERMINAL.
 //   node src/cli/simulate.mjs --candles data/SOLUSD-5m-25d.json [--profile solusd-5m] [--trades-from 2026-10-18]
-//                             [--out runs/sim-solusd-5m] [--upload]
+//                             [--history-from 2026-10-19T00:00:00Z] [--out runs/sim-solusd-5m] [--upload]
 // Runs the engine's own code on real recorded Kraken candles at the profile's risk per trade (the basis); the
 // website rescales trades to other risks (exact under this model; see frontend/src/terminal/simulator.ts) and
 // applies the PAPER capital constraints. --upload sends it to <ALPHA_API_BASE>/webhook/engine-backtest using the
@@ -47,8 +47,14 @@ export function buildResult({ doc, cfg, tradesFromMs, pivotTies }) {
 
 if (process.argv[1]?.replace(/\\/g, "/").endsWith("cli/simulate.mjs")) {
   const doc = JSON.parse(readFileSync(arg("candles"), "utf8"));
+  // --history-from: start the strategy's history here (as TradingView's chart does); default: the file's first candle.
+  if (arg("history-from", null)) {
+    const h = Date.parse(arg("history-from"));
+    doc.candles = doc.candles.filter((k) => k.t >= h);
+    doc.from = new Date(h).toISOString();
+  }
   const cfg = loadConfig({ ...process.env, ENGINE_PROFILE: arg("profile", "solusd-5m") }, process.cwd());
-  const tradesFromMs = arg("trades-from", null) ? Date.parse(arg("trades-from")) : doc.candles[0].t + 2 * 86_400_000;
+  const tradesFromMs = arg("trades-from", null) ? Date.parse(arg("trades-from")) : arg("history-from", null) ? doc.candles[0].t : doc.candles[0].t + 2 * 86_400_000;
   const pv = arg("pivots", null);
   const pivotTies = pv ? { left: pv.split("/")[0], right: pv.split("/")[1] } : undefined;
   const result = buildResult({ doc, cfg, tradesFromMs, pivotTies });

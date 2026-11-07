@@ -4,7 +4,7 @@
 // reads the Alpaca PAPER account (GET only), so this needs PAPER keys in worker/.dev.vars, otherwise it skips.
 //
 // Two isolated Workers: one runs the engine with the Pine default risk ($200, orders far above the $5,000 limit),
-// one with the `paper-test` profile ($5 risk). Fixture trades: SHORT, then LONG, then LONG.
+// one with the `paper-test` profile ($5 risk). Fixture trades (strict pivot rule): SHORT, then LONG, then LONG.
 
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -29,7 +29,11 @@ const needsBroker = keys.includes("ALPACA_KEY") && keys.includes("ALPACA_SECRET"
 
 const CANDLES = JSON.parse(readFileSync(join(ENGINE_DIR, "test", "fixtures", "SOLUSD-5m-kraken.json"), "utf8")).candles;
 const STEP = 300_000;
-const FILLS = runBacktest({ candles: CANDLES, symbol: "SOLUSD", intervalMin: 5 }).events
+// The sync scenarios need the fixture's LONG trades (ALPHA PAPER is long-only). They exist with the strict pivot
+// rule; with TradingView's rule (the engine default) this short fixture only trades short. Ledger sync does not depend
+// on the strategy rule, so these tests pin the strict rule for both the expected fills and the runner.
+const PIVOTS = { left: "strict", right: "strict" };
+const FILLS = runBacktest({ candles: CANDLES, symbol: "SOLUSD", intervalMin: 5, pivotTies: PIVOTS }).events
   .filter((e) => e.type === "ENTRY_FILL" || e.type === "EXIT_FILL").map((e) => e.bar);
 
 const wrangler = (args) => execFileSync(WIN ? "npx.cmd" : "npx", ["wrangler", ...args], { cwd: WORKER_DIR, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], shell: WIN, timeout: 90000 });
@@ -60,7 +64,7 @@ function environment(port, profile) {
     }
   };
   const engineCfg = loadConfig({ ENGINE_ENV_FILE: "none", ...(profile ? { ENGINE_PROFILE: profile } : {}) }, ENGINE_DIR);
-  env.cfg = { ...engineCfg, sync: true, apiBase: base, webhookSecret: WEBHOOK_SECRET, dataDir: engineData, lateBars: 2 };
+  env.cfg = { ...engineCfg, sync: true, apiBase: base, webhookSecret: WEBHOOK_SECRET, dataDir: engineData, lateBars: 2, pivotTies: PIVOTS };
   env.runner = () => new EngineRunner(env.cfg, {
     fetchCandles: async ({ sinceMs }) => CANDLES.slice(0, env.visible).filter((k) => sinceMs === null || k.t > sinceMs),
     now: () => CANDLES[env.visible - 1].t + STEP + 10_000 + env.skewMs,

@@ -136,7 +136,7 @@ function HistoryList({ p, wallet }: { p: PaperPortfolio; wallet?: string }) {
       ) : (
         <div className="card list-card">
           {rows.map((h) => (
-            <div key={h.id} className="li li-wrap">
+            <div key={h.id} className="li li-wrap pf-hist">
               <span>
                 {KIND_TEXT[h.kind] ?? h.kind} · {WALLET_NAME[h.wallet] ?? h.wallet}{h.counterparty ? ` ${h.kind === "TRANSFER_OUT" ? "→" : "←"} ${WALLET_NAME[h.counterparty] ?? h.counterparty}` : ""}
                 <em className="soft"> {stamp(h.at)}</em>
@@ -183,7 +183,7 @@ function StatsBlock({ title, s, extra }: { title: string; s: SimStats; extra?: s
     ["Profit factor", pf(s.profitFactor)],
     ["Average win / loss", `${s.avgWin === null ? NA : money(s.avgWin)} / ${s.avgLoss === null ? NA : signedMoney(s.avgLoss)}`],
     ["Max consecutive losses", String(s.maxConsecutiveLosses)],
-    ["Max drawdown", `${money(s.maxDrawdownUsd)} (${pctText(s.maxDrawdownPct)} of peak; start ${money(s.startEquity)})`],
+    ["Max drawdown", `${money(s.maxDrawdownUsd)} (${pctText(s.maxDrawdownPct, 2)} of peak; start ${money(s.startEquity)})`],
     ["Buying power per trade", s.maxNotional === null ? NA : `median ${money(s.medianNotional)} · max ${money(s.maxNotional)}`],
     ["Rejected entries", s.rejected ? `${s.rejected}: ${Object.entries(s.rejectedBy).map(([k, v]) => `${k} ${v}`).join(", ")}` : "0"],
     ["End balance", money(s.endEquity)],
@@ -209,14 +209,16 @@ export function StrategyPage() {
   const [allocText, setAllocText] = useState<string>("");
   const [bt, setBt] = useState<{ status: "loading" | "ok" | "none" | "error"; data?: { cached_at: string; result: BacktestResult }; err?: string }>({ status: "loading" });
 
+  // Fetch the cached backtest once per strategy, not on every dashboard refresh.
+  const hasStrategy = strat !== null;
   useEffect(() => {
-    if (!strat) { setBt({ status: "none" }); return; }
+    if (!hasStrategy) { setBt({ status: "none" }); return; }
     let live = true;
     fetchBacktest(symbol)
       .then((d) => live && setBt(d ? { status: "ok", data: d } : { status: "none" }))
       .catch((e) => live && setBt({ status: "error", err: e instanceof ApiError ? `${e.code}: ${e.message}` : "request failed" }));
     return () => { live = false; };
-  }, [symbol, strat]);
+  }, [symbol, hasStrategy]);
 
   const risk = parseUsd(riskText) ?? current;
   const alloc = parseUsd(allocText) ?? (w && w.book_balance_usd > 0 ? w.book_balance_usd : null);

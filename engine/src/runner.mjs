@@ -88,7 +88,8 @@ export class EngineRunner {
     const keepSettings = this.state?.settings ?? null;
     this.state = {
       version: ENGINE_VERSION, inputsHash: inputsHash(this.cfg), startedAt: iso(this.now()), warmedUpAt: null, resets: [],
-      strategy: createState({ symbol: this.cfg.symbol, timeframeMin: this.cfg.intervalMin, inputs: this.cfg.inputs }),
+      // cfg.pivotTies: test-only override (not read from the environment); default = TradingView's rule.
+      strategy: createState({ symbol: this.cfg.symbol, timeframeMin: this.cfg.intervalMin, inputs: this.cfg.inputs, pivotTies: this.cfg.pivotTies }),
       outbox: [], openEntryId: null, ledgerCheck: null, lastPollAt: null, lastError: null, candlesProcessed: 0, lastCandle: null,
     };
     if (reason) this.state.resets.push({ at: iso(this.now()), reason });
