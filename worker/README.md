@@ -99,7 +99,7 @@ Sources were checked on 2026-11-01; adding a futures or gold feed means adding a
 | Quantity | up to 8 decimals | whole contracts; `MAX_ORDER_QTY` (10) caps contracts per order |
 | Order size | `MAX_ORDER_NOTIONAL` ($5,000) on qty × price | `MAX_FUTURES_ORDER_NOTIONAL` ($75,000) on contracts × price × point value ($5 MES, $2 MNQ) |
 | Position / total exposure | `MAX_POSITION_EXPOSURE`, `MAX_TOTAL_EXPOSURE` | not applied (cash measures) |
-| Buying power | Alpaca PAPER (crypto: non-marginable) | not applied: no PAPER broker holds futures, so no margin is modelled |
+| Buying power | dry-run webhook: the symbol's ALPHA PAPER balance in D1 (no leverage); optional Alpaca endpoints: Alpaca PAPER (crypto: non-marginable) | not applied: no PAPER broker holds futures, so no margin is modelled |
 | Account active, open positions, daily loss | applied | applied |
 
 $75,000 allows one MES (about $38,000 at 7,600) or one MNQ per order; two MES (about $76,000) exceed it. Raise
@@ -130,8 +130,17 @@ alert → risk decision → dry-run order intent → paper_fills → paper_posit
 * **Retry:** when an attempt commits nothing (alert status `error`, or stuck in `processing` for over 60 s),
   resending the *same* alert (identical payload) processes it again; `attempt_count` records it. Accepted and
   rejected alerts stay final (`DUPLICATE`). A retry is priced when it runs, not when the first attempt ran.
-* **Risk on the dry-run path** reads positions and exposure from this ledger (valued at the last mark), not from
-  Alpaca. Account checks (status, buying power, daily loss) still use the Alpaca PAPER account.
+* **Risk on the dry-run path needs no broker.** Positions and exposure come from this ledger (valued at the last
+  mark), and so does the account (`ledgerRiskSnapshot`):
+  * buying power is the symbol's strategy balance, available funds. A balance never funded is $0, so every BUY is
+    rejected `INSUFFICIENT_PAPER_CAPITAL` until PAPER capital is allocated; there is no leverage;
+  * today's P&L for `DAILY_LOSS_LIMIT` is the PAPER P&L realized since 00:00 UTC plus the unrealized P&L of open
+    positions at their last mark (an older open loss counts too);
+  * unknown values are refused, never assumed: a missing balance row, or an open position whose last mark failed,
+    rejects new entries with `ACCOUNT_DATA_UNAVAILABLE`; an unreadable D1 returns 503 and approves nothing.
+  CLOSE and SELL that reduce a position are never blocked by these account checks. Alpaca keys are not needed
+  (`/health` reports `alpha_paper_account: "D1"`); the optional Alpaca features (`/api/risk/preview`, the broker
+  panel, PAPER execution, which stays disabled) still use Alpaca PAPER when keys are set.
 * **Unrealized P&L** = (mark − average entry) × qty × multiplier (1 for crypto; the futures point value once a
   futures source exists). Unrealized % = that ÷ (average entry × qty × multiplier).
 * **Marks** refresh when the dashboard loads: one Kraken request for all open positions, at most every
@@ -161,7 +170,5 @@ ledger: the open position for that symbol and the stored outcome of up to 50 sig
 
 ## Known gaps
 
-* Ledger realized losses are not part of the `DAILY_LOSS_LIMIT` check, which uses the Alpaca PAPER account.
-* Buying power is the Alpaca PAPER account's; it is not reduced by open ALPHA PAPER positions.
 * Marks refresh only while a dashboard is open (no background schedule); positions keep their last mark.
 * `return_pct` in `trades` is displayed as a percentage value.

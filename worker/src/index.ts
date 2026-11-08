@@ -593,6 +593,10 @@ export default {
               env.ALPACA_SECRET
             ),
 
+          // ALPHA PAPER risk (the dry-run webhook) reads its account from D1, never Alpaca.
+          alpha_paper_account:
+            "D1",
+
           engine:
             await getEngine(
               env

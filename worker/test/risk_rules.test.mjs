@@ -146,3 +146,32 @@ describe("validation", () => {
     }
   });
 });
+
+describe("ALPHA PAPER risk account (D1): unknown means refused, never assumed", () => {
+  const D1_ACCOUNT = {
+    source: "ALPHA_PAPER_D1", status: "ACTIVE", blocked: false, shortingEnabled: false,
+    buyingPower: 1000, buyingPowerLabel: "SOLUSD PAPER balance available", insufficientCode: "INSUFFICIENT_PAPER_CAPITAL",
+    todaysPnl: 0, todaysPnlLabel: "ALPHA PAPER realized today (UTC) + open unrealized",
+  };
+  it("uses the D1 balance as buying power, with its own rejection code", () => {
+    assert.equal(risk("SOLUSD", 5, 100, { account: D1_ACCOUNT }).code, "APPROVED");
+    const r = risk("SOLUSD", 20, 100, { account: D1_ACCOUNT }); // $2,000 against $1,000
+    assert.equal(r.code, "INSUFFICIENT_PAPER_CAPITAL");
+    assert.match(r.reason, /exceeds SOLUSD PAPER balance available \$1000/);
+  });
+  it("an unfunded balance is $0: any BUY is refused", () => {
+    assert.equal(risk("SOLUSD", 0.01, 100, { account: { ...D1_ACCOUNT, buyingPower: 0 } }).code, "INSUFFICIENT_PAPER_CAPITAL");
+  });
+  it("unknown buying power or unknown P&L is ACCOUNT_DATA_UNAVAILABLE", () => {
+    assert.equal(risk("SOLUSD", 1, 100, { account: { ...D1_ACCOUNT, buyingPower: null } }).code, "ACCOUNT_DATA_UNAVAILABLE");
+    assert.equal(risk("SOLUSD", 1, 100, { account: { ...D1_ACCOUNT, todaysPnl: null } }).code, "ACCOUNT_DATA_UNAVAILABLE");
+  });
+  it("the daily loss limit reads the D1 P&L", () => {
+    const r = risk("SOLUSD", 1, 100, { account: { ...D1_ACCOUNT, todaysPnl: -Number(ENV.DAILY_LOSS_LIMIT) } });
+    assert.equal(r.code, "DAILY_LOSS_LIMIT");
+  });
+  it("the Alpaca account shape keeps its old meaning (non-marginable buying power for crypto)", () => {
+    const r = risk("SOLUSD", 5, 94.25, { account: { ...ACCOUNT, non_marginable_buying_power: "100" } }); // $471.25
+    assert.equal(r.code, "INSUFFICIENT_BUYING_POWER");
+  });
+});

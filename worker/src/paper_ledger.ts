@@ -1,11 +1,13 @@
 // ALPHA PAPER ledger: internal simulated positions, fills, trades and activity in D1.
 //
 // An accepted DRY-RUN order intent is "filled" at the truthful reference price the risk decision used.
-// These are NOT broker positions: no broker is contacted, and Alpaca positions are never read here.
+// These are NOT broker positions: no broker is contacted, and nothing from Alpaca is read here; the risk
+// account for this path (balance, exposure, today's P&L) also comes from D1 (ledgerRiskSnapshot).
 // Marks come only from the instrument's configured source; when that fails the last mark is kept and
 // flagged, never estimated.
 
-import { buyStatements, sellStatements } from "./portfolio";
+import { buyStatements, fromMicro, isStrategyWallet, sellStatements } from "./portfolio";
+import type { RiskAccount } from "./trade_core";
 import {
   getInstrument,
   referencePrices,
@@ -133,7 +135,44 @@ export async function ledgerRiskSnapshot(env: LedgerEnv, symbol: string) {
     market_value: p.qty * (p.mark_price ?? p.avg_entry_price) * p.multiplier,
   });
   const own = rows.find((p) => p.symbol === symbol);
-  return { position: own ? shape(own) : null, positions: rows.map(shape) };
+  return { position: own ? shape(own) : null, positions: rows.map(shape), account: await ledgerAccount(env, symbol, rows) };
+}
+
+/**
+ * The ALPHA PAPER account for risk, from D1 only (no broker):
+ *  - buying power = the symbol's strategy balance, available funds (no leverage). A balance never funded is $0;
+ *    a symbol with no strategy balance has $0; a missing balance row is unknown (rejected, never assumed).
+ *  - today's P&L = PAPER P&L realized since 00:00 UTC today + the unrealized P&L of open positions at their last
+ *    truthful mark (conservative: an older open loss counts today). If an open position's mark failed, today's P&L
+ *    is unknown and new entries are rejected until it is marked again.
+ *  - long-only: the ledger never holds a short.
+ */
+async function ledgerAccount(env: LedgerEnv, symbol: string, open: PositionRow[]): Promise<RiskAccount> {
+  const strategy = isStrategyWallet(symbol);
+  const w = strategy
+    ? await env.DB.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = ?`).bind(symbol).first<{ available_micro: number }>()
+    : null;
+  const dayStart = `${new Date().toISOString().slice(0, 10)}T00:00:00`;
+  const realized = await env.DB.prepare(
+    `SELECT COALESCE(SUM(realized_pnl), 0) AS pnl FROM paper_fills WHERE filled_at >= ?`
+  ).bind(dayStart).first<{ pnl: number }>();
+  const unmarked = open.filter((p) => p.mark_error !== null);
+  const unrealized = open.reduce((s, p) => s + ((p.mark_price ?? p.avg_entry_price) - p.avg_entry_price) * p.qty * p.multiplier, 0);
+  const reasons: string[] = [];
+  if (strategy && !w) reasons.push(`the ${symbol} PAPER balance was not found`);
+  if (unmarked.length) reasons.push(`no current mark for the open ${unmarked.map((p) => p.symbol).join(", ")} PAPER position (today's P&L is unknown)`);
+  return {
+    source: "ALPHA_PAPER_D1",
+    status: "ACTIVE",
+    blocked: false,
+    shortingEnabled: false,
+    buyingPower: !strategy ? 0 : w ? fromMicro(w.available_micro) : null,
+    buyingPowerLabel: strategy ? `${symbol} PAPER balance available` : `PAPER balance (${symbol} has no strategy balance)`,
+    insufficientCode: "INSUFFICIENT_PAPER_CAPITAL",
+    todaysPnl: unmarked.length || realized === null ? null : Math.round((Number(realized.pnl) + unrealized) * 1e6) / 1e6,
+    todaysPnlLabel: "ALPHA PAPER realized today (UTC) + open unrealized",
+    ...(reasons.length ? { unavailableReason: `ALPHA PAPER account data unavailable: ${reasons.join("; ")}; nothing is assumed` } : {}),
+  };
 }
 
 // ============================================================

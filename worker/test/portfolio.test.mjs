@@ -1,9 +1,8 @@
 // ALPHA PAPER portfolio end to end on the real Worker (`wrangler dev --local`) with a throwaway D1:
 // funding, transfers, reservations by fills, realized P&L attribution, insufficient capital, duplicates,
 // concurrent transfers, the versioned risk setting with engine confirmation, and the backtest cache.
-// Prices come from a local Kraken Ticker fixture (stated below). The Worker reads the Alpaca PAPER account (GET
-// only) for its account checks, so these cases need PAPER keys in worker/.dev.vars; without them they skip.
-// No broker order is ever sent; all money here is simulated.
+// Prices come from a local Kraken Ticker fixture (stated below). The Worker runs WITHOUT Alpaca keys: the
+// ALPHA PAPER risk account is the D1 strategy balance. No broker order is ever sent; all money here is simulated.
 
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -24,12 +23,6 @@ const DASHBOARD_PASSPHRASE = secret();
 const ADMIN_SECRET = secret();
 const PORT = 8799;
 const BASE = `http://127.0.0.1:${PORT}`;
-
-const devVarKeys = existsSync(join(WORKER_DIR, ".dev.vars"))
-  ? readFileSync(join(WORKER_DIR, ".dev.vars"), "utf8").split(/\r?\n/).map((l) => l.split("=")[0].trim())
-  : [];
-const needsBroker = devVarKeys.includes("ALPACA_KEY") && devVarKeys.includes("ALPACA_SECRET")
-  ? {} : { skip: "ALPACA_KEY / ALPACA_SECRET (PAPER) not in worker/.dev.vars" };
 
 const market = { prices: { SOLUSD: 100, ETHUSD: 2000 } };
 const KEYS = { SOLUSD: "SOLUSD", ETHUSD: "XETHZUSD" };
@@ -100,12 +93,11 @@ function assertBooksBalance() {
 }
 
 before(async () => {
-  if (needsBroker.skip) return;
   await new Promise((r) => fixture.listen(0, "127.0.0.1", r));
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
-  const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: `http://127.0.0.1:${fixture.address().port}`, PAPER_MARK_MIN_INTERVAL_SECONDS: "0" };
-  for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
+  const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: `http://127.0.0.1:${fixture.address().port}`, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "" };
+  for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`); // blank Alpaca keys override worker/.dev.vars
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 60000;
   while (Date.now() < end) {
@@ -122,7 +114,7 @@ after(() => {
   try { rmSync(persist, { recursive: true, force: true }); } catch { /* locked on Windows until workerd exits */ }
 });
 
-describe("ALPHA PAPER portfolio", needsBroker, () => {
+describe("ALPHA PAPER portfolio", () => {
   it("actions need the header, a session and the passphrase; a wrong passphrase changes nothing (403, not a sign-out)", async () => {
     const body = { action: "deposit", amount_usd: 100, request_id: rid() };
     assert.equal((await action("/api/paper/fund", body, { header: false })).status, 403);
@@ -133,13 +125,18 @@ describe("ALPHA PAPER portfolio", needsBroker, () => {
     assert.equal(d1(`SELECT COUNT(*) AS n FROM portfolio_entries`)[0].n, 0);
   });
 
-  it("before funding, the ledger works exactly as before (no wallet involvement)", async () => {
-    const buy = await signal("BUY", 0.5);
-    assert.equal(buy.status, 200, JSON.stringify(buy.json));
-    assert.equal(d1(`SELECT wallet FROM paper_positions WHERE status = 'OPEN'`)[0].wallet, null);
-    const close = await signal("CLOSE");
-    assert.equal(close.status, 200, JSON.stringify(close.json));
+  it("before funding, a BUY is refused: an unfunded balance cannot spend money it does not have", async () => {
+    assert.equal((await (await fetch(`${BASE}/health`)).json()).alpaca_configured, false);
+    const buy = await signal("BUY", 0.5); // $50 against a $0 SOL balance
+    assert.equal(buy.status, 422, JSON.stringify(buy.json));
+    assert.equal(buy.json.code, "INSUFFICIENT_PAPER_CAPITAL");
+    assert.equal(buy.json.broker_request_sent, false);
+    const [rd] = d1(`SELECT checks_json FROM risk_decisions ORDER BY id DESC LIMIT 1`);
+    assert.match(rd.checks_json, /SOLUSD PAPER balance available/, "buying power came from the D1 balance");
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM paper_positions`)[0].n, 0);
+    assert.equal(d1(`SELECT COUNT(*) AS n FROM paper_fills`)[0].n, 0);
     assert.equal(d1(`SELECT COUNT(*) AS n FROM portfolio_entries`)[0].n, 0);
+    assert.equal((await signal("CLOSE")).json.code, "NO_POSITION");
   });
 
   it("deposits are idempotent per request id, and a reused id cannot change meaning", async () => {

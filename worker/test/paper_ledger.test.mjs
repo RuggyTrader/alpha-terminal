@@ -2,9 +2,9 @@
 //
 // Runs the real Worker (`wrangler dev --local`) against a throwaway D1. Market data comes from a local
 // fixture that answers Kraken's public Ticker API on 127.0.0.1 (KRAKEN_API_BASE accepts only loopback
-// besides the real Kraken), so every price below is controlled and stated. The Alpaca PAPER account is read
-// (GET only) for account checks, so these cases need PAPER keys in worker/.dev.vars; without them they skip.
-// No broker order is ever sent.
+// besides the real Kraken), so every price below is controlled and stated. The Worker runs WITHOUT Alpaca keys:
+// the ALPHA PAPER risk account (balance, exposure, today's P&L) comes from D1. SOL and ETH are funded with
+// $5,000 of PAPER capital each before the lifecycle; HYPE stays unfunded. No broker order is ever sent.
 
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -24,16 +24,10 @@ const WEBHOOK_SECRET = secret();
 const DASHBOARD_PASSPHRASE = secret();
 const ADMIN_SECRET = secret();
 
-const devVarKeys = existsSync(join(WORKER_DIR, ".dev.vars"))
-  ? readFileSync(join(WORKER_DIR, ".dev.vars"), "utf8").split(/\r?\n/).map((l) => l.split("=")[0].trim())
-  : [];
-const needsBroker = devVarKeys.includes("ALPACA_KEY") && devVarKeys.includes("ALPACA_SECRET")
-  ? {} : { skip: "ALPACA_KEY / ALPACA_SECRET (PAPER) not in worker/.dev.vars" };
-
 // ---------------------------------------------------------------- Kraken Ticker fixture (127.0.0.1)
 
 const KEYS = { XBTUSD: "XXBTZUSD", ETHUSD: "XETHZUSD", SOLUSD: "SOLUSD", HYPEUSD: "HYPEUSD", KAITOUSD: "KAITOUSD" };
-const market = { prices: { SOLUSD: 100, ETHUSD: 2000 }, fail: false, requests: [] };
+const market = { prices: { SOLUSD: 100, ETHUSD: 2000, HYPEUSD: 40 }, fail: false, requests: [] };
 const fixture = http.createServer((req, res) => {
   market.requests.push(`${req.method} ${req.url}`);
   const url = new URL(req.url, "http://127.0.0.1");
@@ -103,16 +97,30 @@ before(async () => {
   const krakenBase = `http://127.0.0.1:${fixture.address().port}`;
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--port", "8795", "--inspector-port", "9395", "--ip", "127.0.0.1", "--persist-to", persist];
-  const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: krakenBase, PAPER_MARK_MIN_INTERVAL_SECONDS: "0" };
+  // ALPACA_KEY / ALPACA_SECRET blank: overrides any keys in worker/.dev.vars, so no Alpaca account exists here.
+  const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: krakenBase, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "" };
   for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 60000;
-  while (Date.now() < end) {
-    try { if ((await fetch(`${BASE}/health`)).status === 200) return; } catch { /* starting */ }
-    await new Promise((r) => setTimeout(r, 500));
+  let up = false;
+  while (!up && Date.now() < end) {
+    try { up = (await fetch(`${BASE}/health`)).status === 200; } catch { /* starting */ }
+    if (!up) await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error("Worker did not start");
+  if (!up) throw new Error("Worker did not start");
+  await dashboard(); // signs in
+  await paperAction("fund", { action: "deposit", amount_usd: 10000 });
+  await paperAction("transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 5000 });
+  await paperAction("transfer", { from: "MAIN", to: "ETHUSD", amount_usd: 5000 });
 });
+
+async function paperAction(kind, body) {
+  const r = await fetch(`${BASE}/api/paper/${kind}`, {
+    method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie },
+    body: JSON.stringify({ ...body, passphrase: DASHBOARD_PASSPHRASE, request_id: randomBytes(9).toString("hex") }),
+  });
+  assert.equal(r.status, 200, JSON.stringify(await r.clone().json()));
+}
 
 after(() => {
   if (worker && worker.exitCode === null) {
@@ -135,11 +143,25 @@ describe("migrations", () => {
   });
 });
 
+describe("ALPHA PAPER without Alpaca", () => {
+  it("the Worker has no Alpaca keys, and an unfunded strategy cannot spend money it does not have", async () => {
+    const h = await (await fetch(`${BASE}/health`)).json();
+    assert.equal(h.alpaca_configured, false);
+    const before = { positions: d1(`SELECT COUNT(*) AS n FROM paper_positions`)[0].n, fills: fillCount() };
+    const r = await post(signal("HYPEUSD", "BUY", 1)); // $40, HYPE balance $0
+    assert.equal(r.status, 422, JSON.stringify(r.json));
+    assert.equal(r.json.code, "INSUFFICIENT_PAPER_CAPITAL");
+    assert.match(r.json.message, /exceeds HYPEUSD PAPER balance available \$0/);
+    assert.equal(r.json.broker_request_sent, false);
+    assert.deepEqual({ positions: d1(`SELECT COUNT(*) AS n FROM paper_positions`)[0].n, fills: fillCount() }, before);
+  });
+});
+
 describe("ALPHA PAPER lifecycle (fixture prices)", () => {
   let openAlertId;
   let addBody;
 
-  it("OPEN: BUY 0.5 SOLUSD at 100 → dry-run intent → internal position", needsBroker, async () => {
+  it("OPEN: BUY 0.5 SOLUSD at 100 → dry-run intent → internal position", async () => {
     market.prices.SOLUSD = 100;
     const body = signal("SOLUSD", "BUY", 0.5);
     openAlertId = body.id;
@@ -163,7 +185,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.equal(order.alpaca_order_id, null);
   });
 
-  it("MARK: price 110 then 90 → unrealized P&L = (mark − avg) × qty × 1", needsBroker, async () => {
+  it("MARK: price 110 then 90 → unrealized P&L = (mark − avg) × qty × 1", async () => {
     market.prices.SOLUSD = 110;
     let d = await dashboard();
     let pos = d.paper.positions.find((p) => p.symbol === "SOLUSD");
@@ -182,7 +204,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.ok(d.recent.activity.some((e) => e.category === "paper" && /mark 90 \(kraken:SOLUSD\) · unrealized -\$5\.00/.test(e.message)));
   });
 
-  it("ADD: BUY 1.5 at 120 → qty 2, weighted average entry 115", needsBroker, async () => {
+  it("ADD: BUY 1.5 at 120 → qty 2, weighted average entry 115", async () => {
     market.prices.SOLUSD = 120;
     addBody = signal("SOLUSD", "BUY", 1.5);
     const r = await post(addBody);
@@ -194,7 +216,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.equal(fillCount(), 2);
   });
 
-  it("DUPLICATE: the same alert again changes nothing", needsBroker, async () => {
+  it("DUPLICATE: the same alert again changes nothing", async () => {
     const before = openSol()[0];
     const r = await post(addBody);
     assert.equal(r.json.code, "DUPLICATE");
@@ -206,7 +228,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.equal(d1(`SELECT COUNT(*) AS n FROM orders`)[0].n, 2);
   });
 
-  it("REJECTION: BUY 100 SOLUSD ($12,000) and SELL ETHUSD with no position change nothing", needsBroker, async () => {
+  it("REJECTION: BUY 100 SOLUSD ($12,000) and SELL ETHUSD with no position change nothing", async () => {
     const before = openSol()[0];
     let r = await post(signal("SOLUSD", "BUY", 100));
     assert.equal(r.status, 422);
@@ -219,7 +241,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.equal(d1(`SELECT COUNT(*) AS n FROM paper_positions WHERE symbol = 'ETHUSD'`)[0].n, 0);
   });
 
-  it("MARKET DATA FAILURE: position kept, last mark kept and flagged, nothing invented; CLOSE refused", needsBroker, async () => {
+  it("MARKET DATA FAILURE: position kept, last mark kept and flagged, nothing invented; CLOSE refused", async () => {
     const before = openSol()[0];
     market.fail = true;
     try {
@@ -245,7 +267,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     }
   });
 
-  it("REDUCE: SELL 0.5 at 130 → realized (130 − 115) × 0.5 = 7.5, qty 1.5", needsBroker, async () => {
+  it("REDUCE: SELL 0.5 at 130 → realized (130 − 115) × 0.5 = 7.5, qty 1.5", async () => {
     market.prices.SOLUSD = 130;
     const r = await post(signal("SOLUSD", "SELL", 0.5));
     assert.equal(r.status, 200, JSON.stringify(r.json));
@@ -257,7 +279,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.equal(p.mark_error, null);
   });
 
-  it("CLOSE at 140 → position CLOSED, realized 45, ALPHA PAPER trade recorded, activity populated", needsBroker, async () => {
+  it("CLOSE at 140 → position CLOSED, realized 45, ALPHA PAPER trade recorded, activity populated", async () => {
     market.prices.SOLUSD = 140;
     const closeBody = signal("SOLUSD", "CLOSE");
     const r = await post(closeBody);
@@ -300,13 +322,13 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     }
   });
 
-  it("a new BUY after the close opens a new position lifecycle", needsBroker, async () => {
+  it("a new BUY after the close opens a new position lifecycle", async () => {
     const r = await post(signal("SOLUSD", "BUY", 0.1));
     assert.equal(r.json.paper.kind, "OPEN");
     assert.equal(d1(`SELECT COUNT(*) AS n FROM paper_positions WHERE symbol = 'SOLUSD'`)[0].n, 2);
   });
 
-  it("UNSUPPORTED FUTURES: MES / MNQ stay MARKET_DATA_UNAVAILABLE and never open a position", needsBroker, async () => {
+  it("UNSUPPORTED FUTURES: MES / MNQ stay MARKET_DATA_UNAVAILABLE and never open a position", async () => {
     for (const s of ["MES1!", "MNQ1!"]) {
       const r = await post(signal(s, "BUY", 1));
       assert.equal(r.status, 422);
@@ -316,7 +338,7 @@ describe("ALPHA PAPER lifecycle (fixture prices)", () => {
     assert.ok(!market.requests.some((q) => /MES|MNQ/.test(q)), "no price was requested for futures");
   });
 
-  it("no broker order: every intent has no Alpaca id, and market data was only read", needsBroker, async () => {
+  it("no broker order: every intent has no Alpaca id, and market data was only read", async () => {
     assert.equal(d1(`SELECT COUNT(*) AS n FROM orders WHERE alpaca_order_id IS NOT NULL`)[0].n, 0);
     assert.ok(market.requests.length > 0);
     assert.ok(market.requests.every((q) => q.startsWith("GET /0/public/Ticker?pair=")), market.requests.join("\n"));
@@ -348,7 +370,7 @@ const forAlert = (id) => ({
 });
 
 describe("order intent + ledger are one atomic, recoverable outcome", () => {
-  it("BUY: failure after the order statements commits nothing; the same alert then completes exactly once", needsBroker, async () => {
+  it("BUY: failure after the order statements commits nothing; the same alert then completes exactly once", async () => {
     market.prices.ETHUSD = 2000;
     const body = signal("ETHUSD", "BUY", 1);
     failInsertsInto("paper_fills");
@@ -384,7 +406,7 @@ describe("order intent + ledger are one atomic, recoverable outcome", () => {
     assert.equal(eth()[0].qty, 1);
   });
 
-  it("CLOSE: failure while writing the trade rolls back the order, fill and position change; retry closes once", needsBroker, async () => {
+  it("CLOSE: failure while writing the trade rolls back the order, fill and position change; retry closes once", async () => {
     market.prices.ETHUSD = 2100;
     const before = eth()[0];
     const body = signal("ETHUSD", "CLOSE");
@@ -419,7 +441,7 @@ describe("order intent + ledger are one atomic, recoverable outcome", () => {
     assert.deepEqual([s.orders, s.fills], [1, 1]);
   });
 
-  it("an alert stuck in 'processing' with nothing committed is processed on resend; a fresh one is not stolen", needsBroker, async () => {
+  it("an alert stuck in 'processing' with nothing committed is processed on resend; a fresh one is not stolen", async () => {
     const insertProcessing = (body, at) => {
       const { secret: _s, ...payload } = body;
       d1Write(`INSERT INTO alerts (alert_id, received_at, symbol, action, strategy, payload_json, status)
@@ -439,7 +461,7 @@ describe("order intent + ledger are one atomic, recoverable outcome", () => {
     assert.equal(forAlert(inFlight.id).orders, 0);
   });
 
-  it("rejections stay final, and a different payload under a failed alert id is not retried", needsBroker, async () => {
+  it("rejections stay final, and a different payload under a failed alert id is not retried", async () => {
     const rejected = signal("ETHUSD", "BUY", 100); // $200,000
     assert.equal((await post(rejected)).json.code, "MAX_ORDER_NOTIONAL");
     assert.equal((await post(rejected)).json.code, "DUPLICATE");

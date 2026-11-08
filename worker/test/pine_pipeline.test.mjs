@@ -4,8 +4,8 @@
 // the alert_message that the Pine hookMsg() builds from Pine values, inserted into the TradingView alert
 // dialog message exactly as TradingView does (only {{strategy.order.alert_message}} is substituted). The webhook secret and dashboard passphrase are random values for this run only.
 //
-// The risk engine reads the real Alpaca PAPER account (GET only). Those cases need ALPACA_KEY and
-// ALPACA_SECRET for the PAPER account in worker/.dev.vars; without them they are skipped.
+// The Worker runs WITHOUT Alpaca keys: the ALPHA PAPER risk account comes from D1 (the SOL balance is funded
+// with $100 of PAPER capital first), prices from the real Kraken public ticker.
 // No broker order is ever sent: the dry-run path has no order endpoint.
 
 import { execFileSync, spawn } from "node:child_process";
@@ -27,12 +27,6 @@ const secret = () => randomBytes(24).toString("base64url");
 const WEBHOOK_SECRET = secret();
 const DASHBOARD_PASSPHRASE = secret();
 const ADMIN_SECRET = secret();
-
-const devVarKeys = existsSync(join(WORKER_DIR, ".dev.vars"))
-  ? readFileSync(join(WORKER_DIR, ".dev.vars"), "utf8").split(/\r?\n/).map((l) => l.split("=")[0].trim())
-  : [];
-const HAS_PAPER_KEYS = devVarKeys.includes("ALPACA_KEY") && devVarKeys.includes("ALPACA_SECRET");
-const needsBroker = HAS_PAPER_KEYS ? {} : { skip: "ALPACA_KEY / ALPACA_SECRET (PAPER) not in worker/.dev.vars" };
 
 // ---------------------------------------------------------------- Pine alert → webhook body
 
@@ -199,14 +193,24 @@ async function dashboard() {
 before(async () => {
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--port", "8792", "--inspector-port", "9392", "--ip", "127.0.0.1", "--persist-to", persist];
-  for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET })) args.push("--var", `${k}:${v}`);
+  // ALPACA_KEY / ALPACA_SECRET blank: overrides any keys in worker/.dev.vars.
+  for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 60000;
-  while (Date.now() < end) {
-    try { if ((await fetch(`${BASE}/health`)).status === 200) return; } catch { /* starting */ }
-    await new Promise((r) => setTimeout(r, 500));
+  let up = false;
+  while (!up && Date.now() < end) {
+    try { up = (await fetch(`${BASE}/health`)).status === 200; } catch { /* starting */ }
+    if (!up) await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error("Worker did not start");
+  if (!up) throw new Error("Worker did not start");
+  await dashboard(); // signs in
+  for (const [kind, body] of [["fund", { action: "deposit", amount_usd: 100 }], ["transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 100 }]]) {
+    const r = await fetch(`${BASE}/api/paper/${kind}`, {
+      method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie },
+      body: JSON.stringify({ ...body, passphrase: DASHBOARD_PASSPHRASE, request_id: randomBytes(9).toString("hex") }),
+    });
+    assert.equal(r.status, 200);
+  }
 });
 
 after(() => {
@@ -220,7 +224,7 @@ after(() => {
 });
 
 describe("Pine signal through the PAPER dry-run pipeline", () => {
-  // SOLUSD: priced from Kraken, positions read from Alpaca PAPER.
+  // SOLUSD: priced from Kraken; balance and positions from the ALPHA PAPER ledger in D1.
   const validBody = tradingViewBody(buyAlert(0.5, bar("SOLUSD", "2026-11-02T14:31:05Z")));
   const validId = JSON.parse(validBody).id;
   const ordersFor = (id) => d1(`SELECT COUNT(*) AS n FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id = '${id}'`)[0].n;
@@ -228,12 +232,13 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
   it("health reports PAPER with trading disabled", async () => {
     const h = await (await fetch(`${BASE}/health`)).json();
     assert.equal(JSON.stringify(h).includes('"enable_trading":false'), true, JSON.stringify(h));
+    assert.equal(h.alpaca_configured, false);
   });
 
   let solBefore;
   const solQty = (d) => (d.broker?.positions ?? []).find((p) => p.symbol === "SOLUSD")?.qty ?? null;
 
-  it("VALID: BUY 0.5 SOLUSD → risk APPROVED (Kraken price) → DRY_RUN_ACCEPTED, intent saved, no broker request", needsBroker, async () => {
+  it("VALID: BUY 0.5 SOLUSD → risk APPROVED (Kraken price) → DRY_RUN_ACCEPTED, intent saved, no broker request", async () => {
     solBefore = solQty(await dashboard());
     const r = await post(validBody);
     assert.equal(r.status, 200, JSON.stringify(r.json));
@@ -256,7 +261,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(risk.code, "APPROVED");
   });
 
-  it("DUPLICATE: same id again → DUPLICATE, still one order intent", needsBroker, async () => {
+  it("DUPLICATE: same id again → DUPLICATE, still one order intent", async () => {
     const r = await post(validBody);
     assert.equal(r.status, 200);
     assert.equal(r.json.code, "DUPLICATE");
@@ -266,7 +271,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(duplicate_count, 1);
   });
 
-  it("REJECTED: BUY 1 BTCUSD breaks MAX_ORDER_NOTIONAL=$5,000 → 422 with the reason, no intent", needsBroker, async () => {
+  it("REJECTED: BUY 1 BTCUSD breaks MAX_ORDER_NOTIONAL=$5,000 → 422 with the reason, no intent", async () => {
     const body = tradingViewBody(buyAlert(1, bar("BTCUSD", "2026-11-02T14:32:05Z")));
     const id = JSON.parse(body).id;
     const r = await post(body);
@@ -280,7 +285,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(ordersFor(id), 0);
   });
 
-  it("CLOSE KAITOUSD with no ALPHA PAPER position → NO_POSITION, no intent", needsBroker, async () => {
+  it("CLOSE KAITOUSD with no ALPHA PAPER position → NO_POSITION, no intent", async () => {
     const body = tradingViewBody(closeAlert(bar("KAITOUSD", "2026-11-02T14:33:05Z")));
     const id = JSON.parse(body).id;
     const r = await post(body);
@@ -291,7 +296,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(ordersFor(id), 0);
   });
 
-  it("MES1!, MNQ1! and GOLD BUY → MARKET_DATA_UNAVAILABLE with the reason; no price is invented", needsBroker, async () => {
+  it("MES1!, MNQ1! and GOLD BUY → MARKET_DATA_UNAVAILABLE with the reason; no price is invented", async () => {
     for (const [ticker, type, sym, why] of [["MES1!", "futures", "MES", /licensed CME/], ["MNQ1!", "futures", "MNQ", /licensed CME/], ["GOLD", "cfd", "GOLD", /Gold\.com, Inc\. stock, not gold/]]) {
       const body = tradingViewBody(buyAlert(1, bar(ticker, "2026-11-02T14:34:05Z", type)));
       const r = await post(body);
@@ -336,7 +341,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(r.json.code, "INVALID_QUANTITY");
   });
 
-  it("dashboard shows the persisted alerts, risk decisions and the one dry-run intent", needsBroker, async () => {
+  it("dashboard shows the persisted alerts, risk decisions and the one dry-run intent", async () => {
     const d = await dashboard();
     const alerts = d.recent.alerts;
     const accepted = alerts.find((a) => a.alert_id === validId);
@@ -352,7 +357,7 @@ describe("Pine signal through the PAPER dry-run pipeline", () => {
     assert.equal(d.recent.orders.length, 1);
     assert.equal(d.recent.orders[0].broker_request_sent, false);
     assert.equal(d.recent.orders[0].alpaca_order_id, null);
-    // Positions come from the PAPER broker; a dry-run intent does not change them.
+    // Broker positions (optional Alpaca, not configured here) are never changed by a dry-run intent.
     assert.equal(solQty(d), solBefore);
   });
 });

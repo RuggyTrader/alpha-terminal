@@ -501,12 +501,12 @@ export async function handleDryRunWebhook(
   });
 
   // ==========================================================
-  // SHARED PAPER RISK ENGINE
-  // Reads real PAPER account/position/market information.
-  // Does NOT submit an order.
+  // SHARED PAPER RISK ENGINE (ALPHA PAPER ledger mode)
+  // Balance, positions, exposure and today's P&L come from D1; the price from
+  // the instrument's market-data source. No broker is contacted; no order is sent.
   // ==========================================================
 
-  // Positions for risk come from the ALPHA PAPER ledger, not the broker.
+  // Account and positions for risk come from the ALPHA PAPER ledger, not the broker.
   const riskResult =
     await runRiskEvaluation(
       env,

@@ -9,7 +9,9 @@
 //     a SELL/CLOSE releases the reserved cost basis and credits the realized P&L to that balance. Profits stay
 //     there until the user transfers them.
 //   * Transfers move only available funds, atomically, and leave total equity unchanged.
-// The portfolio becomes active with the first PAPER deposit. Before that the ledger behaves as before.
+// The strategy balance is the ALPHA PAPER buying power (risk reads it from D1; no broker account is used).
+// Before any deposit every balance is $0, so every exposure-increasing BUY is rejected: unfunded balances
+// cannot spend money that does not exist. "Active" (first deposit) only changes what the dashboard shows.
 
 import { authorizePaperAction } from "./auth_session";
 import { getInstrument } from "./instruments";
@@ -60,15 +62,15 @@ export interface PortfolioRejection {
 }
 
 /**
- * Pre-check for an exposure-increasing BUY once the portfolio is active: the strategy balance must cover the
- * full position value (qty × price × multiplier). No leverage and no borrowing: a $10 stop risk does not mean
- * a $10 position. Returns null when allowed (or when the portfolio is not active yet).
+ * Pre-check for an exposure-increasing BUY (a second check after the risk rules, which read the same balance):
+ * the strategy balance must cover the full position value (qty × price × multiplier). No leverage and no
+ * borrowing: a $10 stop risk does not mean a $10 position. An unfunded balance is $0. Returns null when allowed.
  */
 export async function portfolioGate(
   db: D1Database,
   f: { symbol: string; side: "buy" | "sell"; qty: number; price: number }
 ): Promise<PortfolioRejection | null> {
-  if (f.side !== "buy" || !(await portfolioActive(db))) return null;
+  if (f.side !== "buy") return null;
   if (!isStrategyWallet(f.symbol)) {
     return { code: "NOT_IN_PAPER_PORTFOLIO", message: `${f.symbol} has no PAPER strategy balance; only crypto strategies trade from the PAPER portfolio` };
   }
@@ -95,7 +97,7 @@ export async function buyStatements(
   f: { symbol: string; qty: number; price: number; alertId: string; clientOrderId: string },
   now: string
 ): Promise<D1PreparedStatement[]> {
-  if (!isStrategyWallet(f.symbol) || !(await portfolioActive(db))) return [];
+  if (!isStrategyWallet(f.symbol)) return [];
   const mult = getInstrument(f.symbol)?.multiplier ?? 1;
   const need = toMicro(f.qty * f.price * mult);
   return [

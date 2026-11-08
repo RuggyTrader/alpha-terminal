@@ -678,6 +678,53 @@ export type RiskResult = {
     | null;
 };
 
+/**
+ * The account facts the risk rules need, from one source:
+ *   ALPACA_PAPER   the optional Alpaca PAPER account (risk-check and execution endpoints);
+ *   ALPHA_PAPER_D1 the internal ALPHA PAPER ledger in D1 (the dry-run webhook): the strategy balance and
+ *                  PAPER P&L recorded in D1. No broker is contacted.
+ * null means unknown: the rule that needs it rejects instead of assuming a value.
+ */
+export interface RiskAccount {
+  source: "ALPACA_PAPER" | "ALPHA_PAPER_D1";
+  status: string;
+  blocked: boolean;
+  shortingEnabled: boolean;
+  /** Cash available for an exposure-increasing order (no leverage for ALPHA PAPER). */
+  buyingPower: number | null;
+  buyingPowerLabel: string;
+  insufficientCode: string;
+  /** Today's PAPER P&L for the daily loss limit. */
+  todaysPnl: number | null;
+  todaysPnlLabel: string;
+  /** Why a null value is unknown. */
+  unavailableReason?: string;
+}
+
+const isRiskAccount = (a: unknown): a is RiskAccount =>
+  typeof a === "object" && a !== null && "source" in a && "buyingPower" in a;
+
+/** Maps an Alpaca PAPER /v2/account response (unchanged rules: crypto uses non-marginable buying power). */
+export function alpacaRiskAccount(
+  account: Record<string, unknown>,
+  assetClass: string | undefined
+): RiskAccount {
+  return {
+    source: "ALPACA_PAPER",
+    status: String(account.status ?? "").toUpperCase(),
+    blocked: Boolean(account.trading_blocked) || Boolean(account.account_blocked),
+    shortingEnabled: Boolean(account.shorting_enabled),
+    buyingPower:
+      assetClass === "crypto"
+        ? num(account.non_marginable_buying_power ?? account.buying_power)
+        : num(account.buying_power),
+    buyingPowerLabel: "PAPER buying power",
+    insufficientCode: "INSUFFICIENT_BUYING_POWER",
+    todaysPnl: num(account.equity) - num(account.last_equity),
+    todaysPnlLabel: "Alpaca PAPER equity − last equity",
+  };
+}
+
 export function evaluateRisk(
   intent:
     ValidIntent,
@@ -685,11 +732,13 @@ export function evaluateRisk(
   env:
     TradeCoreEnv,
 
-  account:
-    Record<
-      string,
-      unknown
-    >,
+  // An Alpaca PAPER /v2/account object, or a RiskAccount (e.g. from the ALPHA PAPER ledger).
+  rawAccount:
+    | Record<
+        string,
+        unknown
+      >
+    | RiskAccount,
 
   position:
     Record<
@@ -758,18 +807,23 @@ export function evaluateRisk(
   // ACCOUNT STATUS
   // ----------------------------------------------------------
 
+  const account: RiskAccount =
+    isRiskAccount(rawAccount)
+      ? rawAccount
+      : alpacaRiskAccount(
+          rawAccount,
+          instrument?.assetClass
+        );
+
   const accountStatus =
-    String(
-      account.status ??
-        ""
-    ).toUpperCase();
+    account.status;
 
   if (
     !add(
       "account_active",
       accountStatus ===
         "ACTIVE",
-      `account status ${
+      `${account.source} status ${
         accountStatus ||
         "UNKNOWN"
       }`
@@ -785,12 +839,7 @@ export function evaluateRisk(
   }
 
   const blocked =
-    Boolean(
-      account.trading_blocked
-    ) ||
-    Boolean(
-      account.account_blocked
-    );
+    account.blocked;
 
   if (
     !add(
@@ -1057,15 +1106,16 @@ export function evaluateRisk(
     if (
       !add(
         "account_shorting_enabled",
-        Boolean(
-          account.shorting_enabled
-        ),
-        "Alpaca shorting_enabled"
+        account.shortingEnabled,
+        `${account.source} shorting`
       )
     ) {
       return reject(
         "SHORT_DISABLED",
-        "Alpaca PAPER account does not allow shorting"
+        account.source ===
+          "ALPHA_PAPER_D1"
+          ? "The ALPHA PAPER ledger is long-only; it cannot hold a short"
+          : "Alpaca PAPER account does not allow shorting"
       );
     }
 
@@ -1312,30 +1362,32 @@ export function evaluateRisk(
     // BUYING POWER
     // ----------------------------------------------------------
 
-    // Crypto is not marginable on Alpaca, so it uses non-marginable buying power.
+    // Alpaca: crypto is not marginable, so it uses non-marginable buying power (see alpacaRiskAccount).
+    // ALPHA PAPER: the strategy balance's available funds; an unfunded balance is $0, never assumed.
     const buyingPower =
-      instrument?.assetClass ===
-        "crypto"
-        ? num(
-            account.non_marginable_buying_power ??
-              account.buying_power
-          )
-        : num(
-            account.buying_power
-          );
+      account.buyingPower;
 
     if (
       !add(
         "buying_power",
-        notional <=
-          buyingPower,
-        `${notional} <= ${buyingPower}`
+        buyingPower !== null &&
+          notional <=
+            buyingPower,
+        buyingPower === null
+          ? `${account.buyingPowerLabel} unknown`
+          : `${notional} <= ${buyingPower} (${account.buyingPowerLabel})`
       )
     ) {
-      return reject(
-        "INSUFFICIENT_BUYING_POWER",
-        `Estimated $${notional} exceeds PAPER buying power $${buyingPower}`
-      );
+      return buyingPower === null
+        ? reject(
+            "ACCOUNT_DATA_UNAVAILABLE",
+            account.unavailableReason ??
+              `${account.buyingPowerLabel} is unavailable; nothing is assumed`
+          )
+        : reject(
+            account.insufficientCode,
+            `Estimated $${notional} exceeds ${account.buyingPowerLabel} $${buyingPower}`
+          );
     }
   }
 
@@ -1352,28 +1404,29 @@ export function evaluateRisk(
     dailyLossLimit > 0
   ) {
     const todaysPnl =
-      num(
-        account.equity
-      ) -
-      num(
-        account.last_equity
-      );
-
-    const allowed =
-      todaysPnl >
-      -dailyLossLimit;
+      account.todaysPnl;
 
     if (
       !add(
         "daily_loss_limit",
-        allowed,
-        `today ${todaysPnl} > -${dailyLossLimit}`
+        todaysPnl !== null &&
+          todaysPnl >
+            -dailyLossLimit,
+        todaysPnl === null
+          ? `${account.todaysPnlLabel} unknown`
+          : `today ${todaysPnl} > -${dailyLossLimit} (${account.todaysPnlLabel})`
       )
     ) {
-      return reject(
-        "DAILY_LOSS_LIMIT",
-        `Today's PAPER P&L ${todaysPnl} hit the daily loss limit`
-      );
+      return todaysPnl === null
+        ? reject(
+            "ACCOUNT_DATA_UNAVAILABLE",
+            account.unavailableReason ??
+              "Today's PAPER P&L is unavailable; the daily loss limit cannot be checked"
+          )
+        : reject(
+            "DAILY_LOSS_LIMIT",
+            `Today's PAPER P&L ${todaysPnl} hit the daily loss limit`
+          );
     }
   }
 
@@ -1448,91 +1501,120 @@ export async function runRiskEvaluation(
     opts.positionSource ===
     "ledger";
 
-  const [
-    accountResult,
-    positionsResult,
-    positionResult,
-  ] = await Promise.all([
-    alpacaGet(
-      env,
-      `${ALPACA_PAPER_BASE}/v2/account`
-    ),
+  let account:
+    | Record<
+        string,
+        unknown
+      >
+    | RiskAccount;
 
-    useLedger
-      ? Promise.resolve<AlpacaResult>({
-          ok: true,
-          status: 200,
-          data: [],
-        })
-      : alpacaGet(
-          env,
-          `${ALPACA_PAPER_BASE}/v2/positions`
-        ),
+  let positions:
+    Record<
+      string,
+      unknown
+    >[];
 
-    useLedger ||
-    paperSymbol === null
-      ? Promise.resolve<AlpacaResult>({
-          ok: true,
-          status: 404,
-          data: null,
-        })
-      : alpacaGet(
-          env,
-          `${ALPACA_PAPER_BASE}/v2/positions/${encodeURIComponent(
-            paperSymbol
-          )}`,
-          true
-        ),
-  ]);
-
-  if (
-    !accountResult.ok
-  ) {
-    return accountResult;
-  }
-
-  if (
-    !positionsResult.ok
-  ) {
-    return positionsResult;
-  }
-
-  if (
-    !positionResult.ok
-  ) {
-    return positionResult;
-  }
-
-  const account =
-    asObject(
-      accountResult.data
-    );
-
-  let positions =
-    asArray(
-      positionsResult.data
-    );
-
-  let position =
-    positionResult.data ===
-      null
-      ? null
-      : asObject(
-          positionResult.data
-        );
+  let position:
+    | Record<
+        string,
+        unknown
+      >
+    | null;
 
   if (useLedger) {
-    const snapshot =
-      await ledgerRiskSnapshot(
+    // ALPHA PAPER: account, positions, exposure and today's P&L all come from D1. No broker request,
+    // so Alpaca keys are not needed. If D1 cannot be read, nothing is approved.
+    try {
+      const snapshot =
+        await ledgerRiskSnapshot(
+          env,
+          intent.symbol
+        );
+
+      account =
+        snapshot.account;
+
+      position =
+        snapshot.position;
+
+      positions =
+        snapshot.positions;
+    } catch {
+      return {
+        ok: false,
+        status: 503,
+        code:
+          "ACCOUNT_DATA_UNAVAILABLE",
+        message:
+          "The ALPHA PAPER ledger could not be read; nothing was approved",
+      };
+    }
+  } else {
+    const [
+      accountResult,
+      positionsResult,
+      positionResult,
+    ] = await Promise.all([
+      alpacaGet(
         env,
-        intent.symbol
+        `${ALPACA_PAPER_BASE}/v2/account`
+      ),
+
+      alpacaGet(
+        env,
+        `${ALPACA_PAPER_BASE}/v2/positions`
+      ),
+
+      paperSymbol === null
+        ? Promise.resolve<AlpacaResult>({
+            ok: true,
+            status: 404,
+            data: null,
+          })
+        : alpacaGet(
+            env,
+            `${ALPACA_PAPER_BASE}/v2/positions/${encodeURIComponent(
+              paperSymbol
+            )}`,
+            true
+          ),
+    ]);
+
+    if (
+      !accountResult.ok
+    ) {
+      return accountResult;
+    }
+
+    if (
+      !positionsResult.ok
+    ) {
+      return positionsResult;
+    }
+
+    if (
+      !positionResult.ok
+    ) {
+      return positionResult;
+    }
+
+    account =
+      asObject(
+        accountResult.data
+      );
+
+    positions =
+      asArray(
+        positionsResult.data
       );
 
     position =
-      snapshot.position;
-
-    positions =
-      snapshot.positions;
+      positionResult.data ===
+        null
+        ? null
+        : asObject(
+            positionResult.data
+          );
   }
 
   let price:

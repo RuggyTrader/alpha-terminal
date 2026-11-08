@@ -1,7 +1,7 @@
 // Development-environment sync test: the OTE engine (engine/) → the real Worker on `wrangler dev --local` with
 // throwaway D1 databases. Never touches production. The engine replays real Kraken SOLUSD 5m candles from the
-// engine's fixture one completed candle at a time; the Worker prices ALPHA PAPER fills from live Kraken data and
-// reads the Alpaca PAPER account (GET only), so this needs PAPER keys in worker/.dev.vars, otherwise it skips.
+// engine's fixture one completed candle at a time; the Worker prices ALPHA PAPER fills from live Kraken data.
+// The Workers run WITHOUT Alpaca keys: the ALPHA PAPER risk account is the D1 strategy balance.
 //
 // Three isolated Workers: one runs the engine with the Pine default risk ($200, orders far above the $5,000 limit),
 // one with the `paper-test` profile ($5 risk), and one with `paper-test` and a funded ALPHA PAPER portfolio.
@@ -25,8 +25,6 @@ const ENGINE_DIR = join(WORKER_DIR, "..", "engine");
 const WIN = process.platform === "win32";
 const secret = () => randomBytes(24).toString("base64url");
 const WEBHOOK_SECRET = secret(), DASHBOARD_PASSPHRASE = secret(), ADMIN_SECRET = secret();
-const keys = existsSync(join(WORKER_DIR, ".dev.vars")) ? readFileSync(join(WORKER_DIR, ".dev.vars"), "utf8").split(/\r?\n/).map((l) => l.split("=")[0].trim()) : [];
-const needsBroker = keys.includes("ALPACA_KEY") && keys.includes("ALPACA_SECRET") ? {} : { skip: "ALPACA_KEY / ALPACA_SECRET (PAPER) not in worker/.dev.vars" };
 
 const CANDLES = JSON.parse(readFileSync(join(ENGINE_DIR, "test", "fixtures", "SOLUSD-5m-kraken.json"), "utf8")).candles;
 const STEP = 300_000;
@@ -50,7 +48,8 @@ function environment(port, profile) {
   env.start = async () => {
     wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
     const args = ["wrangler", "dev", "--local", "--port", String(port), "--inspector-port", String(port + 600), "--ip", "127.0.0.1", "--persist-to", persist];
-    for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET })) args.push("--var", `${k}:${v}`);
+    // Blank Alpaca keys override worker/.dev.vars: no Alpaca account exists for these Workers.
+    for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
     env.worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
     const end = Date.now() + 60000;
     while (Date.now() < end) {
@@ -90,6 +89,16 @@ function environment(port, profile) {
     assert.equal(r.status, 200);
     return (await r.json()).data;
   };
+  /** Dashboard PAPER action (fund / transfer), confirmed with the passphrase like the website does. */
+  env.act = async (path, body) => {
+    await env.dashboard(); // signs in
+    const r = await fetch(`${base}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: env.cookie },
+      body: JSON.stringify({ ...body, passphrase: DASHBOARD_PASSPHRASE, request_id: randomBytes(9).toString("hex") }),
+    });
+    assert.equal(r.status, 200, JSON.stringify(await r.clone().json()));
+  };
   env.replayTo = async (r, bar) => { while (r.state.strategy.bar < bar) { env.visible += 1; await r.tick(); } };
   return env;
 }
@@ -99,7 +108,6 @@ const test = environment(8798, "paper-test");
 const funded = environment(8796, "paper-test"); // same, with a funded ALPHA PAPER portfolio
 
 before(async () => {
-  if (needsBroker.skip) return;
   await Promise.all([dflt.start(), test.start(), funded.start()]);
 });
 after(() => {
@@ -110,19 +118,11 @@ after(() => {
 });
 
 describe("funded ALPHA PAPER portfolio: the real engine's trade reserves, releases and credits the SOL balance", () => {
-  it("BUY reserves the position value from SOL, CLOSE releases it and credits the ledger P&L; history matches balances", needsBroker, async () => {
+  it("BUY reserves the position value from SOL, CLOSE releases it and credits the ledger P&L; history matches balances", async () => {
     const env = funded;
-    await env.dashboard(); // signs in
-    const act = async (path, body) => {
-      const r = await fetch(`${env.base}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: env.cookie },
-        body: JSON.stringify({ ...body, passphrase: DASHBOARD_PASSPHRASE, request_id: randomBytes(9).toString("hex") }),
-      });
-      assert.equal(r.status, 200, JSON.stringify(await r.clone().json()));
-    };
-    await act("/api/paper/fund", { action: "deposit", amount_usd: 5000 });
-    await act("/api/paper/transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 5000 });
+    assert.equal((await (await fetch(`${env.base}/health`)).json()).alpaca_configured, false);
+    await env.act("/api/paper/fund", { action: "deposit", amount_usd: 5000 });
+    await env.act("/api/paper/transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 5000 });
     const micro = (v) => Number(v);
     const sol = () => env.sql(`SELECT * FROM portfolio_wallets WHERE wallet = 'SOLUSD'`)[0];
     const booksBalance = () => {
@@ -169,7 +169,7 @@ describe("funded ALPHA PAPER portfolio: the real engine's trade reserves, releas
 });
 
 describe("default strategy risk ($200): truthful rejections, nothing reaches the ledger", () => {
-  it("rejected entries are recorded with the Worker's reason and their exits are never sent", needsBroker, async () => {
+  it("rejected entries are recorded with the Worker's reason and their exits are never sent", async () => {
     assert.equal(dflt.cfg.inputs.riskUSD, undefined, "Pine default (200) applies");
     dflt.visible = FILLS[0];
     const r = dflt.runner();
@@ -200,8 +200,11 @@ describe("default strategy risk ($200): truthful rejections, nothing reaches the
 
 describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in step", () => {
   let r;
-  it("warm-up sends nothing; the heartbeat shows the engine ONLINE with its profile", needsBroker, async () => {
+  it("warm-up sends nothing; the heartbeat shows the engine ONLINE with its profile", async () => {
     assert.deepEqual(test.cfg.inputs, { riskUSD: 5 });
+    // PAPER capital for the LONG trades ($5 risk: positions well under $5,000).
+    await test.act("/api/paper/fund", { action: "deposit", amount_usd: 5000 });
+    await test.act("/api/paper/transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 5000 });
     test.visible = FILLS[0];
     r = test.runner();
     await r.tick();
@@ -212,7 +215,7 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     assert.ok(!JSON.stringify(d.bot).includes(WEBHOOK_SECRET));
   });
 
-  it("BUY accepted → the same position is open in the ledger; CLOSE → both flat and one ALPHA PAPER trade", needsBroker, async () => {
+  it("BUY accepted → the same position is open in the ledger; CLOSE → both flat and one ALPHA PAPER trade", async () => {
     await test.replayTo(r, FILLS[2]); // short trade (refused) and the LONG entry
     const buy = r.state.outbox.find((x) => x.action === "BUY");
     assert.deepEqual([buy.status, buy.code], ["accepted", "DRY_RUN_ACCEPTED"]);
@@ -251,7 +254,7 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     assert.equal(new Set(test.sends).size, test.sends.length, "no signal id was sent twice");
   });
 
-  it("restart, forced resend and an outage never duplicate a simulated trade", needsBroker, async () => {
+  it("restart, forced resend and an outage never duplicate a simulated trade", async () => {
     const counts = () => test.sql(`SELECT (SELECT COUNT(*) FROM alerts) a, (SELECT COUNT(*) FROM orders) o, (SELECT COUNT(*) FROM paper_fills) f, (SELECT COUNT(*) FROM trades) t`)[0];
     const before = counts();
     const r2 = test.runner(); // process restart from the saved state file
@@ -284,7 +287,7 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     test.skewMs = 0;
   });
 
-  it("the engine's ledger view is read-only and needs the webhook secret", needsBroker, async () => {
+  it("the engine's ledger view is read-only and needs the webhook secret", async () => {
     const q = (body) => fetch(`${test.base}/webhook/engine-ledger`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     assert.equal((await q({ secret: "wrong", symbol: "SOLUSD" })).status, 401);
     assert.equal((await q({ secret: WEBHOOK_SECRET, symbol: "SPY" })).status, 400);
@@ -298,7 +301,7 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     assert.deepEqual(snap(), before);
   });
 
-  it("a silent engine is shown truthfully as STALE, then OFFLINE", needsBroker, async () => {
+  it("a silent engine is shown truthfully as STALE, then OFFLINE", async () => {
     const setAge = (sec) => {
       const v = JSON.parse(test.sql(`SELECT value FROM app_meta WHERE key = 'engine_status'`)[0].value);
       v.received_at = new Date(Date.now() - sec * 1000).toISOString();
@@ -310,7 +313,7 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     assert.equal((await test.dashboard()).bot.state, "OFFLINE");
   });
 
-  it("the status endpoint needs the webhook secret and a supported symbol, and changes nothing else", needsBroker, async () => {
+  it("the status endpoint needs the webhook secret and a supported symbol, and changes nothing else", async () => {
     const post = (body) => fetch(`${test.base}/webhook/engine-status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: typeof body === "string" ? body : JSON.stringify(body) });
     assert.equal((await post({ secret: "wrong", status: { symbol: "SOLUSD" } })).status, 401);
     assert.equal((await post({ secret: WEBHOOK_SECRET, status: { symbol: "SPY" } })).status, 400);
