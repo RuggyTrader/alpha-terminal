@@ -3,8 +3,9 @@
 // engine's fixture one completed candle at a time; the Worker prices ALPHA PAPER fills from live Kraken data and
 // reads the Alpaca PAPER account (GET only), so this needs PAPER keys in worker/.dev.vars, otherwise it skips.
 //
-// Two isolated Workers: one runs the engine with the Pine default risk ($200, orders far above the $5,000 limit),
-// one with the `paper-test` profile ($5 risk). Fixture trades (strict pivot rule): SHORT, then LONG, then LONG.
+// Three isolated Workers: one runs the engine with the Pine default risk ($200, orders far above the $5,000 limit),
+// one with the `paper-test` profile ($5 risk), and one with `paper-test` and a funded ALPHA PAPER portfolio.
+// Fixture trades (strict pivot rule): SHORT, then LONG, then LONG.
 
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -95,15 +96,76 @@ function environment(port, profile) {
 
 const dflt = environment(8797, null); // Pine default risk
 const test = environment(8798, "paper-test");
+const funded = environment(8796, "paper-test"); // same, with a funded ALPHA PAPER portfolio
 
 before(async () => {
   if (needsBroker.skip) return;
-  await Promise.all([dflt.start(), test.start()]);
+  await Promise.all([dflt.start(), test.start(), funded.start()]);
 });
 after(() => {
   dflt.stop();
   test.stop();
+  funded.stop();
   for (const d of temps) { try { rmSync(d, { recursive: true, force: true }); } catch { /* locked */ } }
+});
+
+describe("funded ALPHA PAPER portfolio: the real engine's trade reserves, releases and credits the SOL balance", () => {
+  it("BUY reserves the position value from SOL, CLOSE releases it and credits the ledger P&L; history matches balances", needsBroker, async () => {
+    const env = funded;
+    await env.dashboard(); // signs in
+    const act = async (path, body) => {
+      const r = await fetch(`${env.base}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: env.cookie },
+        body: JSON.stringify({ ...body, passphrase: DASHBOARD_PASSPHRASE, request_id: randomBytes(9).toString("hex") }),
+      });
+      assert.equal(r.status, 200, JSON.stringify(await r.clone().json()));
+    };
+    await act("/api/paper/fund", { action: "deposit", amount_usd: 5000 });
+    await act("/api/paper/transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 5000 });
+    const micro = (v) => Number(v);
+    const sol = () => env.sql(`SELECT * FROM portfolio_wallets WHERE wallet = 'SOLUSD'`)[0];
+    const booksBalance = () => {
+      for (const w of env.sql(`SELECT * FROM portfolio_wallets`)) {
+        const e = env.sql(`SELECT COALESCE(SUM(available_change_micro),0) AS a, COALESCE(SUM(reserved_change_micro),0) AS r FROM portfolio_entries WHERE wallet = '${w.wallet}'`)[0];
+        assert.equal(micro(w.available_micro), micro(e.a), `${w.wallet} available vs history`);
+        assert.equal(micro(w.reserved_micro), micro(e.r), `${w.wallet} reserved vs history`);
+      }
+    };
+
+    env.visible = FILLS[0];
+    const r = env.runner();
+    await r.tick(); // warm-up
+    await env.replayTo(r, FILLS[2]); // short trade (refused, never touches the balance), then the LONG entry
+    const buy = r.state.outbox.find((x) => x.action === "BUY");
+    assert.deepEqual([buy.status, buy.code], ["accepted", "DRY_RUN_ACCEPTED"]);
+    const [pos] = env.sql(`SELECT * FROM paper_positions WHERE status = 'OPEN'`);
+    assert.equal(pos.wallet, "SOLUSD");
+    const value = Math.round(pos.qty * pos.avg_entry_price * 1e6);
+    assert.ok(Math.abs(micro(pos.reserved_micro) - value) <= 1, "reserved = qty × ledger fill price");
+    assert.equal(micro(sol().reserved_micro), micro(pos.reserved_micro));
+    assert.equal(micro(sol().available_micro), 5000e6 - micro(pos.reserved_micro));
+    booksBalance();
+    let d = await env.dashboard();
+    assert.equal(d.portfolio.consistency.ok, true, d.portfolio.consistency.issues.join("; "));
+    assert.equal(d.bot.status.ledger_check.status, "OK");
+
+    await env.replayTo(r, FILLS[3]); // the LONG exit
+    const close = r.state.outbox.find((x) => x.action === "CLOSE" && x.entryId === buy.id);
+    assert.deepEqual([close.status, close.code], ["accepted", "DRY_RUN_ACCEPTED"]);
+    const [trade] = env.sql(`SELECT * FROM trades WHERE source = 'ALPHA_PAPER'`);
+    const pnl = Math.round(Number(trade.realized_pnl) * 1e6); // TEXT column
+    const after = sol();
+    assert.equal(micro(after.reserved_micro), 0);
+    assert.ok(Math.abs(micro(after.realized_pnl_micro) - pnl) <= 1, "realized P&L credited to SOL");
+    assert.equal(micro(after.available_micro), 5000e6 + micro(after.realized_pnl_micro));
+    assert.equal(micro(after.net_funding_micro), 5000e6, "a trade never counts as funding");
+    booksBalance();
+    d = await env.dashboard();
+    assert.equal(d.portfolio.consistency.ok, true, d.portfolio.consistency.issues.join("; "));
+    assert.equal(d.paper.positions.length, 0);
+    assert.equal(env.sql(`SELECT COUNT(*) AS n FROM orders WHERE alpaca_order_id IS NOT NULL`)[0].n, 0, "no broker order");
+  });
 });
 
 describe("default strategy risk ($200): truthful rejections, nothing reaches the ledger", () => {
