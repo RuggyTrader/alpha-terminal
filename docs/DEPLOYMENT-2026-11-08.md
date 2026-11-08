@@ -95,3 +95,29 @@ Optionally upload the simulator's backtest with the same settings:
 
 `npx wrangler rollback 1d551619-e4aa-4727-8b43-eef8ad91deca` (only while no funded position is open). The database
 stays on `0003`. Database restore only if data is wrong: the bookmark above (deletes everything written since).
+
+## Update 2026-11-09 ~00:00 UTC: `a8b06db` (ALPHA PAPER risk from D1)
+
+Authorized by the owner. Production now runs **`b1c87441-bc4f-47b5-8f8c-7e3f8235228b`** (commit `a8b06db`, message
+"ALPHA TERMINAL a8b06db ALPHA PAPER risk from D1 (PAPER-only)"). **Rollback target: `a1ab344a-388e-4840-956f-d19a3db9f1ce`**
+(`361c030`): `npx wrangler rollback a1ab344a-388e-4840-956f-d19a3db9f1ce`; safe with or without funded positions (see
+`docs/ENGINE-SYNC-SETUP.md`), but that version needs working Alpaca keys for every signal.
+
+- Before: same account and D1; production at `a1ab344a`; 0 positions (open or closed), all six wallets $0, no
+  funding entries, no broker orders, SOL v1 $10 PENDING. No migration pending (schema 3).
+- Backup: Time Travel bookmark `00000027-00000006-0000511d-7f6e7eabf45b7ae593c0e921c8b80082`; export
+  `C:\Users\hujhj\Documents\AlphaTerminalBackups\alpha-terminal-db-20261108T235554Z-pre-a8b06db.sql`
+  (sha256 `a5aaad8d…c103`), loaded into scratch SQLite: 16 tables, counts equal production, migrations 0001-0003,
+  integrity ok.
+- Change versus production: 5 Worker source files only (`index.ts`, `paper_ledger.ts`, `portfolio.ts`,
+  `trade_core.ts`, `webhook_dry_run.ts`); frontend build identical (`index-BrQhJohL.js`); `wrangler.jsonc` and
+  migrations unchanged. Bindings: `ENABLE_TRADING "false"`, `SHORT_SELLING_ENABLED "false"`, limits unchanged.
+- After: `/health` `mode PAPER`, `enable_trading: false`, **`alpha_paper_account: "D1"`**, database connected.
+  Signed out: dashboard and PAPER actions 401, webhooks with a wrong secret 401 (`broker_request_sent: false`).
+  Signed in (read-only): portfolio $0 in all six balances, consistency OK, limits $5,000 / $10,000, shorts off;
+  SOL "Pending $10.00 · v1 · waiting for the engine"; simulator "No verified backtest uploaded yet"; engine
+  NOT_RUNNING. D1 unchanged by the deploy (10 alerts, 4 orders, 0 fills, positions, entries, trades).
+- Not exercised in production (by design, no PAPER trade was created): a signal through the D1 risk account. It is
+  covered by the local tests with Alpaca keys blank. The stored Alpaca keys (`alpaca_configured: true`) are still
+  rejected by Alpaca; ALPHA PAPER does not read them; only the optional broker panel shows the error.
+- Not done (separate steps): webhook secret rotation, engine sync, funding.
