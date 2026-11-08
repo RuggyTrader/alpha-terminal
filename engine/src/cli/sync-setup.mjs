@@ -18,6 +18,7 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig, loadEnvFile } from "../config.mjs";
+import { compareEngineAndLedger } from "../sync_check.mjs";
 
 const ENGINE_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WORKER_DIR = join(ENGINE_DIR, "..", "worker");
@@ -75,24 +76,20 @@ async function check() {
         body: JSON.stringify({ secret: cfg.webhookSecret, symbol: cfg.symbol }), signal: AbortSignal.timeout(15000),
       });
       status = r.status;
-      if (r.ok) ledger = await r.json();
+      if (r.ok) { try { ledger = await r.json(); } catch { ledger = null; } }
     } catch { /* status 0 */ }
     ok("webhook secret accepted by the Worker", status === 200, status === 200 ? "yes (read-only ledger view)" : status === 401 ? "rejected: engine/.env and Cloudflare differ" : `no answer (HTTP ${status})`);
   }
 
-  // Engine saved state vs production ledger: never enable sync when the engine would send a CLOSE for a
-  // position production does not hold, or production holds a position the engine does not know.
+  // Engine saved state vs production ledger (fails closed, see ../sync_check.mjs): symbol, direction, quantity,
+  // open status and opening alert id must all agree; anything unreadable is a mismatch.
   const stateFile = join(cfg.dataDir, `state-${cfg.symbol}-${cfg.intervalMin}m.json`);
-  const state = existsSync(stateFile) ? JSON.parse(readFileSync(stateFile, "utf8")) : null;
-  const enginePos = state?.strategy?.broker?.pos ?? null;
-  const ledgerPos = ledger?.position ?? null;
-  if (ledger) {
-    if (!enginePos && !ledgerPos) ok("engine and ledger positions match", true, `both flat${state ? "" : " (no saved engine state yet: it starts flat)"}`);
-    else if (enginePos && ledgerPos && state?.openEntryId && ledgerPos.open_alert_id === state.openEntryId) ok("engine and ledger positions match", true, `same open position (${ledgerPos.open_alert_id})`);
-    else ok("engine and ledger positions match", false, enginePos
-      ? `the engine's saved state holds a position production does not hold as the same entry (${state?.openEntryId ?? "unknown"}); do not sync this state`
-      : `production holds an open ${cfg.symbol} position (${ledgerPos.open_alert_id}) the engine did not open`);
+  let state = null; // no file: the engine starts flat
+  if (existsSync(stateFile)) {
+    try { state = JSON.parse(readFileSync(stateFile, "utf8")); } catch { state = undefined; } // unreadable
   }
+  const match = compareEngineAndLedger(state, ledger, cfg.symbol);
+  ok("engine and ledger positions match", match.pass, match.detail);
 
   const sync = (file.ENGINE_SYNC ?? "off") === "on";
   say(`info  ENGINE_SYNC is currently ${sync ? "on" : "off"}`);

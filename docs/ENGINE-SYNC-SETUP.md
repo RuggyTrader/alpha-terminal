@@ -75,9 +75,15 @@ Order (from `engine/`):
    SOL risk "Applied (engine confirmed) $10.00 · v1". Then `npm start` for continuous running.
 
 The engine keeps its saved state in `engine/data/production` (empty now, so it starts flat), its lock file
-prevents a second instance, and every signal id is unique, so a resend never applies twice. `check` refuses to
-enable sync if the saved state holds a position the production ledger does not hold as the same entry (it would
-otherwise send an unmatched CLOSE) or if production holds a position the engine did not open.
+prevents a second instance, and every signal id is unique, so a resend never applies twice.
+
+`check` compares the engine's saved state with the production ledger (`engine/src/sync_check.mjs`) and fails
+closed. Both flat passes. A held position passes only when symbol, direction, quantity (8 decimals), open status
+and opening alert id all agree, and the engine's own record of that entry was accepted. A matching id with any
+other difference fails. So does a position on one side only: the engine would send an unmatched CLOSE, or
+production would hold a position the engine never closes. An unreachable, unreadable or incomplete ledger answer
+fails, as does an unreadable or malformed state file. Tests: `engine/test/sync_check.test.mjs` (30 cases) and
+`worker/test/sync_setup.test.mjs` (against a real open position in a local Worker).
 
 ## Rollback assessment
 
