@@ -23,7 +23,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const DEV_DIR = join(HERE, "..");
 const REPO = join(DEV_DIR, "..");
 const PROD_REF = "cde07af";
-const ROLLBACK_REF = process.env.ROLLBACK_REF ?? "1694c1f"; // rollback/worker-fee-compat
+const ROLLBACK_REF = process.env.ROLLBACK_REF ?? "c5bb67e"; // rollback/worker-fee-compat (Worker code identical to 1694c1f)
 const WIN = process.platform === "win32";
 const secret = () => randomBytes(24).toString("base64url");
 const WEBHOOK_SECRET = secret(), DASHBOARD_PASSPHRASE = secret(), ADMIN_SECRET = secret();
@@ -87,6 +87,10 @@ async function start(dir, profile) {
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9803", "--ip", "127.0.0.1", "--persist-to", persist];
   const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: `http://127.0.0.1:${fixture.address().port}`, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "", ...(profile ? { PAPER_COST_PROFILE: profile } : {}) };
   for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
+  // A Worker left over from an interrupted run would silently answer this test's requests: refuse instead.
+  let busy = false;
+  try { await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(1500) }); busy = true; } catch { /* free */ }
+  if (busy) throw new Error(`port ${PORT} is already in use (a Worker from an interrupted test run?); stop it before running this test`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: dir, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 90000;
   let up = false;
@@ -186,14 +190,15 @@ let devTradeOpenAcrossRollback = null;
 let beforeRollback = null;
 
 describe("1. production code, schema 3: prior data", () => {
-  it("funded; one closed gross trade; one position left open (closes much later, under ROLLBACK)", async () => {
+  after(stop);
+  it("funded; one closed gross trade; one position left open across the migration", async () => {
     wrangler(PROD_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
     await start(PROD_DIR);
     await paperAction("fund", { action: "deposit", amount_usd: 300 });
     await paperAction("transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 200 });
     market.SOLUSD = P1; await ok(signal("BUY", 0.5));
     market.SOLUSD = P2; await ok(signal("CLOSE"));
-    // the pre-migration position is the only open one; it is closed in step 4 by the rollback Worker
+    // A position opened before the migration and still open across it (closed in step 3 by the development Worker).
     market.SOLUSD = P2; await ok(signal("BUY", 0.25));
     assert.equal((await dashboard()).portfolio.consistency.ok, true);
     await stop();
@@ -202,10 +207,13 @@ describe("1. production code, schema 3: prior data", () => {
 });
 
 describe("2. interrupted rollout: migration 0004 applied, production code still running", () => {
+  after(stop);
   it("before any fee exists the production code stays consistent on schema 4 and keeps trading", async () => {
     wrangler(DEV_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
     assert.equal(d1(`SELECT value FROM app_meta WHERE key = 'schema_version'`)[0].value, "4");
     await start(PROD_DIR);
+    assert.equal((await dashboard()).portfolio.consistency.ok, true);
+    market.SOLUSD = P2; await ok(signal("BUY", 0.05)); // the production code writes on schema 4 (no cost columns)
     assert.equal((await dashboard()).portfolio.consistency.ok, true);
     await stop();
     assert.deepEqual(invariants(), []);
@@ -213,13 +221,23 @@ describe("2. interrupted rollout: migration 0004 applied, production code still 
 });
 
 describe("3. development Worker (Ndax): fees recorded", () => {
+  after(stop);
   it("several lifecycles with maker/taker fees, a partial exit and a duplicate; one fee-paying position left open", async () => {
     await start(DEV_DIR, "ndax");
+    // The first BUY ADDS to the position opened before the migration; SELL is a partial exit; CLOSE closes it all.
     market.SOLUSD = P2; await ok(signal("BUY", 0.6, { liquidity: "maker" }));
     market.SOLUSD = P1; await ok(signal("SELL", 0.2));
     const dup = signal("CLOSE", undefined, { liquidity: "maker" });
     await ok(dup);
     assert.equal((await post(dup)).json.code, "DUPLICATE");
+    // The pre-migration position closed safely: its fills mix "no cost record" (before 0004) and Ndax fills.
+    const pre = d1(`SELECT * FROM trades ORDER BY id DESC LIMIT 1`)[0];
+    const preFills = d1(`SELECT * FROM paper_fills WHERE position_fk = ${pre.position_fk} ORDER BY id`);
+    assert.ok(preFills.some((f) => f.cost_profile === null) && preFills.some((f) => f.cost_profile === "ndax"), "mixed cost history");
+    assert.equal(Math.round(Number(pre.fees_usd) * 1e6), preFills.reduce((s, f) => s + (f.fee_micro ?? 0), 0), "fees = the Ndax fills' fees only");
+    const preNet = preFills.reduce((s, f) => s + (f.side === "sell" ? 1 : -1) * f.qty * f.price - (f.fee_micro ?? 0) / 1e6, 0);
+    assert.ok(Math.abs(preNet - Number(pre.realized_pnl)) < 1e-6, `net ${pre.realized_pnl} vs fills ${preNet}`);
+    report.pre_migration_position_closed = { fills: preFills.map((f) => `${f.kind} ${f.side} ${f.qty} ${f.cost_profile ?? "no cost record"}`), net: Number(pre.realized_pnl), gross: Number(pre.gross_pnl), fees_usd: Number(pre.fees_usd), closed_by: "development Worker (Ndax), step 3" };
     market.SOLUSD = P1; await ok(signal("BUY", 0.3, { liquidity: "maker" }));
     market.SOLUSD = P2; await ok(signal("CLOSE")); // taker
     // a dev-opened position whose ENTRY fee is recorded, left open across the rollback
@@ -239,6 +257,7 @@ describe("3. development Worker (Ndax): fees recorded", () => {
 });
 
 describe("4. ROLLBACK: fee-compatible rollback Worker", () => {
+  after(stop);
   it("starts with no accounting warning; every balance and fee exactly as before; costs shown as disabled", async () => {
     await start(ROLLBACK_DIR);
     const d = await dashboard();
@@ -275,7 +294,7 @@ describe("4. ROLLBACK: fee-compatible rollback Worker", () => {
     assert.ok(d1(`SELECT * FROM paper_fills WHERE position_fk = ${t.position_fk} ORDER BY id`).slice(-2).every((f) => f.fee_micro === null), "rollback fills carry no fee");
     assert.equal(wallet().reserved_micro, 0);
     assert.deepEqual(invariants(), []);
-    report.pre_rollback_position_closed = { trade_net: Number(t.realized_pnl), trade_gross: Number(t.gross_pnl), fees_usd: Number(t.fees_usd), position_opened_by: "production code (step 1), added to by the development Worker (step 3)" };
+    report.fee_paying_position_closed_by_rollback = { trade_net: Number(t.realized_pnl), trade_gross: Number(t.gross_pnl), fees_usd: Number(t.fees_usd), position_opened_by: "development Worker (Ndax entry fee), step 3; closed by the rollback Worker" };
   });
 
   it("a new lifecycle after a restart: no fee, gross = net, books consistent; transfers still not P&L", async () => {
@@ -309,16 +328,19 @@ describe("4. ROLLBACK: fee-compatible rollback Worker", () => {
     assert.ok(perf.trades.some((x) => x.cost_profile === "ndax" && x.fees_usd > 0));
     assert.ok(perf.trades.some((x) => x.cost_profile === "none"));
     assert.ok(perf.trades.some((x) => x.cost_profile === null), "trades from before costs stay gross");
-    const id = perf.trades.find((x) => x.cost_profile === "ndax").id;
-    const proof = await api(`/api/dashboard/trade-proof?id=${id}`);
-    assert.ok(proof.fills.every((f) => f.cost_profile === "ndax"));
-    const net = proof.fills.reduce((s, f) => s + (f.side === "sell" ? 1 : -1) * f.qty * f.price - f.fee_micro / 1e6, 0);
-    assert.ok(Math.abs(net - Number(proof.trade.realized_pnl)) < 1e-6);
-    await stop();
+    // Every ALPHA PAPER trade, whatever its cost history: net recomputed from the proof's fills = recorded net.
+    for (const t of perf.trades) {
+      const proof = await api(`/api/dashboard/trade-proof?id=${t.id}`);
+      const net = proof.fills.reduce((s, f) => s + (f.side === "sell" ? 1 : -1) * f.qty * f.price - (f.fee_micro ?? 0) / 1e6, 0);
+      assert.ok(Math.abs(net - Number(proof.trade.realized_pnl)) < 1e-6, `trade ${t.id}: fills ${net} vs recorded ${proof.trade.realized_pnl}`);
+      if (t.cost_profile === "ndax") assert.ok(proof.fills.some((f) => f.cost_profile === "ndax" && f.fee_micro > 0));
+    }
+    report.trade_proofs_checked = perf.trades.length;
   });
 });
 
 describe("5. roll-forward: development Worker again", () => {
+  after(stop);
   it("consistent; every fee from before the rollback kept once; new fees charged again", async () => {
     const atRollForward = snapshot();
     await start(DEV_DIR, "ndax");
@@ -338,6 +360,7 @@ describe("5. roll-forward: development Worker again", () => {
 });
 
 describe("6. interrupted rollout: rollback Worker on an UNMIGRATED (schema 3) database", () => {
+  after(stop);
   it("runs, trades and reconciles without touching fee columns", async () => {
     persist = join(work, "d1-schema3");
     wrangler(PROD_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);

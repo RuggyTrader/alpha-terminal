@@ -86,6 +86,10 @@ async function start(dir, profile) {
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9802", "--ip", "127.0.0.1", "--persist-to", persist];
   const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: `http://127.0.0.1:${fixture.address().port}`, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "", ...(profile ? { PAPER_COST_PROFILE: profile } : {}) };
   for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
+  // A Worker left over from an interrupted run would silently answer this test's requests: refuse instead.
+  let busy = false;
+  try { await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(1500) }); busy = true; } catch { /* free */ }
+  if (busy) throw new Error(`port ${PORT} is already in use (a Worker from an interrupted test run?); stop it before running this test`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: dir, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 90000;
   let up = false;
