@@ -145,8 +145,8 @@ Two scripts in `engine/deploy/` (reviewed and tested 2026-11-09):
   Logs in `engine/data/production/`: `engine.log` (engine output) and `supervisor.log` (starts, restarts, refusals),
   each rotated at 20 MB. All git-ignored.
 - `windows-task.ps1 install | status | stop | uninstall` manages the per-user scheduled task "ALPHA TERMINAL Engine":
-  trigger at your sign-in, runs as you with limited rights and a hidden window, only while you are signed in, never
-  a second instance (IgnoreNew), restarted by Task Scheduler if it fails to start. `install` refuses while any engine
+  triggers at your sign-in and 3 minutes later (see the 2026-11-09 fix below), runs as you with limited rights and a
+  hidden console (`conhost --headless`), only while you are signed in, restarted by Task Scheduler if it fails to start. `install` refuses while any engine
   for this folder is running and records the full path of `node.exe` (rerun `install` after moving Node). `stop`
   ends the supervisor first, then the engine (a hard stop is safe: state is saved atomically after every step and a
   re-sent signal is recognised as a duplicate). `uninstall` stops and removes the task. Nothing else on the PC is
@@ -159,6 +159,32 @@ engine the supervisor waits instead of starting a second; `install` refuses whil
 task "ALPHA TERMINAL Engine TEST": install (sign-in trigger, your account, limited, IgnoreNew), status, a second
 start request (still one supervisor), stop, start again, uninstall (task removed). Not exercised: an actual
 sign-out/sign-in.
+
+### 2026-11-09: task launch held suspended (fixed)
+
+The owner's installed task launched `powershell.exe` twice (20:56 and 21:34 local) and the process stayed
+created-suspended: one thread in the Suspended wait state, 0 CPU, no `supervisor.log` line, so no engine ran. The
+Task Scheduler history and Defender logs are empty, and a test task with the same launch on an isolated engine copy
+started normally (also with Windows Terminal open), so the exact trigger is not proven. The likely mechanism is
+Windows 11's console handoff to the default terminal (Windows Terminal: the console program is created suspended
+until the terminal attaches it).
+
+Changes in `windows-task.ps1` (the engine, its settings and data are unchanged):
+- The task runs `conhost.exe --headless powershell.exe -File run-windows-production.ps1 -Node <node.exe>`: PowerShell
+  gets its own invisible console, so there is no handoff to suspend it.
+- A second sign-in trigger 3 minutes later, with parallel instances allowed. A stuck first launch never takes the
+  supervisor's mutex, so the second one starts the engine; when the first is running, the second exits at once.
+  Still one supervisor and one engine per data folder.
+- `install -NoStart` registers or updates the task without starting it (allowed while an engine runs; the task takes
+  over at the next sign-in). `status` reports a supervisor whose threads are all suspended as SUSPENDED, and shows
+  whether the task uses the fixed launch.
+
+Tested on the isolated copy with a temporary task (removed afterwards): both triggers registered (delay none and
+PT3M), Parallel; the supervisor ran normally (27 threads, not suspended); two extra start requests left one
+supervisor and one engine (the extra one logged "another supervisor already runs" and exited); a killed engine was
+restarted; `stop` left nothing running; `install` refused beside a running engine and `install -NoStart` registered
+without touching it; `uninstall` removed the task. The production engine was not touched. A real sign-in is still
+the only full test of the sign-in triggers.
 
 The PC must be on, signed in and awake. After sleep the engine catches up on the missed Kraken candles: entries from
 them expire unsent (`SIGNAL_EXPIRED`), exits of positions already in the ledger are still sent.

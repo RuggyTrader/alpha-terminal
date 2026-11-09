@@ -1,13 +1,21 @@
 # Per-user scheduled task that starts the PAPER engine supervisor (run-windows-production.ps1) at sign-in.
 #   powershell -NoProfile -ExecutionPolicy Bypass -File engine\deploy\windows-task.ps1 install    (and starts it now)
+#   powershell -NoProfile -ExecutionPolicy Bypass -File engine\deploy\windows-task.ps1 install -NoStart
+#       (registers only; an engine already running keeps running and the task takes over at the next sign-in)
 #   powershell -NoProfile -ExecutionPolicy Bypass -File engine\deploy\windows-task.ps1 status
 #   powershell -NoProfile -ExecutionPolicy Bypass -File engine\deploy\windows-task.ps1 stop       (until next sign-in)
 #   powershell -NoProfile -ExecutionPolicy Bypass -File engine\deploy\windows-task.ps1 uninstall
+# Starts at sign-in and again 3 minutes later as a fallback (the second exits at once if one is running).
 # Runs as you, no administrator rights, hidden window, only while you are signed in. It changes nothing else
 # (no power, firewall or security settings). The task holds no secret: the engine reads engine\.env itself.
+#
+# Launch: conhost.exe --headless runs PowerShell with its own invisible console. Launching powershell.exe directly
+# from the task let Windows 11 hand its console to the default terminal (Windows Terminal); that handoff left the
+# process created-suspended with 0 CPU, so the supervisor never ran. --headless never hands the console off.
 param(
   [Parameter(Mandatory = $true, Position = 0)][ValidateSet("install", "status", "stop", "uninstall")][string]$Action,
-  [string]$TaskName = "ALPHA TERMINAL Engine"
+  [string]$TaskName = "ALPHA TERMINAL Engine",
+  [switch]$NoStart
 )
 $ErrorActionPreference = "Stop"
 $engineDir = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -25,6 +33,12 @@ $log = Join-Path $dataDir "engine.log"
 function Get-Task { Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue }
 # Supervisors of THIS engine folder (by script path) and the engine holding THIS data folder's lock.
 function Get-Supervisors { @(Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" | Where-Object { $_.CommandLine -like "*$runner*" }) }
+function Get-Hosts { @(Get-CimInstance Win32_Process -Filter "Name = 'conhost.exe'" | Where-Object { $_.CommandLine -like "*$runner*" }) }
+# A process whose threads all wait in the Suspended state never ran (the failure the conhost launch avoids).
+function Test-Suspended($id) {
+  $p = Get-Process -Id $id -ErrorAction SilentlyContinue
+  return [bool]($p -and $p.Threads.Count -gt 0 -and -not ($p.Threads | Where-Object { $_.WaitReason -ne "Suspended" }))
+}
 function Get-Engine {
   if (-not (Test-Path $lock)) { return $null }
   $id = 0
@@ -37,12 +51,13 @@ function Get-Engine {
 function Stop-All {
   # Collect first: once the task stops, its children no longer have a living parent to find them by.
   $sup = @(Get-Supervisors)
+  $hosts = @(Get-Hosts)
   $cmd = @(Get-CimInstance Win32_Process -Filter "Name = 'cmd.exe'" | Where-Object { $sup.ProcessId -contains $_.ParentProcessId })
   $eng = Get-Engine
   if (Get-Task) { Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue }
   # Supervisors first (so nothing restarts the engine), then the engine. A hard stop is safe: the engine saves its
   # state atomically after every step and a re-sent signal is recognised as a duplicate.
-  foreach ($p in @($sup) + @($cmd)) { Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue }
+  foreach ($p in @($sup) + @($hosts) + @($cmd)) { Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue }
   if ($eng) { Stop-Process -Id $eng.ProcessId -Force -ErrorAction SilentlyContinue }
   Start-Sleep -Seconds 2
   $left = @(Get-Supervisors) + @(Get-Engine | Where-Object { $_ })
@@ -53,20 +68,30 @@ switch ($Action) {
   "install" {
     if (-not (Test-Path (Join-Path $engineDir ".env"))) { throw "engine\.env not found; nothing installed" }
     $running = @(Get-Supervisors) + @(Get-Engine | Where-Object { $_ })
-    if ($running.Count) {
-      Write-Host "Not installed: an engine is already running (pid $($running.ProcessId -join ', ')). Stop it first (Ctrl+C in its window), then run install again."
+    if ($running.Count -and -not $NoStart) {
+      Write-Host "Not installed: an engine is already running (pid $($running.ProcessId -join ', ')). Stop it first (Ctrl+C in its window) and run install again, or run install -NoStart to keep it running and let the task take over at the next sign-in."
       exit 1
     }
     $node = (Get-Command node -ErrorAction Stop).Source
     $me = "$env:USERDOMAIN\$env:USERNAME"
-    $arg = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"`$env:ALPHA_NODE='$node'; & '$runner'`""
-    $act = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument $arg -WorkingDirectory $engineDir
+    $ps = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+    $arg = "--headless `"$ps`" -NoProfile -ExecutionPolicy Bypass -File `"$runner`" -Node `"$node`""
+    $act = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\conhost.exe" -Argument $arg -WorkingDirectory $engineDir
+    # Two sign-in triggers: at sign-in and 3 minutes later. If the first launch is held up, the second starts the
+    # engine; if the first is running, the second finds the supervisor's mutex taken and exits at once. Parallel
+    # instances are therefore safe: only one supervisor (and one engine) can ever run per data folder.
     $trig = New-ScheduledTaskTrigger -AtLogOn -User $me
+    $late = New-ScheduledTaskTrigger -AtLogOn -User $me
+    $late.Delay = "PT3M"
     $set = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
-      -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) -MultipleInstances IgnoreNew
+      -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) -MultipleInstances Parallel
     $prin = New-ScheduledTaskPrincipal -UserId $me -LogonType Interactive -RunLevel Limited
-    Register-ScheduledTask -TaskName $TaskName -Action $act -Trigger $trig -Settings $set -Principal $prin -Force `
+    Register-ScheduledTask -TaskName $TaskName -Action $act -Trigger @($trig, $late) -Settings $set -Principal $prin -Force `
       -Description "ALPHA TERMINAL PAPER engine ($($conf.ENGINE_SYMBOL) $($conf.ENGINE_INTERVAL_MIN)m, Kraken candles). PAPER only, no broker orders." | Out-Null
+    if ($NoStart) {
+      Write-Host "Installed '$TaskName' (starts at every sign-in; launch: conhost --headless). Not started now$(if ($running.Count) { "; the running engine (pid $($running.ProcessId -join ', ')) is untouched" })."
+      break
+    }
     Start-ScheduledTask -TaskName $TaskName
     Write-Host "Installed '$TaskName' (starts at every sign-in) and started it. Node: $node"
     for ($i = 0; $i -lt 30 -and -not (Get-Engine); $i++) { Start-Sleep -Seconds 2 }
@@ -80,7 +105,8 @@ switch ($Action) {
       Write-Host "Task '$TaskName': $($t.State); last run $($i.LastRunTime); last result $($i.LastTaskResult)"
     } else { Write-Host "Task '$TaskName': not installed" }
     $sup = @(Get-Supervisors)
-    Write-Host "Supervisor: $(if ($sup.Count) { "running (pid $($sup.ProcessId -join ', '))" } else { 'not running' })"
+    Write-Host "Supervisor: $(if ($sup.Count) { ($sup | ForEach-Object { "pid $($_.ProcessId)$(if (Test-Suspended $_.ProcessId) { ' SUSPENDED (never started: run stop, then start the task again)' } else { ' running' })" }) -join '; ' } else { 'not running' })"
+    if ($t) { Write-Host "Task launch: $(if ($t.Actions[0].Execute -like '*conhost.exe') { 'conhost --headless (fixed)' } else { "$($t.Actions[0].Execute) (old method: run install -NoStart to update)" })" }
     $e = Get-Engine
     Write-Host "Engine: $(if ($e) { "running (pid $($e.ProcessId), started $($e.CreationDate))" } else { 'not running' })"
     $stateFile = Join-Path $dataDir "state-$($conf.ENGINE_SYMBOL)-$($conf.ENGINE_INTERVAL_MIN)m.json"

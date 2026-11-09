@@ -5,6 +5,8 @@
 # starts an engine while another engine holds that folder's lock (e.g. a manual `npm start`).
 # Logs (plain text): <data folder>\engine.log (the engine; it never writes the secret, only "(set)") and
 # <data folder>\supervisor.log (starts, restarts, refusals).
+# -Node: full path of node.exe (the scheduled task passes it; when run by hand, node is found on PATH).
+param([string]$Node = "")
 $ErrorActionPreference = "Continue"
 $engineDir = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $engineDir
@@ -19,7 +21,7 @@ New-Item -ItemType Directory -Force $dataDir | Out-Null
 $log = Join-Path $dataDir "engine.log"
 $supLog = Join-Path $dataDir "supervisor.log"
 $lock = Join-Path $dataDir "engine-$($conf.ENGINE_SYMBOL)-$($conf.ENGINE_INTERVAL_MIN)m.lock"
-$node = if ($env:ALPHA_NODE) { $env:ALPHA_NODE } else { (Get-Command node -ErrorAction Stop).Source }
+$node = if ($Node) { $Node } elseif ($env:ALPHA_NODE) { $env:ALPHA_NODE } else { (Get-Command node -ErrorAction Stop).Source }
 
 function Write-Log($msg) {
   $line = "$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ')) [supervisor] $msg"
