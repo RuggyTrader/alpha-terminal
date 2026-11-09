@@ -348,6 +348,29 @@ export function onBar(S, bar) {
   return events;
 }
 
+/**
+ * Drops the open position without an exit fill, because the ALPHA PAPER ledger refused (or never received) its
+ * entry. The position never existed in the portfolio, so it gets no exit, no closed trade and no P&L; the strategy
+ * goes back to waiting for a new swing, exactly as after a finished trade. Entry and exit rules are unchanged.
+ * Returns the dropped position, or null when there was none.
+ */
+export function abandonPosition(S) {
+  const br = S.broker;
+  if (!br.pos) return null;
+  const p = br.pos;
+  br.pos = null;
+  cancelAll(br);
+  S.triggered = false;
+  S.trailOn = false;
+  S.trailMoved = false;
+  S.beDone = false;
+  S.forced = false;
+  S.orderLive = false;
+  S.dir = 0;
+  S.status = "Waiting for a swing";
+  return p;
+}
+
 /** Summary of closed trades from the broker emulator (measured, not estimated). */
 export function summarize(S) {
   const t = S.broker.closed;

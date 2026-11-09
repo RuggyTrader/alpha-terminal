@@ -18,6 +18,10 @@
 // * Exits of accepted entries are still delivered when late (otherwise the ledger would keep a position the engine
 //   closed), but only after checking that the ledger still holds exactly that entry's position, never twice, and
 //   recorded as delayed.
+// * A live entry that ALPHA TERMINAL finally refuses (e.g. INSUFFICIENT_PAPER_CAPITAL), or that expires unsent, is
+//   dropped from the engine's simulated position at once: no exit, no closed trade, no P&L, back to waiting for a
+//   new setup. The engine therefore never holds a position the PAPER portfolio does not hold, never counts a refused
+//   trade in its own results, and can take the next setup. Warm-up history keeps its simulated position as before.
 // * After every poll the engine reads the ledger (read-only) and compares it with its own position; a mismatch is
 //   reported as DIVERGED instead of being called mirrored. Nothing is auto-corrected.
 // * No broker is contacted anywhere in this engine. ALPHA TERMINAL stays PAPER / DRY RUN.
@@ -26,7 +30,7 @@ import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fetchCompletedCandles } from "./kraken.mjs";
-import { createState, onBar, summarize } from "./ote.mjs";
+import { abandonPosition, createState, onBar, summarize } from "./ote.mjs";
 
 export const ENGINE_VERSION = "0.1.0";
 export const STRATEGY_NAME = "OTE Pro Strat (engine)";
@@ -56,6 +60,10 @@ export class EngineRunner {
     this.auditFile = cfg.audit === false ? null : join(cfg.dataDir, `audit-${cfg.symbol}-${cfg.intervalMin}m.jsonl`);
     mkdirSync(cfg.dataDir, { recursive: true });
     this.state = this.load();
+    // State saved by an older engine may still hold the position of an entry the ledger already refused or that
+    // expired unsent: drop it now (once), so the engine starts consistent with the ledger.
+    const open = this.state?.openEntryId ? this.state.outbox.find((x) => x.id === this.state.openEntryId) : null;
+    if (open && open.kind === "ENTRY" && (open.status === "rejected" || open.status === "skipped") && this.dropRefusedEntry(open)) this.save();
   }
 
   load() {
@@ -192,6 +200,12 @@ export class EngineRunner {
           reason: warmup ? "warm-up history" : late && !isExit ? `candle closed ${Math.round((nowMs - closeMs) / 60_000)} min ago; not sent so it cannot fill at a later price` : null,
           attempts: 0,
         });
+        // A live entry too old to send never reaches the PAPER portfolio: drop it like a refused one.
+        const added = S.outbox[S.outbox.length - 1];
+        if (added.kind === "ENTRY" && added.status === "skipped") {
+          this.audit({ type: "signal", id: added.id, action: added.action, status: added.status, code: added.code, reason: added.reason, attempts: 0, delayed_min: null });
+          this.dropRefusedEntry(added);
+        }
       }
     }
     if (warmup) S.warmedUpAt = iso(nowMs);
@@ -233,8 +247,27 @@ export class EngineRunner {
 
   final(item, status, code, reason) {
     Object.assign(item, { status, code, reason: reason ? String(reason).slice(0, 240) : null });
-    this.save();
     this.audit({ type: "signal", id: item.id, action: item.action, status, code, reason: item.reason, attempts: item.attempts, delayed_min: item.delayedMin ?? null });
+    if (item.kind === "ENTRY" && (status === "rejected" || status === "skipped")) this.dropRefusedEntry(item);
+    this.save();
+  }
+
+  /**
+   * The PAPER portfolio did not take this entry (refused, or expired unsent): drop the engine's simulated position
+   * so both sides stay flat. Only the position opened by this very entry is dropped, at most once.
+   */
+  dropRefusedEntry(item) {
+    const S = this.state;
+    if (S.openEntryId !== item.id) return false;
+    S.openEntryId = null;
+    const pos = abandonPosition(S.strategy);
+    if (!pos) return false;
+    item.positionDropped = true;
+    S.refusedEntries = (S.refusedEntries ?? 0) + 1;
+    this.audit({ type: "entry_dropped", id: item.id, code: item.code, side: pos.side === 1 ? "LONG" : "SHORT", qty: pos.qty, engine_price: pos.avg,
+      reason: "not in the ALPHA PAPER ledger; engine position dropped without an exit (no trade, no P&L)" });
+    this.log(`[engine] ${item.action} ${item.id} ${item.status} (${item.code}); engine position dropped, waiting for the next setup`);
+    return true;
   }
 
   /**
@@ -418,6 +451,8 @@ export class EngineRunner {
       trades: { closed: sum.trades, wins: sum.wins, losses: sum.losses, net_pnl: sum.netProfit },
       outbox: Object.fromEntries(["pending", "accepted", "rejected", "skipped", "late"].map((k) => [k, S.outbox.filter((x) => x.status === k).length])),
       ledger_check: S.ledgerCheck ?? null,
+      // Live entries the PAPER portfolio did not take; each one's simulated position was dropped (no trade, no P&L).
+      refused_entries: S.refusedEntries ?? 0,
       last_rejection: (() => {
         const r = [...S.outbox].reverse().find((x) => x.status === "rejected" || x.status === "skipped");
         return r ? { id: r.id, action: r.action, status: r.status, code: r.code, reason: r.reason } : null;

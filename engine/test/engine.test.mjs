@@ -328,6 +328,8 @@ describe("live runner: completed candles, outbox, restarts", () => {
     const fills = r.state.outbox.filter((x) => x.barTime === new Date(CANDLES[firstFill].t).toISOString().replace(".000Z", "Z"));
     assert.equal(fills.length, 1);
     assert.deepEqual([fills[0].status, fills[0].code], ["skipped", "SIGNAL_EXPIRED"]);
+    assert.notEqual(r.state.openEntryId, fills[0].id, "the engine does not keep a position the ledger never received");
+    assert.ok(!r.state.outbox.some((x) => x.kind === "EXIT" && x.entryId === fills[0].id && x.status === "accepted"));
     assert.equal(h.sent.filter((s) => s.url.endsWith("/dry-run")).length,
       r.state.outbox.filter((x) => x.status === "accepted").length);
   });
@@ -419,24 +421,93 @@ describe("engine ↔ ALPHA PAPER ledger sync", () => {
     assert.deepEqual([entry.status, exit.status, exit.entryId], ["accepted", "accepted", entry.id]);
   });
 
-  it("rejected entry followed by a simulated exit: the CLOSE is never sent, recorded as skipped with the reason", async () => {
+  it("rejected entry: recorded with the Worker's code, the engine position is dropped and no CLOSE ever follows", async () => {
     const { http, calls } = fakeAlpha((b) => (b.action === "CLOSE" ? accept() : [422, { code: "MAX_ORDER_NOTIONAL", message: "Estimated notional $40988 is above the limit $5000" }]));
     const h = harness({ firstLive: FILLS[0].bar, http });
     const r = h.make();
     await r.tick();
     h.advance();
     await r.tick();
-    const link = r.statusPayload().position.ledger;
-    assert.equal(link.status, "NOT_IN_LEDGER");
-    assert.match(link.reason, /rejected: MAX_ORDER_NOTIONAL/);
-    await runTo(h, r, FILLS[1].bar);
-    assert.equal(calls.length, 1, "only the entry was submitted");
-    const [entry, exit] = r.state.outbox;
-    assert.deepEqual([entry.status, entry.code], ["rejected", "MAX_ORDER_NOTIONAL"]);
+    const [entry] = r.state.outbox;
+    assert.deepEqual([entry.status, entry.code, entry.positionDropped], ["rejected", "MAX_ORDER_NOTIONAL", true]);
     assert.match(entry.reason, /above the limit/);
-    assert.deepEqual([exit.status, exit.code], ["skipped", "ENTRY_NOT_IN_LEDGER"]);
-    assert.match(exit.reason, /was rejected \(MAX_ORDER_NOTIONAL\)/);
-    assert.equal(r.statusPayload().last_rejection.status, "skipped");
+    assert.equal(r.statusPayload().position, null, "the engine holds nothing the ledger does not hold");
+    assert.equal(r.state.strategy.status, "Waiting for a swing");
+    assert.equal(r.statusPayload().last_rejection.code, "MAX_ORDER_NOTIONAL");
+    await runTo(h, r, FILLS[1].bar);
+    assert.equal(calls.filter((c) => c.startsWith("CLOSE")).length, 0);
+    assert.ok(!r.state.outbox.some((x) => x.entryId === entry.id), "no exit is created for a refused entry");
+  });
+
+  it("insufficient PAPER capital: refused BUY is dropped, never counted as an engine trade, stays flat across restarts, never re-sent", async () => {
+    const decide = (b) => (b.action === "CLOSE" ? accept() : [422, { code: "INSUFFICIENT_PAPER_CAPITAL", message: "Estimated $1246.93 exceeds SOLUSD PAPER balance $10" }]);
+    const { http, calls } = fakeAlpha(decide);
+    const h = harness({ firstLive: FILLS[0].bar, http });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    const entry = r.state.outbox[0];
+    assert.deepEqual([entry.status, entry.code], ["rejected", "INSUFFICIENT_PAPER_CAPITAL"]);
+    const st = r.statusPayload();
+    assert.equal(st.position, null);
+    assert.equal(st.refused_entries, 1);
+    assert.equal(st.trades.closed, 0, "the refused trade is not an engine trade either");
+    assert.equal(r.state.ledgerCheck.status, "OK", "engine and ledger are both flat");
+    const audit = readFileSync(join(h.cfg.dataDir, "audit-SOLUSD-5m.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+    const dropped = audit.filter((a) => a.type === "entry_dropped");
+    assert.deepEqual(dropped.map((a) => [a.id, a.code]), [[entry.id, "INSUFFICIENT_PAPER_CAPITAL"]]);
+    // Restart from the saved state: still flat, nothing re-sent, nothing dropped twice.
+    const r2 = h.make();
+    await r2.tick();
+    assert.equal(r2.statusPayload().position, null);
+    assert.equal(r2.statusPayload().refused_entries, 1);
+    assert.equal(calls.filter((c) => c.endsWith(entry.id)).length, 1, "the refused signal is sent exactly once");
+    await runTo(h, r2, FILLS[1].bar);
+    assert.equal(calls.filter((c) => c.startsWith("CLOSE")).length, 0);
+  });
+
+  it("upgrade: a refused position kept by an older engine's saved state is dropped once at start-up", async () => {
+    let up = false;
+    const { http, calls } = fakeAlpha(() => [422, { code: "INSUFFICIENT_PAPER_CAPITAL" }]);
+    const h = harness({ firstLive: FILLS[0].bar, http: async (url, init) => { if (!up && url.endsWith("/dry-run")) throw new TypeError("fetch failed"); return http(url, init); } });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    assert.ok(r.statusPayload().position, "position held while the entry is pending");
+    // What the previous engine version saved after a refusal: entry rejected, position still held.
+    Object.assign(r.state.outbox[0], { status: "rejected", code: "INSUFFICIENT_PAPER_CAPITAL", reason: "older engine" });
+    r.save();
+    up = true;
+    const r2 = h.make();
+    assert.equal(r2.statusPayload().position, null);
+    assert.equal(r2.state.outbox[0].positionDropped, true);
+    assert.equal(h.make().statusPayload().refused_entries, 1, "dropped once");
+    await r2.tick();
+    assert.equal(calls.length, 0, "nothing re-sent");
+  });
+
+  it("recovery: after a refused entry, the next setup is taken once capital is available and runs to a recorded close", async () => {
+    let funded = false;
+    const { http, calls } = fakeAlpha((b) => (funded || b.action === "CLOSE" ? accept() : [422, { code: "INSUFFICIENT_PAPER_CAPITAL", message: "not enough" }]));
+    const h = harness({ firstLive: FILLS[0].bar, http });
+    const r = h.make();
+    await r.tick();
+    h.advance();
+    await r.tick();
+    assert.equal(r.state.outbox[0].status, "rejected");
+    funded = true; // the owner adds PAPER capital
+    const last = CANDLES.length - 1;
+    while (r.state.strategy.bar < last && !r.state.outbox.some((x) => x.kind === "EXIT" && x.status === "accepted")) { h.advance(); await r.tick(); }
+    const entries = r.state.outbox.filter((x) => x.kind === "ENTRY");
+    assert.ok(entries.length >= 2, "a later setup produced a new entry");
+    const taken = entries.find((x) => x.status === "accepted");
+    assert.ok(taken, "the new entry was accepted");
+    const exit = r.state.outbox.find((x) => x.kind === "EXIT" && x.entryId === taken.id);
+    assert.equal(exit?.status, "accepted", "its CLOSE was sent and recorded");
+    assert.equal(new Set(calls).size, calls.length, "every signal id sent once");
+    assert.equal(r.statusPayload().trades.closed, 1, "only the trade the ledger took is an engine trade");
   });
 
   it("historical warm-up position followed by a live CLOSE: nothing is sent", async () => {
@@ -497,28 +568,38 @@ describe("engine ↔ ALPHA PAPER ledger sync", () => {
     assert.ok(r.state.warmedUpAt, "re-warmed from available history");
   });
 
-  it("duplicate after a crash: the Worker's DUPLICATE adopts the original result (accepted or rejected)", async () => {
+  it("duplicate after a lost reply: the Worker's DUPLICATE adopts the original refusal and drops the position once", async () => {
     const seen = new Map();
+    let dropReply = true;
     const { http, calls } = fakeAlpha((b) => {
       if (seen.has(b.id)) return [200, { code: "DUPLICATE", data: seen.get(b.id) }];
-      const res = b.action === "CLOSE" ? { original_status: "dry_run", original_code: "DRY_RUN_ACCEPTED" } : { original_status: "rejected", original_code: "SHORT_DISABLED" };
-      seen.set(b.id, res);
-      return b.action === "CLOSE" ? accept() : [422, { code: "SHORT_DISABLED" }];
+      seen.set(b.id, { original_status: "rejected", original_code: "INSUFFICIENT_PAPER_CAPITAL" });
+      return [422, { code: "INSUFFICIENT_PAPER_CAPITAL" }];
     });
-    const h = harness({ firstLive: FILLS[0].bar, http });
+    // The Worker records the refusal, but the connection drops before the engine reads the reply.
+    const lossy = async (url, init) => {
+      const res = await http(url, init);
+      if (url.endsWith("/dry-run") && dropReply) { dropReply = false; throw new TypeError("socket hang up"); }
+      return res;
+    };
+    const h = harness({ firstLive: FILLS[0].bar, http: lossy });
     const r = h.make();
     await r.tick();
     h.advance();
     await r.tick();
     const entry = r.state.outbox[0];
-    entry.status = "pending"; // crash after sending, before the result was saved
-    r.save();
-    const r2 = h.make();
+    assert.equal(entry.status, "pending", "outcome unknown after the lost reply");
+    assert.ok(r.statusPayload().position, "the position is kept while the outcome is unknown");
+    const r2 = h.make(); // restart
     await r2.flush();
-    assert.deepEqual([r2.state.outbox[0].status, r2.state.outbox[0].code], ["rejected", "SHORT_DISABLED"]);
+    assert.deepEqual([r2.state.outbox[0].status, r2.state.outbox[0].code, r2.state.outbox[0].positionDropped], ["rejected", "INSUFFICIENT_PAPER_CAPITAL", true]);
+    assert.equal(r2.statusPayload().position, null);
+    assert.equal(r2.statusPayload().refused_entries, 1);
+    await r2.flush();
+    assert.equal(h.make().statusPayload().refused_entries, 1, "dropped once, not again");
     await runTo(h, r2, FILLS[1].bar);
-    assert.equal(r2.state.outbox[1].status, "skipped", "the CLOSE of a rejected entry is still not sent");
     assert.equal(calls.filter((c) => c.startsWith("CLOSE")).length, 0);
+    assert.equal(calls.filter((c) => c.endsWith(entry.id)).length, 2, "the original attempt plus one retry that learned the outcome");
   });
 
   it("engine P&L in the status equals the engine's own closed trades", async () => {
@@ -581,6 +662,8 @@ describe("signal freshness and ledger reconciliation", () => {
     const after = h.make().state.outbox[0];
     assert.deepEqual([after.status, after.code], ["skipped", "SIGNAL_EXPIRED"]);
     assert.match(after.reason, /not sent so it cannot fill at a later price/);
+    assert.equal(after.positionDropped, true);
+    assert.equal(h.make().statusPayload().position, null, "expired entry: engine flat, like the ledger");
     assert.equal(dryRuns(h).length, 0, "the old entry was not delivered");
   });
 

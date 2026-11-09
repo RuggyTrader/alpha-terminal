@@ -169,18 +169,20 @@ describe("funded ALPHA PAPER portfolio: the real engine's trade reserves, releas
 });
 
 describe("default strategy risk ($200): truthful rejections, nothing reaches the ledger", () => {
-  it("rejected entries are recorded with the Worker's reason and their exits are never sent", async () => {
+  it("rejected entries are recorded with the Worker's reason, the engine drops them and no exit is ever created", async () => {
     assert.equal(dflt.cfg.inputs.riskUSD, undefined, "Pine default (200) applies");
     dflt.visible = FILLS[0];
     const r = dflt.runner();
     await r.tick(); // warm-up
-    await dflt.replayTo(r, FILLS[3]); // SHORT trade, then the first LONG trade
+    await dflt.replayTo(r, FILLS[3]); // the SHORT setup, then the first LONG setup
     const box = r.state.outbox;
-    const [sell, sellClose, buy, buyClose] = box;
-    assert.deepEqual([sell.action, sell.status], ["SELL", "rejected"]); // short selling is disabled
-    assert.deepEqual([buy.action, buy.status, buy.code], ["BUY", "rejected", "MAX_ORDER_NOTIONAL"]);
+    const [sell, buy] = box;
+    assert.deepEqual([sell.action, sell.status, sell.positionDropped], ["SELL", "rejected", true]); // short selling is disabled
+    assert.deepEqual([buy.action, buy.status, buy.code, buy.positionDropped], ["BUY", "rejected", "MAX_ORDER_NOTIONAL", true]);
     assert.match(buy.reason, /above the limit \$5000/);
-    for (const c of [sellClose, buyClose]) assert.deepEqual([c.action, c.status, c.code], ["CLOSE", "skipped", "ENTRY_NOT_IN_LEDGER"]);
+    assert.ok(!box.some((x) => x.kind === "EXIT"), "a refused entry gets no exit at all");
+    assert.equal(r.statusPayload().position, null, "the engine holds nothing the ledger does not hold");
+    assert.equal(r.statusPayload().trades.closed, 0, "refused trades are not engine trades either");
     assert.deepEqual(dflt.sends, [sell.id, buy.id], "only the two entries were submitted");
 
     assert.equal(dflt.sql(`SELECT COUNT(*) AS n FROM alerts WHERE action = 'close'`)[0].n, 0, "no CLOSE ever hit the ledger");
@@ -192,9 +194,12 @@ describe("default strategy risk ($200): truthful rejections, nothing reaches the
 
     const d = await dflt.dashboard();
     assert.equal(d.paper.positions.length, 0);
-    assert.equal(d.bot.status.last_rejection.status, "skipped");
+    assert.deepEqual([d.bot.status.last_rejection.status, d.bot.status.last_rejection.code], ["rejected", "MAX_ORDER_NOTIONAL"]);
     assert.equal(d.bot.status.outbox.rejected, 2);
-    assert.equal(d.bot.status.outbox.skipped, 2);
+    assert.equal(d.bot.status.outbox.skipped, 0);
+    assert.equal(r.statusPayload().refused_entries, 2); // engine-side count (not yet shown by the Worker)
+    assert.equal(d.bot.status.position, null);
+    assert.equal(d.bot.status.ledger_check.status, "OK");
   });
 });
 
@@ -278,11 +283,11 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     test.skewMs = 45 * 60_000;
     down = false;
     await r3.tick();
-    assert.deepEqual([entry2.status, entry2.code], ["skipped", "SIGNAL_EXPIRED"]);
+    assert.deepEqual([entry2.status, entry2.code, entry2.positionDropped], ["skipped", "SIGNAL_EXPIRED", true]);
+    assert.equal(r3.statusPayload().position, null, "the expired entry's position is dropped");
     await test.replayTo(r3, FILLS[5]);
-    const exit2 = r3.state.outbox.find((x) => x.entryId === entry2.id);
-    assert.deepEqual([exit2.status, exit2.code], ["skipped", "ENTRY_NOT_IN_LEDGER"]);
-    assert.equal(test.sql(`SELECT COUNT(*) AS n FROM alerts WHERE alert_id IN ('${entry2.id}', '${exit2.id}')`)[0].n, 0, "neither reached the ledger");
+    assert.ok(!r3.state.outbox.some((x) => x.entryId === entry2.id), "no exit for an entry the ledger never received");
+    assert.equal(test.sql(`SELECT COUNT(*) AS n FROM alerts WHERE alert_id = '${entry2.id}'`)[0].n, 0, "it never reached the ledger");
     assert.deepEqual(counts(), before, "no fill, order or trade was added");
     test.skewMs = 0;
   });
