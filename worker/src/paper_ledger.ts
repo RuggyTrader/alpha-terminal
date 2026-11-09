@@ -8,6 +8,7 @@
 
 import { buyStatements, fromMicro, isStrategyWallet, sellStatements } from "./portfolio";
 import type { RiskAccount } from "./trade_core";
+import { feeSchemaReady } from "./fee_compat";
 import {
   getInstrument,
   referencePrices,
@@ -153,8 +154,10 @@ async function ledgerAccount(env: LedgerEnv, symbol: string, open: PositionRow[]
     ? await env.DB.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = ?`).bind(symbol).first<{ available_micro: number }>()
     : null;
   const dayStart = `${new Date().toISOString().slice(0, 10)}T00:00:00`;
+  // Schema 4: fees charged earlier today (before a rollback) still count as realized losses for the daily limit.
+  const ready = await feeSchemaReady(env.DB);
   const realized = await env.DB.prepare(
-    `SELECT COALESCE(SUM(realized_pnl), 0) AS pnl FROM paper_fills WHERE filled_at >= ?`
+    `SELECT COALESCE(SUM(realized_pnl), 0)${ready ? " - COALESCE(SUM(fee_micro), 0) / 1000000.0" : ""} AS pnl FROM paper_fills WHERE filled_at >= ?`
   ).bind(dayStart).first<{ pnl: number }>();
   const unmarked = open.filter((p) => p.mark_error !== null);
   const unrealized = open.reduce((s, p) => s + ((p.mark_price ?? p.avg_entry_price) - p.avg_entry_price) * p.qty * p.multiplier, 0);
@@ -217,6 +220,28 @@ const FILL_FROM_POSITION = `
      %REALIZED%, p.qty, p.avg_entry_price, ?
   FROM (SELECT 1) AS one
   LEFT JOIN paper_positions p ON %WHERE% AND p.last_order_id = ?`;
+
+// Fee-compatible rollback: the trade insert on schema 4. Same bind order as the schema-3 statement (position id, order id).
+const FEE_AWARE_TRADE_INSERT = `INSERT INTO trades
+    (symbol, direction, status, strategy, open_alert_id, open_order_id, close_order_id,
+     entry_qty, entry_avg_price, exit_qty, exit_avg_price, open_qty, closed_cost_basis,
+     realized_pnl, return_pct, opened_at, closed_at, leg_order_ids_json,
+     source, position_fk, close_alert_id, price_sources,
+     gross_pnl, fees_usd, slippage_usd, cost_profile)
+   SELECT p.symbol, 'LONG', 'CLOSED', p.strategy, p.open_alert_id, p.open_order_id, p.close_order_id,
+     round(p.entry_qty_total, 8), round(p.entry_value_total / p.entry_qty_total, 8),
+     round(p.exit_qty_total, 8), round(p.exit_value_total / p.exit_qty_total, 8), '0',
+     round(p.entry_value_total * p.multiplier, 8),
+     round(p.realized_pnl - p.fees_micro / 1000000.0, 8),
+     round((p.realized_pnl - p.fees_micro / 1000000.0) / (p.entry_value_total * p.multiplier) * 100, 6),
+     p.opened_at, p.closed_at,
+     (SELECT json_group_array(client_order_id) FROM (SELECT client_order_id FROM paper_fills WHERE position_fk = p.id ORDER BY id)),
+     'ALPHA_PAPER', p.id, p.close_alert_id,
+     (SELECT group_concat(DISTINCT price_source) FROM paper_fills WHERE position_fk = p.id),
+     round(p.realized_pnl + p.slippage_micro / 1000000.0, 8), round(p.fees_micro / 1000000.0, 8),
+     round(p.slippage_micro / 1000000.0, 8), 'none'
+   FROM (SELECT 1) AS one
+   LEFT JOIN paper_positions p ON p.id = ? AND p.last_order_id = ? AND p.status = 'CLOSED'`;
 
 /**
  * Commits one approved DRY-RUN signal as ONE D1 batch (a single transaction):
@@ -350,9 +375,12 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     sellPortfolio = sellStatements(env.DB, pos, { qty: q, price: f.price, alertId: f.alertId, clientOrderId: f.clientOrderId, closes }, now);
     if (closes) {
       // 4. The trade (fails, and rolls back, unless this order closed the position).
+      // Schema 4: the position may have paid fees before the rollback; the trade is then recorded NET of them, with the
+      // gross P&L, fees and slippage beside it (cost_profile 'none': no cost charged by this release).
+      const ready = await feeSchemaReady(env.DB);
       statements.push(
         env.DB.prepare(
-          `INSERT INTO trades
+          ready ? FEE_AWARE_TRADE_INSERT : `INSERT INTO trades
             (symbol, direction, status, strategy, open_alert_id, open_order_id, close_order_id,
              entry_qty, entry_avg_price, exit_qty, exit_avg_price, open_qty, closed_cost_basis,
              realized_pnl, return_pct, opened_at, closed_at, leg_order_ids_json,
@@ -528,7 +556,9 @@ export async function refreshMarks(env: LedgerEnv): Promise<{ refreshed: boolean
 export async function paperSection(env: LedgerEnv) {
   const [open, realizedRow, closedRow] = await Promise.all([
     env.DB.prepare(`SELECT * FROM paper_positions WHERE status = 'OPEN' ORDER BY opened_at DESC`).all<PositionRow>(),
-    env.DB.prepare(`SELECT COALESCE(SUM(realized_pnl), 0) AS realized FROM paper_positions`).first<{ realized: number }>(),
+    feeSchemaReady(env.DB).then((ready) => env.DB.prepare(ready
+      ? `SELECT COALESCE(SUM(realized_pnl), 0) AS realized, COALESCE(SUM(fees_micro), 0) AS fees, COALESCE(SUM(slippage_micro), 0) AS slippage FROM paper_positions`
+      : `SELECT COALESCE(SUM(realized_pnl), 0) AS realized, 0 AS fees, 0 AS slippage FROM paper_positions`).first<{ realized: number; fees: number; slippage: number }>()),
     env.DB.prepare(`SELECT COUNT(*) AS n FROM trades WHERE source = 'ALPHA_PAPER'`).first<{ n: number }>(),
   ]);
   const staleAfter = secondsEnv(env.PAPER_MARK_STALE_SECONDS, 120);
@@ -569,13 +599,18 @@ export async function paperSection(env: LedgerEnv) {
   });
   const unrealizedKnown = positions.every((p) => p.unrealized_pnl !== null);
   const unrealized = positions.reduce((s, p) => s + (p.unrealized_pnl ?? 0), 0);
-  const realized = Number(realizedRow?.realized ?? 0);
+  // Net of simulated fees recorded before the rollback (this release charges none).
+  const fees = Number(realizedRow?.fees ?? 0) / 1e6;
+  const slippage = Number(realizedRow?.slippage ?? 0) / 1e6;
+  const realized = Number(realizedRow?.realized ?? 0) - fees;
   return {
     label: LEDGER_LABEL,
     simulated: true,
     broker_positions: false,
     positions,
     performance: {
+      fees_usd: round(fees, 6),
+      slippage_usd: round(slippage, 6),
       realized_pnl: round(realized, 8),
       unrealized_pnl: unrealizedKnown ? round(unrealized, 8) : null,
       total_pnl: unrealizedKnown ? round(realized + unrealized, 8) : null,

@@ -153,6 +153,10 @@ export interface TradeRow {
   close_order_id?: string | null;
   close_alert_id?: string | null;
   price_sources?: string | null;
+  gross_pnl?: NumLike;
+  fees_usd?: NumLike;
+  slippage_usd?: NumLike;
+  cost_profile?: string | null;
 }
 
 /** Internal simulated position from the ALPHA PAPER ledger. Never a broker position. */
@@ -281,6 +285,9 @@ export interface PaperWallet {
   available_usd: number;
   reserved_usd: number;
   realized_pnl_usd: number;
+  /** Fee-compatible rollback release: simulated fees recorded before the rollback. */
+  fees_usd?: number;
+  net_realized_pnl_usd?: number;
   net_funding_usd: number;
   unrealized_pnl_usd: number | null;
   book_balance_usd: number;
@@ -329,6 +336,8 @@ export interface PaperPortfolio {
     available_usd: number;
     reserved_usd: number;
     realized_pnl_usd: number;
+    fees_usd?: number;
+    net_realized_pnl_usd?: number;
     net_funding_usd: number;
     unrealized_pnl_usd: number | null;
   };
@@ -336,6 +345,8 @@ export interface PaperPortfolio {
   history: PortfolioEntry[];
   strategies: Record<string, { validated_engine: boolean; settings: StrategySettings }>;
   validated_engines: string[];
+  /** Fee-compatible rollback release: execution costs are disabled for new fills. */
+  costs?: { profile: string; name: string; caveat: string | null; disabled?: boolean; release?: string; fill_disclosure?: string };
   limits: {
     max_order_notional_usd: number | null; max_position_exposure_usd: number | null; short_selling_enabled: boolean;
     /** Added with the Verified Performance release; absent on older Workers. */

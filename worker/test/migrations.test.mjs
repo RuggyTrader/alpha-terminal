@@ -14,8 +14,8 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001, 0002 and 0003", () => {
-    assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(), ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql"]);
+  it("are exactly 0001 to 0004 (0004 byte-identical to the execution-cost release, so schema 4 is recognised)", () => {
+    assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(), ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql"]);
   });
 
   it("0002 applies on top of 0001 with existing rows, and does not label legacy trades ALPHA PAPER", () => {

@@ -48,11 +48,22 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
         <Row k="Status">{p ? (p.active ? "Funded" : "Not funded") : NA}</Row>
         <Row k="PAPER capital added">{t ? money(t.net_funding_usd) : NA}</Row>
         <Row k="Book balance">{t ? money(t.book_balance_usd) : NA}</Row>
-        <Row k="Realized ledger P&L">{t ? signedMoney(t.realized_pnl_usd) : NA}</Row>
+        <Row k={t?.fees_usd !== undefined ? "Realized ledger P&L before fees" : "Realized ledger P&L"}>{t ? signedMoney(t.realized_pnl_usd) : NA}</Row>
+        {t?.fees_usd !== undefined ? <Row k="Simulated fees paid">{signedMoney(-t.fees_usd)}</Row> : null}
+        {t?.net_realized_pnl_usd !== undefined ? <Row k="Net realized ledger P&L">{signedMoney(t.net_realized_pnl_usd)}</Row> : null}
         <Row k="Open PAPER exposure">{t ? money(t.reserved_usd) : NA}</Row>
         <Row k="Unrealized P&L">{t ? (t.unrealized_pnl_usd === null ? NA : signedMoney(t.unrealized_pnl_usd)) : NA}</Row>
         <div className="li"><span>Fund, transfer, history</span><Link className="link" to="/portfolio">Portfolio →</Link></div>
       </Group>
+
+      {p?.costs ? (
+        <Group title="Execution costs">
+          <Row k="Cost profile">{p.costs.disabled ? <StatusBadge tone="warn">DISABLED FOR NEW FILLS</StatusBadge> : p.costs.name}</Row>
+          {p.costs.release ? <Row k="Worker release">{p.costs.release}</Row> : null}
+          {p.costs.caveat ? <p className="li-note">{p.costs.caveat}</p> : null}
+          {p.costs.fill_disclosure ? <p className="li-note">{p.costs.fill_disclosure}</p> : null}
+        </Group>
+      ) : null}
 
       <Group title="Markets">
         {mk.map((m) => (

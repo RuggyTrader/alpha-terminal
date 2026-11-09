@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Code, Expandable, KV, StatusBadge } from "./ui";
 
-export function TradeCard({ t }: { t: TradeRow }) {
+export function TradeCard({ t, defaultOpen = false }: { t: TradeRow; defaultOpen?: boolean }) {
   const mt = marketType(t.symbol);
   const closed = t.status === "CLOSED";
   // Ledger trades are simulated from dry-run intents, never broker fills.
@@ -14,6 +14,7 @@ export function TradeCard({ t }: { t: TradeRow }) {
     <Expandable
       tone={closed ? (tone(t.realized_pnl) === "neg" ? "bad" : tone(t.realized_pnl) === "pos" ? "ok" : "muted") : "info"}
       className="trade-card"
+      defaultOpen={defaultOpen}
       head={
         <>
           <div className="row-a">
@@ -42,7 +43,10 @@ export function TradeCard({ t }: { t: TradeRow }) {
           ["Entry", `${qty(t.entry_qty)} @ ${price(t.entry_avg_price)}`],
           ["Exit", `${qty(t.exit_qty)} @ ${price(t.exit_avg_price)}`],
           ["Open qty", qty(t.open_qty)],
-          ["Realized PAPER P&L", signedMoney(t.realized_pnl)],
+          // Trades with a cost record (cost_profile set) store NET P&L; show gross and fees beside it.
+          ...(t.cost_profile
+            ? ([["Gross P&L (before costs)", signedMoney(t.gross_pnl)], ["Simulated fees", signedMoney(-Number(t.fees_usd ?? 0))], ["Net PAPER P&L", signedMoney(t.realized_pnl)]] as [string, ReactNode][])
+            : ([["Realized PAPER P&L", signedMoney(t.realized_pnl)]] as [string, ReactNode][])),
           ["Return", percent(t.return_pct)],
           ["Opened", <span key="o" className="mono-s">{stamp(t.opened_at)}</span>],
           ["Closed", <span key="c" className="mono-s">{stamp(t.closed_at)}</span>],

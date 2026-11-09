@@ -16,6 +16,7 @@
 import { authorizePaperAction } from "./auth_session";
 import { getInstrument } from "./instruments";
 import { secureEqual } from "./trade_core";
+import { feeSchemaReady, rollbackCosts } from "./fee_compat";
 
 export const MICRO = 1_000_000;
 export const toMicro = (usd: number): number => Math.round(usd * MICRO);
@@ -40,6 +41,8 @@ interface WalletRow {
   reserved_micro: number;
   realized_pnl_micro: number;
   net_funding_micro: number;
+  /** Schema 4 only (simulated fees paid; 0 when the column does not exist). */
+  fees_micro?: number;
   updated_at: string;
 }
 
@@ -399,13 +402,14 @@ async function walletSummary(db: D1Database) {
       wallet: w.wallet, kind: w.kind,
       available_usd: fromMicro(w.available_micro), reserved_usd: fromMicro(w.reserved_micro),
       realized_pnl_usd: fromMicro(w.realized_pnl_micro), net_funding_usd: fromMicro(w.net_funding_micro),
+      fees_usd: fromMicro(Number(w.fees_micro ?? 0)), net_realized_pnl_usd: fromMicro(w.realized_pnl_micro - Number(w.fees_micro ?? 0)),
       unrealized_pnl_usd: known ? Math.round(upl * 100) / 100 : null,
       book_balance_usd: fromMicro(book),
       equity_usd: known ? Math.round((fromMicro(book) + upl) * 100) / 100 : null,
       open_positions: mine.length, updated_at: w.updated_at,
     };
   });
-  const sum = (k: "available_micro" | "reserved_micro" | "realized_pnl_micro" | "net_funding_micro") => rows.reduce((s, w) => s + w[k], 0);
+  const sum = (k: "available_micro" | "reserved_micro" | "realized_pnl_micro" | "net_funding_micro" | "fees_micro") => rows.reduce((s, w) => s + Number(w[k] ?? 0), 0);
   const unrealizedKnown = wallets.every((w) => w.unrealized_pnl_usd !== null);
   const book = sum("available_micro") + sum("reserved_micro");
   return {
@@ -416,6 +420,8 @@ async function walletSummary(db: D1Database) {
       available_usd: fromMicro(sum("available_micro")),
       reserved_usd: fromMicro(sum("reserved_micro")),
       realized_pnl_usd: fromMicro(sum("realized_pnl_micro")),
+      fees_usd: fromMicro(sum("fees_micro")),
+      net_realized_pnl_usd: fromMicro(sum("realized_pnl_micro") - sum("fees_micro")),
       net_funding_usd: fromMicro(sum("net_funding_micro")),
       unrealized_pnl_usd: unrealizedKnown ? Math.round(wallets.reduce((s, w) => s + (w.unrealized_pnl_usd ?? 0), 0) * 100) / 100 : null,
     },
@@ -424,8 +430,10 @@ async function walletSummary(db: D1Database) {
 
 /** Accounting identities, recomputed from the history on every read. Any false value is shown as a warning. */
 async function consistency(db: D1Database) {
+  const ready = await feeSchemaReady(db);
   const sums = (await db.prepare(
-    `SELECT w.wallet, w.available_micro, w.reserved_micro, w.realized_pnl_micro, w.net_funding_micro,
+    `SELECT w.wallet, w.available_micro, w.reserved_micro, w.realized_pnl_micro, w.net_funding_micro, ${ready ? "w.fees_micro" : "0"} AS fees_micro,
+       COALESCE(-SUM(CASE WHEN e.kind = 'FEE' THEN e.available_change_micro END), 0) AS fee_sum,
        COALESCE(SUM(e.available_change_micro), 0) AS avail_sum, COALESCE(SUM(e.reserved_change_micro), 0) AS res_sum,
        COALESCE(SUM(CASE WHEN e.kind = 'REALIZED_PNL' THEN e.available_change_micro END), 0) AS pnl_sum,
        COALESCE(SUM(CASE WHEN e.kind IN ('DEPOSIT', 'WITHDRAW', 'TRANSFER_IN', 'TRANSFER_OUT') THEN e.available_change_micro END), 0) AS funding_sum
@@ -439,12 +447,13 @@ async function consistency(db: D1Database) {
     if (Number(s.reserved_micro) !== Number(s.res_sum)) issues.push(`${s.wallet}: reserved differs from its history`);
     if (Number(s.realized_pnl_micro) !== Number(s.pnl_sum)) issues.push(`${s.wallet}: realized P&L differs from its history`);
     if (Number(s.net_funding_micro) !== Number(s.funding_sum)) issues.push(`${s.wallet}: net funding differs from its history`);
+    if (Number(s.fees_micro) !== Number(s.fee_sum)) issues.push(`${s.wallet}: fees differ from its history`);
     const r = pos.find((p) => p.wallet === s.wallet)?.r ?? 0;
     if (Number(s.reserved_micro) !== Number(r)) issues.push(`${s.wallet}: reserved differs from its open positions`);
   }
   const total = sums.reduce((a, s) => a + Number(s.available_micro) + Number(s.reserved_micro), 0);
-  const ident = sums.reduce((a, s) => a + Number(s.net_funding_micro) + Number(s.realized_pnl_micro), 0);
-  if (total !== ident) issues.push("book balance differs from funding + realized P&L");
+  const ident = sums.reduce((a, s) => a + Number(s.net_funding_micro) + Number(s.realized_pnl_micro) - Number(s.fees_micro), 0);
+  if (total !== ident) issues.push("book balance differs from funding + realized P&L - fees");
   return { ok: issues.length === 0, issues };
 }
 
@@ -456,13 +465,14 @@ export async function portfolioSection(
   } = {}
 ) {
   const lim = (v?: string) => (v !== undefined && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
-  const [summary, active, check, entries, settings] = await Promise.all([
+  const [summary, active, check, entries, settings, ready] = await Promise.all([
     walletSummary(db),
     portfolioActive(db),
     consistency(db),
     db.prepare(`SELECT id, created_at, kind, wallet, available_change_micro, reserved_change_micro, counterparty, ref, note FROM portfolio_entries ORDER BY id DESC LIMIT 60`)
       .all<Record<string, unknown>>(),
     settingsFor(db, "SOLUSD"),
+    feeSchemaReady(db),
   ]);
   return {
     label: "ALPHA PAPER",
@@ -486,5 +496,7 @@ export async function portfolioSection(
       daily_loss_limit_usd: lim(vars.DAILY_LOSS_LIMIT),
       short_selling_enabled: vars.SHORT_SELLING_ENABLED === "true",
     },
+    // Fee-compatible rollback release: simulated execution costs are disabled for new fills.
+    costs: rollbackCosts(ready),
   };
 }

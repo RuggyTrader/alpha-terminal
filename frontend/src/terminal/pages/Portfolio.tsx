@@ -69,7 +69,9 @@ export function PortfolioPage() {
             <div><span>Total book balance</span><b>{money(t.book_balance_usd)}</b></div>
             <div><span>Unallocated</span><b>{money(t.unallocated_usd)}</b></div>
             <div><span>Reserved in positions</span><b>{money(t.reserved_usd)}</b></div>
-            <div><span>Realized P&amp;L</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
+            <div><span>{t.fees_usd !== undefined ? "Realized P&L before fees" : "Realized P&L"}</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
+            {t.fees_usd !== undefined ? <div><span>Simulated fees paid</span><b>{signedMoney(-t.fees_usd)}</b></div> : null}
+            {t.net_realized_pnl_usd !== undefined ? <div><span>Net realized P&amp;L</span><b className={`t-${tone(t.net_realized_pnl_usd)}`}>{signedMoney(t.net_realized_pnl_usd)}</b></div> : null}
             <div><span>Unrealized P&amp;L</span><b>{t.unrealized_pnl_usd === null ? NA : signedMoney(t.unrealized_pnl_usd)}</b></div>
           </div>
         </div>
