@@ -21,6 +21,7 @@ export const DEFAULT_SIZING = Object.freeze({
   riskPct: 1, // % of the available strategy balance risked at the stop (percent mode)
   feePct: 0.4, // assumed fee per side, % of notional (reserved at entry; estimated in reports)
   priceBufferPct: 0.5, // headroom for the ledger filling at the live price a moment after the engine's fill
+  minStopPct: 0, // optional fee-aware filter: skip setups whose stop is closer than this % (0 = off)
   ...SOLUSD_RULES,
 });
 
@@ -51,6 +52,11 @@ export function sizeOrder({ sizing = DEFAULT_SIZING, riskUSD, capital, entry, st
     return { ...base, ok: false, code: "BALANCE_UNKNOWN", reason: "the strategy's PAPER balance could not be read; no order without it" };
   }
   if (!(capital > 0)) return { ...base, ok: false, code: "NO_CAPITAL", reason: `no available PAPER capital ($${r2(capital)})` };
+  // Optional fee-aware filter (research; off by default): skip setups whose stop is so tight that trading costs
+  // would be a large part of the risk.
+  if (z.minStopPct > 0 && (dist / entry) * 100 < z.minStopPct) {
+    return { ...base, ok: false, code: "STOP_TOO_TIGHT", reason: `stop ${r2((dist / entry) * 100)}% from entry is below the ${z.minStopPct}% minimum (costs would dominate the risk)` };
+  }
 
   const riskTarget = capital * (z.riskPct / 100);
   const perUnit = entry * (1 + z.priceBufferPct / 100) * (1 + z.feePct / 100);

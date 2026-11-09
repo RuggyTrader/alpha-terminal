@@ -27,6 +27,9 @@ export const DEFAULT_INPUTS = Object.freeze({
   useSleep: true, sleepStartHour: 23, sleepStartMinute: 0, sleepEndHour: 8, sleepEndMinute: 0, sleepFlat: true,
   // Notifications (no effect on trading)
   notifyPlace: true, notifyBE: true, notifyTrail: true,
+  // Research filter (NOT in the Pine script; 0 = off, the default): only take longs above (shorts below) an
+  // exponential moving average of this many bars.
+  trendEma: 0,
 });
 
 /** Symbol properties the Pine script reads from syminfo / request.currency_rate. */
@@ -93,6 +96,11 @@ export function onBar(S, bar) {
   // ---- BASE CALCULATIONS
   const atr = atrStep(S.atr, h, l, 14);
   S.atr.prevClose = c;
+  if (I.trendEma > 0) {
+    const a = 2 / (I.trendEma + 1);
+    S.trendEma = S.trendEma === undefined || S.trendEma === null ? c : S.trendEma + a * (c - S.trendEma);
+    S.trendBars = (S.trendBars ?? 0) + 1;
+  }
   const ph = pivot(S.h, I.swingLen, "high", S.pivotTies);
   const pl = pivot(S.l, I.swingLen, "low", S.pivotTies);
   const lowestL = lowest(S.l, I.rbLook);
@@ -269,7 +277,8 @@ export function onBar(S, bar) {
     const ep = limitMode ? l705 : c;
     const timing = limitMode ? (armedNow && priceSide) : (S.armed && touched && holds && candleOk);
     const valid = slPlan !== null && (S.dir === 1 ? (tp2v > ep && ep > slPlan) : (tp2v < ep && ep < slPlan));
-    const dirOk = S.dir === 1 ? I.allowLong : I.allowShort;
+    const trendOk = !(I.trendEma > 0) || ((S.trendBars ?? 0) >= I.trendEma && (S.dir === 1 ? c > S.trendEma : c < S.trendEma));
+    const dirOk = (S.dir === 1 ? I.allowLong : I.allowShort) && trendOk;
     const place = timing && valid && dirOk && sc >= I.minScore && canTrade;
     S.armed = armedNow;
     plan = { entry: l705, sl: slPlan, tp2: tp2v, score: sc, tags: tags.trim() };

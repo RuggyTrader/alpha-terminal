@@ -26,6 +26,19 @@ function triggerPrice(a, b, level, wantsUp) {
   return b <= level ? level : null;
 }
 
+/**
+ * Conservative limit fills (research option limitThroughTicks > 0): a resting limit order fills only when price trades
+ * THROUGH it by that many ticks (a touch may leave it unfilled in the queue), at the limit price, or at the open when
+ * the bar gaps through it. Returns undefined when the option is off (the default emulator rule applies).
+ */
+function throughLimit(a, b, level, wantsUp, opt) {
+  if (!(opt.limitThroughTicks > 0) || level === null || level === undefined) return undefined;
+  const d = opt.limitThroughTicks * (opt.tick ?? 0.01);
+  const hit = triggerPrice(a, b, wantsUp ? level + d : level - d, wantsUp);
+  if (hit === null) return null;
+  return (wantsUp ? a >= level : a <= level) ? a : level;
+}
+
 function fillEntry(br, price, bar, events) {
   const e = br.entry;
   br.pos = { side: e.side, qty: e.qty, avg: price, entryId: e.id, entryTime: bar.t, entryBar: bar.i };
@@ -61,14 +74,16 @@ export function processBar(br, bar) {
     for (let guard = 0; guard < 4; guard++) {
       const cands = [];
       if (!br.pos && br.entry && br.entry.limit !== null) {
-        let p = triggerPrice(a, b, br.entry.limit, br.entry.side === -1); // buy limit fills on the way down
+        let p = throughLimit(a, b, br.entry.limit, br.entry.side === -1, opt);
+        if (p === undefined) p = triggerPrice(a, b, br.entry.limit, br.entry.side === -1); // buy limit fills on the way down
         if (p !== null && opt.limitPrice === "requested") p = br.entry.limit;
         if (p !== null) cands.push({ p, kind: "ENTRY" });
       }
       const exitsLive = !(opt.exitDelayTicks >= 1 && entrySeg === si);
       if (exitsLive && br.pos && br.exit && br.exit.from === br.pos.entryId) {
         const long = br.pos.side === 1;
-        let tp = triggerPrice(a, b, br.exit.limit, long);
+        let tp = throughLimit(a, b, br.exit.limit, long, opt);
+        if (tp === undefined) tp = triggerPrice(a, b, br.exit.limit, long);
         if (tp !== null && opt.limitPrice === "requested") tp = br.exit.limit;
         const sl = triggerPrice(a, b, br.exit.stop, !long);
         if (tp !== null) cands.push({ p: tp, kind: "TP" });

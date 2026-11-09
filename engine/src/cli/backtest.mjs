@@ -42,7 +42,8 @@ export function runBacktest({ candles, symbol, intervalMin, inputs = {}, pivotTi
         const t = S.broker.closed[acct.closedSeen++];
         const fee = (t.qty * t.entryPrice + t.qty * t.exitPrice) * ((ledger.feePct ?? 0) / 100);
         acct.fees += fee;
-        acct.capital += t.pnl - fee;
+        // fixedCapital (research): keep the reference balance constant, so each trade's size is a pure fraction of it.
+        if (!ledger.fixedCapital) acct.capital += t.pnl - fee;
         acct.feeByTrade.set(t, fee);
       }
     }
