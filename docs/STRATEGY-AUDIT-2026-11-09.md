@@ -60,7 +60,7 @@ inputs are in the `solusd-5m` profile (`engine/profiles/solusd-5m.env`).
 | Commission / slippage | 0% / 0 ticks | none in Model A | ✓ |
 | Calculation | on bar close | once per completed bar | ✓ |
 | Bar detail | Default, 4 ticks per bar | O→H→L→C or O→L→H→C path, whichever extreme is nearer the open first | ✓ (TradingView's documented rule) |
-| Margin long / short | 0 (leverage ∞) | no capital check | With margin 0, TradingView runs no margin-call logic: positions are never limited by equity and equity can go negative (see section 4). |
+| Margin long / short | 0 (leverage ∞) | no capital check | TradingView's docs call 0% margin "equivalent to *infinite* leverage". They do not state outright that margin calls are disabled (corrected 2026-11-09, see `docs/TECHNICAL-REVIEW-2026-11-09.md`). The benchmark reproduces with no capital check, so no margin call affected it. Equity can go negative in theory (section 4). |
 | Limit order execution | "Requested price" | open price when a bar gaps through the limit | **Unresolved**, see Problem 2 |
 | Order execution delay | "One tick" | an exit can fill on the entry's own path | **Unresolved**, see Problem 2 |
 | Chart time zone | UTC | UTC | ✓ |

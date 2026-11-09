@@ -1,0 +1,94 @@
+{
+ "prior_data": {
+  "entries": 7,
+  "trades": 1,
+  "positions": 2,
+  "fills": 3
+ },
+ "migration": {
+  "prior_entries": 7,
+  "prior_trades": 1,
+  "unchanged": true
+ },
+ "manual_rerun": {
+  "error": "\u001b[31mX \u001b[41;31m[\u001b[41;97mERROR\u001b[41;31m]\u001b[0m \u001b[1mduplicate column name: fees_micro: SQLITE_ERROR\u001b[0m",
+  "tables_after": [
+   "portfolio_entries"
+  ],
+  "entries_unchanged": true
+ },
+ "pre_migration_position": {
+  "trade_cost_profile": "ndax",
+  "fees_usd": "0.057093",
+  "gross": "0.276",
+  "net": "0.190332",
+  "note": "entry had no cost; trade is labelled with the exit's profile"
+ },
+ "concurrency": {
+  "qty": 0.6356,
+  "available": 99.941532,
+  "statuses": [
+   "200 DRY_RUN_ACCEPTED",
+   "422 INSUFFICIENT_PAPER_CAPITAL"
+  ]
+ },
+ "new_code": {
+  "totals": {
+   "book_balance_usd": 199.641872,
+   "unallocated_usd": 100,
+   "available_usd": 199.641872,
+   "reserved_usd": 0,
+   "realized_pnl_usd": 0.241553,
+   "fees_usd": 0.599681,
+   "net_realized_pnl_usd": -0.358128,
+   "net_funding_usd": 200,
+   "unrealized_pnl_usd": 0
+  },
+  "consistency": {
+   "ok": true,
+   "issues": []
+  },
+  "verified_trades_fees": 0.599681
+ },
+ "rollback": {
+  "dashboard_loads": true,
+  "consistency": {
+   "ok": false,
+   "issues": [
+    "book balance differs from funding + realized P&L"
+   ]
+  },
+  "signals": [
+   "200 DRY_RUN_ACCEPTED",
+   "200 DRY_RUN_ACCEPTED"
+  ],
+  "trade_written_by_old_code": {
+   "cost_profile": null,
+   "gross_pnl": null,
+   "realized_pnl": "0.184"
+  },
+  "consistency_after_trading": {
+   "ok": false,
+   "issues": [
+    "book balance differs from funding + realized P&L"
+   ]
+  }
+ },
+ "roll_forward": {
+  "consistency": {
+   "ok": true,
+   "issues": []
+  },
+  "totals": {
+   "book_balance_usd": 199.825872,
+   "unallocated_usd": 100,
+   "available_usd": 199.825872,
+   "reserved_usd": 0,
+   "realized_pnl_usd": 0.425553,
+   "fees_usd": 0.599681,
+   "net_realized_pnl_usd": -0.174128,
+   "net_funding_usd": 200,
+   "unrealized_pnl_usd": 0
+  }
+ }
+}

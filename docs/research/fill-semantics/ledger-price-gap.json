@@ -1,0 +1,37 @@
+{
+ "note": "Positive = the ledger's price is worse for the trade than the strategy's own fill. Candle close is a proxy; the live reference is read moments later.",
+ "entry_usd": {
+  "n": 579,
+  "mean": -0.4087,
+  "p10": -4.6254,
+  "median": 0,
+  "p90": 3.7425,
+  "total": -236.67
+ },
+ "entry_pct": {
+  "n": 579,
+  "mean": -0.0125,
+  "p10": -0.1611,
+  "median": 0,
+  "p90": 0.1322,
+  "total": -7.23
+ },
+ "tp_exit_usd": {
+  "n": 129,
+  "mean": -0.4202,
+  "p10": -4.1344,
+  "median": 0,
+  "p90": 2.7695,
+  "total": -54.21
+ },
+ "stop_exit_usd": {
+  "n": 450,
+  "mean": 1.0572,
+  "p10": -3.8576,
+  "median": 0.3468,
+  "p90": 6.0604,
+  "total": 475.73
+ },
+ "entries_filled_at_the_open_gap_through": 9,
+ "entries": 579
+}

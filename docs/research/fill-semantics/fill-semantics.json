@@ -1,0 +1,1748 @@
+{
+ "generated_at": "2026-11-09T20:38:18.477Z",
+ "readings": {
+  "default": {
+   "benchmark": {
+    "trades": 69,
+    "winners": 32,
+    "net": 249.99,
+    "profit_factor": 3.298,
+    "max_drawdown": 21.95,
+    "same_bar": 1,
+    "listed_trades_matched": 5,
+    "passes": true
+   },
+   "history_150d": {
+    "trades": 579,
+    "winners": 217,
+    "net": 150.24,
+    "profit_factor": 1.076,
+    "max_drawdown": 225.97,
+    "same_bar": 23
+   },
+   "benchmark_same_bar_trades": [
+    "LONG 2026-10-26T13:35:00.000Z 100.45→101.35 14.99"
+   ]
+  },
+  "requested": {
+   "benchmark": {
+    "trades": 69,
+    "winners": 32,
+    "net": 249.99,
+    "profit_factor": 3.298,
+    "max_drawdown": 21.95,
+    "same_bar": 1,
+    "listed_trades_matched": 5,
+    "passes": true
+   },
+   "history_150d": {
+    "trades": 579,
+    "winners": 217,
+    "net": 145.35,
+    "profit_factor": 1.073,
+    "max_drawdown": 230.86,
+    "same_bar": 23
+   },
+   "benchmark_same_bar_trades": [
+    "LONG 2026-10-26T13:35:00.000Z 100.45→101.35 14.99"
+   ]
+  },
+  "exitDelayTick": {
+   "benchmark": {
+    "trades": 69,
+    "winners": 32,
+    "net": 249.99,
+    "profit_factor": 3.298,
+    "max_drawdown": 21.95,
+    "same_bar": 1,
+    "listed_trades_matched": 5,
+    "passes": true
+   },
+   "history_150d": {
+    "trades": 579,
+    "winners": 217,
+    "net": -88.31,
+    "profit_factor": 0.96,
+    "max_drawdown": 417.09,
+    "same_bar": 23
+   },
+   "benchmark_same_bar_trades": [
+    "LONG 2026-10-26T13:35:00.000Z 100.45→101.35 14.99"
+   ]
+  },
+  "noSameBarExit": {
+   "benchmark": {
+    "trades": 69,
+    "winners": 31,
+    "net": 235,
+    "profit_factor": 3.161,
+    "max_drawdown": 21.95,
+    "same_bar": 0,
+    "listed_trades_matched": 5,
+    "passes": false
+   },
+   "history_150d": {
+    "trades": 579,
+    "winners": 217,
+    "net": 51.87,
+    "profit_factor": 1.025,
+    "max_drawdown": 284.69,
+    "same_bar": 0
+   },
+   "benchmark_same_bar_trades": []
+  }
+ },
+ "disputes": {
+  "requested": [
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-07-19T10:45:00.000Z",
+    "order_created_at_close_of": "2026-07-19T10:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-19T09:45:00.000Z",
+     "limit": 76.19,
+     "stop": 76.33,
+     "tp2": 75.98
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-19T10:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 76.21,
+     "h": 76.45,
+     "l": 76.21,
+     "c": 76.28
+    },
+    "assumed_path": "O→L→H→C (76.21 → 76.21 → 76.45 → 76.28)",
+    "entry_fill": 76.21,
+    "default": {
+     "exit_time": "2026-07-19T10:45:00.000Z",
+     "exit_price": 76.33,
+     "result": "SAME_BAR",
+     "pnl": -8.2359
+    },
+    "alternative": {
+     "exit_time": "2026-07-19T10:45:00.000Z",
+     "entry_price": 76.18,
+     "exit_price": 76.33,
+     "result": "SAME_BAR",
+     "pnl": -10.2948
+    },
+    "pnl_difference": -2.059
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-28T22:30:00.000Z",
+    "order_created_at_close_of": "2026-07-28T22:25:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-28T20:20:00.000Z",
+     "limit": 73.89,
+     "stop": 73.71,
+     "tp2": 74.16
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-28T22:30:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 73.88,
+     "h": 73.88,
+     "l": 73.73,
+     "c": 73.76
+    },
+    "assumed_path": "O→H→L→C (73.88 → 73.88 → 73.73 → 73.76)",
+    "entry_fill": 73.88,
+    "default": {
+     "exit_time": "2026-07-28T22:35:00.000Z",
+     "exit_price": 73.71,
+     "result": "SL",
+     "pnl": -9.2086
+    },
+    "alternative": {
+     "exit_time": "2026-07-28T22:35:00.000Z",
+     "entry_price": 73.89,
+     "exit_price": 73.71,
+     "result": "SL",
+     "pnl": -9.7502
+    },
+    "pnl_difference": -0.5417
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-30T06:20:00.000Z",
+    "order_created_at_close_of": "2026-07-30T06:15:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-30T06:10:00.000Z",
+     "limit": 73.44,
+     "stop": 73.31,
+     "tp2": 73.63
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-30T06:20:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 73.41,
+     "h": 73.51,
+     "l": 73.41,
+     "c": 73.51
+    },
+    "assumed_path": "O→L→H→C (73.41 → 73.41 → 73.51 → 73.51)",
+    "entry_fill": 73.41,
+    "default": {
+     "exit_time": "2026-07-30T06:35:00.000Z",
+     "exit_price": 73.51,
+     "result": "TRAILING_SL",
+     "pnl": 7.646
+    },
+    "alternative": {
+     "exit_time": "2026-07-30T06:35:00.000Z",
+     "entry_price": 73.44,
+     "exit_price": 73.51,
+     "result": "TRAILING_SL",
+     "pnl": 5.3522
+    },
+    "pnl_difference": -2.2938
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-08-18T07:50:00.000Z",
+    "order_created_at_close_of": "2026-08-18T07:45:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-18T07:40:00.000Z",
+     "limit": 75.92,
+     "stop": 75.81,
+     "tp2": 76.08
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-18T07:50:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 75.89,
+     "h": 75.96,
+     "l": 75.89,
+     "c": 75.96
+    },
+    "assumed_path": "O→L→H→C (75.89 → 75.89 → 75.96 → 75.96)",
+    "entry_fill": 75.89,
+    "default": {
+     "exit_time": "2026-08-18T08:05:00.000Z",
+     "exit_price": 75.89,
+     "result": "BREAK_EVEN",
+     "pnl": 0
+    },
+    "alternative": {
+     "exit_time": "2026-08-18T08:00:00.000Z",
+     "entry_price": 75.92,
+     "exit_price": 75.92,
+     "result": "BREAK_EVEN",
+     "pnl": 0
+    },
+    "pnl_difference": 0
+   }
+  ],
+  "exitDelayTick": [
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-06-18T02:20:00.000Z",
+    "order_created_at_close_of": "2026-06-18T02:15:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-18T02:15:00.000Z",
+     "limit": 72.4,
+     "stop": 72.57,
+     "tp2": 72.16
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-18T02:20:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 72.23,
+     "h": 72.58,
+     "l": 72.22,
+     "c": 72.56
+    },
+    "assumed_path": "O→L→H→C (72.23 → 72.22 → 72.58 → 72.56)",
+    "entry_fill": 72.4,
+    "default": {
+     "exit_time": "2026-06-18T02:20:00.000Z",
+     "exit_price": 72.57,
+     "result": "SAME_BAR",
+     "pnl": -9.8284
+    },
+    "alternative": {
+     "exit_time": "2026-06-18T02:20:00.000Z",
+     "entry_price": 72.4,
+     "exit_price": 72.58,
+     "result": "SAME_BAR",
+     "pnl": -10.4065
+    },
+    "pnl_difference": -0.5781
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-06-20T14:45:00.000Z",
+    "order_created_at_close_of": "2026-06-20T14:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-20T14:35:00.000Z",
+     "limit": 71.54,
+     "stop": 72.02,
+     "tp2": 70.83
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-20T14:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 71.09,
+     "h": 72.08,
+     "l": 71.06,
+     "c": 71.98
+    },
+    "assumed_path": "O→L→H→C (71.09 → 71.06 → 72.08 → 71.98)",
+    "entry_fill": 71.54,
+    "default": {
+     "exit_time": "2026-06-20T14:45:00.000Z",
+     "exit_price": 72.02,
+     "result": "SAME_BAR",
+     "pnl": -10.0539
+    },
+    "alternative": {
+     "exit_time": "2026-06-20T14:45:00.000Z",
+     "entry_price": 71.54,
+     "exit_price": 72.08,
+     "result": "SAME_BAR",
+     "pnl": -11.3106
+    },
+    "pnl_difference": -1.2567
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-06-24T11:45:00.000Z",
+    "order_created_at_close_of": "2026-06-24T11:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-24T10:45:00.000Z",
+     "limit": 69.63,
+     "stop": 69.96,
+     "tp2": 69.15
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-24T11:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 69.46,
+     "h": 70.36,
+     "l": 69.4,
+     "c": 70.11
+    },
+    "assumed_path": "O→L→H→C (69.46 → 69.4 → 70.36 → 70.11)",
+    "entry_fill": 69.63,
+    "default": {
+     "exit_time": "2026-06-24T11:45:00.000Z",
+     "exit_price": 69.97,
+     "result": "SAME_BAR",
+     "pnl": -10.2824
+    },
+    "alternative": {
+     "exit_time": "2026-06-24T11:45:00.000Z",
+     "entry_price": 69.63,
+     "exit_price": 70.36,
+     "result": "SAME_BAR",
+     "pnl": -22.077
+    },
+    "pnl_difference": -11.7946
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-06-25T13:30:00.000Z",
+    "order_created_at_close_of": "2026-06-25T13:25:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-25T13:15:00.000Z",
+     "limit": 68.03,
+     "stop": 67.68,
+     "tp2": 68.53
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-25T13:30:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 68.07,
+     "h": 68.28,
+     "l": 67.63,
+     "c": 67.79
+    },
+    "assumed_path": "O→H→L→C (68.07 → 68.28 → 67.63 → 67.79)",
+    "entry_fill": 68.03,
+    "default": {
+     "exit_time": "2026-06-25T13:30:00.000Z",
+     "exit_price": 67.68,
+     "result": "SAME_BAR",
+     "pnl": -10.1093
+    },
+    "alternative": {
+     "exit_time": "2026-06-25T13:30:00.000Z",
+     "entry_price": 68.03,
+     "exit_price": 67.63,
+     "result": "SAME_BAR",
+     "pnl": -11.5535
+    },
+    "pnl_difference": -1.4442
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-06-26T02:10:00.000Z",
+    "order_created_at_close_of": "2026-06-26T02:05:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-25T23:55:00.000Z",
+     "limit": 66.77,
+     "stop": 65.96,
+     "tp2": 68
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-26T02:10:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 66.93,
+     "h": 66.97,
+     "l": 65.8,
+     "c": 66.05
+    },
+    "assumed_path": "O→H→L→C (66.93 → 66.97 → 65.8 → 66.05)",
+    "entry_fill": 66.77,
+    "default": {
+     "exit_time": "2026-06-26T02:10:00.000Z",
+     "exit_price": 65.96,
+     "result": "SAME_BAR",
+     "pnl": -9.9561
+    },
+    "alternative": {
+     "exit_time": "2026-06-26T02:10:00.000Z",
+     "entry_price": 66.77,
+     "exit_price": 65.8,
+     "result": "SAME_BAR",
+     "pnl": -11.9227
+    },
+    "pnl_difference": -1.9666
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-11T15:45:00.000Z",
+    "order_created_at_close_of": "2026-07-11T15:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-11T15:00:00.000Z",
+     "limit": 78.11,
+     "stop": 77.87,
+     "tp2": 78.47
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-11T15:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 78.16,
+     "h": 78.2,
+     "l": 77.84,
+     "c": 78.02
+    },
+    "assumed_path": "O→H→L→C (78.16 → 78.2 → 77.84 → 78.02)",
+    "entry_fill": 78.11,
+    "default": {
+     "exit_time": "2026-07-11T15:45:00.000Z",
+     "exit_price": 77.87,
+     "result": "SAME_BAR",
+     "pnl": -9.7965
+    },
+    "alternative": {
+     "exit_time": "2026-07-11T15:45:00.000Z",
+     "entry_price": 78.11,
+     "exit_price": 77.84,
+     "result": "SAME_BAR",
+     "pnl": -11.0211
+    },
+    "pnl_difference": -1.2246
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-11T22:20:00.000Z",
+    "order_created_at_close_of": "2026-07-11T22:15:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-11T21:40:00.000Z",
+     "limit": 77.97,
+     "stop": 77.84,
+     "tp2": 78.15
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-11T22:20:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 78.02,
+     "h": 78.02,
+     "l": 77.71,
+     "c": 77.82
+    },
+    "assumed_path": "O→H→L→C (78.02 → 78.02 → 77.71 → 77.82)",
+    "entry_fill": 77.97,
+    "default": {
+     "exit_time": "2026-07-11T22:20:00.000Z",
+     "exit_price": 77.84,
+     "result": "SAME_BAR",
+     "pnl": -10.341
+    },
+    "alternative": {
+     "exit_time": "2026-07-11T22:20:00.000Z",
+     "entry_price": 77.97,
+     "exit_price": 77.71,
+     "result": "SAME_BAR",
+     "pnl": -20.6819
+    },
+    "pnl_difference": -10.341
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-12T21:15:00.000Z",
+    "order_created_at_close_of": "2026-07-12T21:10:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-12T21:05:00.000Z",
+     "limit": 77.48,
+     "stop": 77.37,
+     "tp2": 77.64
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-12T21:15:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 77.5,
+     "h": 77.51,
+     "l": 77.35,
+     "c": 77.35
+    },
+    "assumed_path": "O→H→L→C (77.5 → 77.51 → 77.35 → 77.35)",
+    "entry_fill": 77.48,
+    "default": {
+     "exit_time": "2026-07-12T21:15:00.000Z",
+     "exit_price": 77.37,
+     "result": "SAME_BAR",
+     "pnl": -9.8314
+    },
+    "alternative": {
+     "exit_time": "2026-07-12T21:15:00.000Z",
+     "entry_price": 77.48,
+     "exit_price": 77.35,
+     "result": "SAME_BAR",
+     "pnl": -11.6189
+    },
+    "pnl_difference": -1.7875
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-07-25T23:25:00.000Z",
+    "order_created_at_close_of": "2026-07-25T23:20:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-25T23:15:00.000Z",
+     "limit": 74.44,
+     "stop": 74.53,
+     "tp2": 74.31
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-25T23:25:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 74.36,
+     "h": 74.63,
+     "l": 74.35,
+     "c": 74.39
+    },
+    "assumed_path": "O→L→H→C (74.36 → 74.35 → 74.63 → 74.39)",
+    "entry_fill": 74.44,
+    "default": {
+     "exit_time": "2026-07-25T23:25:00.000Z",
+     "exit_price": 74.53,
+     "result": "SAME_BAR",
+     "pnl": -10.1739
+    },
+    "alternative": {
+     "exit_time": "2026-07-25T23:25:00.000Z",
+     "entry_price": 74.44,
+     "exit_price": 74.63,
+     "result": "SAME_BAR",
+     "pnl": -21.4782
+    },
+    "pnl_difference": -11.3043
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-08-06T05:05:00.000Z",
+    "order_created_at_close_of": "2026-08-06T05:00:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-06T03:00:00.000Z",
+     "limit": 73.94,
+     "stop": 74.2,
+     "tp2": 73.55
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-06T05:05:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 73.88,
+     "h": 74.25,
+     "l": 73.88,
+     "c": 74.18
+    },
+    "assumed_path": "O→L→H→C (73.88 → 73.88 → 74.25 → 74.18)",
+    "entry_fill": 73.94,
+    "default": {
+     "exit_time": "2026-08-06T05:05:00.000Z",
+     "exit_price": 74.2,
+     "result": "SAME_BAR",
+     "pnl": -10.0521
+    },
+    "alternative": {
+     "exit_time": "2026-08-06T05:05:00.000Z",
+     "entry_price": 73.94,
+     "exit_price": 74.25,
+     "result": "SAME_BAR",
+     "pnl": -11.9852
+    },
+    "pnl_difference": -1.9331
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-08-13T15:25:00.000Z",
+    "order_created_at_close_of": "2026-08-13T15:20:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-13T15:10:00.000Z",
+     "limit": 76.19,
+     "stop": 76.05,
+     "tp2": 76.39
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-13T15:25:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 76.24,
+     "h": 76.24,
+     "l": 75.92,
+     "c": 75.98
+    },
+    "assumed_path": "O→H→L→C (76.24 → 76.24 → 75.92 → 75.98)",
+    "entry_fill": 76.19,
+    "default": {
+     "exit_time": "2026-08-13T15:25:00.000Z",
+     "exit_price": 76.05,
+     "result": "SAME_BAR",
+     "pnl": -10.0577
+    },
+    "alternative": {
+     "exit_time": "2026-08-13T15:25:00.000Z",
+     "entry_price": 76.19,
+     "exit_price": 75.92,
+     "result": "SAME_BAR",
+     "pnl": -19.3971
+    },
+    "pnl_difference": -9.3393
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-08-18T11:15:00.000Z",
+    "order_created_at_close_of": "2026-08-18T11:10:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-18T10:50:00.000Z",
+     "limit": 76,
+     "stop": 76.12,
+     "tp2": 75.83
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-18T11:15:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 75.99,
+     "h": 76.3,
+     "l": 75.99,
+     "c": 76.27
+    },
+    "assumed_path": "O→L→H→C (75.99 → 75.99 → 76.3 → 76.27)",
+    "entry_fill": 76,
+    "default": {
+     "exit_time": "2026-08-18T11:15:00.000Z",
+     "exit_price": 76.12,
+     "result": "SAME_BAR",
+     "pnl": -10.1039
+    },
+    "alternative": {
+     "exit_time": "2026-08-18T11:15:00.000Z",
+     "entry_price": 76,
+     "exit_price": 76.3,
+     "result": "SAME_BAR",
+     "pnl": -25.2598
+    },
+    "pnl_difference": -15.1559
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-08-22T21:00:00.000Z",
+    "order_created_at_close_of": "2026-08-22T20:55:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-22T20:05:00.000Z",
+     "limit": 94.26,
+     "stop": 94.01,
+     "tp2": 94.62
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-22T21:00:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 94.39,
+     "h": 94.39,
+     "l": 93.55,
+     "c": 93.69
+    },
+    "assumed_path": "O→H→L→C (94.39 → 94.39 → 93.55 → 93.69)",
+    "entry_fill": 94.26,
+    "default": {
+     "exit_time": "2026-08-22T21:00:00.000Z",
+     "exit_price": 94.01,
+     "result": "SAME_BAR",
+     "pnl": -10.1338
+    },
+    "alternative": {
+     "exit_time": "2026-08-22T21:00:00.000Z",
+     "entry_price": 94.26,
+     "exit_price": 93.55,
+     "result": "SAME_BAR",
+     "pnl": -28.7799
+    },
+    "pnl_difference": -18.6461
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-04T12:30:00.000Z",
+    "order_created_at_close_of": "2026-09-04T12:25:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-04T12:00:00.000Z",
+     "limit": 103.83,
+     "stop": 103.53,
+     "tp2": 104.27
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-04T12:30:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 104.4,
+     "h": 104.4,
+     "l": 100.12,
+     "c": 101.59
+    },
+    "assumed_path": "O→H→L→C (104.4 → 104.4 → 100.12 → 101.59)",
+    "entry_fill": 103.83,
+    "default": {
+     "exit_time": "2026-09-04T12:30:00.000Z",
+     "exit_price": 103.53,
+     "result": "SAME_BAR",
+     "pnl": -9.8791
+    },
+    "alternative": {
+     "exit_time": "2026-09-04T12:30:00.000Z",
+     "entry_price": 103.83,
+     "exit_price": 100.12,
+     "result": "SAME_BAR",
+     "pnl": -122.1716
+    },
+    "pnl_difference": -112.2925
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-15T18:35:00.000Z",
+    "order_created_at_close_of": "2026-09-15T18:30:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-15T18:25:00.000Z",
+     "limit": 99.23,
+     "stop": 98.61,
+     "tp2": 100.15
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-15T18:35:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 99.69,
+     "h": 99.73,
+     "l": 98.29,
+     "c": 99.05
+    },
+    "assumed_path": "O→H→L→C (99.69 → 99.73 → 98.29 → 99.05)",
+    "entry_fill": 99.23,
+    "default": {
+     "exit_time": "2026-09-15T18:35:00.000Z",
+     "exit_price": 98.6,
+     "result": "SAME_BAR",
+     "pnl": -10.0084
+    },
+    "alternative": {
+     "exit_time": "2026-09-15T18:35:00.000Z",
+     "entry_price": 99.23,
+     "exit_price": 98.29,
+     "result": "SAME_BAR",
+     "pnl": -14.9331
+    },
+    "pnl_difference": -4.9248
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-20T21:00:00.000Z",
+    "order_created_at_close_of": "2026-09-20T20:55:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-20T20:15:00.000Z",
+     "limit": 109.62,
+     "stop": 109.09,
+     "tp2": 110.4
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-20T21:00:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 110.11,
+     "h": 110.11,
+     "l": 109,
+     "c": 109.7
+    },
+    "assumed_path": "O→H→L→C (110.11 → 110.11 → 109 → 109.7)",
+    "entry_fill": 109.62,
+    "default": {
+     "exit_time": "2026-09-20T21:00:00.000Z",
+     "exit_price": 109.09,
+     "result": "SAME_BAR",
+     "pnl": -9.9911
+    },
+    "alternative": {
+     "exit_time": "2026-09-20T21:00:00.000Z",
+     "entry_price": 109.62,
+     "exit_price": 109,
+     "result": "SAME_BAR",
+     "pnl": -11.6877
+    },
+    "pnl_difference": -1.6966
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-30T03:15:00.000Z",
+    "order_created_at_close_of": "2026-09-30T03:10:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-30T02:40:00.000Z",
+     "limit": 119.27,
+     "stop": 118.93,
+     "tp2": 119.75
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-30T03:15:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 119.55,
+     "h": 119.55,
+     "l": 118.89,
+     "c": 118.89
+    },
+    "assumed_path": "O→H→L→C (119.55 → 119.55 → 118.89 → 118.89)",
+    "entry_fill": 119.27,
+    "default": {
+     "exit_time": "2026-09-30T03:15:00.000Z",
+     "exit_price": 118.93,
+     "result": "SAME_BAR",
+     "pnl": -10.1484
+    },
+    "alternative": {
+     "exit_time": "2026-09-30T03:15:00.000Z",
+     "entry_price": 119.27,
+     "exit_price": 118.89,
+     "result": "SAME_BAR",
+     "pnl": -11.3423
+    },
+    "pnl_difference": -1.1939
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-10-01T07:20:00.000Z",
+    "order_created_at_close_of": "2026-10-01T07:15:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-10-01T06:35:00.000Z",
+     "limit": 118.37,
+     "stop": 117.86,
+     "tp2": 119.13
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-10-01T07:20:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 118.48,
+     "h": 118.48,
+     "l": 117.66,
+     "c": 117.68
+    },
+    "assumed_path": "O→H→L→C (118.48 → 118.48 → 117.66 → 117.68)",
+    "entry_fill": 118.37,
+    "default": {
+     "exit_time": "2026-10-01T07:20:00.000Z",
+     "exit_price": 117.86,
+     "result": "SAME_BAR",
+     "pnl": -9.8962
+    },
+    "alternative": {
+     "exit_time": "2026-10-01T07:20:00.000Z",
+     "entry_price": 118.37,
+     "exit_price": 117.66,
+     "result": "SAME_BAR",
+     "pnl": -13.777
+    },
+    "pnl_difference": -3.8809
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-10-06T09:25:00.000Z",
+    "order_created_at_close_of": "2026-10-06T09:20:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-10-06T08:30:00.000Z",
+     "limit": 119.99,
+     "stop": 119.65,
+     "tp2": 120.47
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-10-06T09:25:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 120.28,
+     "h": 120.38,
+     "l": 118.89,
+     "c": 119.1
+    },
+    "assumed_path": "O→H→L→C (120.28 → 120.38 → 118.89 → 119.1)",
+    "entry_fill": 119.99,
+    "default": {
+     "exit_time": "2026-10-06T09:25:00.000Z",
+     "exit_price": 119.65,
+     "result": "SAME_BAR",
+     "pnl": -10.2337
+    },
+    "alternative": {
+     "exit_time": "2026-10-06T09:25:00.000Z",
+     "entry_price": 119.99,
+     "exit_price": 118.89,
+     "result": "SAME_BAR",
+     "pnl": -33.109
+    },
+    "pnl_difference": -22.8753
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-10-12T21:40:00.000Z",
+    "order_created_at_close_of": "2026-10-12T21:35:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-10-12T21:15:00.000Z",
+     "limit": 107.71,
+     "stop": 107.28,
+     "tp2": 108.34
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-10-12T21:40:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 107.88,
+     "h": 107.89,
+     "l": 107.07,
+     "c": 107.46
+    },
+    "assumed_path": "O→H→L→C (107.88 → 107.89 → 107.07 → 107.46)",
+    "entry_fill": 107.71,
+    "default": {
+     "exit_time": "2026-10-12T21:40:00.000Z",
+     "exit_price": 107.28,
+     "result": "SAME_BAR",
+     "pnl": -10.0583
+    },
+    "alternative": {
+     "exit_time": "2026-10-12T21:40:00.000Z",
+     "entry_price": 107.71,
+     "exit_price": 107.07,
+     "result": "SAME_BAR",
+     "pnl": -14.9706
+    },
+    "pnl_difference": -4.9122
+   }
+  ],
+  "noSameBarExit": [
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-06-18T02:20:00.000Z",
+    "order_created_at_close_of": "2026-06-18T02:15:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-18T02:15:00.000Z",
+     "limit": 72.4,
+     "stop": 72.57,
+     "tp2": 72.16
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-18T02:20:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 72.23,
+     "h": 72.58,
+     "l": 72.22,
+     "c": 72.56
+    },
+    "assumed_path": "O→L→H→C (72.23 → 72.22 → 72.58 → 72.56)",
+    "entry_fill": 72.4,
+    "default": {
+     "exit_time": "2026-06-18T02:20:00.000Z",
+     "exit_price": 72.57,
+     "result": "SAME_BAR",
+     "pnl": -9.8284
+    },
+    "alternative": {
+     "exit_time": "2026-06-18T02:25:00.000Z",
+     "entry_price": 72.4,
+     "exit_price": 72.57,
+     "result": "SL",
+     "pnl": -9.8284
+    },
+    "pnl_difference": 0
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-06-20T14:45:00.000Z",
+    "order_created_at_close_of": "2026-06-20T14:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-20T14:35:00.000Z",
+     "limit": 71.54,
+     "stop": 72.02,
+     "tp2": 70.83
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-20T14:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 71.09,
+     "h": 72.08,
+     "l": 71.06,
+     "c": 71.98
+    },
+    "assumed_path": "O→L→H→C (71.09 → 71.06 → 72.08 → 71.98)",
+    "entry_fill": 71.54,
+    "default": {
+     "exit_time": "2026-06-20T14:45:00.000Z",
+     "exit_price": 72.02,
+     "result": "SAME_BAR",
+     "pnl": -10.0539
+    },
+    "alternative": {
+     "exit_time": "2026-06-20T15:15:00.000Z",
+     "entry_price": 71.54,
+     "exit_price": 72.02,
+     "result": "SL",
+     "pnl": -10.0539
+    },
+    "pnl_difference": 0
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-06-24T11:45:00.000Z",
+    "order_created_at_close_of": "2026-06-24T11:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-24T10:45:00.000Z",
+     "limit": 69.63,
+     "stop": 69.96,
+     "tp2": 69.15
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-24T11:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 69.46,
+     "h": 70.36,
+     "l": 69.4,
+     "c": 70.11
+    },
+    "assumed_path": "O→L→H→C (69.46 → 69.4 → 70.36 → 70.11)",
+    "entry_fill": 69.63,
+    "default": {
+     "exit_time": "2026-06-24T11:45:00.000Z",
+     "exit_price": 69.97,
+     "result": "SAME_BAR",
+     "pnl": -10.2824
+    },
+    "alternative": {
+     "exit_time": "2026-06-24T11:50:00.000Z",
+     "entry_price": 69.63,
+     "exit_price": 70.08,
+     "result": "SL",
+     "pnl": -13.6091
+    },
+    "pnl_difference": -3.3267
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-06-25T13:30:00.000Z",
+    "order_created_at_close_of": "2026-06-25T13:25:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-25T13:15:00.000Z",
+     "limit": 68.03,
+     "stop": 67.68,
+     "tp2": 68.53
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-25T13:30:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 68.07,
+     "h": 68.28,
+     "l": 67.63,
+     "c": 67.79
+    },
+    "assumed_path": "O→H→L→C (68.07 → 68.28 → 67.63 → 67.79)",
+    "entry_fill": 68.03,
+    "default": {
+     "exit_time": "2026-06-25T13:30:00.000Z",
+     "exit_price": 67.68,
+     "result": "SAME_BAR",
+     "pnl": -10.1093
+    },
+    "alternative": {
+     "exit_time": "2026-06-25T13:35:00.000Z",
+     "entry_price": 68.03,
+     "exit_price": 67.68,
+     "result": "SL",
+     "pnl": -10.1093
+    },
+    "pnl_difference": 0
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-06-26T02:10:00.000Z",
+    "order_created_at_close_of": "2026-06-26T02:05:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-06-25T23:55:00.000Z",
+     "limit": 66.77,
+     "stop": 65.96,
+     "tp2": 68
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-06-26T02:10:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 66.93,
+     "h": 66.97,
+     "l": 65.8,
+     "c": 66.05
+    },
+    "assumed_path": "O→H→L→C (66.93 → 66.97 → 65.8 → 66.05)",
+    "entry_fill": 66.77,
+    "default": {
+     "exit_time": "2026-06-26T02:10:00.000Z",
+     "exit_price": 65.96,
+     "result": "SAME_BAR",
+     "pnl": -9.9561
+    },
+    "alternative": {
+     "exit_time": "2026-06-26T02:20:00.000Z",
+     "entry_price": 66.77,
+     "exit_price": 65.96,
+     "result": "SL",
+     "pnl": -9.9561
+    },
+    "pnl_difference": 0
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-11T15:45:00.000Z",
+    "order_created_at_close_of": "2026-07-11T15:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-11T15:00:00.000Z",
+     "limit": 78.11,
+     "stop": 77.87,
+     "tp2": 78.47
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-11T15:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 78.16,
+     "h": 78.2,
+     "l": 77.84,
+     "c": 78.02
+    },
+    "assumed_path": "O→H→L→C (78.16 → 78.2 → 77.84 → 78.02)",
+    "entry_fill": 78.11,
+    "default": {
+     "exit_time": "2026-07-11T15:45:00.000Z",
+     "exit_price": 77.87,
+     "result": "SAME_BAR",
+     "pnl": -9.7965
+    },
+    "alternative": {
+     "exit_time": "2026-07-11T16:05:00.000Z",
+     "entry_price": 78.11,
+     "exit_price": 78.11,
+     "result": "TRAILING_SL",
+     "pnl": 0
+    },
+    "pnl_difference": 9.7965
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-11T22:20:00.000Z",
+    "order_created_at_close_of": "2026-07-11T22:15:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-11T21:40:00.000Z",
+     "limit": 77.97,
+     "stop": 77.84,
+     "tp2": 78.15
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-11T22:20:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 78.02,
+     "h": 78.02,
+     "l": 77.71,
+     "c": 77.82
+    },
+    "assumed_path": "O→H→L→C (78.02 → 78.02 → 77.71 → 77.82)",
+    "entry_fill": 77.97,
+    "default": {
+     "exit_time": "2026-07-11T22:20:00.000Z",
+     "exit_price": 77.84,
+     "result": "SAME_BAR",
+     "pnl": -10.341
+    },
+    "alternative": {
+     "exit_time": "2026-07-11T22:25:00.000Z",
+     "entry_price": 77.97,
+     "exit_price": 77.81,
+     "result": "SL",
+     "pnl": -12.7273
+    },
+    "pnl_difference": -2.3864
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-12T21:15:00.000Z",
+    "order_created_at_close_of": "2026-07-12T21:10:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-12T21:05:00.000Z",
+     "limit": 77.48,
+     "stop": 77.37,
+     "tp2": 77.64
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-12T21:15:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 77.5,
+     "h": 77.51,
+     "l": 77.35,
+     "c": 77.35
+    },
+    "assumed_path": "O→H→L→C (77.5 → 77.51 → 77.35 → 77.35)",
+    "entry_fill": 77.48,
+    "default": {
+     "exit_time": "2026-07-12T21:15:00.000Z",
+     "exit_price": 77.37,
+     "result": "SAME_BAR",
+     "pnl": -9.8314
+    },
+    "alternative": {
+     "exit_time": "2026-07-12T21:20:00.000Z",
+     "entry_price": 77.48,
+     "exit_price": 77.36,
+     "result": "SL",
+     "pnl": -10.7252
+    },
+    "pnl_difference": -0.8938
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-07-18T22:00:00.000Z",
+    "order_created_at_close_of": "2026-07-18T21:55:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-18T21:55:00.000Z",
+     "limit": 75.37,
+     "stop": 75.28,
+     "tp2": 75.5
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-18T22:00:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 75.44,
+     "h": 75.52,
+     "l": 75.37,
+     "c": 75.52
+    },
+    "assumed_path": "O→L→H→C (75.44 → 75.37 → 75.52 → 75.52)",
+    "entry_fill": 75.37,
+    "default": {
+     "exit_time": "2026-07-18T22:00:00.000Z",
+     "exit_price": 75.5,
+     "result": "SAME_BAR",
+     "pnl": 14.3706
+    },
+    "alternative": {
+     "exit_time": "2026-07-18T22:05:00.000Z",
+     "entry_price": 75.37,
+     "exit_price": 75.51,
+     "result": "TP2",
+     "pnl": 15.476
+    },
+    "pnl_difference": 1.1054
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-07-19T10:45:00.000Z",
+    "order_created_at_close_of": "2026-07-19T10:40:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-19T09:45:00.000Z",
+     "limit": 76.19,
+     "stop": 76.33,
+     "tp2": 75.98
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-19T10:45:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 76.21,
+     "h": 76.45,
+     "l": 76.21,
+     "c": 76.28
+    },
+    "assumed_path": "O→L→H→C (76.21 → 76.21 → 76.45 → 76.28)",
+    "entry_fill": 76.21,
+    "default": {
+     "exit_time": "2026-07-19T10:45:00.000Z",
+     "exit_price": 76.33,
+     "result": "SAME_BAR",
+     "pnl": -8.2359
+    },
+    "alternative": {
+     "exit_time": "2026-07-19T11:05:00.000Z",
+     "entry_price": 76.21,
+     "exit_price": 76.23,
+     "result": "SL",
+     "pnl": -1.3726
+    },
+    "pnl_difference": 6.8632
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-07-25T23:25:00.000Z",
+    "order_created_at_close_of": "2026-07-25T23:20:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-07-25T23:15:00.000Z",
+     "limit": 74.44,
+     "stop": 74.53,
+     "tp2": 74.31
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-07-25T23:25:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 74.36,
+     "h": 74.63,
+     "l": 74.35,
+     "c": 74.39
+    },
+    "assumed_path": "O→L→H→C (74.36 → 74.35 → 74.63 → 74.39)",
+    "entry_fill": 74.44,
+    "default": {
+     "exit_time": "2026-07-25T23:25:00.000Z",
+     "exit_price": 74.53,
+     "result": "SAME_BAR",
+     "pnl": -10.1739
+    },
+    "alternative": {
+     "exit_time": "2026-07-25T23:35:00.000Z",
+     "entry_price": 74.44,
+     "exit_price": 74.47,
+     "result": "TRAILING_SL",
+     "pnl": -3.3913
+    },
+    "pnl_difference": 6.7826
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-08-06T05:05:00.000Z",
+    "order_created_at_close_of": "2026-08-06T05:00:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-06T03:00:00.000Z",
+     "limit": 73.94,
+     "stop": 74.2,
+     "tp2": 73.55
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-06T05:05:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 73.88,
+     "h": 74.25,
+     "l": 73.88,
+     "c": 74.18
+    },
+    "assumed_path": "O→L→H→C (73.88 → 73.88 → 74.25 → 74.18)",
+    "entry_fill": 73.94,
+    "default": {
+     "exit_time": "2026-08-06T05:05:00.000Z",
+     "exit_price": 74.2,
+     "result": "SAME_BAR",
+     "pnl": -10.0521
+    },
+    "alternative": {
+     "exit_time": "2026-08-06T05:15:00.000Z",
+     "entry_price": 73.94,
+     "exit_price": 74.2,
+     "result": "SL",
+     "pnl": -10.0521
+    },
+    "pnl_difference": 0
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-08-13T15:25:00.000Z",
+    "order_created_at_close_of": "2026-08-13T15:20:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-13T15:10:00.000Z",
+     "limit": 76.19,
+     "stop": 76.05,
+     "tp2": 76.39
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-13T15:25:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 76.24,
+     "h": 76.24,
+     "l": 75.92,
+     "c": 75.98
+    },
+    "assumed_path": "O→H→L→C (76.24 → 76.24 → 75.92 → 75.98)",
+    "entry_fill": 76.19,
+    "default": {
+     "exit_time": "2026-08-13T15:25:00.000Z",
+     "exit_price": 76.05,
+     "result": "SAME_BAR",
+     "pnl": -10.0577
+    },
+    "alternative": {
+     "exit_time": "2026-08-13T15:30:00.000Z",
+     "entry_price": 76.19,
+     "exit_price": 75.98,
+     "result": "SL",
+     "pnl": -15.0866
+    },
+    "pnl_difference": -5.0289
+   },
+   {
+    "side": "SHORT",
+    "entry_bar_open_utc": "2026-08-18T11:15:00.000Z",
+    "order_created_at_close_of": "2026-08-18T11:10:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-18T10:50:00.000Z",
+     "limit": 76,
+     "stop": 76.12,
+     "tp2": 75.83
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-18T11:15:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 75.99,
+     "h": 76.3,
+     "l": 75.99,
+     "c": 76.27
+    },
+    "assumed_path": "O→L→H→C (75.99 → 75.99 → 76.3 → 76.27)",
+    "entry_fill": 76,
+    "default": {
+     "exit_time": "2026-08-18T11:15:00.000Z",
+     "exit_price": 76.12,
+     "result": "SAME_BAR",
+     "pnl": -10.1039
+    },
+    "alternative": {
+     "exit_time": "2026-08-18T11:20:00.000Z",
+     "entry_price": 76,
+     "exit_price": 76.24,
+     "result": "SL",
+     "pnl": -20.2079
+    },
+    "pnl_difference": -10.1039
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-08-22T21:00:00.000Z",
+    "order_created_at_close_of": "2026-08-22T20:55:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-08-22T20:05:00.000Z",
+     "limit": 94.26,
+     "stop": 94.01,
+     "tp2": 94.62
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-08-22T21:00:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 94.39,
+     "h": 94.39,
+     "l": 93.55,
+     "c": 93.69
+    },
+    "assumed_path": "O→H→L→C (94.39 → 94.39 → 93.55 → 93.69)",
+    "entry_fill": 94.26,
+    "default": {
+     "exit_time": "2026-08-22T21:00:00.000Z",
+     "exit_price": 94.01,
+     "result": "SAME_BAR",
+     "pnl": -10.1338
+    },
+    "alternative": {
+     "exit_time": "2026-08-22T21:05:00.000Z",
+     "entry_price": 94.26,
+     "exit_price": 93.7,
+     "result": "SL",
+     "pnl": -22.6996
+    },
+    "pnl_difference": -12.5659
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-04T12:30:00.000Z",
+    "order_created_at_close_of": "2026-09-04T12:25:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-04T12:00:00.000Z",
+     "limit": 103.83,
+     "stop": 103.53,
+     "tp2": 104.27
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-04T12:30:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 104.4,
+     "h": 104.4,
+     "l": 100.12,
+     "c": 101.59
+    },
+    "assumed_path": "O→H→L→C (104.4 → 104.4 → 100.12 → 101.59)",
+    "entry_fill": 103.83,
+    "default": {
+     "exit_time": "2026-09-04T12:30:00.000Z",
+     "exit_price": 103.53,
+     "result": "SAME_BAR",
+     "pnl": -9.8791
+    },
+    "alternative": {
+     "exit_time": "2026-09-04T12:35:00.000Z",
+     "entry_price": 103.83,
+     "exit_price": 101.57,
+     "result": "SL",
+     "pnl": -74.4226
+    },
+    "pnl_difference": -64.5435
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-15T18:35:00.000Z",
+    "order_created_at_close_of": "2026-09-15T18:30:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-15T18:25:00.000Z",
+     "limit": 99.23,
+     "stop": 98.61,
+     "tp2": 100.15
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-15T18:35:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 99.69,
+     "h": 99.73,
+     "l": 98.29,
+     "c": 99.05
+    },
+    "assumed_path": "O→H→L→C (99.69 → 99.73 → 98.29 → 99.05)",
+    "entry_fill": 99.23,
+    "default": {
+     "exit_time": "2026-09-15T18:35:00.000Z",
+     "exit_price": 98.6,
+     "result": "SAME_BAR",
+     "pnl": -10.0084
+    },
+    "alternative": {
+     "exit_time": "2026-09-15T18:40:00.000Z",
+     "entry_price": 99.23,
+     "exit_price": 98.6,
+     "result": "SL",
+     "pnl": -10.0084
+    },
+    "pnl_difference": 0
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-20T21:00:00.000Z",
+    "order_created_at_close_of": "2026-09-20T20:55:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-20T20:15:00.000Z",
+     "limit": 109.62,
+     "stop": 109.09,
+     "tp2": 110.4
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-20T21:00:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 110.11,
+     "h": 110.11,
+     "l": 109,
+     "c": 109.7
+    },
+    "assumed_path": "O→H→L→C (110.11 → 110.11 → 109 → 109.7)",
+    "entry_fill": 109.62,
+    "default": {
+     "exit_time": "2026-09-20T21:00:00.000Z",
+     "exit_price": 109.09,
+     "result": "SAME_BAR",
+     "pnl": -9.9911
+    },
+    "alternative": {
+     "exit_time": "2026-09-20T21:10:00.000Z",
+     "entry_price": 109.62,
+     "exit_price": 109.74,
+     "result": "TRAILING_SL",
+     "pnl": 2.2621
+    },
+    "pnl_difference": 12.2532
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-09-30T03:15:00.000Z",
+    "order_created_at_close_of": "2026-09-30T03:10:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-09-30T02:40:00.000Z",
+     "limit": 119.27,
+     "stop": 118.93,
+     "tp2": 119.75
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-09-30T03:15:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 119.55,
+     "h": 119.55,
+     "l": 118.89,
+     "c": 118.89
+    },
+    "assumed_path": "O→H→L→C (119.55 → 119.55 → 118.89 → 118.89)",
+    "entry_fill": 119.27,
+    "default": {
+     "exit_time": "2026-09-30T03:15:00.000Z",
+     "exit_price": 118.93,
+     "result": "SAME_BAR",
+     "pnl": -10.1484
+    },
+    "alternative": {
+     "exit_time": "2026-09-30T03:20:00.000Z",
+     "entry_price": 119.27,
+     "exit_price": 118.9,
+     "result": "SL",
+     "pnl": -11.0438
+    },
+    "pnl_difference": -0.8954
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-10-01T07:20:00.000Z",
+    "order_created_at_close_of": "2026-10-01T07:15:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-10-01T06:35:00.000Z",
+     "limit": 118.37,
+     "stop": 117.86,
+     "tp2": 119.13
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-10-01T07:20:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 118.48,
+     "h": 118.48,
+     "l": 117.66,
+     "c": 117.68
+    },
+    "assumed_path": "O→H→L→C (118.48 → 118.48 → 117.66 → 117.68)",
+    "entry_fill": 118.37,
+    "default": {
+     "exit_time": "2026-10-01T07:20:00.000Z",
+     "exit_price": 117.86,
+     "result": "SAME_BAR",
+     "pnl": -9.8962
+    },
+    "alternative": {
+     "exit_time": "2026-10-01T07:25:00.000Z",
+     "entry_price": 118.37,
+     "exit_price": 117.66,
+     "result": "SL",
+     "pnl": -13.777
+    },
+    "pnl_difference": -3.8809
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-10-06T09:25:00.000Z",
+    "order_created_at_close_of": "2026-10-06T09:20:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-10-06T08:30:00.000Z",
+     "limit": 119.99,
+     "stop": 119.65,
+     "tp2": 120.47
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-10-06T09:25:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 120.28,
+     "h": 120.38,
+     "l": 118.89,
+     "c": 119.1
+    },
+    "assumed_path": "O→H→L→C (120.28 → 120.38 → 118.89 → 119.1)",
+    "entry_fill": 119.99,
+    "default": {
+     "exit_time": "2026-10-06T09:25:00.000Z",
+     "exit_price": 119.65,
+     "result": "SAME_BAR",
+     "pnl": -10.2337
+    },
+    "alternative": {
+     "exit_time": "2026-10-06T09:30:00.000Z",
+     "entry_price": 119.99,
+     "exit_price": 119.1,
+     "result": "SL",
+     "pnl": -26.7882
+    },
+    "pnl_difference": -16.5545
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-10-12T21:40:00.000Z",
+    "order_created_at_close_of": "2026-10-12T21:35:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-10-12T21:15:00.000Z",
+     "limit": 107.71,
+     "stop": 107.28,
+     "tp2": 108.34
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-10-12T21:40:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 107.88,
+     "h": 107.89,
+     "l": 107.07,
+     "c": 107.46
+    },
+    "assumed_path": "O→H→L→C (107.88 → 107.89 → 107.07 → 107.46)",
+    "entry_fill": 107.71,
+    "default": {
+     "exit_time": "2026-10-12T21:40:00.000Z",
+     "exit_price": 107.28,
+     "result": "SAME_BAR",
+     "pnl": -10.0583
+    },
+    "alternative": {
+     "exit_time": "2026-10-12T21:45:00.000Z",
+     "entry_price": 107.71,
+     "exit_price": 107.28,
+     "result": "SL",
+     "pnl": -10.0583
+    },
+    "pnl_difference": 0
+   },
+   {
+    "side": "LONG",
+    "entry_bar_open_utc": "2026-10-26T13:35:00.000Z",
+    "order_created_at_close_of": "2026-10-26T13:30:00.000Z",
+    "order_last_placed": {
+     "bar": "2026-10-26T12:20:00.000Z",
+     "limit": 100.45,
+     "stop": 99.85,
+     "tp2": 101.35
+    },
+    "bracket_created": "same script execution as the entry (strategy.exit right after strategy.entry)",
+    "eligible_from": "open of 2026-10-26T13:35:00.000Z (one-tick delay of a new order)",
+    "fill_bar_ohlc": {
+     "o": 100.66,
+     "h": 101.4,
+     "l": 100.38,
+     "c": 101.21
+    },
+    "assumed_path": "O→L→H→C (100.66 → 100.38 → 101.4 → 101.21)",
+    "entry_fill": 100.45,
+    "default": {
+     "exit_time": "2026-10-26T13:35:00.000Z",
+     "exit_price": 101.35,
+     "result": "SAME_BAR",
+     "pnl": 14.9883
+    },
+    "alternative": {
+     "exit_time": "2026-10-26T13:55:00.000Z",
+     "entry_price": 100.45,
+     "exit_price": 100.45,
+     "result": "BREAK_EVEN",
+     "pnl": 0
+    },
+    "pnl_difference": -14.9883
+   }
+  ]
+ }
+}
