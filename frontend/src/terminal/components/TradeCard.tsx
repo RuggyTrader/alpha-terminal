@@ -2,6 +2,7 @@ import { marketType } from "../classify";
 import { percent, price, qty, signedMoney, stamp, text, tone, upper, when } from "../fmt";
 import type { TradeRow } from "../types";
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { Code, Expandable, KV, StatusBadge } from "./ui";
 
 export function TradeCard({ t }: { t: TradeRow }) {
@@ -22,7 +23,9 @@ export function TradeCard({ t }: { t: TradeRow }) {
             <span className="time">{when(t.closed_at ?? t.opened_at)}</span>
           </div>
           <div className="row-b">
-            {alphaPaper ? <StatusBadge tone="info">ALPHA PAPER</StatusBadge> : null}
+            {alphaPaper && closed ? <StatusBadge tone="ok">✓ VERIFIED PAPER</StatusBadge>
+              : alphaPaper ? <StatusBadge tone="info">ALPHA PAPER</StatusBadge>
+              : <StatusBadge tone="warn">UNVERIFIED SOURCE</StatusBadge>}
             <StatusBadge tone={closed ? "muted" : "info"}>{text(t.status)}</StatusBadge>
             {mt ? <StatusBadge tone="muted">{mt}</StatusBadge> : null}
             <span className="trade-pnl">
@@ -52,9 +55,10 @@ export function TradeCard({ t }: { t: TradeRow }) {
                 ["Exit intent", <Code key="xo">{text(t.close_order_id)}</Code>],
                 ["Price source", text(t.price_sources)],
               ] as [string, ReactNode][])
-            : []),
+            : ([["Verification", "Not an ALPHA PAPER ledger trade: excluded from verified performance"]] as [string, ReactNode][])),
         ]}
       />
+      <Link to={`/trades/${t.id}`} className="proof-link m-press">Trade proof →</Link>
     </Expandable>
   );
 }

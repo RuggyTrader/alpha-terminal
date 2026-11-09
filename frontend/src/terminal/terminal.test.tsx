@@ -20,6 +20,7 @@ import { AnimatedList, AnimatedNumber, prefersReducedMotion, Reveal } from "./mo
 import { Expandable } from "./components/ui";
 import { AlphaPaperPositionCard } from "./components/AlphaPaperPositionCard";
 import { TradeCard } from "./components/TradeCard";
+import { primeVerified, verifiedKey } from "./useVerified";
 import type { AlertRow, AlphaPaperPosition, AlphaPaperSection, DashboardData, OrderRow, PaperPosition, RiskRow, TradeRow } from "./types";
 
 // ---------------------------------------------------------------- fixtures (tests only)
@@ -129,16 +130,23 @@ const MONEY = /\$\d/;
 
 describe("Home", () => {
   it("renders the mobile home from Worker values only", () => {
+    primeVerified(verifiedKey(0, 0), { verification: "test", trades: [], truncated: false, excluded_closed_trades: 0 });
     const html = page("/", ok(dashboard()));
     expect(html).toContain("ALPHA TERMINAL");
     expect(html).toContain("PAPER DESK");
     expect(html).toContain("ONLINE");
-    expect(html).toContain("PAPER EQUITY");
-    expect(html).toContain("$2,222.22"); // equity
-    expect(html).toContain("+$222.22"); // today's P&L
-    expect(html).toContain("+11.1%"); // 222.22 / 2000
-    for (const v of ["$4,444.44", "$1,111.11", "$3,333.33", "$5,555.55"]) expect(html).toContain(v);
-    expect(html).toContain("MARKET CLOSED");
+    expect(html).toContain("VERIFIED P&amp;L");
+    expect(html).toContain("TOTAL RETURN");
+    expect(html).toContain("CLOSED TRADES");
+    expect(html).toContain("WIN RATE");
+    expect(html).toContain("no PAPER capital funded");
+    // The optional Alpaca broker account is not the headline any more.
+    expect(html).not.toContain("PAPER EQUITY");
+    for (const v of ["$2,222.22", "$4,444.44", "$1,111.11", "$3,333.33"]) expect(html).not.toContain(v);
+    expect(html).toContain("Markets");
+    expect(html).toContain("STOCKS");
+    expect(html).toContain("NOT CONFIGURED");
+    expect(html).toContain("System health");
     for (const label of ["Home", "Trades", "Engine", "Activity", "Settings"]) expect(html).toContain(`>${label}<`);
     expect(html).not.toMatch(/withdraw/i);
   });
@@ -146,7 +154,7 @@ describe("Home", () => {
   it("shows an intentional empty state without positions", () => {
     const html = page("/", ok(dashboard()));
     expect(html).toContain("No open ALPHA PAPER positions");
-    expect(html).toContain("No TradingView alerts yet");
+    expect(html).toContain("No signals yet");
     expect(html).not.toContain("Alpaca PAPER account positions"); // no broker positions, no broker section
   });
 
@@ -168,7 +176,7 @@ describe("Home", () => {
   it("shows ALPHA PAPER positions, labelled and kept apart from broker equity", () => {
     const d = dashboard({ paper: paper([paperPos()], { realized_pnl: 12.5, total_pnl: 17.5 }) });
     const html = page("/", ok(d));
-    expect(html).toContain("ALPHA PAPER positions");
+    expect(html).toContain("Open positions");
     expect(html).toContain("ALPHA PAPER POSITION · simulated, not a broker position");
     expect(html).toContain("SOLUSD");
     expect(html).toContain("CRYPTO");
@@ -183,7 +191,7 @@ describe("Home", () => {
     expect(html).toContain("Simulated ledger · not broker equity");
     expect(html).toContain("+$12.50"); // realized
     expect(html).toContain("+$17.50"); // total
-    expect(html).toContain("$2,222.22"); // broker equity is unchanged
+    expect(html).not.toContain("$2,222.22"); // broker equity is not mixed in
     expect(html).not.toContain("Alpaca PAPER account positions");
   });
 
@@ -216,7 +224,7 @@ describe("Home", () => {
   it("shows the compact system mode card", () => {
     const html = page("/", ok(dashboard()));
     expect(html).toContain("DRY RUN");
-    expect(html).toContain("ENGINE STOPPED");
+    expect(html).toContain("BROKER ROUTE STOPPED");
     expect(html).toContain("BROKER SUBMISSION OFF");
   });
 
@@ -228,10 +236,11 @@ describe("Home", () => {
       },
       paper: undefined, // broker values only; the ledger has its own section
     });
-    const html = page("/", ok(d));
-    expect(html).toContain("Alpaca PAPER not configured");
-    expect(html).toContain("PAPER positions unavailable");
+    const html = page("/settings", ok(d));
+    expect(html).toContain("Alpaca PAPER broker (optional)");
+    expect(html).toContain("NOT CONFIGURED");
     expect(html).not.toMatch(MONEY);
+    expect(page("/", ok(d))).not.toContain("PAPER positions unavailable"); // broker errors live in Settings
   });
 
   it("keeps the last snapshot but marks it stale when the API fails", () => {
@@ -240,7 +249,7 @@ describe("Home", () => {
     expect(html).toContain("STALE");
     expect(html).toContain("Showing data from");
     expect(html).toContain("is-stale");
-    expect(html).toContain("$2,222.22");
+    expect(html).toContain("No open ALPHA PAPER positions"); // the last snapshot is still shown
   });
 
   it("shows OFFLINE and no numbers when the first load fails", () => {
@@ -315,8 +324,8 @@ describe("Trades", () => {
       closed_at: "2026-10-31T15:00:00Z", source: "ALPHA_PAPER", open_alert_id: "a1", close_alert_id: "a4", open_order_id: "at-1",
       close_order_id: "at-4", price_sources: "kraken:SOLUSD",
     };
-    const html = renderToStaticMarkup(<TradeCard t={t} />);
-    expect(html).toContain("ALPHA PAPER");
+    const html = renderToStaticMarkup(<MemoryRouter><TradeCard t={t} /></MemoryRouter>);
+    expect(html).toContain("✓ VERIFIED PAPER");
     expect(html).toContain("+$45.00");
     expect(html).toContain("+19.6%");
     expect(trades("history", ok(dashboard({ recent: { alerts: [], risk: [], orders: [], trades: [t], activity: [] } })))).toContain("SOLUSD");
@@ -330,10 +339,11 @@ describe("Engine", () => {
     const html = page("/engine", ok(dashboard()));
     expect(html).toContain("ALPHA ENGINE");
     expect(html).toContain("PAPER EXECUTION");
-    expect(html).toContain("STOPPED");
-    expect(html).toContain("Engine controls are intentionally unavailable from the browser.");
+    expect(html).toContain("NOT RUNNING"); // no engine report in this fixture
+    expect(html).toContain("STOPPED"); // the separate broker route
+    expect(html).toContain("This browser session is read-only, so it cannot start or stop the engine.");
     expect(html).toContain("FALSE"); // ENABLE_TRADING
-    expect(html).not.toMatch(/>(Start|Pause|Resume|Stop|Kill)</);
+    expect(html).not.toMatch(/<button[^>]*>[^<]*(Start|Pause|Resume|Stop|Kill)/);
   });
 
   it("flags non-dry-run settings reported by the backend", () => {
@@ -364,8 +374,9 @@ describe("Settings", () => {
   it("reports markets and security truthfully", () => {
     const html = page("/settings", ok(dashboard()));
     expect(html).toContain("Crypto");
+    expect(html).toContain("Stocks · no provider");
     expect(html).toContain("NOT CONFIGURED");
-    expect(html).toContain("ACTIVE");
+    expect(html).toContain("cannot be withdrawn");
     expect(html).toContain("Read-only");
     expect(html).toContain("Server-side only");
     expect(html).not.toMatch(/ADMIN_SECRET|DASHBOARD_PASSPHRASE/);
@@ -674,7 +685,7 @@ describe("OTE engine card", () => {
     expect(html).toContain("LONG");
     expect(html).toContain("$93.87");
     expect(html).toContain("at last close");
-    expect(html).toContain("Engine figures use its own simulated fills");
+    expect(html).toContain("Engine simulation · not verified");
   });
 });
 

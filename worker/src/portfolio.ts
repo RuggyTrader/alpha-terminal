@@ -450,7 +450,10 @@ async function consistency(db: D1Database) {
 
 export async function portfolioSection(
   db: D1Database,
-  vars: { MAX_ORDER_NOTIONAL?: string; MAX_POSITION_EXPOSURE?: string; SHORT_SELLING_ENABLED?: string } = {}
+  vars: {
+    MAX_ORDER_NOTIONAL?: string; MAX_POSITION_EXPOSURE?: string; MAX_TOTAL_EXPOSURE?: string; MAX_OPEN_POSITIONS?: string;
+    DAILY_LOSS_LIMIT?: string; SHORT_SELLING_ENABLED?: string;
+  } = {}
 ) {
   const lim = (v?: string) => (v !== undefined && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null);
   const [summary, active, check, entries, settings] = await Promise.all([
@@ -477,6 +480,10 @@ export async function portfolioSection(
     limits: {
       max_order_notional_usd: lim(vars.MAX_ORDER_NOTIONAL),
       max_position_exposure_usd: lim(vars.MAX_POSITION_EXPOSURE),
+      // Read-only display of the remaining limits the risk engine enforces (null = not configured).
+      max_total_exposure_usd: lim(vars.MAX_TOTAL_EXPOSURE),
+      max_open_positions: lim(vars.MAX_OPEN_POSITIONS),
+      daily_loss_limit_usd: lim(vars.DAILY_LOSS_LIMIT),
       short_selling_enabled: vars.SHORT_SELLING_ENABLED === "true",
     },
   };

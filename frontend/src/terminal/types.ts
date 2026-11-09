@@ -336,5 +336,104 @@ export interface PaperPortfolio {
   history: PortfolioEntry[];
   strategies: Record<string, { validated_engine: boolean; settings: StrategySettings }>;
   validated_engines: string[];
-  limits: { max_order_notional_usd: number | null; max_position_exposure_usd: number | null; short_selling_enabled: boolean };
+  limits: {
+    max_order_notional_usd: number | null; max_position_exposure_usd: number | null; short_selling_enabled: boolean;
+    /** Added with the Verified Performance release; absent on older Workers. */
+    max_total_exposure_usd?: number | null; max_open_positions?: number | null; daily_loss_limit_usd?: number | null;
+  };
+}
+
+// ---- Verified performance and trade proof (GET /api/dashboard/performance, /api/dashboard/trade-proof) ----
+
+/** A closed ALPHA PAPER ledger trade: the only kind counted as verified. */
+export interface VerifiedTrade {
+  id: number;
+  symbol: string;
+  direction: string;
+  strategy: string | null;
+  realized_pnl: number;
+  return_pct: number | null;
+  cost_basis: number;
+  opened_at: string;
+  closed_at: string;
+  price_sources: string | null;
+}
+
+export interface PerformanceData {
+  verification: string;
+  trades: VerifiedTrade[];
+  truncated: boolean;
+  /** Closed trades from other sources (not the ALPHA PAPER ledger), never counted. */
+  excluded_closed_trades: number;
+}
+
+export interface ProofFill {
+  id: number;
+  client_order_id: string;
+  alert_id: string;
+  risk_decision_fk: number | null;
+  kind: "OPEN" | "ADD" | "REDUCE" | "CLOSE" | string;
+  side: "buy" | "sell" | string;
+  qty: number;
+  price: number;
+  price_source: string;
+  price_at: string;
+  realized_pnl: number;
+  position_qty_after: number;
+  avg_entry_after: number;
+  filled_at: string;
+}
+
+export interface ProofAlert {
+  alert_id: string;
+  received_at: string;
+  processed_at: string | null;
+  symbol: string | null;
+  action: string | null;
+  strategy: string | null;
+  order_type: string | null;
+  requested_qty: NumLike;
+  accepted_qty: NumLike;
+  status: string;
+  response_code: string | null;
+  rejection_reason: string | null;
+}
+
+export interface ProofRisk {
+  id: number;
+  alert_id: string;
+  decided_at: string;
+  approved: boolean;
+  code: string;
+  reason: string;
+  side: string | null;
+  final_qty: NumLike;
+  reference_price: NumLike;
+  reference_price_time: string | null;
+  estimated_notional: NumLike;
+  checks: RiskCheck[] | unknown;
+}
+
+export interface ProofOrder {
+  id: number;
+  alert_id: string;
+  client_order_id: string;
+  symbol: string;
+  side: string;
+  qty: NumLike;
+  order_type: string;
+  status: string;
+  submitted_at: string;
+  error_detail: string | null;
+  broker_request_sent: false;
+}
+
+export interface TradeProof {
+  verified: boolean;
+  verification: string;
+  trade: TradeRow & { closed_cost_basis?: NumLike; leg_order_ids?: unknown };
+  fills: ProofFill[];
+  alerts: ProofAlert[];
+  risk_decisions: ProofRisk[];
+  orders: ProofOrder[];
 }

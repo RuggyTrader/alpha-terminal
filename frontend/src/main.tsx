@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { App } from "./App";
 import "./terminal/terminal.css";
 import "./terminal/motion.css";
+import "./terminal/verified.css";
 
 // No service worker is registered on purpose: every view must show fresh
 // PAPER data from the backend, never a cached copy.

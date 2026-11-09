@@ -17,7 +17,7 @@ export function SafetyCard({ data }: { data: DashboardData | null }) {
           <StatusBadge tone={data.execution === "DRY_RUN_ONLY" ? "warn" : "bad"}>
             {data.execution === "DRY_RUN_ONLY" ? "DRY RUN" : data.execution}
           </StatusBadge>
-          <StatusBadge tone={e ? engineTone(e.state) : "bad"}>ENGINE {e ? e.state : "N/A"}</StatusBadge>
+          <StatusBadge tone={e ? engineTone(e.state) : "bad"} title="The separate broker webhook route (/webhook). The OTE engine uses the dry-run route.">BROKER ROUTE {e ? e.state : "N/A"}</StatusBadge>
           <StatusBadge tone={data.broker_submission ? "bad" : "muted"}>BROKER SUBMISSION {data.broker_submission ? "ON" : "OFF"}</StatusBadge>
           {e?.kill_switch ? <StatusBadge tone="bad">KILL SWITCH ENGAGED</StatusBadge> : null}
         </div>

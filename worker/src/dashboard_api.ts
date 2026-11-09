@@ -976,6 +976,84 @@ async function getTrades(
 }
 
 // ============================================================
+// VERIFIED PERFORMANCE AND TRADE PROOF (read-only)
+// ============================================================
+
+/** A trade counts as verified only when the ALPHA PAPER ledger closed it (fills at a recorded real price). */
+const VERIFIED_SOURCE = "ALPHA_PAPER";
+const MAX_PERFORMANCE_TRADES = 5000;
+
+async function getVerifiedPerformance(env: DashboardEnv) {
+  const [rows, excluded] = await Promise.all([
+    env.DB.prepare(
+      `SELECT id, symbol, direction, strategy, realized_pnl, return_pct, closed_cost_basis, opened_at, closed_at, price_sources
+       FROM trades WHERE source = ? AND status = 'CLOSED' AND closed_at IS NOT NULL
+       ORDER BY closed_at ASC, id ASC LIMIT ?`
+    ).bind(VERIFIED_SOURCE, MAX_PERFORMANCE_TRADES).all<Record<string, unknown>>(),
+    env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM trades WHERE status = 'CLOSED' AND (source IS NULL OR source <> ?)`
+    ).bind(VERIFIED_SOURCE).first<{ n: number }>(),
+  ]);
+  return {
+    verification: "Closed ALPHA PAPER ledger trades only: every fill at a recorded real reference price. Engine-internal simulations, backtests and trades from other sources are excluded.",
+    trades: rows.results.map((r) => ({
+      id: r.id, symbol: r.symbol, direction: r.direction, strategy: r.strategy,
+      realized_pnl: num(r.realized_pnl), return_pct: r.return_pct === null ? null : num(r.return_pct),
+      cost_basis: num(r.closed_cost_basis), opened_at: r.opened_at, closed_at: r.closed_at, price_sources: r.price_sources,
+    })),
+    truncated: rows.results.length >= MAX_PERFORMANCE_TRADES,
+    excluded_closed_trades: Number(excluded?.n ?? 0),
+  };
+}
+
+async function getTradeProof(env: DashboardEnv, id: number) {
+  const trade = await env.DB.prepare(
+    `SELECT id, symbol, direction, status, strategy, open_alert_id, open_order_id, close_order_id, entry_qty, entry_avg_price,
+       exit_qty, exit_avg_price, open_qty, closed_cost_basis, realized_pnl, return_pct, opened_at, closed_at,
+       leg_order_ids_json, source, position_fk, close_alert_id, price_sources
+     FROM trades WHERE id = ?`
+  ).bind(id).first<Record<string, unknown>>();
+  if (!trade) return null;
+  const verified = trade.source === VERIFIED_SOURCE && trade.status === "CLOSED";
+  const fills = trade.position_fk === null || trade.position_fk === undefined ? [] : (await env.DB.prepare(
+    `SELECT id, client_order_id, alert_id, risk_decision_fk, kind, side, qty, price, price_source, price_at, realized_pnl,
+       position_qty_after, avg_entry_after, filled_at
+     FROM paper_fills WHERE position_fk = ? ORDER BY id`
+  ).bind(trade.position_fk).all<Record<string, unknown>>()).results;
+  const alertIds = [...new Set([trade.open_alert_id, trade.close_alert_id, ...fills.map((f) => f.alert_id)]
+    .filter((v): v is string => typeof v === "string" && v !== ""))].slice(0, 50);
+  const marks = alertIds.map(() => "?").join(",");
+  const [alerts, risk, orders] = alertIds.length === 0 ? [[], [], []] : await Promise.all([
+    env.DB.prepare(
+      `SELECT alert_id, received_at, processed_at, symbol, action, strategy, order_type, requested_qty, accepted_qty, status,
+         response_code, rejection_reason
+       FROM alerts WHERE alert_id IN (${marks}) ORDER BY id`
+    ).bind(...alertIds).all<Record<string, unknown>>().then((r) => r.results),
+    env.DB.prepare(
+      `SELECT r.id, a.alert_id, r.decided_at, r.approved, r.code, r.reason, r.side, r.final_qty, r.reference_price,
+         r.reference_price_time, r.estimated_notional, r.checks_json
+       FROM risk_decisions r JOIN alerts a ON a.id = r.alert_fk WHERE a.alert_id IN (${marks}) ORDER BY r.id`
+    ).bind(...alertIds).all<Record<string, unknown>>().then((r) => r.results.map(({ checks_json, ...x }) => ({
+      ...x, approved: Number(x.approved) === 1, checks: parseJson(checks_json, []),
+    }))),
+    env.DB.prepare(
+      `SELECT o.id, a.alert_id, o.client_order_id, o.symbol, o.side, o.qty, o.order_type, o.status, o.submitted_at, o.error_detail
+       FROM orders o JOIN alerts a ON a.id = o.alert_fk WHERE a.alert_id IN (${marks}) ORDER BY o.id`
+    ).bind(...alertIds).all<Record<string, unknown>>().then((r) => r.results.map((o) => ({ ...o, broker_request_sent: false }))),
+  ]);
+  const { leg_order_ids_json, ...t } = trade;
+  return {
+    verified,
+    verification: verified
+      ? "Closed by the ALPHA PAPER ledger. Each fill below used the recorded reference price at its time."
+      : trade.source === VERIFIED_SOURCE ? "ALPHA PAPER position still open: not counted until it is fully closed."
+      : "Not an ALPHA PAPER ledger trade (no recorded fills): excluded from verified performance.",
+    trade: { ...t, leg_order_ids: parseJson(leg_order_ids_json, []) },
+    fills, alerts, risk_decisions: risk, orders,
+  };
+}
+
+// ============================================================
 // ACTIVITY
 // ============================================================
 
@@ -1149,6 +1227,19 @@ export async function handleDashboardApi(
     // --------------------------------------------------------
 
     // Cached, verified engine backtest for the risk simulator (computed off the request path).
+    // Every closed ALPHA PAPER ledger trade, oldest first: the only trades the Verified Performance page counts.
+    if (pathname === "/api/dashboard/performance") {
+      return json({ ok: true, data: await getVerifiedPerformance(env) });
+    }
+
+    // The recorded evidence behind one trade: its fills, the signals, risk decisions and dry-run intents.
+    if (pathname === "/api/dashboard/trade-proof") {
+      const id = Number(searchParams.get("id"));
+      if (!Number.isInteger(id) || id <= 0) return json({ ok: false, code: "INVALID_ID", message: "id must be a positive integer" }, 400);
+      const proof = await getTradeProof(env, id);
+      return proof ? json({ ok: true, data: proof }) : json({ ok: false, code: "NOT_FOUND", message: `trade ${id} not found` }, 404);
+    }
+
     if (pathname === "/api/dashboard/backtest") {
       const strategy = searchParams.get("strategy") ?? "SOLUSD";
       return json({ ok: true, data: await latestBacktest(env.DB, strategy) });

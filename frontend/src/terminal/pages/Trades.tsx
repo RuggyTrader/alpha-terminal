@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { AlertCard } from "../components/AlertCard";
 import { OrderIntentCard } from "../components/OrderIntentCard";
 import { RiskDecisionCard } from "../components/RiskDecisionCard";
@@ -10,7 +11,7 @@ import { useDash } from "../store";
 export type TradesTab = "alerts" | "risk" | "orders" | "history";
 
 const TABS: { id: TradesTab; label: string }[] = [
-  { id: "alerts", label: "Alerts" },
+  { id: "alerts", label: "Signals" },
   { id: "risk", label: "Risk" },
   { id: "orders", label: "Orders" },
   { id: "history", label: "History" },
@@ -39,11 +40,11 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
       {tab === "alerts" ? (
         <section aria-label="Alerts" className="m-fade">
           <SectionHeader
-            title="TradingView alerts"
+            title="Signals"
             right={c ? <span className="muted-s">{c.alerts.total} total · {c.alerts.rejected} rejected · {c.alerts.duplicates} dup</span> : null}
           />
           {loading ? <SkeletonCards count={3} /> : !d ? <EmptyState title="No data" />
-            : d.recent.alerts.length === 0 ? <EmptyState title="No TradingView alerts yet">Alerts received by the Worker will appear here.</EmptyState>
+            : d.recent.alerts.length === 0 ? <EmptyState title="No signals yet">Signals received by the Worker will appear here.</EmptyState>
             : <AnimatedList items={d.recent.alerts} getKey={(a) => String(a.id)} render={(a) => <AlertCard a={a} />} />}
         </section>
       ) : null}
@@ -71,7 +72,11 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
 
       {tab === "history" ? (
         <section aria-label="Trade history" className="m-fade">
-          <SectionHeader title="Trade history" right={c && c.trades.total > 0 ? <span className="muted-s">{c.trades.open} open · {c.trades.closed} closed</span> : null} />
+          <SectionHeader
+            title="Trade history"
+            sub={<Link className="link" to="/performance">Verified performance →</Link>}
+            right={c && c.trades.total > 0 ? <span className="muted-s">{c.trades.open} open · {c.trades.closed} closed</span> : null}
+          />
           {loading ? <SkeletonCards count={2} /> : !d ? <EmptyState title="No data" />
             : d.recent.trades.length === 0 ? <EmptyState title="No completed ALPHA PAPER trades yet.">A trade is recorded when a simulated position is fully closed.</EmptyState>
             : <AnimatedList items={d.recent.trades} getKey={(t) => String(t.id)} render={(t) => <TradeCard t={t} />} />}

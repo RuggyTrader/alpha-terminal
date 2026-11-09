@@ -1,6 +1,9 @@
-import { clock, money, pct, signedMoney, todayPct, tone } from "../fmt";
+import { Link } from "react-router-dom";
+import { clock, NA, pct, signedMoney, tone } from "../fmt";
+import { computeMetrics } from "../performance";
 import { AnimatedNumber, useFlash } from "../motion";
 import type { FeedState } from "../poller";
+import type { VerifiedState } from "../useVerified";
 import { AlphaGlobe } from "./AlphaGlobe";
 
 /** Shrink the headline so the full value always fits the hero column. */
@@ -12,15 +15,18 @@ export function heroSize(text: string): string {
   return "hv-s";
 }
 
+const BOT_TEXT = { ONLINE: "ONLINE", STALE: "STALE", OFFLINE: "OFFLINE", NOT_RUNNING: "NOT RUNNING" } as const;
+const BOT_CLS = { ONLINE: "hs-ok", STALE: "hs-warn", OFFLINE: "hs-bad", NOT_RUNNING: "hs-muted" } as const;
+
+/** The engine's real reported state; the feed's own failure takes precedence. */
 function HeroStatus({ state }: { state: FeedState }) {
-  const clk = state.data?.broker.clock ?? null;
+  const bot = state.data?.bot ?? null;
   const [cls, text] =
     state.status === "stale" ? ["hs-warn", `STALE · ${clock(state.lastSuccessAt)}`]
       : state.status === "error" ? ["hs-bad", "OFFLINE"]
-      : !clk ? ["hs-muted", "MARKET N/A"]
-      : clk.is_open ? ["hs-ok", "MARKET OPEN"]
-      : ["hs-muted", "MARKET CLOSED"];
-  // Keyed by text so a real state change crossfades instead of snapping.
+      : !state.data ? ["hs-muted", "CONNECTING"]
+      : !bot ? ["hs-muted", "ENGINE N/A"]
+      : [BOT_CLS[bot.state] ?? "hs-muted", `ENGINE ${BOT_TEXT[bot.state] ?? bot.state}`];
   return (
     <span key={text} className={`hs ${cls} m-crossfade`}>
       <i />
@@ -29,75 +35,63 @@ function HeroStatus({ state }: { state: FeedState }) {
   );
 }
 
-function StripValue({ label, value, loading, has }: { label: string; value: number | undefined; loading: boolean; has: boolean }) {
-  const flash = useFlash(has ? value : null);
+function Strip({ k, v, t }: { k: string; v: string; t?: string }) {
+  const flash = useFlash(v);
   return (
     <div>
-      <span>{label}</span>
-      <b className={flash}>{loading ? <i className="strip-skel" /> : has && value !== undefined ? money(value) : "N/A"}</b>
+      <span>{k}</span>
+      <b className={`${flash} ${t ? `t-hero-${t}` : ""}`}>{v}</b>
     </div>
   );
 }
 
-export function AccountHero({ state, reconnected = false }: { state: FeedState; reconnected?: boolean }) {
-  const broker = state.data?.broker ?? null;
-  const a = broker?.account ?? null;
-  const err = broker?.errors.find((e) => e.source === "account");
-  const loading = state.status === "loading" && !state.data;
-  const equityText = a ? money(a.equity) : "";
-  const pnlPct = a ? todayPct(a.todays_pnl, a.last_equity) : null;
-  const equityFlash = useFlash(a ? a.equity : null);
-  const pnlFlash = useFlash(a ? a.todays_pnl : null);
+/** Headline: verified PAPER results only (closed ALPHA PAPER ledger trades). */
+export function AccountHero({ state, verified, reconnected = false, now = Date.now() }: { state: FeedState; verified: VerifiedState; reconnected?: boolean; now?: number }) {
+  const d = state.data;
+  const funded = d?.portfolio?.active ? d.portfolio.totals.net_funding_usd : null;
+  const m = verified.data ? computeMetrics(verified.data.trades, "ALL", now, funded) : null;
+  const loading = (state.status === "loading" && !d) || (verified.status === "loading" && !!d);
+  const pnlText = m ? signedMoney(m.totalPnl) : "";
+  const flash = useFlash(m ? m.totalPnl : null);
 
   return (
-    <section className={`hero ${state.status === "stale" ? "is-stale" : ""}`} aria-label="PAPER account">
-      <AlphaGlobe
-        className="hero-globe"
-        refreshKey={a ? `${a.equity}|${a.todays_pnl}` : undefined}
-        tiltKey={broker?.clock ? broker.clock.is_open : undefined}
-        reconnected={reconnected}
-      />
+    <section className={`hero ${state.status === "stale" ? "is-stale" : ""}`} aria-label="Verified PAPER results">
+      <AlphaGlobe className="hero-globe" refreshKey={m ? `${m.totalPnl}|${m.trades}` : undefined} tiltKey={d?.bot?.state} reconnected={reconnected} />
       <div className="hero-top">
         <div>
           <div className="hero-title">ALPHA TERMINAL</div>
           <span className="hero-badge">PAPER DESK</span>
+          <div><HeroStatus state={state} /></div>
         </div>
-        <HeroStatus state={state} />
       </div>
 
       <div className="hero-main">
-        <div className="hero-label">PAPER EQUITY</div>
+        <div className="hero-label">VERIFIED P&amp;L</div>
         {loading ? (
-          <div className="hero-skel" aria-label="Loading equity" />
-        ) : a ? (
-          <div className={`hero-value-wrap ${equityFlash}`}>
-            <AnimatedNumber id="hero-equity" value={a.equity} format={money} className={`hero-value ${heroSize(equityText)}`} />
+          <div className="hero-skel" aria-label="Loading verified P&L" />
+        ) : m ? (
+          <div className={`hero-value-wrap ${flash}`}>
+            <AnimatedNumber id="hero-verified" value={m.totalPnl} format={signedMoney} className={`hero-value ${heroSize(pnlText)} t-hero-${tone(m.totalPnl)}`} />
           </div>
         ) : (
-          <div className="hero-value hv-s na m-fade">N/A</div>
+          <div className="hero-value hv-s na m-fade">{NA}</div>
         )}
-
-        <div className="hero-label hero-label-2">TODAY&apos;S P&amp;L</div>
-        {loading ? (
-          <div className="hero-skel hero-skel-sm" />
-        ) : a ? (
-          <div className={`hero-pnl ${pnlFlash}`}>
-            <AnimatedNumber id="hero-today" value={a.todays_pnl} format={signedMoney} className={`t-${tone(a.todays_pnl)}`} />
-            {pnlPct !== null ? <span className={`hero-pct t-${tone(pnlPct)}`}>{pct(pnlPct)}</span> : null}
-          </div>
-        ) : (
-          <div className="hero-pnl na m-fade">N/A</div>
-        )}
-        {!a && broker && err ? (
-          <div className="hero-err m-fade">{err.code === "BROKER_NOT_CONFIGURED" ? "Alpaca PAPER not configured" : "Alpaca PAPER unavailable"}</div>
+        <div className="hero-label hero-label-2">TOTAL RETURN</div>
+        <div className="hero-pnl">
+          {m && m.returnPct !== null ? <span className={`t-hero-${tone(m.returnPct)}`}>{pct(m.returnPct)}</span> : <span className="na">{NA}</span>}
+          {m && m.returnPct === null && !loading ? <span className="hero-note">no PAPER capital funded</span> : null}
+        </div>
+        {!loading && !m ? (
+          <div className="hero-err m-fade">{verified.status === "unsupported" ? "Verified history not provided by this backend yet" : verified.error ?? "Verified history unavailable"}</div>
         ) : null}
       </div>
 
       <div className="hero-strip">
-        <StripValue label="BUYING POWER" value={a?.buying_power} loading={loading} has={!!a} />
-        <StripValue label="CASH" value={a?.cash} loading={loading} has={!!a} />
-        <StripValue label="PORTFOLIO" value={a?.portfolio_value} loading={loading} has={!!a} />
+        <Strip k="RETURN" v={m && m.returnPct !== null ? pct(m.returnPct) : NA} t={m && m.returnPct !== null ? tone(m.returnPct) : undefined} />
+        <Strip k="CLOSED TRADES" v={m ? String(m.trades) : NA} />
+        <Strip k="WIN RATE" v={m && m.winRate !== null ? `${m.winRate.toFixed(1)}%` : NA} />
       </div>
+      <Link to="/performance" className="hero-link m-press">Verified performance →</Link>
     </section>
   );
 }

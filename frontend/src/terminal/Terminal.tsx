@@ -7,6 +7,8 @@ import { EnginePage } from "./pages/Engine";
 import { HomePage } from "./pages/Home";
 import { SettingsPage } from "./pages/Settings";
 import { TradesPage } from "./pages/Trades";
+import { PerformancePage } from "./pages/Performance";
+import { TradeProofPage } from "./pages/TradeProof";
 import { DashboardProvider } from "./store";
 
 /** Page routes, shared by the app and tests (tests supply their own router). */
@@ -16,6 +18,8 @@ export function TerminalRoutes(): ReactNode {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/trades" element={<TradesPage />} />
+        <Route path="/trades/:id" element={<TradeProofPage />} />
+        <Route path="/performance" element={<PerformancePage />} />
         <Route path="/engine" element={<EnginePage />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="/portfolio/:symbol" element={<StrategyPage />} />

@@ -19,7 +19,7 @@ export function EngineBotCard({ bot }: { bot: EngineBot }) {
   return (
     <section className="card overview bot-card" aria-label="OTE engine">
       <SectionHeader
-        title="OTE engine"
+        title="OTE engine · Kraken"
         sub={s ? `${s.symbol ?? NA} · ${s.timeframe ?? NA} · PAPER simulation${s.profile && s.profile !== "default" ? ` · ${s.profile} profile ($${s.risk_usd ?? NA} risk)` : ""}` : "Automated PAPER engine"}
         right={<StatusBadge tone={TONE[state] ?? "muted"} dot>{state === "NOT_RUNNING" ? "NOT RUNNING" : state}</StatusBadge>}
       />
@@ -32,8 +32,8 @@ export function EngineBotCard({ bot }: { bot: EngineBot }) {
             <div className="ov"><span className="ov-k">Last heard</span><span className={`ov-v ${state === "ONLINE" ? "" : "t-warn"}`}>{ago(bot.age_seconds)}</span></div>
             <div className="ov"><span className="ov-k">Last candle</span><span className="ov-v">{when(s.last_candle_time)} · {price(s.last_candle_close)}</span></div>
             <div className="ov">
-              <span className="ov-k">Engine trades</span>
-              <span className="ov-v">{s.trades?.closed ?? 0} · <b className={`t-${tone(s.trades?.net_pnl ?? 0)}`}>{signedMoney(s.trades?.net_pnl ?? 0)}</b></span>
+              <span className="ov-k">Engine simulation · not verified</span>
+              <span className="ov-v">{s.trades?.closed ?? 0} · <b className="t-muted">{signedMoney(s.trades?.net_pnl ?? 0)}</b></span>
             </div>
           </div>
           {p ? (
@@ -59,7 +59,7 @@ export function EngineBotCard({ bot }: { bot: EngineBot }) {
           ) : null}
           {(s.outbox?.pending ?? 0) > 0 ? <p className="bot-note t-warn">{s.outbox?.pending} signal(s) waiting to sync</p> : null}
           {s.last_error ? <p className="bot-note t-warn">{s.last_error.where}: {s.last_error.message}</p> : null}
-          <p className="bot-note">Engine figures use its own simulated fills; the ALPHA PAPER ledger fills at the live reference price when a signal arrives.</p>
+          <p className="bot-note">Engine simulation: trades the engine replayed on its own (including warm-up history) with its own fills. They never reached the ALPHA PAPER ledger, so they are not verified and not counted in Verified P&amp;L.</p>
         </>
       )}
     </section>
