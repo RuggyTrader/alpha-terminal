@@ -67,6 +67,10 @@ copy .env.example .env      # then edit: ENGINE_SYNC, ALPHA_API_BASE, ALPHA_WEBH
 node src/cli/run.mjs        # or: powershell -File deploy/run-windows.ps1  (restarts it if it stops)
 ```
 
+Production (the ALPHA TERMINAL website): settings via `src/cli/sync-setup.mjs`, then start it at every sign-in with
+`powershell -NoProfile -ExecutionPolicy Bypass -File deploy\windows-task.ps1 install` (also `status`, `stop`,
+`uninstall`); it runs `deploy/run-windows-production.ps1`, one supervised engine. See `docs/ENGINE-SYNC-SETUP.md`.
+
 Test against a development Worker first (`cd worker && npx wrangler dev --local`, `ALPHA_API_BASE=http://127.0.0.1:8787`).
 Only point it at production once you have decided to.
 

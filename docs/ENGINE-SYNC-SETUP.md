@@ -1,6 +1,6 @@
 # ALPHA PAPER without Alpaca, and secure engine sync (prepared 2026-11-08)
 
-Not deployed. Production still runs `361c030` (version `a1ab344a-388e-4840-956f-d19a3db9f1ce`).
+Deployed 2026-11-09 as `b1c87441` (see the deployment record); engine connected below.
 
 ## What changed
 
@@ -101,3 +101,64 @@ fails, as does an unreadable or malformed state file. Tests: `engine/test/sync_c
 
 Strategy settings and the `solusd-5m` profile, risk limits, `ENABLE_TRADING=false`, short selling disabled, the
 Cloudflare plan. Nothing was deployed and no secret was changed.
+
+## Connected 2026-11-09 ~01:30 UTC
+
+Production code unchanged (`a8b06db`); no redeploy. No TradingView, no Alpaca in the engine path.
+
+- Before: `/health` PAPER, `enable_trading: false`, `alpha_paper_account: "D1"`; production version `b1c87441`.
+  The current secret had no other client: D1 still held only the 10 manual test alerts of 2026-10-31, and the owner
+  confirmed no TradingView alert targets the Worker.
+- `sync-setup rotate --confirm-no-other-clients`: new 256-bit `WEBHOOK_SECRET` in Cloudflare and `engine/.env` only
+  (git-ignored, never printed). The secret change published Worker version **`8077719f-c6fb-45a8-82ba-9260f78f12a3`**
+  (same code as `b1c87441`).
+- `sync-setup enable`: all 9 checks PASS (profile `solusd-5m` SOLUSD 5m, $10 risk, website setting confirmation on,
+  https address, no engine running, PAPER with trading disabled, D1 account, secret accepted, both flat), then
+  `ENGINE_SYNC=on`.
+- Backtest: `simulate.mjs --candles data/SOLUSD-5m-25d.json --profile solusd-5m --history-from 2026-10-19T00:00:00Z
+  --upload`, byte-identical (apart from the timestamp) to the verified run: hash `38a207c76ff23287`, 69 trades,
+  5,670 real Kraken candles (716 compared with Kraken OHLC, 0 mismatched). Stored only in `backtest_results`; after
+  the upload production still had 0 fills, 0 positions, 0 portfolio entries, the same 10 alerts, all wallets $0.
+- `run.mjs --once`: 720 Kraken candles of warm-up; its 36 historical signals are recorded locally and never sent;
+  engine flat; ledger check OK; website risk v1 $10 → **APPLIED** (engine confirmed).
+- Continuous engine: `engine/deploy/run-windows-production.ps1` (first run from a terminal; see below; log
+  `engine/data/production/engine.log`). Dashboard: OTE engine ONLINE, last candle within the last poll; SOL page
+  "Applied (engine confirmed) $10.00 · v1", simulator showing the backtest above.
+- "ENGINE STOPPED" under System mode is the separate live-execution route (`/webhook`), which stays stopped; the
+  engine uses `/webhook/dry-run`. The home page's top card still shows the optional Alpaca PAPER broker (N/A).
+
+**Until the SOL balance is funded every engine BUY is refused (`INSUFFICIENT_PAPER_CAPITAL`)**, so no production
+PAPER position can open; a refused entry never produces a CLOSE. Each refused signal is listed under alerts. Funding
+the SOL balance on the Portfolio page is what authorizes PAPER trading. From then on, the engine opens and closes
+positions there by itself.
+
+### Running at every sign-in (owner installs)
+
+Two scripts in `engine/deploy/` (reviewed and tested 2026-11-09):
+
+- `run-windows-production.ps1`, the supervisor. It reads only `ENGINE_DATA_DIR`, `ENGINE_SYMBOL` and
+  `ENGINE_INTERVAL_MIN` from `engine/.env`; the engine itself loads the rest, including the secret, which never
+  appears on a command line, in the task or in a log (the engine logs `"webhookSecret":"(set)"`). It runs one engine
+  and restarts it 30 s after any exit or crash. Duplicates: one supervisor per data folder (a named mutex; a second
+  one logs a refusal and exits), and it never starts an engine while another live engine holds the folder's lock
+  (e.g. a manual `npm start`); a lock left by a crash, even one whose process id Windows has reused, is removed.
+  Logs in `engine/data/production/`: `engine.log` (engine output) and `supervisor.log` (starts, restarts, refusals),
+  each rotated at 20 MB. All git-ignored.
+- `windows-task.ps1 install | status | stop | uninstall` manages the per-user scheduled task "ALPHA TERMINAL Engine":
+  trigger at your sign-in, runs as you with limited rights and a hidden window, only while you are signed in, never
+  a second instance (IgnoreNew), restarted by Task Scheduler if it fails to start. `install` refuses while any engine
+  for this folder is running and records the full path of `node.exe` (rerun `install` after moving Node). `stop`
+  ends the supervisor first, then the engine (a hard stop is safe: state is saved atomically after every step and a
+  re-sent signal is recognised as a duplicate). `uninstall` stops and removes the task. Nothing else on the PC is
+  changed (no power, firewall or security settings, no administrator rights).
+
+Tested on an isolated copy of the engine (sync off, its own data folder, real Kraken candles, nothing sent to the
+website): the supervisor starts exactly one engine; a second supervisor refuses; a killed engine is restarted; `stop`
+leaves nothing running; a stale lock with a reused process id does not block a start; beside a manually started
+engine the supervisor waits instead of starting a second; `install` refuses while an engine runs. With a temporary
+task "ALPHA TERMINAL Engine TEST": install (sign-in trigger, your account, limited, IgnoreNew), status, a second
+start request (still one supervisor), stop, start again, uninstall (task removed). Not exercised: an actual
+sign-out/sign-in.
+
+The PC must be on, signed in and awake. After sleep the engine catches up on the missed Kraken candles: entries from
+them expire unsent (`SIGNAL_EXPIRED`), exits of positions already in the ledger are still sent.
