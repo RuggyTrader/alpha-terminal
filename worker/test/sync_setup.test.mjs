@@ -12,6 +12,10 @@ import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
+import { startKrakenStub } from "./lib/kraken-stub.mjs";
+
+// Market data from a local stand-in (test/lib/kraken-stub.mjs), not the live Kraken API: tests stay deterministic.
+const KRAKEN = await startKrakenStub();
 
 const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SETUP = join(WORKER_DIR, "..", "engine", "src", "cli", "sync-setup.mjs");
@@ -62,7 +66,7 @@ before(async () => {
   mkdirSync(DATA, { recursive: true });
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
-  for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET: secret(), ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
+  for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET: secret(), KRAKEN_API_BASE: KRAKEN.base, ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 60000;
   let up = false;
