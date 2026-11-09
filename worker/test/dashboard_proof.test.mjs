@@ -18,7 +18,7 @@ const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const WIN = process.platform === "win32";
 const secret = () => randomBytes(24).toString("base64url");
 const WEBHOOK_SECRET = secret(), DASHBOARD_PASSPHRASE = secret(), ADMIN_SECRET = secret();
-const PORT = 8796, BASE = `http://127.0.0.1:${PORT}`;
+const PORT = 8793, BASE = `http://127.0.0.1:${PORT}`;
 
 const FIX = JSON.parse(readFileSync(join(WORKER_DIR, "..", "engine", "test", "fixtures", "SOLUSD-5m-2026-10-19_2026-11-07.json"), "utf8"));
 const close = (iso) => FIX.rows.find((r) => r[0] === Date.parse(iso))[4];

@@ -205,6 +205,39 @@ export interface EngineBot {
     /** The engine's check of its position against the ALPHA PAPER ledger in D1. */
     ledger_check?: { status: "OK" | "DIVERGED" | "UNVERIFIED" | string; at: string | null; issues: string[] } | null;
     last_error: { at: string | null; where: string | null; message: string | null } | null;
+    /** Live entries the PAPER portfolio refused; each simulated position was dropped. Newer engines only. */
+    refused_entries?: number | null;
+    /** Position sizing reported by the engine. Newer engines only. */
+    sizing?: EngineSizing | null;
+  } | null;
+}
+
+export interface EngineSizing {
+  mode: "fixed" | "percent";
+  risk_pct: number | null;
+  risk_usd_fixed: number | null;
+  fee_pct: number | null;
+  price_buffer_pct: number | null;
+  min_qty: number | null;
+  min_cost: number | null;
+  /** Available strategy PAPER balance the engine sizes from (percent mode). */
+  capital_usd: number | null;
+  last: {
+    status: "SIZED" | "SKIPPED" | null;
+    code: string | null;
+    reason: string | null;
+    side: "LONG" | "SHORT" | null;
+    entry: number | null;
+    stop: number | null;
+    qty: number | null;
+    risk_target_usd: number | null;
+    risk_actual_usd: number | null;
+    notional_usd: number | null;
+    required_capital_usd: number | null;
+    capped: boolean;
+    capped_by: "BALANCE" | "ORDER_LIMIT" | null;
+    fee_estimate_usd: number | null;
+    current: boolean;
   } | null;
 }
 

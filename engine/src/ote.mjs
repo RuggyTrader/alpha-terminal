@@ -6,6 +6,7 @@
 
 import { atrStep, highest, lowest, newAtr, pivot, roundToTick, zonedParts } from "./indicators.mjs";
 import { cancelAll, closeAll, newBroker, placeEntry, placeExit, processBar } from "./broker.mjs";
+import { DEFAULT_SIZING, sizeOrder } from "./sizing.mjs";
 
 export const DEFAULT_INPUTS = Object.freeze({
   // Structure
@@ -39,7 +40,7 @@ export const SYMBOLS = Object.freeze({
 
 const HIST = 64; // bars of OHLC kept (largest lookback: pivots 2 × 8 + 1)
 
-export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, pivotTies, fill } = {}) {
+export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, pivotTies, fill, sizing } = {}) {
   const sym = SYMBOLS[symbol];
   if (!sym) throw new Error(`no symbol properties for ${symbol}`);
   return {
@@ -57,6 +58,9 @@ export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, 
     planSL: null, planTP2: null, planScore: 0, planTags: "", tSwingLow: null, tSwingHigh: null,
     broker: { ...newBroker(), pointValue: sym.pointValue, ...(fill ? { opts: fill } : {}) },
     status: "", plan: null,
+    // Position sizing (sizing.mjs). capital: available PAPER balance of the strategy, set by the runner (live, from the
+    // ledger) or the backtest; only percent mode reads it. lastSizing: the latest sizing decision, for the dashboard.
+    sizing: { ...DEFAULT_SIZING, ...(sizing ?? {}) }, capital: null, lastSizing: null, lastSkipKey: null,
   };
 }
 
@@ -270,8 +274,23 @@ export function onBar(S, bar) {
     S.armed = armedNow;
     plan = { entry: l705, sl: slPlan, tp2: tp2v, score: sc, tags: tags.trim() };
     const eid = S.dir === 1 ? "OTE Long" : "OTE Short";
-    if (place) {
-      const qty = (I.riskUSD * usdRate) / (Math.abs(ep - slPlan) * pointValue);
+    // Sizing: fixed mode keeps the Pine formula exactly; percent mode sizes from the PAPER balance (sizing.mjs).
+    const sz = place
+      ? (S.sizing?.mode === "percent"
+        ? sizeOrder({ sizing: S.sizing, capital: S.capital, entry: ep, stop: slPlan, side: S.dir, maxNotional: S.maxNotional ?? null })
+        : { ok: true, mode: "fixed", qty: (I.riskUSD * usdRate) / (Math.abs(ep - slPlan) * pointValue), riskTarget: I.riskUSD, riskActual: I.riskUSD, entry: ep, stop: slPlan, side: S.dir, capped: false })
+      : null;
+    if (sz) S.lastSizing = { ...sz, bar: b };
+    if (place && !sz.ok) {
+      // Skipped safely: no order, the reason is kept (once per distinct reason and level, not every bar).
+      cancelAll(br);
+      const key = `${sz.code}|${roundToTick(l705, mintick)}`;
+      if (key !== S.lastSkipKey) events.push({ type: "ORDER_SKIPPED", side: S.dir, code: sz.code, reason: sz.reason, limit: roundToTick(l705, mintick), stop: roundToTick(slPlan, mintick), qty: sz.qty ?? null, capital: S.capital, bar: b });
+      S.lastSkipKey = key;
+      S.orderLive = false;
+    } else if (place) {
+      S.lastSkipKey = null;
+      const qty = sz.qty;
       if (qty > 0) {
         placeEntry(br, { id: eid, side: S.dir, qty, limit: limitMode ? roundToTick(l705, mintick) : null });
         placeExit(br, { from: eid, limit: roundToTick(tp2v, mintick), stop: roundToTick(slPlan, mintick) });
@@ -284,9 +303,10 @@ export function onBar(S, bar) {
       }
     } else {
       cancelAll(br);
+      S.lastSkipKey = null;
     }
   }
-  if (!(S.dir !== 0 && !S.triggered)) S.orderLive = false;
+  if (!(S.dir !== 0 && !S.triggered)) { S.orderLive = false; S.lastSkipKey = null; }
 
   // ---- TRADE MANAGEMENT (break-even, trailing stop)
   if (S.triggered && inPos && b > S.trigBar) {
@@ -343,6 +363,7 @@ export function onBar(S, bar) {
     : !active ? "Waiting for a swing"
     : S.triggered ? (S.trailOn ? "IN TRADE (trailing SL)" : S.beDone ? "IN TRADE (SL at BE)" : "IN TRADE")
     : S.orderLive ? "ORDER PLACED - waiting fill"
+    : S.lastSkipKey ? `ORDER SKIPPED - ${S.lastSkipKey.split("|")[0]}`
     : (plan && plan.score < I.minScore ? "Need more confluence" : "Waiting for OTE tap");
   S.plan = plan;
   return events;

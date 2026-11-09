@@ -1,5 +1,6 @@
 import { NA, price, qty, signedMoney, tone, when } from "../fmt";
 import type { EngineBot } from "../types";
+import { SizingPanel } from "./SizingPanel";
 import { SectionHeader, StatusBadge } from "./ui";
 
 const TONE = { ONLINE: "ok", STALE: "warn", OFFLINE: "bad", NOT_RUNNING: "muted" } as const;
@@ -57,6 +58,8 @@ export function EngineBotCard({ bot }: { bot: EngineBot }) {
           {s.last_rejection ? (
             <p className="bot-note">Last refused signal: {s.last_rejection.action} {s.last_rejection.status} ({s.last_rejection.code}){s.last_rejection.reason ? ` · ${s.last_rejection.reason}` : ""}</p>
           ) : null}
+          {s.sizing ? <SizingPanel sizing={s.sizing} /> : null}
+          {(s.refused_entries ?? 0) > 0 ? <p className="bot-note">{s.refused_entries} refused entr{s.refused_entries === 1 ? "y" : "ies"} dropped by the engine (no trade, no P&amp;L).</p> : null}
           {(s.outbox?.pending ?? 0) > 0 ? <p className="bot-note t-warn">{s.outbox?.pending} signal(s) waiting to sync</p> : null}
           {s.last_error ? <p className="bot-note t-warn">{s.last_error.where}: {s.last_error.message}</p> : null}
           <p className="bot-note">Engine simulation: trades the engine replayed on its own (including warm-up history) with its own fills. They never reached the ALPHA PAPER ledger, so they are not verified and not counted in Verified P&amp;L.</p>

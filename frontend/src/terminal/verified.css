@@ -114,6 +114,16 @@
 .lg-warn::before { background: var(--orange); }
 .lg-bad::before { background: var(--red); }
 
+/* engine position sizing */
+.sizing { margin-top: 12px; padding: 12px; border-radius: var(--r-md); background: var(--surface-2); }
+.sizing-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sizing-h b { font-size: 14px; }
+.sizing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-top: 10px; }
+.sizing-grid div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sizing-grid span { font-size: 11px; color: var(--muted); }
+.sizing-grid b { font-size: 14px; font-weight: 750; overflow-wrap: anywhere; }
+.sizing-note { margin-top: 8px; font-size: 12px; color: var(--muted); line-height: 1.4; overflow-wrap: anywhere; }
+
 /* settings */
 .sg-sub { margin: -2px 2px 8px; font-size: 12.5px; color: var(--muted); }
 

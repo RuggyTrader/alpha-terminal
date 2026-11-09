@@ -56,7 +56,27 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   const webhookSecret = get("ALPHA_WEBHOOK_SECRET", "");
   if (sync && (!apiBase || !webhookSecret)) throw new Error("ENGINE_SYNC=on needs ALPHA_API_BASE and ALPHA_WEBHOOK_SECRET");
 
+  // Position sizing (src/sizing.mjs). "fixed" (default) keeps the risk-per-trade-in-USD model unchanged. "percent" is the
+  // small-account mode: ENGINE_RISK_PCT of the strategy's available ALPHA PAPER balance, capped to that balance.
+  const mode = get("ENGINE_SIZING", "fixed");
+  if (!["fixed", "percent"].includes(mode)) throw new Error(`ENGINE_SIZING must be fixed or percent, not ${mode}`);
+  const pct = (k, d, lo, hi) => {
+    const v = Number(get(k, String(d)));
+    if (!Number.isFinite(v) || v < lo || v > hi) throw new Error(`${k} must be between ${lo} and ${hi}`);
+    return v;
+  };
+  const sizing = {
+    mode,
+    riskPct: pct("ENGINE_RISK_PCT", 1, 0.01, 10),
+    feePct: pct("ENGINE_FEE_PCT", 0.4, 0, 2),
+    priceBufferPct: pct("ENGINE_PRICE_BUFFER_PCT", 0.5, 0, 5),
+  };
+  // Without the website (sync off) percent mode needs a simulated balance to size from.
+  const localCapital = get("ENGINE_PAPER_CAPITAL", "");
+  if (localCapital !== "" && !(Number(localCapital) >= 0)) throw new Error("ENGINE_PAPER_CAPITAL must be a number ≥ 0");
+
   return {
+    sizing, localCapital: localCapital === "" ? null : Number(localCapital),
     profile: profile ?? "default", symbol, intervalMin, inputs, sync, apiBase, webhookSecret,
     dataDir: resolve(baseDir, get("ENGINE_DATA_DIR", "data")),
     pollSeconds: Number(get("ENGINE_POLL_SECONDS", "20")),

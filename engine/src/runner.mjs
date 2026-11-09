@@ -31,6 +31,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeF
 import { join } from "node:path";
 import { fetchCompletedCandles } from "./kraken.mjs";
 import { abandonPosition, createState, onBar, summarize } from "./ote.mjs";
+import { DEFAULT_SIZING } from "./sizing.mjs";
 
 export const ENGINE_VERSION = "0.1.0";
 export const STRATEGY_NAME = "OTE Pro Strat (engine)";
@@ -97,7 +98,7 @@ export class EngineRunner {
     this.state = {
       version: ENGINE_VERSION, inputsHash: inputsHash(this.cfg), startedAt: iso(this.now()), warmedUpAt: null, resets: [],
       // cfg.pivotTies: test-only override (not read from the environment); default = TradingView's rule.
-      strategy: createState({ symbol: this.cfg.symbol, timeframeMin: this.cfg.intervalMin, inputs: this.cfg.inputs, pivotTies: this.cfg.pivotTies }),
+      strategy: createState({ symbol: this.cfg.symbol, timeframeMin: this.cfg.intervalMin, inputs: this.cfg.inputs, pivotTies: this.cfg.pivotTies, sizing: this.cfg.sizing }),
       outbox: [], openEntryId: null, ledgerCheck: null, lastPollAt: null, lastError: null, candlesProcessed: 0, lastCandle: null,
     };
     if (reason) this.state.resets.push({ at: iso(this.now()), reason });
@@ -127,11 +128,33 @@ export class EngineRunner {
     return true;
   }
 
+  /**
+   * Sizing settings come from the engine config (a saved state from an older engine gets them here too). In percent
+   * mode the strategy sizes from the strategy's AVAILABLE ALPHA PAPER balance, read from the Worker's read-only ledger
+   * view (the latest reading, refreshed after every poll); without sync, from ENGINE_PAPER_CAPITAL plus the engine's
+   * own simulated results. Unknown stays unknown: orders are then skipped (BALANCE_UNKNOWN), never guessed.
+   */
+  async prepareSizing() {
+    const st = this.state.strategy;
+    st.sizing = { ...DEFAULT_SIZING, ...st.sizing, ...this.cfg.sizing };
+    if (st.sizing.mode !== "percent") return;
+    if (!this.cfg.sync) {
+      st.capital = this.cfg.localCapital === null ? null : this.cfg.localCapital + st.broker.netProfit;
+      return;
+    }
+    if (this.balance === undefined) {
+      try { this.balance = (await this.ledger([])).balance; } catch { this.balance = null; }
+    }
+    st.capital = this.balance && Number.isFinite(this.balance.available_usd) ? this.balance.available_usd : null;
+    st.maxNotional = this.balance?.max_order_notional_usd ?? null;
+  }
+
   /** One poll: process every new completed candle, then sync. Safe to call at any time. */
   async tick() {
     const nowMs = this.now();
     if (!this.state) this.fresh();
     const S = this.state;
+    await this.prepareSizing();
     // The first batch after a (re)start from scratch is warm-up history: processed, never sent.
     const warmup = S.warmedUpAt === null;
     let candles;
@@ -242,7 +265,15 @@ export class EngineRunner {
     });
     const body = await r.json().catch(() => ({}));
     if (r.status !== 200 || body.ok !== true) throw new Error(`ledger query ${body.code ?? `HTTP ${r.status}`}`);
-    return { position: body.position ?? null, alerts: body.alerts ?? {} };
+    // balance: the strategy's ALPHA PAPER balance (Workers from the small-account release on; older ones omit it).
+    const b = body.balance && typeof body.balance === "object" ? body.balance : null;
+    return {
+      position: body.position ?? null, alerts: body.alerts ?? {},
+      balance: b && typeof b.available_usd === "number" ? {
+        available_usd: b.available_usd, reserved_usd: Number(b.reserved_usd ?? 0), active: b.active === true,
+        max_order_notional_usd: typeof b.max_order_notional_usd === "number" ? b.max_order_notional_usd : null,
+      } : null,
+    };
   }
 
   final(item, status, code, reason) {
@@ -387,6 +418,7 @@ export class EngineRunner {
       this.save();
       return;
     }
+    this.balance = L.balance; // the next poll sizes from this reading
     const lp = L.position;
     const issues = [];
     if (entry && entry.status === "accepted") {
@@ -458,6 +490,27 @@ export class EngineRunner {
         return r ? { id: r.id, action: r.action, status: r.status, code: r.code, reason: r.reason } : null;
       })(),
       last_error: S.lastError,
+      sizing: this.sizingPayload(),
+    };
+  }
+
+  /** Sizing shown on the dashboard: the mode, the balance it sizes from, and the latest order decision. */
+  sizingPayload() {
+    const st = this.state.strategy;
+    const z = { ...DEFAULT_SIZING, ...st.sizing };
+    const d = st.lastSizing;
+    const r2 = (v) => (typeof v === "number" && Number.isFinite(v) ? Math.round(v * 100) / 100 : null);
+    return {
+      mode: z.mode, risk_pct: z.mode === "percent" ? z.riskPct : null, risk_usd_fixed: z.mode === "percent" ? null : st.inputs.riskUSD,
+      fee_pct: z.feePct, price_buffer_pct: z.priceBufferPct, min_qty: z.minQty, min_cost: z.minCost,
+      capital_usd: z.mode === "percent" ? r2(st.capital) : null,
+      last: d ? {
+        status: d.ok ? "SIZED" : "SKIPPED", code: d.ok ? null : d.code, reason: d.ok ? null : d.reason,
+        side: d.side === 1 ? "LONG" : d.side === -1 ? "SHORT" : null,
+        entry: r2(d.entry), stop: r2(d.stop), qty: typeof d.qty === "number" ? Number(d.qty.toFixed(8)) : null,
+        risk_target_usd: r2(d.riskTarget), risk_actual_usd: r2(d.riskActual), notional_usd: r2(d.notional),
+        required_capital_usd: r2(d.requiredCapital), capped: d.capped === true, capped_by: d.cappedBy ?? null, fee_estimate_usd: r2(d.feeEstimate), current: d.bar === st.bar,
+      } : null,
     };
   }
 

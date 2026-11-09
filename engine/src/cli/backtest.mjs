@@ -4,18 +4,48 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createState, onBar, summarize } from "../ote.mjs";
+import { abandonPosition, createState, onBar, summarize } from "../ote.mjs";
 
 const arg = (name, def) => {
   const i = process.argv.indexOf(`--${name}`);
   return i === -1 ? def : process.argv[i + 1];
 };
 
-export function runBacktest({ candles, symbol, intervalMin, inputs = {}, pivotTies, fill, fromMs = null }) {
-  const S = createState({ symbol, timeframeMin: intervalMin, inputs, pivotTies, fill });
+/**
+ * ledger (optional): models the ALPHA PAPER account instead of TradingView's unlimited capital.
+ *   { startCapital, feePct, maxNotional, longOnly }: every closed trade changes the balance by its P&L minus the
+ *   assumed fees on both sides; an entry is refused (and dropped, as the live engine does) when it is a short and
+ *   longOnly is set, or when qty × the fill candle's close (the price the ledger fills at, a moment later) exceeds
+ *   the available balance or maxNotional. In percent sizing the strategy sizes from that balance.
+ */
+export function runBacktest({ candles, symbol, intervalMin, inputs = {}, pivotTies, fill, fromMs = null, sizing, ledger = null }) {
+  const S = createState({ symbol, timeframeMin: intervalMin, inputs, pivotTies, fill, sizing });
   const events = [];
+  const acct = ledger ? { capital: ledger.startCapital, fees: 0, refused: [], closedSeen: 0, feeByTrade: new Map() } : null;
   for (const k of candles) {
-    for (const e of onBar(S, k)) events.push({ ...e, time: new Date(k.t).toISOString() });
+    if (acct) { S.capital = acct.capital; S.maxNotional = ledger.maxNotional ?? null; }
+    for (const e of onBar(S, k)) {
+      events.push({ ...e, time: new Date(k.t).toISOString() });
+      if (acct && e.type === "ENTRY_FILL") {
+        const value = e.qty * k.c;
+        const code = ledger.longOnly && e.side !== 1 ? "SHORT_SELLING_DISABLED"
+          : value > acct.capital + 1e-9 ? "INSUFFICIENT_PAPER_CAPITAL"
+          : ledger.maxNotional && value > ledger.maxNotional ? "MAX_ORDER_NOTIONAL" : null;
+        if (code && S.broker.pos) {
+          abandonPosition(S);
+          acct.refused.push({ time: new Date(k.t).toISOString(), side: e.side === 1 ? "LONG" : "SHORT", qty: e.qty, value, capital: acct.capital, code });
+        }
+      }
+    }
+    if (acct) {
+      while (acct.closedSeen < S.broker.closed.length) {
+        const t = S.broker.closed[acct.closedSeen++];
+        const fee = (t.qty * t.entryPrice + t.qty * t.exitPrice) * ((ledger.feePct ?? 0) / 100);
+        acct.fees += fee;
+        acct.capital += t.pnl - fee;
+        acct.feeByTrade.set(t, fee);
+      }
+    }
   }
   const trades = S.broker.closed
     .filter((t) => fromMs === null || t.entryTime >= fromMs)
@@ -24,8 +54,9 @@ export function runBacktest({ candles, symbol, intervalMin, inputs = {}, pivotTi
       entryTime: new Date(t.entryTime).toISOString(), entryPrice: t.entryPrice,
       exitTime: new Date(t.exitTime).toISOString(), exitPrice: t.exitPrice,
       exitKind: t.exitKind, result: t.result ?? null, exitR: t.exitR ?? null, pnl: Number(t.pnl.toFixed(4)),
+      ...(acct ? { fee: Number((acct.feeByTrade.get(t) ?? 0).toFixed(4)) } : {}),
     }));
-  return { S, events, trades, summary: summarize(S) };
+  return { S, events, trades, summary: summarize(S), ...(acct ? { account: { endCapital: acct.capital, fees: acct.fees, refused: acct.refused } } : {}) };
 }
 
 /** Invariants every fill must satisfy against the real candle it happened on. */

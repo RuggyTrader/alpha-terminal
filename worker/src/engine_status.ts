@@ -11,10 +11,11 @@ import { engineSettingsExchange } from "./portfolio";
 interface EngineStatusEnv {
   DB: D1Database;
   WEBHOOK_SECRET: string;
+  MAX_ORDER_NOTIONAL?: string;
 }
 
 const KEY = "engine_status";
-const MAX_BYTES = 4096;
+const MAX_BYTES = 8192;
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
 
@@ -35,6 +36,8 @@ function clean(s: Record<string, unknown>) {
   const link = pos && pos.ledger && typeof pos.ledger === "object" ? (pos.ledger as Record<string, unknown>) : null;
   const LINK = ["MIRRORED", "PENDING", "NOT_IN_LEDGER", "UNVERIFIED", "DIVERGED"];
   const chk = s.ledger_check && typeof s.ledger_check === "object" ? (s.ledger_check as Record<string, unknown>) : null;
+  const sz = s.sizing && typeof s.sizing === "object" ? (s.sizing as Record<string, unknown>) : null;
+  const szLast = sz && sz.last && typeof sz.last === "object" ? (sz.last as Record<string, unknown>) : null;
   return {
     engine: str(s.engine, 40), version: str(s.version, 20), mode: "PAPER",
     symbol: str(s.symbol, 16), timeframe: str(s.timeframe, 8), strategy: str(s.strategy, 64),
@@ -57,6 +60,20 @@ function clean(s: Record<string, unknown>) {
     } : null,
     last_rejection: rej ? { id: str(rej.id, 80), action: str(rej.action, 8), status: str(rej.status, 12), code: str(rej.code, 40), reason: str(rej.reason, 200) } : null,
     last_error: err ? { at: isoOrNull(err.at), where: str(err.where, 20), message: str(err.message, 200) } : null,
+    refused_entries: num(s.refused_entries),
+    // Position sizing reported by the engine (display only; the Worker's own checks are unchanged).
+    sizing: sz && (sz.mode === "fixed" || sz.mode === "percent") ? {
+      mode: sz.mode, risk_pct: num(sz.risk_pct), risk_usd_fixed: num(sz.risk_usd_fixed), fee_pct: num(sz.fee_pct),
+      price_buffer_pct: num(sz.price_buffer_pct), min_qty: num(sz.min_qty), min_cost: num(sz.min_cost), capital_usd: num(sz.capital_usd),
+      last: szLast ? {
+        status: szLast.status === "SIZED" || szLast.status === "SKIPPED" ? szLast.status : null,
+        code: str(szLast.code, 40), reason: str(szLast.reason, 200), side: szLast.side === "LONG" || szLast.side === "SHORT" ? szLast.side : null,
+        entry: num(szLast.entry), stop: num(szLast.stop), qty: num(szLast.qty), risk_target_usd: num(szLast.risk_target_usd),
+        risk_actual_usd: num(szLast.risk_actual_usd), notional_usd: num(szLast.notional_usd), required_capital_usd: num(szLast.required_capital_usd),
+        capped: szLast.capped === true, capped_by: szLast.capped_by === "BALANCE" || szLast.capped_by === "ORDER_LIMIT" ? szLast.capped_by : null,
+        fee_estimate_usd: num(szLast.fee_estimate_usd), current: szLast.current === true,
+      } : null,
+    } : null,
   };
 }
 
@@ -138,5 +155,13 @@ export async function handleEngineLedger(request: Request, env: EngineStatusEnv)
     ).bind(...(ids as string[])).all<{ alert_id: string; status: string; response_code: string | null; rejection_reason: string | null }>();
     for (const r of rows.results) alerts[r.alert_id] = { status: r.status, response_code: r.response_code, rejection_reason: r.rejection_reason };
   }
-  return json({ ok: true, mode: "PAPER", symbol, position: position ?? null, alerts, read_only: true });
+  // The strategy's ALPHA PAPER balance, so a small-account engine sizes from the same money the risk checks use.
+  const wallet = await env.DB.prepare(`SELECT available_micro, reserved_micro FROM portfolio_wallets WHERE wallet = ?`)
+    .bind(symbol).first<{ available_micro: number; reserved_micro: number }>();
+  const maxOrder = Number(env.MAX_ORDER_NOTIONAL);
+  const balance = wallet ? {
+    wallet: symbol, available_usd: Number(wallet.available_micro) / 1e6, reserved_usd: Number(wallet.reserved_micro) / 1e6,
+    max_order_notional_usd: Number.isFinite(maxOrder) && maxOrder > 0 ? maxOrder : null,
+  } : null;
+  return json({ ok: true, mode: "PAPER", symbol, position: position ?? null, alerts, balance, read_only: true });
 }

@@ -39,7 +39,7 @@ const wrangler = (args) => execFileSync(WIN ? "npx.cmd" : "npx", ["wrangler", ..
 const temps = [];
 
 /** One isolated local Worker + D1, and an engine runner replaying the fixture against it. */
-function environment(port, profile) {
+function environment(port, profile, extraCfg = {}) {
   const persist = mkdtempSync(join(tmpdir(), "alpha-engine-sync-"));
   const engineData = mkdtempSync(join(tmpdir(), "alpha-engine-sync-state-"));
   temps.push(persist, engineData);
@@ -64,7 +64,7 @@ function environment(port, profile) {
     }
   };
   const engineCfg = loadConfig({ ENGINE_ENV_FILE: "none", ...(profile ? { ENGINE_PROFILE: profile } : {}) }, ENGINE_DIR);
-  env.cfg = { ...engineCfg, sync: true, apiBase: base, webhookSecret: WEBHOOK_SECRET, dataDir: engineData, lateBars: 2, pivotTies: PIVOTS };
+  env.cfg = { ...engineCfg, sync: true, apiBase: base, webhookSecret: WEBHOOK_SECRET, dataDir: engineData, lateBars: 2, pivotTies: PIVOTS, ...extraCfg };
   env.runner = () => new EngineRunner(env.cfg, {
     fetchCandles: async ({ sinceMs }) => CANDLES.slice(0, env.visible).filter((k) => sinceMs === null || k.t > sinceMs),
     now: () => CANDLES[env.visible - 1].t + STEP + 10_000 + env.skewMs,
@@ -106,14 +106,17 @@ function environment(port, profile) {
 const dflt = environment(8797, null); // Pine default risk
 const test = environment(8798, "paper-test");
 const funded = environment(8796, "paper-test"); // same, with a funded ALPHA PAPER portfolio
+// Small-account sizing: 1% of the SOL balance, capped to it; $100 deposited and $10 moved to SOL, like production.
+const small = environment(8800, "paper-test", { sizing: { mode: "percent", riskPct: 1, feePct: 0.4, priceBufferPct: 0.5 } });
 
 before(async () => {
-  await Promise.all([dflt.start(), test.start(), funded.start()]);
+  await Promise.all([dflt.start(), test.start(), funded.start(), small.start()]);
 });
 after(() => {
   dflt.stop();
   test.stop();
   funded.stop();
+  small.stop();
   for (const d of temps) { try { rmSync(d, { recursive: true, force: true }); } catch { /* locked */ } }
 });
 
@@ -164,6 +167,51 @@ describe("funded ALPHA PAPER portfolio: the real engine's trade reserves, releas
     d = await env.dashboard();
     assert.equal(d.portfolio.consistency.ok, true, d.portfolio.consistency.issues.join("; "));
     assert.equal(d.paper.positions.length, 0);
+    assert.equal(env.sql(`SELECT COUNT(*) AS n FROM orders WHERE alpaca_order_id IS NOT NULL`)[0].n, 0, "no broker order");
+  });
+});
+
+describe("small-account sizing: $100 portfolio, $10 SOL, 1% risk, no leverage", () => {
+  it("engine and Worker agree on the balance, the size and the position; the result compounds into the next order", async () => {
+    const env = small;
+    await env.act("/api/paper/fund", { action: "deposit", amount_usd: 100 });
+    await env.act("/api/paper/transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 10 });
+    const sol = () => env.sql(`SELECT * FROM portfolio_wallets WHERE wallet = 'SOLUSD'`)[0];
+
+    // The ledger view gives the engine the same balance the Worker's risk check uses.
+    const view = await (await fetch(`${env.base}/webhook/engine-ledger`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: WEBHOOK_SECRET, symbol: "SOLUSD" }) })).json();
+    assert.deepEqual([view.balance.available_usd, view.balance.reserved_usd, view.balance.max_order_notional_usd], [10, 0, 5000]);
+
+    env.visible = FILLS[0];
+    const r = env.runner();
+    await r.tick(); // warm-up
+    const last = CANDLES.length;
+    while (env.visible < last && !r.state.outbox.some((x) => x.action === "CLOSE" && x.status === "accepted")) { env.visible += 1; await r.tick(); }
+    const buy = r.state.outbox.find((x) => x.action === "BUY" && x.status === "accepted");
+    assert.ok(buy, "a long entry was sized from $10 and accepted");
+    assert.ok(!r.state.outbox.some((x) => x.action === "SELL"), "no short is ever sent");
+    assert.equal(r.state.outbox.filter((x) => x.status === "rejected").length, 0, "the Worker refused nothing: sizes always fit");
+    const [fill] = env.sql(`SELECT * FROM paper_fills WHERE kind = 'OPEN'`);
+    assert.ok(fill.qty * fill.price <= 10 + 1e-6, `ledger cost ${fill.qty * fill.price} within the $10 balance`);
+    assert.ok(Number(buy.qty) >= 0.05, "at least Kraken's minimum order");
+    assert.equal(Number(buy.qty), fill.qty, "engine and ledger hold the same quantity");
+    const close = r.state.outbox.find((x) => x.action === "CLOSE" && x.entryId === buy.id);
+    assert.deepEqual([close.status, close.code], ["accepted", "DRY_RUN_ACCEPTED"]);
+    const [trade] = env.sql(`SELECT * FROM trades WHERE source = 'ALPHA_PAPER'`);
+    const after = sol();
+    assert.equal(Number(after.reserved_micro), 0);
+    assert.ok(Math.abs(Number(after.available_micro) - (10e6 + Math.round(Number(trade.realized_pnl) * 1e6))) <= 1, "SOL = $10 + the realized PAPER P&L");
+
+    // Next poll: the engine sizes from the new balance, and the dashboard shows the sizing it uses.
+    env.visible = Math.min(env.visible + 1, last);
+    await r.tick();
+    const d = await env.dashboard();
+    const sz = d.bot.status.sizing;
+    assert.equal(sz.mode, "percent");
+    assert.equal(sz.risk_pct, 1);
+    assert.ok(Math.abs(sz.capital_usd - Number(after.available_micro) / 1e6) < 0.01, "the engine sizes from the current SOL balance");
+    assert.equal(d.portfolio.consistency.ok, true);
+    assert.equal(d.bot.status.ledger_check.status, "OK");
     assert.equal(env.sql(`SELECT COUNT(*) AS n FROM orders WHERE alpaca_order_id IS NOT NULL`)[0].n, 0, "no broker order");
   });
 });
@@ -322,7 +370,7 @@ describe("paper-test profile ($5 risk): engine and ALPHA PAPER ledger stay in st
     const post = (body) => fetch(`${test.base}/webhook/engine-status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: typeof body === "string" ? body : JSON.stringify(body) });
     assert.equal((await post({ secret: "wrong", status: { symbol: "SOLUSD" } })).status, 401);
     assert.equal((await post({ secret: WEBHOOK_SECRET, status: { symbol: "SPY" } })).status, 400);
-    assert.equal((await post("x".repeat(5000))).status, 413);
+    assert.equal((await post("x".repeat(9000))).status, 413); // limit 8 KB (status with sizing details fits)
     const snap = () => test.sql(`SELECT (SELECT COUNT(*) FROM alerts) a, (SELECT COUNT(*) FROM orders) o, (SELECT COUNT(*) FROM paper_positions) p`)[0];
     const before = snap();
     assert.equal((await post({ secret: WEBHOOK_SECRET, status: { symbol: "SOLUSD", timeframe: "5m", status_text: "ok", extra: "dropped" } })).status, 200);
