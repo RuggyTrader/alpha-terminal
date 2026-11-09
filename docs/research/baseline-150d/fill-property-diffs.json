@@ -1,0 +1,446 @@
+{
+ "requested_price": {
+  "differing": 4,
+  "pnl_change": -4.89,
+  "diffs": [
+   {
+    "side": "SHORT",
+    "entry": "2026-07-19T10:45:00.000Z",
+    "default": {
+     "entryPrice": 76.21,
+     "exit": "2026-07-19T10:45:00.000Z",
+     "exitPrice": 76.33,
+     "result": "SAME_BAR",
+     "pnl": -8.2359
+    },
+    "variant": {
+     "entryPrice": 76.18,
+     "exit": "2026-07-19T10:45:00.000Z",
+     "exitPrice": 76.33,
+     "result": "SAME_BAR",
+     "pnl": -10.2948
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-07-28T22:30:00.000Z",
+    "default": {
+     "entryPrice": 73.88,
+     "exit": "2026-07-28T22:35:00.000Z",
+     "exitPrice": 73.71,
+     "result": "SL",
+     "pnl": -9.2086
+    },
+    "variant": {
+     "entryPrice": 73.89,
+     "exit": "2026-07-28T22:35:00.000Z",
+     "exitPrice": 73.71,
+     "result": "SL",
+     "pnl": -9.7502
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-07-30T06:20:00.000Z",
+    "default": {
+     "entryPrice": 73.41,
+     "exit": "2026-07-30T06:35:00.000Z",
+     "exitPrice": 73.51,
+     "result": "TRAILING_SL",
+     "pnl": 7.646
+    },
+    "variant": {
+     "entryPrice": 73.44,
+     "exit": "2026-07-30T06:35:00.000Z",
+     "exitPrice": 73.51,
+     "result": "TRAILING_SL",
+     "pnl": 5.3522
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-08-18T07:50:00.000Z",
+    "default": {
+     "entryPrice": 75.89,
+     "exit": "2026-08-18T08:05:00.000Z",
+     "exitPrice": 75.89,
+     "result": "BREAK_EVEN",
+     "pnl": 0
+    },
+    "variant": {
+     "entryPrice": 75.92,
+     "exit": "2026-08-18T08:00:00.000Z",
+     "exitPrice": 75.92,
+     "result": "BREAK_EVEN",
+     "pnl": 0
+    }
+   }
+  ]
+ },
+ "exit_delay_1_tick": {
+  "differing": 20,
+  "pnl_change": -238.55,
+  "diffs": [
+   {
+    "side": "SHORT",
+    "entry": "2026-06-18T02:20:00.000Z",
+    "default": {
+     "entryPrice": 72.4,
+     "exit": "2026-06-18T02:20:00.000Z",
+     "exitPrice": 72.57,
+     "result": "SAME_BAR",
+     "pnl": -9.8284
+    },
+    "variant": {
+     "entryPrice": 72.4,
+     "exit": "2026-06-18T02:20:00.000Z",
+     "exitPrice": 72.58,
+     "result": "SAME_BAR",
+     "pnl": -10.4065
+    }
+   },
+   {
+    "side": "SHORT",
+    "entry": "2026-06-20T14:45:00.000Z",
+    "default": {
+     "entryPrice": 71.54,
+     "exit": "2026-06-20T14:45:00.000Z",
+     "exitPrice": 72.02,
+     "result": "SAME_BAR",
+     "pnl": -10.0539
+    },
+    "variant": {
+     "entryPrice": 71.54,
+     "exit": "2026-06-20T14:45:00.000Z",
+     "exitPrice": 72.08,
+     "result": "SAME_BAR",
+     "pnl": -11.3106
+    }
+   },
+   {
+    "side": "SHORT",
+    "entry": "2026-06-24T11:45:00.000Z",
+    "default": {
+     "entryPrice": 69.63,
+     "exit": "2026-06-24T11:45:00.000Z",
+     "exitPrice": 69.97,
+     "result": "SAME_BAR",
+     "pnl": -10.2824
+    },
+    "variant": {
+     "entryPrice": 69.63,
+     "exit": "2026-06-24T11:45:00.000Z",
+     "exitPrice": 70.36,
+     "result": "SAME_BAR",
+     "pnl": -22.077
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-06-25T13:30:00.000Z",
+    "default": {
+     "entryPrice": 68.03,
+     "exit": "2026-06-25T13:30:00.000Z",
+     "exitPrice": 67.68,
+     "result": "SAME_BAR",
+     "pnl": -10.1093
+    },
+    "variant": {
+     "entryPrice": 68.03,
+     "exit": "2026-06-25T13:30:00.000Z",
+     "exitPrice": 67.63,
+     "result": "SAME_BAR",
+     "pnl": -11.5535
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-06-26T02:10:00.000Z",
+    "default": {
+     "entryPrice": 66.77,
+     "exit": "2026-06-26T02:10:00.000Z",
+     "exitPrice": 65.96,
+     "result": "SAME_BAR",
+     "pnl": -9.9561
+    },
+    "variant": {
+     "entryPrice": 66.77,
+     "exit": "2026-06-26T02:10:00.000Z",
+     "exitPrice": 65.8,
+     "result": "SAME_BAR",
+     "pnl": -11.9227
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-07-11T15:45:00.000Z",
+    "default": {
+     "entryPrice": 78.11,
+     "exit": "2026-07-11T15:45:00.000Z",
+     "exitPrice": 77.87,
+     "result": "SAME_BAR",
+     "pnl": -9.7965
+    },
+    "variant": {
+     "entryPrice": 78.11,
+     "exit": "2026-07-11T15:45:00.000Z",
+     "exitPrice": 77.84,
+     "result": "SAME_BAR",
+     "pnl": -11.0211
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-07-11T22:20:00.000Z",
+    "default": {
+     "entryPrice": 77.97,
+     "exit": "2026-07-11T22:20:00.000Z",
+     "exitPrice": 77.84,
+     "result": "SAME_BAR",
+     "pnl": -10.341
+    },
+    "variant": {
+     "entryPrice": 77.97,
+     "exit": "2026-07-11T22:20:00.000Z",
+     "exitPrice": 77.71,
+     "result": "SAME_BAR",
+     "pnl": -20.6819
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-07-12T21:15:00.000Z",
+    "default": {
+     "entryPrice": 77.48,
+     "exit": "2026-07-12T21:15:00.000Z",
+     "exitPrice": 77.37,
+     "result": "SAME_BAR",
+     "pnl": -9.8314
+    },
+    "variant": {
+     "entryPrice": 77.48,
+     "exit": "2026-07-12T21:15:00.000Z",
+     "exitPrice": 77.35,
+     "result": "SAME_BAR",
+     "pnl": -11.6189
+    }
+   },
+   {
+    "side": "SHORT",
+    "entry": "2026-07-25T23:25:00.000Z",
+    "default": {
+     "entryPrice": 74.44,
+     "exit": "2026-07-25T23:25:00.000Z",
+     "exitPrice": 74.53,
+     "result": "SAME_BAR",
+     "pnl": -10.1739
+    },
+    "variant": {
+     "entryPrice": 74.44,
+     "exit": "2026-07-25T23:25:00.000Z",
+     "exitPrice": 74.63,
+     "result": "SAME_BAR",
+     "pnl": -21.4782
+    }
+   },
+   {
+    "side": "SHORT",
+    "entry": "2026-08-06T05:05:00.000Z",
+    "default": {
+     "entryPrice": 73.94,
+     "exit": "2026-08-06T05:05:00.000Z",
+     "exitPrice": 74.2,
+     "result": "SAME_BAR",
+     "pnl": -10.0521
+    },
+    "variant": {
+     "entryPrice": 73.94,
+     "exit": "2026-08-06T05:05:00.000Z",
+     "exitPrice": 74.25,
+     "result": "SAME_BAR",
+     "pnl": -11.9852
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-08-13T15:25:00.000Z",
+    "default": {
+     "entryPrice": 76.19,
+     "exit": "2026-08-13T15:25:00.000Z",
+     "exitPrice": 76.05,
+     "result": "SAME_BAR",
+     "pnl": -10.0577
+    },
+    "variant": {
+     "entryPrice": 76.19,
+     "exit": "2026-08-13T15:25:00.000Z",
+     "exitPrice": 75.92,
+     "result": "SAME_BAR",
+     "pnl": -19.3971
+    }
+   },
+   {
+    "side": "SHORT",
+    "entry": "2026-08-18T11:15:00.000Z",
+    "default": {
+     "entryPrice": 76,
+     "exit": "2026-08-18T11:15:00.000Z",
+     "exitPrice": 76.12,
+     "result": "SAME_BAR",
+     "pnl": -10.1039
+    },
+    "variant": {
+     "entryPrice": 76,
+     "exit": "2026-08-18T11:15:00.000Z",
+     "exitPrice": 76.3,
+     "result": "SAME_BAR",
+     "pnl": -25.2598
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-08-22T21:00:00.000Z",
+    "default": {
+     "entryPrice": 94.26,
+     "exit": "2026-08-22T21:00:00.000Z",
+     "exitPrice": 94.01,
+     "result": "SAME_BAR",
+     "pnl": -10.1338
+    },
+    "variant": {
+     "entryPrice": 94.26,
+     "exit": "2026-08-22T21:00:00.000Z",
+     "exitPrice": 93.55,
+     "result": "SAME_BAR",
+     "pnl": -28.7799
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-09-04T12:30:00.000Z",
+    "default": {
+     "entryPrice": 103.83,
+     "exit": "2026-09-04T12:30:00.000Z",
+     "exitPrice": 103.53,
+     "result": "SAME_BAR",
+     "pnl": -9.8791
+    },
+    "variant": {
+     "entryPrice": 103.83,
+     "exit": "2026-09-04T12:30:00.000Z",
+     "exitPrice": 100.12,
+     "result": "SAME_BAR",
+     "pnl": -122.1716
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-09-15T18:35:00.000Z",
+    "default": {
+     "entryPrice": 99.23,
+     "exit": "2026-09-15T18:35:00.000Z",
+     "exitPrice": 98.6,
+     "result": "SAME_BAR",
+     "pnl": -10.0084
+    },
+    "variant": {
+     "entryPrice": 99.23,
+     "exit": "2026-09-15T18:35:00.000Z",
+     "exitPrice": 98.29,
+     "result": "SAME_BAR",
+     "pnl": -14.9331
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-09-20T21:00:00.000Z",
+    "default": {
+     "entryPrice": 109.62,
+     "exit": "2026-09-20T21:00:00.000Z",
+     "exitPrice": 109.09,
+     "result": "SAME_BAR",
+     "pnl": -9.9911
+    },
+    "variant": {
+     "entryPrice": 109.62,
+     "exit": "2026-09-20T21:00:00.000Z",
+     "exitPrice": 109,
+     "result": "SAME_BAR",
+     "pnl": -11.6877
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-09-30T03:15:00.000Z",
+    "default": {
+     "entryPrice": 119.27,
+     "exit": "2026-09-30T03:15:00.000Z",
+     "exitPrice": 118.93,
+     "result": "SAME_BAR",
+     "pnl": -10.1484
+    },
+    "variant": {
+     "entryPrice": 119.27,
+     "exit": "2026-09-30T03:15:00.000Z",
+     "exitPrice": 118.89,
+     "result": "SAME_BAR",
+     "pnl": -11.3423
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-10-01T07:20:00.000Z",
+    "default": {
+     "entryPrice": 118.37,
+     "exit": "2026-10-01T07:20:00.000Z",
+     "exitPrice": 117.86,
+     "result": "SAME_BAR",
+     "pnl": -9.8962
+    },
+    "variant": {
+     "entryPrice": 118.37,
+     "exit": "2026-10-01T07:20:00.000Z",
+     "exitPrice": 117.66,
+     "result": "SAME_BAR",
+     "pnl": -13.777
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-10-06T09:25:00.000Z",
+    "default": {
+     "entryPrice": 119.99,
+     "exit": "2026-10-06T09:25:00.000Z",
+     "exitPrice": 119.65,
+     "result": "SAME_BAR",
+     "pnl": -10.2337
+    },
+    "variant": {
+     "entryPrice": 119.99,
+     "exit": "2026-10-06T09:25:00.000Z",
+     "exitPrice": 118.89,
+     "result": "SAME_BAR",
+     "pnl": -33.109
+    }
+   },
+   {
+    "side": "LONG",
+    "entry": "2026-10-12T21:40:00.000Z",
+    "default": {
+     "entryPrice": 107.71,
+     "exit": "2026-10-12T21:40:00.000Z",
+     "exitPrice": 107.28,
+     "result": "SAME_BAR",
+     "pnl": -10.0583
+    },
+    "variant": {
+     "entryPrice": 107.71,
+     "exit": "2026-10-12T21:40:00.000Z",
+     "exitPrice": 107.07,
+     "result": "SAME_BAR",
+     "pnl": -14.9706
+    }
+   }
+  ]
+ }
+}
