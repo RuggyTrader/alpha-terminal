@@ -6,6 +6,7 @@ import { marketType, riskChecks } from "../classify";
 import { Code, EmptyState, KV, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { costMoney, NA, num, percent, price, qty, signedMoney, stamp, text, tone, upper } from "../fmt";
 import type { ProofFill, TradeProof } from "../types";
+import { PAPER_FILL_DISCLOSURE } from "../disclosures";
 
 type Load = { status: "loading" } | { status: "ok"; proof: TradeProof } | { status: "error"; code: string; message: string };
 
@@ -100,7 +101,7 @@ export function ProofView({ proof }: { proof: TradeProof }) {
             </div>
             <p className="proof-note">
               {calc.costed
-                ? `Simulated costs (${text(t.cost_profile ?? proof.fills.find((f) => f.cost_profile)?.cost_profile)}): each fill price is the recorded market reference moved by the simulated slippage, and each fill pays a simulated fee. Not real exchange executions.`
+                ? `Simulated costs (${text(t.cost_profile ?? proof.fills.find((f) => f.cost_profile)?.cost_profile)}): each fill price is the recorded Kraken reference moved by the simulated slippage, and each fill pays a simulated fee. Not real exchange executions.`
                 : "No fees or slippage were applied to this trade (recorded before cost accounting): each fill is the recorded market reference price at that moment."}
             </p>
           </div>
@@ -109,6 +110,7 @@ export function ProofView({ proof }: { proof: TradeProof }) {
 
       <section aria-label="Simulated fills">
         <SectionHeader title="Simulated fills" sub="Market observation used for each fill" right={<span className="count">{proof.fills.length}</span>} />
+        <p className="proof-note" data-testid="fill-disclosure">{PAPER_FILL_DISCLOSURE}</p>
         {proof.fills.length === 0 ? <EmptyState title="No fills recorded" /> : proof.fills.map((f) => (
           <div key={f.id} className="card proof-card">
             <div className="proof-row"><b>{f.kind}</b><StatusBadge tone={f.side === "buy" ? "ok" : "bad"}>{f.side.toUpperCase()}</StatusBadge></div>
@@ -118,7 +120,7 @@ export function ProofView({ proof }: { proof: TradeProof }) {
                 ? ([
                     ["Reference price", price(f.reference_price)],
                     ["Execution price", price(f.price)],
-                    ["Liquidity", text(f.liquidity)],
+                    ["Liquidity (inferred)", text(f.liquidity)],
                     ["Simulated fee", costMoney(Number(f.fee_micro ?? 0) / 1e6)],
                     ["Simulated slippage", costMoney(Number(f.slippage_micro ?? 0) / 1e6)],
                     ["Cost profile", text(f.cost_profile)],

@@ -179,6 +179,8 @@ describe("Ndax profile (0.20% / 0.20%, 0.10% taker slippage, $5 minimum)", () =>
     assert.deepEqual([c.profile, c.maker_pct, c.taker_pct, c.taker_slippage_pct, c.min_notional_usd], ["ndax", 0.2, 0.2, 0.1, 5]);
     assert.match(c.caveat, /not verified Ndax SOL\/CAD executions/);
     assert.match(c.slippage_source, /ESTIMATE/);
+    assert.match(c.fill_disclosure, /Kraken reference price when the signal is processed/);
+    assert.match(c.fill_disclosure, /not verified against a live exchange order book/);
   });
 
   it("BUY 0.5 maker at 95.25: executes at the reference, pays 0.20% ($0.09525) as a FEE entry", async () => {

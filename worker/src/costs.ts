@@ -47,6 +47,13 @@ export const COST_PROFILES: Readonly<Record<string, CostProfile>> = Object.freez
   },
 });
 
+/**
+ * How every ALPHA PAPER fill is priced and classified. Shown with the execution-cost settings and on every trade
+ * proof (the frontend keeps the same sentence in src/terminal/disclosures.ts; a test checks they are identical).
+ */
+export const PAPER_FILL_DISCLOSURE =
+  "PAPER fills are simulated using the Kraken reference price when the signal is processed, not necessarily the Pine strategy's original entry or exit price. Maker/taker classifications are inferred from strategy order types and are not verified against a live exchange order book.";
+
 export type Liquidity = "MAKER" | "TAKER";
 
 /** The configured profile, or null when the configuration names an unknown one (fills are then refused). */

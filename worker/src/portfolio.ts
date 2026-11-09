@@ -16,7 +16,7 @@
 import { authorizePaperAction } from "./auth_session";
 import { getInstrument } from "./instruments";
 import { secureEqual } from "./trade_core";
-import { costProfile } from "./costs";
+import { costProfile, PAPER_FILL_DISCLOSURE } from "./costs";
 
 export const MICRO = 1_000_000;
 export const toMicro = (usd: number): number => Math.round(usd * MICRO);
@@ -527,8 +527,9 @@ export async function portfolioSection(
       const p = costProfile(vars);
       return p
         ? { profile: p.id, name: p.name, maker_pct: p.makerPct, taker_pct: p.takerPct, taker_slippage_pct: p.takerSlipPct,
-            min_qty: p.minQty, min_notional_usd: p.minNotionalUsd, fee_source: p.feeSource, slippage_source: p.slippageSource, caveat: p.caveat }
-        : { profile: vars.PAPER_COST_PROFILE ?? null, invalid: true };
+            min_qty: p.minQty, min_notional_usd: p.minNotionalUsd, fee_source: p.feeSource, slippage_source: p.slippageSource, caveat: p.caveat,
+            fill_disclosure: PAPER_FILL_DISCLOSURE }
+        : { profile: vars.PAPER_COST_PROFILE ?? null, invalid: true, fill_disclosure: PAPER_FILL_DISCLOSURE };
     })(),
   };
 }

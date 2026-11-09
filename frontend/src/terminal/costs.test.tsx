@@ -16,6 +16,7 @@ import { pnlFromFills, ProofView } from "./pages/TradeProof";
 import { initialFeedState, type FeedState } from "./poller";
 import { idleSignOut } from "./signOut";
 import { DashboardContext } from "./store";
+import { PAPER_FILL_DISCLOSURE } from "./disclosures";
 import type { DashboardData, PaperPortfolio, ProofFill, TradeProof, TradeRow, VerifiedTrade } from "./types";
 
 const NDAX_CAVEAT = "Ndax costs applied to Kraken SOLUSD prices: these are not verified Ndax SOL/CAD executions";
@@ -70,6 +71,17 @@ describe("trade proof with simulated costs", () => {
     expect(html).toContain("TAKER");
     expect(html).toContain("−$0.0340"); // exit fee 0.033966
     expect(html).toContain("Simulated costs (ndax)");
+  });
+
+  it("discloses how PAPER fills are priced and that maker/taker is inferred, on costed and older proofs alike", () => {
+    const escaped = PAPER_FILL_DISCLOSURE.replace(/'/g, "&#x27;");
+    for (const p of [proof(), proof({ fills: [{ ...buy, cost_profile: null, liquidity: null, fee_micro: null }] })]) {
+      const html = renderToStaticMarkup(<MemoryRouter><ProofView proof={p} /></MemoryRouter>);
+      expect(html).toContain(escaped);
+    }
+    const html = renderToStaticMarkup(<MemoryRouter><ProofView proof={proof()} /></MemoryRouter>);
+    expect(html).toContain("Liquidity (inferred)");
+    expect(html).not.toMatch(/confirmed (resting|maker)/i);
   });
 
   it("does not match when the recorded P&L is the gross figure", () => {
@@ -170,6 +182,16 @@ describe("settings cost profile", () => {
     expect(html).toContain(NDAX_CAVEAT);
     expect(html).toContain("Simulated fees paid");
     expect(html).toContain("Net realized ledger P&amp;L");
+  });
+
+  it("shows the fill-pricing disclosure with the execution-cost settings (Worker text first, frontend copy otherwise)", () => {
+    const escaped = PAPER_FILL_DISCLOSURE.replace(/'/g, "&#x27;");
+    const base = { profile: "ndax", name: "Ndax (0.20% flat)", maker_pct: 0.2, taker_pct: 0.2, taker_slippage_pct: 0.1, min_qty: 0, min_notional_usd: 5,
+      fee_source: "x", slippage_source: "y", caveat: null };
+    expect(render(<SettingsPage />, dash(portfolio({ ...base, fill_disclosure: PAPER_FILL_DISCLOSURE })))).toContain(escaped);
+    expect(render(<SettingsPage />, dash(portfolio(base)))).toContain(escaped);
+    expect(render(<SettingsPage />, dash(portfolio(undefined)))).toContain(escaped);
+    expect(render(<SettingsPage />, dash(portfolio(base)))).toContain("Maker fee (inferred: limit entry, take-profit)");
   });
 
   it("flags an invalid profile and an older Worker without cost accounting", () => {

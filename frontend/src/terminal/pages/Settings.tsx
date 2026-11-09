@@ -6,6 +6,7 @@ import { clock, costMoney, money, NA, signedMoney, stamp } from "../fmt";
 import { candleAgeSeconds, markets } from "../health";
 import { StatusBadge } from "../components/ui";
 import { useDash } from "../store";
+import { PAPER_FILL_DISCLOSURE } from "../disclosures";
 
 function Group({ title, sub, children }: { title: string; sub?: string; children: ReactNode }) {
   return (
@@ -63,8 +64,8 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
           : (
             <>
               <Row k="Cost profile">{p.costs.name}</Row>
-              <Row k="Maker fee (limit entry, take-profit)">{p.costs.maker_pct}%</Row>
-              <Row k="Taker fee (stops, time exits, market)">{p.costs.taker_pct}%</Row>
+              <Row k="Maker fee (inferred: limit entry, take-profit)">{p.costs.maker_pct}%</Row>
+              <Row k="Taker fee (inferred: stops, time exits, market)">{p.costs.taker_pct}%</Row>
               <Row k="Taker slippage (estimate)">{p.costs.taker_slippage_pct}%</Row>
               <Row k="Minimum order">{[p.costs.min_qty > 0 ? `${p.costs.min_qty} units` : null, p.costs.min_notional_usd > 0 ? money(p.costs.min_notional_usd) : null].filter(Boolean).join(" · ") || "None"}</Row>
               <Row k="Fee source">{p.costs.fee_source}</Row>
@@ -72,6 +73,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
               {p.costs.caveat ? <p className="li-note">{p.costs.caveat}</p> : null}
             </>
           )}
+        {p ? <p className="li-note" data-testid="fill-disclosure">{p.costs?.fill_disclosure ?? PAPER_FILL_DISCLOSURE}</p> : null}
       </Group>
 
       <Group title="Markets">

@@ -396,9 +396,11 @@ export type CostProfileInfo =
   | {
       profile: string; name: string; maker_pct: number; taker_pct: number; taker_slippage_pct: number;
       min_qty: number; min_notional_usd: number; fee_source: string; slippage_source: string; caveat: string | null;
+      /** How PAPER fills are priced and classified (absent on older Workers). */
+      fill_disclosure?: string;
       invalid?: undefined;
     }
-  | { profile: string | null; invalid: true };
+  | { profile: string | null; invalid: true; fill_disclosure?: string };
 
 // ---- Verified performance and trade proof (GET /api/dashboard/performance, /api/dashboard/trade-proof) ----
 

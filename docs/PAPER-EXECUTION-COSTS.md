@@ -6,6 +6,23 @@ the owner's explicit authorization.
 
 Everything here is a simulation. ALPHA PAPER never sends an order to Ndax, Kraken, Alpaca or any other venue.
 
+> **How PAPER fills are priced.** PAPER fills are simulated using the Kraken reference price when the signal is processed, not necessarily the Pine strategy's original entry or exit price. Maker/taker classifications are inferred from strategy order types and are not verified against a live exchange order book.
+>
+> This sentence appears word for word in Settings → Execution costs and on every Trade Proof. The engine sends a
+> signal only after the candle in which its order filled has closed. The Worker then fills at the live Kraken
+> reference price, adjusted by the cost profile. Measured on the 150-day baseline, using candle closes as the proxy
+> (`docs/research/fill-semantics/ledger-price-gap.json`), that price was about $185 worse in total than the
+> strategy's own fills over 579 trades. Also, 9 of the 579 limit entries were marketable (the candle opened
+> through the limit), which on a real exchange would be taker fills.
+
+Three kinds of result are kept apart and must not be mixed:
+
+| Result | What it is | Where |
+|---|---|---|
+| TradingView-equivalent backtest | the strategy's own fills, no costs, no capital limit | engine backtests; Portfolio → Historical simulator A |
+| Historical performance with estimated costs | the same trades with modelled fees and slippage | `docs/STRATEGY-AUDIT-2026-11-09.md` Model B |
+| ALPHA PAPER simulated execution | what the ledger recorded: Kraken reference price when the signal is processed, plus the cost profile | Trades, Trade Proof, Performance, Portfolio |
+
 ## What changes
 
 Without costs, every ALPHA PAPER fill executed at the Kraken reference price and paid nothing. With a cost profile:
@@ -43,8 +60,9 @@ Fills already recorded keep the profile they were made with.
 
 The engine labels every signal with `liquidity` (`engine/src/runner.mjs`, `liquidityFor`):
 
-- **maker:** the limit entry (`Limit @ 0.705`) and the take-profit. These are resting limit orders, so they fill at
-  the reference price with no slippage.
+- **maker:** the limit entry (`Limit @ 0.705`) and the take-profit. The label is **inferred** from the order type.
+  It is not a confirmed resting order: a limit that the market gaps through takes liquidity on a real exchange. A
+  maker fill pays the maker fee at the reference price, with no slippage.
 - **taker:** stop-loss, break-even and trailing stops, time exits, reconciliation closes and market entries. These
   are also used for any signal that does not say (older outbox items, manual or Pine webhooks). They execute
   `slippage%` worse than the reference price: a BUY pays more and a SELL receives less.
@@ -121,12 +139,12 @@ session; its findings are not reflected here.
 ## Dashboard
 
 - **Trade card and trade proof:** gross, slippage, fees and net. Each fill shows reference vs execution price,
-  maker/taker, fee and slippage. The proof recomputes net = sells − buys − fees from the fills and checks it against
+  the inferred maker/taker label, fee and slippage. The proof shows the fill-pricing disclosure above its fills. The proof recomputes net = sells − buys − fees from the fills and checks it against
   the recorded P&L.
 - **Performance:** an "Execution costs" block with gross, slippage, fees and net over the selected range. The equity
   curve is net.
 - **Portfolio and Settings:** realized before fees, simulated fees paid, and net realized. Settings → Execution costs
-  shows the active profile, fee and slippage sources, minimums and the Ndax caveat.
+  shows the active profile, fee and slippage sources, minimums, the Ndax caveat and the fill-pricing disclosure.
 
 ## Tests
 
@@ -135,11 +153,17 @@ session; its findings are not reflected here.
 | `worker/test/paper_costs.test.mjs` (port 8801) | Ndax and Kraken lifecycles, maker vs taker, FEE entries, duplicates before and after a restart, minimum orders, a fee-inclusive capital check, closes never blocked, invalid profile and invalid liquidity, dashboard/performance/trade-proof fields, identity and consistency |
 | `worker/test/migrations.test.mjs` | `0004` keeps every existing row; FEE allowed; negative balances still impossible |
 | `engine/test/costs.test.mjs` | liquidity labels; every live signal carries one; `ENGINE_LIMIT_THROUGH_TICKS` validation and application |
-| `frontend/src/terminal/costs.test.tsx` | gross/fees/slippage/net display, sub-cent cost formatting, trade-proof net check, Settings profile and caveat |
+| `frontend/src/terminal/costs.test.tsx` | gross/fees/slippage/net display, sub-cent cost formatting, trade-proof net check, Settings profile and caveat, fill-pricing disclosure in Settings and Trade Proof |
+| `worker/test/disclosures.test.mjs` | the Worker and frontend disclosure texts are identical and returned with every profile; pricing maths unchanged |
+| `worker/test/cost_audit.test.mjs` | rollback and roll-forward with the production code |
+| `worker/test/rollback_release.test.mjs` | the fee-compatible rollback Worker (see `docs/RELEASE-RUNBOOK.md`) |
 
 The other Worker suites run with `PAPER_COST_PROFILE=none`, so their gross assertions still hold.
 
 ## Deploying (not done; needs authorization)
+
+Superseded by `docs/RELEASE-RUNBOOK.md`, which uses a staged deployment and a fee-compatible rollback Worker. The
+notes below are kept for history.
 
 1. Back up the production D1, then apply `0004_paper_execution_costs.sql` (`wrangler d1 migrations apply alpha-terminal-db --remote`).
 2. Confirm `PAPER_COST_PROFILE` is the intended profile (`ndax` in `wrangler.jsonc`; use `none` to stay gross).
