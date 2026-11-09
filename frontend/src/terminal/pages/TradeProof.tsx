@@ -4,19 +4,41 @@ import { ApiError } from "../../api/client";
 import { fetchTradeProof } from "../api";
 import { marketType, riskChecks } from "../classify";
 import { Code, EmptyState, KV, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
-import { NA, num, percent, price, qty, signedMoney, stamp, text, tone, upper } from "../fmt";
+import { costMoney, NA, num, percent, price, qty, signedMoney, stamp, text, tone, upper } from "../fmt";
 import type { ProofFill, TradeProof } from "../types";
 
 type Load = { status: "loading" } | { status: "ok"; proof: TradeProof } | { status: "error"; code: string; message: string };
 
-/** P&L recomputed from the recorded fills (long only: sells − buys) and compared with the stored result. */
-export function pnlFromFills(fills: ProofFill[]): { buys: number; sells: number; qtyIn: number; qtyOut: number; pnl: number } | null {
+export interface FillPnl {
+  buys: number; sells: number; qtyIn: number; qtyOut: number;
+  /** Sells − buys at execution prices (slippage already inside them), before fees. */
+  beforeFees: number;
+  fees: number;
+  slippage: number;
+  /** Sells − buys − fees: the net result, compared with the recorded P&L. */
+  pnl: number;
+  /** Before slippage and fees (= beforeFees + slippage). */
+  gross: number;
+  costed: boolean;
+}
+
+/**
+ * P&L recomputed from the recorded fills (long only) and compared with the stored result:
+ * net = sells − buys − fees, where fill prices are execution prices (slippage already applied).
+ */
+export function pnlFromFills(fills: ProofFill[]): FillPnl | null {
   if (fills.length === 0) return null;
-  let buys = 0, sells = 0, qtyIn = 0, qtyOut = 0;
+  let buys = 0, sells = 0, qtyIn = 0, qtyOut = 0, feeMicro = 0, slipMicro = 0, costed = false;
   for (const f of fills) {
     if (f.side === "buy") { buys += f.qty * f.price; qtyIn += f.qty; } else { sells += f.qty * f.price; qtyOut += f.qty; }
+    feeMicro += Number(f.fee_micro ?? 0);
+    slipMicro += Number(f.slippage_micro ?? 0);
+    if (f.cost_profile) costed = true;
   }
-  return { buys, sells, qtyIn, qtyOut, pnl: Math.round((sells - buys) * 1e8) / 1e8 };
+  const r = (v: number) => Math.round(v * 1e8) / 1e8;
+  const fees = feeMicro / 1e6, slippage = slipMicro / 1e6;
+  const beforeFees = sells - buys;
+  return { buys, sells, qtyIn, qtyOut, beforeFees: r(beforeFees), fees: r(fees), slippage: r(slippage), pnl: r(beforeFees - fees), gross: r(beforeFees + slippage), costed };
 }
 
 export function ProofView({ proof }: { proof: TradeProof }) {
@@ -60,13 +82,27 @@ export function ProofView({ proof }: { proof: TradeProof }) {
           <div className="card list-card">
             <div className="li"><span>Bought</span><b>{qty(calc.qtyIn)} for {price(calc.buys)}</b></div>
             <div className="li"><span>Sold</span><b>{qty(calc.qtyOut)} for {price(calc.sells)}</b></div>
-            <div className="li"><span>Sold − bought</span><b className={`t-${tone(calc.pnl)}`}>{signedMoney(calc.pnl)}</b></div>
+            {calc.costed ? (
+              <>
+                <div className="li"><span>Gross (before slippage and fees)</span><b className={`t-${tone(calc.gross)}`}>{signedMoney(calc.gross)}</b></div>
+                <div className="li"><span>Simulated slippage</span><b className="t-neg">{costMoney(calc.slippage)}</b></div>
+                <div className="li"><span>Sold − bought</span><b className={`t-${tone(calc.beforeFees)}`}>{signedMoney(calc.beforeFees)}</b></div>
+                <div className="li"><span>Simulated fees</span><b className="t-neg">{costMoney(calc.fees)}</b></div>
+                <div className="li"><span>Net (sold − bought − fees)</span><b className={`t-${tone(calc.pnl)}`}>{signedMoney(calc.pnl)}</b></div>
+              </>
+            ) : (
+              <div className="li"><span>Sold − bought</span><b className={`t-${tone(calc.pnl)}`}>{signedMoney(calc.pnl)}</b></div>
+            )}
             <div className="li"><span>Recorded P&L</span><b className={`t-${tone(recorded)}`}>{signedMoney(recorded)}</b></div>
             <div className="li"><span>Return on cost</span><b>{percent(t.return_pct)}</b></div>
             <div className="li"><span>Check</span>
               {matches ? <StatusBadge tone="ok">MATCHES</StatusBadge> : closed ? <StatusBadge tone="bad">DOES NOT MATCH</StatusBadge> : <StatusBadge tone="muted">POSITION OPEN</StatusBadge>}
             </div>
-            <p className="proof-note">No fees or slippage are added: each fill is the recorded market reference price at that moment.</p>
+            <p className="proof-note">
+              {calc.costed
+                ? `Simulated costs (${text(t.cost_profile ?? proof.fills.find((f) => f.cost_profile)?.cost_profile)}): each fill price is the recorded market reference moved by the simulated slippage, and each fill pays a simulated fee. Not real exchange executions.`
+                : "No fees or slippage were applied to this trade (recorded before cost accounting): each fill is the recorded market reference price at that moment."}
+            </p>
           </div>
         )}
       </section>
@@ -78,7 +114,16 @@ export function ProofView({ proof }: { proof: TradeProof }) {
             <div className="proof-row"><b>{f.kind}</b><StatusBadge tone={f.side === "buy" ? "ok" : "bad"}>{f.side.toUpperCase()}</StatusBadge></div>
             <KV rows={[
               ["Quantity", qty(f.qty)],
-              ["Price", price(f.price)],
+              ...(f.cost_profile
+                ? ([
+                    ["Reference price", price(f.reference_price)],
+                    ["Execution price", price(f.price)],
+                    ["Liquidity", text(f.liquidity)],
+                    ["Simulated fee", costMoney(Number(f.fee_micro ?? 0) / 1e6)],
+                    ["Simulated slippage", costMoney(Number(f.slippage_micro ?? 0) / 1e6)],
+                    ["Cost profile", text(f.cost_profile)],
+                  ] as [string, string][])
+                : ([["Price", price(f.price)]] as [string, string][])),
               ["Price source", text(f.price_source)],
               ["Price observed", <span key="pa" className="mono-s">{stamp(f.price_at)}</span>],
               ["Filled", <span key="fa" className="mono-s">{stamp(f.filled_at)}</span>],

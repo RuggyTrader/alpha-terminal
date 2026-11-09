@@ -1,4 +1,6 @@
 import { portfolioGate } from "./portfolio";
+import { costProfile, execute, minimumOrderProblem } from "./costs";
+import { getInstrument } from "./instruments";
 import {
   runRiskEvaluation,
   saveRiskDecision,
@@ -23,6 +25,8 @@ const STUCK_PROCESSING_MS = 60_000;
 interface DryRunWebhookEnv
   extends TradeCoreEnv {
   WEBHOOK_SECRET: string;
+  /** Execution-cost profile for PAPER fills (costs.ts): none | ndax | kraken_pro_t1. */
+  PAPER_COST_PROFILE?: string;
 }
 
 function json(
@@ -740,15 +744,35 @@ export async function handleDryRunWebhook(
   // (full position value, no leverage). Rejected, not retryable.
   // ==========================================================
 
+  // Execution costs (costs.ts): an unknown profile refuses every fill; minimum order sizes apply to BUY and
+  // partial SELL; a BUY must cover its execution value plus its fee.
+  const profile = costProfile(env);
+  let costRejection: { code: string; message: string } | null = null;
+  let entryFeeMicro = 0;
+  let entryPrice = riskResult.risk.referencePrice;
+  if (riskResult.risk.referencePrice !== null) {
+    if (!profile) {
+      costRejection = { code: "COST_PROFILE_INVALID", message: `PAPER_COST_PROFILE '${env.PAPER_COST_PROFILE}' is not a known execution-cost profile; nothing was filled` };
+    } else if (validation.action !== "close") {
+      const mult = getInstrument(validation.symbol)?.multiplier ?? 1;
+      const ex = execute(profile, riskResult.risk.side, validation.liquidity, riskResult.risk.referencePrice, riskResult.risk.finalQty, mult);
+      const tooSmall = minimumOrderProblem(profile, validation.action, riskResult.risk.finalQty, riskResult.risk.finalQty * ex.price * mult);
+      if (tooSmall) costRejection = { code: "BELOW_MIN_ORDER", message: `${tooSmall}; nothing was filled` };
+      if (riskResult.risk.side === "buy") { entryFeeMicro = ex.feeMicro; entryPrice = ex.price; }
+    }
+  }
+
   const capital =
-    riskResult.risk.referencePrice !== null
+    costRejection ??
+    (riskResult.risk.referencePrice !== null && entryPrice !== null
       ? await portfolioGate(env.DB, {
           symbol: validation.symbol,
           side: riskResult.risk.side,
           qty: riskResult.risk.finalQty,
-          price: riskResult.risk.referencePrice,
+          price: entryPrice,
+          feeMicro: entryFeeMicro,
         })
-      : null;
+      : null);
 
   if (capital) {
     await env.DB.prepare(
@@ -845,6 +869,10 @@ export async function handleDryRunWebhook(
       validation.orderType,
     timeInForce:
       validation.timeInForce,
+    liquidity:
+      validation.liquidity,
+    costProfile:
+      profile ?? undefined,
   };
 
   const ledger =

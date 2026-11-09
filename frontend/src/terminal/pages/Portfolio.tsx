@@ -4,14 +4,14 @@ import { ApiError } from "../../api/client";
 import { fetchBacktest, paperApplyRisk, paperFund, paperTransfer } from "../api";
 import { ActionForm, AllocationLegend, AllocationPie, parseUsd, WALLET_NAME } from "../components/PaperPortfolio";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
-import { money, NA, signedMoney, stamp, tone } from "../fmt";
+import { costMoney, money, NA, signedMoney, stamp, tone } from "../fmt";
 import { constrainedBacktest, rawBacktest, type BacktestResult, type SimStats } from "../simulator";
 import { useDash } from "../store";
 import type { PaperPortfolio, PaperWallet } from "../types";
 
 const KIND_TEXT: Record<string, string> = {
   DEPOSIT: "PAPER funding added", WITHDRAW: "PAPER funding removed", TRANSFER_OUT: "Transfer out", TRANSFER_IN: "Transfer in",
-  RESERVE: "Reserved for position", RELEASE: "Position released", REALIZED_PNL: "Realized P&L",
+  RESERVE: "Reserved for position", RELEASE: "Position released", REALIZED_PNL: "Realized P&L", FEE: "Simulated fee",
 };
 
 function usePortfolio(): { p: PaperPortfolio | null; loading: boolean } {
@@ -69,7 +69,15 @@ export function PortfolioPage() {
             <div><span>Total book balance</span><b>{money(t.book_balance_usd)}</b></div>
             <div><span>Unallocated</span><b>{money(t.unallocated_usd)}</b></div>
             <div><span>Reserved in positions</span><b>{money(t.reserved_usd)}</b></div>
-            <div><span>Realized P&amp;L</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
+            {t.fees_usd !== undefined ? (
+              <>
+                <div><span>Realized P&amp;L before fees</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
+                <div><span>Simulated fees paid</span><b className={t.fees_usd > 0 ? "t-neg" : ""}>{costMoney(t.fees_usd)}</b></div>
+                <div><span>Net realized P&amp;L</span><b className={`t-${tone(t.net_realized_pnl_usd ?? null)}`}>{signedMoney(t.net_realized_pnl_usd ?? null)}</b></div>
+              </>
+            ) : (
+              <div><span>Realized P&amp;L</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
+            )}
             <div><span>Unrealized P&amp;L</span><b>{t.unrealized_pnl_usd === null ? NA : signedMoney(t.unrealized_pnl_usd)}</b></div>
           </div>
         </div>
@@ -263,7 +271,15 @@ export function StrategyPage() {
         <div className="pf-figs pf-figs-wide">
           <div><span>Available</span><b>{money(w.available_usd)}</b></div>
           <div><span>Reserved (open positions)</span><b>{money(w.reserved_usd)}</b></div>
-          <div><span>Realized P&amp;L</span><b className={`t-${tone(w.realized_pnl_usd)}`}>{signedMoney(w.realized_pnl_usd)}</b></div>
+          {w.fees_usd !== undefined ? (
+            <>
+              <div><span>Realized P&amp;L before fees</span><b className={`t-${tone(w.realized_pnl_usd)}`}>{signedMoney(w.realized_pnl_usd)}</b></div>
+              <div><span>Simulated fees paid</span><b className={w.fees_usd > 0 ? "t-neg" : ""}>{costMoney(w.fees_usd)}</b></div>
+              <div><span>Net realized P&amp;L</span><b className={`t-${tone(w.net_realized_pnl_usd ?? null)}`}>{signedMoney(w.net_realized_pnl_usd ?? null)}</b></div>
+            </>
+          ) : (
+            <div><span>Realized P&amp;L</span><b className={`t-${tone(w.realized_pnl_usd)}`}>{signedMoney(w.realized_pnl_usd)}</b></div>
+          )}
           <div><span>Unrealized P&amp;L</span><b>{w.unrealized_pnl_usd === null ? NA : signedMoney(w.unrealized_pnl_usd)}</b></div>
           <div><span>Net transfers in</span><b>{money(w.net_funding_usd)}</b></div>
           <div><span>Equity</span><b>{w.equity_usd === null ? NA : money(w.equity_usd)}</b></div>
@@ -290,7 +306,7 @@ export function StrategyPage() {
           </section>
 
           <section aria-label="Historical simulator">
-            <SectionHeader title="Historical simulator" sub="Real Kraken history · not a forecast" />
+            <SectionHeader title="Historical simulator" sub="Real Kraken history · gross reference, no fees · not a forecast" />
             {bt.status === "loading" ? <SkeletonCards count={1} tall /> : bt.status === "error" ? (
               <EmptyState title="Backtest unavailable" tone="warn">{bt.err}</EmptyState>
             ) : bt.status === "none" || !r ? (
@@ -308,11 +324,11 @@ export function StrategyPage() {
                   <input inputMode="decimal" value={allocText} onChange={(e) => setAllocText(e.target.value)} placeholder={alloc !== null ? String(alloc) : "20.00"} />
                 </label>
                 <Curve a={sims.a} b={sims.b} />
-                <StatsBlock title="A · Raw TradingView-style backtest" s={sims.a}
+                <StatsBlock title="A · Raw TradingView-style backtest (gross reference)" s={sims.a}
                   extra={`Every signal, long and short, no capital limit (leverage unlimited as in TradingView). Drawdown % measured from ${money(sims.a.startEquity)}.`} />
                 {sims.b ? (
                   <StatsBlock title="B · PAPER-constrained backtest" s={sims.b}
-                    extra={`Starts at ${money(sims.b.startEquity)}. An entry is rejected when its position value exceeds the balance (no leverage), when it is a short (ALPHA PAPER is long-only) or above the Worker's order/position limits. Fills at the engine's prices.`} />
+                    extra={`Starts at ${money(sims.b.startEquity)}. An entry is rejected when its position value exceeds the balance (no leverage), when it is a short (ALPHA PAPER is long-only) or above the Worker's order/position limits. Fills at the engine's prices, before fees and slippage (gross).`} />
                 ) : (
                   <EmptyState title="Enter a starting allocation to see B" />
                 )}
@@ -321,9 +337,16 @@ export function StrategyPage() {
                 ) : null}
                 <div className="card list-card pf-stats">
                   <b className="pf-form-t">C · Actual ALPHA PAPER ledger</b>
-                  <div className="li"><span>Realized P&amp;L in this balance</span><b className={`t-${tone(w.realized_pnl_usd)}`}>{signedMoney(w.realized_pnl_usd)}</b></div>
+                  <div className="li"><span>Realized P&amp;L in this balance{w.fees_usd !== undefined ? " (before fees)" : ""}</span><b className={`t-${tone(w.realized_pnl_usd)}`}>{signedMoney(w.realized_pnl_usd)}</b></div>
+                  {w.fees_usd !== undefined ? (
+                    <>
+                      <div className="li"><span>Simulated fees paid</span><b className={w.fees_usd > 0 ? "t-neg" : ""}>{costMoney(w.fees_usd)}</b></div>
+                      <div className="li"><span>Net realized P&amp;L</span><b className={`t-${tone(w.net_realized_pnl_usd ?? null)}`}>{signedMoney(w.net_realized_pnl_usd ?? null)}</b></div>
+                    </>
+                  ) : null}
                   <div className="li"><span>Closed ledger trades (recent list)</span><b>{ledgerTrades.length}</b></div>
                 </div>
+                <p className="muted-s">A and B are gross: they charge no fees or slippage. The ALPHA PAPER ledger (C) charges the simulated cost profile{p.costs && !p.costs.invalid ? ` (${p.costs.name})` : ""} on every fill, so C will trail A and B on the same trades.</p>
                 <details className="pf-assume"><summary>Execution assumptions</summary><ul>{r.execution.map((x) => <li key={x}>{x}</li>)}</ul></details>
               </>
             )}

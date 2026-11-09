@@ -14,8 +14,9 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001, 0002 and 0003", () => {
-    assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(), ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql"]);
+  it("are exactly 0001 to 0004", () => {
+    assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql"]);
   });
 
   it("0002 applies on top of 0001 with existing rows, and does not label legacy trades ALPHA PAPER", () => {
@@ -83,6 +84,45 @@ describe("migrations from a fresh 0001", () => {
     const ins = () => db.prepare(`INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro) VALUES ('k', 'g', ?, 'DEPOSIT', 'MAIN', 1)`).run(now);
     ins();
     assert.throws(ins, /UNIQUE/);
+  });
+
+  it("0004 keeps every existing entry, fill, trade and balance unchanged, and allows FEE entries", () => {
+    const db = new DatabaseSync(":memory:");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql"]) db.exec(sql(f));
+    const now = "2026-11-08T00:00:00Z";
+    db.prepare("UPDATE portfolio_wallets SET available_micro = 12000000, reserved_micro = 0, realized_pnl_micro = 2000000, net_funding_micro = 10000000 WHERE wallet = 'SOLUSD'").run();
+    const entry = db.prepare("INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, note) VALUES (?, ?, ?, ?, 'SOLUSD', ?, 0, ?)");
+    entry.run("seed", "seed", now, "TRANSFER_IN", 10000000, "funding");
+    entry.run("PNL:x", "x", now, "REALIZED_PNL", 2000000, "win");
+    db.prepare(`INSERT INTO paper_positions (symbol, status, qty, avg_entry_price, multiplier, opened_at, closed_at, entry_qty_total, entry_value_total,
+       open_alert_id, open_order_id, last_order_id, updated_at, realized_pnl) VALUES ('SOLUSD', 'CLOSED', 0, 100, 1, ?, ?, 1, 100, 'a', 'o', 'c', ?, 2)`).run(now, now, now);
+    db.prepare("INSERT INTO orders (client_order_id, symbol, side, qty, submitted_at, updated_at) VALUES ('c', 'SOLUSD', 'sell', '1', ?, ?)").run(now, now);
+    db.prepare(`INSERT INTO paper_fills (order_fk, position_fk, client_order_id, alert_id, symbol, kind, side, qty, price, price_source, price_at, realized_pnl,
+       position_qty_after, avg_entry_after, filled_at) VALUES (1, 1, 'c', 'x', 'SOLUSD', 'CLOSE', 'sell', 1, 102, 'kraken:SOLUSD', ?, 2, 0, 100, ?)`).run(now, now);
+    db.prepare(`INSERT INTO trades (symbol, direction, status, entry_qty, entry_avg_price, open_qty, opened_at, realized_pnl, source)
+       VALUES ('SOLUSD', 'LONG', 'CLOSED', '1', '100', '0', ?, '2', 'ALPHA_PAPER')`).run(now);
+    const snap = () => ({
+      entries: db.prepare("SELECT id, entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, note FROM portfolio_entries ORDER BY id").all().map((r) => ({ ...r })),
+      wallets: db.prepare("SELECT wallet, available_micro, reserved_micro, realized_pnl_micro, net_funding_micro FROM portfolio_wallets ORDER BY wallet").all().map((r) => ({ ...r })),
+      fills: db.prepare("SELECT id, price, realized_pnl FROM paper_fills").all().map((r) => ({ ...r })),
+      trades: db.prepare("SELECT id, realized_pnl FROM trades").all().map((r) => ({ ...r })),
+    });
+    const before = snap();
+    db.exec(sql("0004_paper_execution_costs.sql"));
+    assert.deepEqual(snap(), before, "no existing row changed");
+    assert.equal(db.prepare(`SELECT value FROM app_meta WHERE key = 'schema_version'`).get().value, "4");
+    assert.equal(db.prepare("SELECT fees_micro FROM portfolio_wallets WHERE wallet = 'SOLUSD'").get().fees_micro, 0);
+    const f = db.prepare("SELECT reference_price, liquidity, fee_micro, slippage_micro, cost_profile FROM paper_fills").get();
+    assert.deepEqual({ ...f }, { reference_price: null, liquidity: null, fee_micro: null, slippage_micro: null, cost_profile: null });
+    const t = db.prepare("SELECT gross_pnl, fees_usd, slippage_usd, cost_profile FROM trades").get();
+    assert.deepEqual({ ...t }, { gross_pnl: null, fees_usd: null, slippage_usd: null, cost_profile: null }, "old trades stay gross, no cost record");
+    // FEE entries are now allowed; unknown kinds and duplicate keys are still refused.
+    entry.run("FEE:o", "o", now, "FEE", -32000, "fee");
+    assert.throws(() => entry.run("FEE:o", "o", now, "FEE", -32000, "again"), /UNIQUE/);
+    assert.throws(() => entry.run("X:o", "o", now, "BONUS", 1, "x"), /CHECK/);
+    assert.ok(db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'idx_portfolio_entries_wallet'").get());
+    // Negative balances are still impossible.
+    assert.throws(() => db.prepare("UPDATE portfolio_wallets SET available_micro = -1 WHERE wallet = 'SOLUSD'").run(), /CHECK/);
   });
 
   it("two fills that both passed the balance pre-check: the second one's transaction overdraws, fails and leaves no trace", () => {

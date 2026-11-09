@@ -954,7 +954,11 @@ async function getTrades(
         source,
         position_fk,
         close_alert_id,
-        price_sources
+        price_sources,
+        gross_pnl,
+        fees_usd,
+        slippage_usd,
+        cost_profile
        FROM trades
        ORDER BY id DESC
        LIMIT ?`
@@ -986,7 +990,8 @@ const MAX_PERFORMANCE_TRADES = 5000;
 async function getVerifiedPerformance(env: DashboardEnv) {
   const [rows, excluded] = await Promise.all([
     env.DB.prepare(
-      `SELECT id, symbol, direction, strategy, realized_pnl, return_pct, closed_cost_basis, opened_at, closed_at, price_sources
+      `SELECT id, symbol, direction, strategy, realized_pnl, return_pct, closed_cost_basis, opened_at, closed_at, price_sources,
+         gross_pnl, fees_usd, slippage_usd, cost_profile
        FROM trades WHERE source = ? AND status = 'CLOSED' AND closed_at IS NOT NULL
        ORDER BY closed_at ASC, id ASC LIMIT ?`
     ).bind(VERIFIED_SOURCE, MAX_PERFORMANCE_TRADES).all<Record<string, unknown>>(),
@@ -1000,6 +1005,10 @@ async function getVerifiedPerformance(env: DashboardEnv) {
       id: r.id, symbol: r.symbol, direction: r.direction, strategy: r.strategy,
       realized_pnl: num(r.realized_pnl), return_pct: r.return_pct === null ? null : num(r.return_pct),
       cost_basis: num(r.closed_cost_basis), opened_at: r.opened_at, closed_at: r.closed_at, price_sources: r.price_sources,
+      // realized_pnl is NET (after simulated fees and slippage) for trades closed with a cost profile; older trades
+      // have no cost record (null), their realized_pnl is gross.
+      gross_pnl: r.gross_pnl === null ? null : num(r.gross_pnl), fees_usd: r.fees_usd === null ? null : num(r.fees_usd),
+      slippage_usd: r.slippage_usd === null ? null : num(r.slippage_usd), cost_profile: r.cost_profile ?? null,
     })),
     truncated: rows.results.length >= MAX_PERFORMANCE_TRADES,
     excluded_closed_trades: Number(excluded?.n ?? 0),
@@ -1010,14 +1019,14 @@ async function getTradeProof(env: DashboardEnv, id: number) {
   const trade = await env.DB.prepare(
     `SELECT id, symbol, direction, status, strategy, open_alert_id, open_order_id, close_order_id, entry_qty, entry_avg_price,
        exit_qty, exit_avg_price, open_qty, closed_cost_basis, realized_pnl, return_pct, opened_at, closed_at,
-       leg_order_ids_json, source, position_fk, close_alert_id, price_sources
+       leg_order_ids_json, source, position_fk, close_alert_id, price_sources, gross_pnl, fees_usd, slippage_usd, cost_profile
      FROM trades WHERE id = ?`
   ).bind(id).first<Record<string, unknown>>();
   if (!trade) return null;
   const verified = trade.source === VERIFIED_SOURCE && trade.status === "CLOSED";
   const fills = trade.position_fk === null || trade.position_fk === undefined ? [] : (await env.DB.prepare(
     `SELECT id, client_order_id, alert_id, risk_decision_fk, kind, side, qty, price, price_source, price_at, realized_pnl,
-       position_qty_after, avg_entry_after, filled_at
+       position_qty_after, avg_entry_after, filled_at, reference_price, liquidity, fee_micro, slippage_micro, cost_profile
      FROM paper_fills WHERE position_fk = ? ORDER BY id`
   ).bind(trade.position_fk).all<Record<string, unknown>>()).results;
   const alertIds = [...new Set([trade.open_alert_id, trade.close_alert_id, ...fills.map((f) => f.alert_id)]

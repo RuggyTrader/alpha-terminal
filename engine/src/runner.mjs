@@ -137,6 +137,9 @@ export class EngineRunner {
   async prepareSizing() {
     const st = this.state.strategy;
     st.sizing = { ...DEFAULT_SIZING, ...st.sizing, ...this.cfg.sizing };
+    // Execution rule for resting limit orders (config; 0 = the default emulator rule, unchanged).
+    if (this.cfg.limitThroughTicks > 0) st.broker.opts = { ...(st.broker.opts ?? {}), limitThroughTicks: this.cfg.limitThroughTicks, tick: st.sym.mintick };
+    else if (st.broker.opts?.limitThroughTicks) { const { limitThroughTicks: _l, tick: _t, ...rest } = st.broker.opts; st.broker.opts = rest; }
     if (st.sizing.mode !== "percent") return;
     if (!this.cfg.sync) {
       st.capital = this.cfg.localCapital === null ? null : this.cfg.localCapital + st.broker.netProfit;
@@ -369,6 +372,7 @@ export class EngineRunner {
           body: JSON.stringify({
             secret: this.cfg.webhookSecret, id: item.id, symbol: this.cfg.symbol, timeframe: String(this.cfg.intervalMin),
             action: item.action, strategy: STRATEGY_NAME, ...(item.qty === null ? {} : { qty: Number(item.qty) }), timestamp: item.barClose,
+            liquidity: this.liquidityFor(item),
           }),
         });
         status = r.status;
@@ -492,6 +496,16 @@ export class EngineRunner {
       last_error: S.lastError,
       sizing: this.sizingPayload(),
     };
+  }
+
+  /**
+   * How a signal's fill took liquidity, for the PAPER cost model: a resting limit order that filled is a MAKER fill
+   * (the limit entry, the take-profit); everything else (stop-loss, break-even and trailing stops, time exits,
+   * reconciliation closes, market entries) is TAKER.
+   */
+  liquidityFor(item) {
+    if (item.kind === "ENTRY") return (this.state.strategy.inputs.entryMode ?? "").startsWith("Limit") ? "maker" : "taker";
+    return item.exitKind === "TP" ? "maker" : "taker";
   }
 
   /** Sizing shown on the dashboard: the mode, the balance it sizes from, and the latest order decision. */

@@ -153,6 +153,11 @@ export interface TradeRow {
   close_order_id?: string | null;
   close_alert_id?: string | null;
   price_sources?: string | null;
+  // Simulated execution costs (null on trades closed before cost accounting, whose realized_pnl is gross).
+  gross_pnl?: NumLike;
+  fees_usd?: NumLike;
+  slippage_usd?: NumLike;
+  cost_profile?: string | null;
 }
 
 /** Internal simulated position from the ALPHA PAPER ledger. Never a broker position. */
@@ -247,7 +252,11 @@ export interface AlphaPaperSection {
   broker_positions: false;
   positions: AlphaPaperPosition[];
   performance: {
+    /** Net of simulated fees. */
     realized_pnl: number;
+    /** Absent on Workers without cost accounting. */
+    fees_usd?: number;
+    slippage_usd?: number;
     unrealized_pnl: number | null;
     total_pnl: number | null;
     marks_stale: boolean;
@@ -314,6 +323,9 @@ export interface PaperWallet {
   available_usd: number;
   reserved_usd: number;
   realized_pnl_usd: number;
+  /** Simulated fees paid from this balance; absent on Workers without cost accounting. */
+  fees_usd?: number;
+  net_realized_pnl_usd?: number;
   net_funding_usd: number;
   unrealized_pnl_usd: number | null;
   book_balance_usd: number;
@@ -342,7 +354,7 @@ export interface StrategySettings {
 export interface PortfolioEntry {
   id: number;
   at: string;
-  kind: "DEPOSIT" | "WITHDRAW" | "TRANSFER_OUT" | "TRANSFER_IN" | "RESERVE" | "RELEASE" | "REALIZED_PNL";
+  kind: "DEPOSIT" | "WITHDRAW" | "TRANSFER_OUT" | "TRANSFER_IN" | "RESERVE" | "RELEASE" | "REALIZED_PNL" | "FEE";
   wallet: string;
   counterparty: string | null;
   ref: string | null;
@@ -362,6 +374,8 @@ export interface PaperPortfolio {
     available_usd: number;
     reserved_usd: number;
     realized_pnl_usd: number;
+    fees_usd?: number;
+    net_realized_pnl_usd?: number;
     net_funding_usd: number;
     unrealized_pnl_usd: number | null;
   };
@@ -374,7 +388,17 @@ export interface PaperPortfolio {
     /** Added with the Verified Performance release; absent on older Workers. */
     max_total_exposure_usd?: number | null; max_open_positions?: number | null; daily_loss_limit_usd?: number | null;
   };
+  /** Execution-cost profile applied to new PAPER fills; absent on Workers without cost accounting. */
+  costs?: CostProfileInfo;
 }
+
+export type CostProfileInfo =
+  | {
+      profile: string; name: string; maker_pct: number; taker_pct: number; taker_slippage_pct: number;
+      min_qty: number; min_notional_usd: number; fee_source: string; slippage_source: string; caveat: string | null;
+      invalid?: undefined;
+    }
+  | { profile: string | null; invalid: true };
 
 // ---- Verified performance and trade proof (GET /api/dashboard/performance, /api/dashboard/trade-proof) ----
 
@@ -390,6 +414,10 @@ export interface VerifiedTrade {
   opened_at: string;
   closed_at: string;
   price_sources: string | null;
+  gross_pnl?: number | null;
+  fees_usd?: number | null;
+  slippage_usd?: number | null;
+  cost_profile?: string | null;
 }
 
 export interface PerformanceData {
@@ -415,6 +443,12 @@ export interface ProofFill {
   position_qty_after: number;
   avg_entry_after: number;
   filled_at: string;
+  /** Market reference price before slippage; null on fills made before cost accounting. */
+  reference_price?: number | null;
+  liquidity?: "MAKER" | "TAKER" | string | null;
+  fee_micro?: number | null;
+  slippage_micro?: number | null;
+  cost_profile?: string | null;
 }
 
 export interface ProofAlert {

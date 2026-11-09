@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
-import { NA, money, pct, signedMoney, tone, when } from "../fmt";
+import { costMoney, NA, money, pct, signedMoney, tone, when } from "../fmt";
+import type { VerifiedTrade } from "../types";
 import { computeMetrics, MIN_CURVE_TRADES, profitFactorNote, RANGES, type CurvePoint, type Metrics, type Range } from "../performance";
 import { useDash } from "../store";
 import { useVerified } from "../useVerified";
@@ -59,6 +60,42 @@ export function MetricsGrid({ m, balance }: { m: Metrics; balance: number | null
   );
 }
 
+/** Gross, simulated costs and net over the trades in range. Trades closed before cost accounting have no cost record. */
+export function costTotals(trades: VerifiedTrade[]) {
+  const costed = trades.filter((t) => t.cost_profile !== null && t.cost_profile !== undefined);
+  const sum = (f: (t: VerifiedTrade) => number) => Math.round(costed.reduce((s, t) => s + f(t), 0) * 1e6) / 1e6;
+  return {
+    costed: costed.length,
+    uncosted: trades.length - costed.length,
+    gross: sum((t) => Number(t.gross_pnl ?? 0)),
+    fees: sum((t) => Number(t.fees_usd ?? 0)),
+    slippage: sum((t) => Number(t.slippage_usd ?? 0)),
+    net: sum((t) => t.realized_pnl),
+    profiles: [...new Set(costed.map((t) => t.cost_profile as string))],
+  };
+}
+
+export function CostBreakdown({ trades }: { trades: VerifiedTrade[] }) {
+  const c = costTotals(trades);
+  if (c.costed === 0) return null;
+  return (
+    <section className="card dark-card" aria-label="Execution costs">
+      <SectionHeader title="Execution costs" sub={`Simulated · ${c.profiles.join(", ")}`} />
+      <div className="card list-card">
+        <div className="li"><span>Gross P&amp;L (before costs)</span><b className={`t-${tone(c.gross)}`}>{signedMoney(c.gross)}</b></div>
+        <div className="li"><span>Simulated slippage</span><b className="t-neg">{costMoney(c.slippage)}</b></div>
+        <div className="li"><span>Simulated fees</span><b className="t-neg">{costMoney(c.fees)}</b></div>
+        <div className="li"><span>Net P&amp;L</span><b className={`t-${tone(c.net)}`}>{signedMoney(c.net)}</b></div>
+      </div>
+      <p className="proof-note">
+        {c.costed} trade{c.costed === 1 ? "" : "s"} with simulated costs.
+        {c.uncosted > 0 ? ` ${c.uncosted} older trade${c.uncosted === 1 ? "" : "s"} closed before cost accounting count at gross and are not included above.` : ""}
+        {" "}Costs are estimates applied to Kraken prices, not exchange executions.
+      </p>
+    </section>
+  );
+}
+
 export function PerformancePage({ now = Date.now() }: { now?: number }) {
   const { state } = useDash();
   const v = useVerified();
@@ -99,8 +136,10 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
               <MetricsGrid m={m} balance={range === "ALL" ? balance : null} />
             </section>
 
+            <CostBreakdown trades={m.curve.filter((p) => p.tradeId !== null).map((p) => v.data!.trades.find((x) => x.id === p.tradeId)!)} />
+
             <section className="card dark-card" aria-label="Equity curve">
-              <SectionHeader title="Equity curve" sub="Cumulative verified realized P&L at each close" />
+              <SectionHeader title="Equity curve" sub="Cumulative verified realized P&L (net of simulated costs) at each close" />
               {m.curve.length - 1 >= MIN_CURVE_TRADES ? <EquityCurve points={m.curve} /> : (
                 <div className="curve-empty">
                   <b>NOT ENOUGH VERIFIED TRADING HISTORY</b>

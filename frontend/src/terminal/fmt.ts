@@ -74,3 +74,15 @@ export function todayPct(todaysPnl: number | null | undefined, lastEquity: numbe
 }
 
 export { pct, num };
+
+/**
+ * A simulated cost (fee or slippage) shown as a deduction: "−$0.0123". Costs on small PAPER trades are often below a
+ * cent, so amounts under $1 keep 4 decimals instead of rounding to $0.00.
+ */
+export function costMoney(v: number | string | null | undefined): string {
+  if (v === null || v === undefined || v === "") return NA;
+  const n = Math.abs(Number(v));
+  if (!Number.isFinite(n)) return NA;
+  if (n === 0) return "$0.00";
+  return `\u2212$${n < 1 ? n.toFixed(4) : n.toFixed(2)}`;
+}

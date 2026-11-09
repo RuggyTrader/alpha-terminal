@@ -84,6 +84,13 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
     krakenBase: get("KRAKEN_API_BASE", ""),
     // Take the risk per trade set on the ALPHA TERMINAL website (versioned, confirmed back). Off by default.
     remoteSettings: get("ENGINE_REMOTE_SETTINGS", "off") === "on",
+    // Conservative limit fills: a resting limit order fills only when price trades this many ticks THROUGH it (a touch
+    // may stay unfilled in the queue). 0 (default) keeps the TradingView emulator rule unchanged.
+    limitThroughTicks: (() => {
+      const v = Number(get("ENGINE_LIMIT_THROUGH_TICKS", "0"));
+      if (!Number.isInteger(v) || v < 0 || v > 20) throw new Error("ENGINE_LIMIT_THROUGH_TICKS must be an integer 0-20");
+      return v;
+    })(),
   };
 }
 

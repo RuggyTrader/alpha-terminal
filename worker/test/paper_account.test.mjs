@@ -84,7 +84,7 @@ before(async () => {
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
   const vars = {
     WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: `http://127.0.0.1:${ticker.address().port}`,
-    PAPER_MARK_MIN_INTERVAL_SECONDS: "0", DAILY_LOSS_LIMIT: String(DAILY_LOSS_LIMIT), ALPACA_KEY: "", ALPACA_SECRET: "",
+    PAPER_MARK_MIN_INTERVAL_SECONDS: "0", DAILY_LOSS_LIMIT: String(DAILY_LOSS_LIMIT), ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none",
   };
   for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });

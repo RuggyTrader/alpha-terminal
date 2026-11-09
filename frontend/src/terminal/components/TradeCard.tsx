@@ -1,19 +1,22 @@
 import { marketType } from "../classify";
-import { percent, price, qty, signedMoney, stamp, text, tone, upper, when } from "../fmt";
+import { costMoney, percent, price, qty, signedMoney, stamp, text, tone, upper, when } from "../fmt";
 import type { TradeRow } from "../types";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Code, Expandable, KV, StatusBadge } from "./ui";
 
-export function TradeCard({ t }: { t: TradeRow }) {
+export function TradeCard({ t, defaultOpen = false }: { t: TradeRow; defaultOpen?: boolean }) {
   const mt = marketType(t.symbol);
   const closed = t.status === "CLOSED";
   // Ledger trades are simulated from dry-run intents, never broker fills.
   const alphaPaper = t.source === "ALPHA_PAPER";
+  // Trades closed with a cost profile carry gross, fees and slippage; realized_pnl is then NET.
+  const costed = closed && t.cost_profile !== null && t.cost_profile !== undefined;
   return (
     <Expandable
       tone={closed ? (tone(t.realized_pnl) === "neg" ? "bad" : tone(t.realized_pnl) === "pos" ? "ok" : "muted") : "info"}
       className="trade-card"
+      defaultOpen={defaultOpen}
       head={
         <>
           <div className="row-a">
@@ -42,7 +45,15 @@ export function TradeCard({ t }: { t: TradeRow }) {
           ["Entry", `${qty(t.entry_qty)} @ ${price(t.entry_avg_price)}`],
           ["Exit", `${qty(t.exit_qty)} @ ${price(t.exit_avg_price)}`],
           ["Open qty", qty(t.open_qty)],
-          ["Realized PAPER P&L", signedMoney(t.realized_pnl)],
+          ...(costed
+            ? ([
+                ["Gross P&L (before costs)", signedMoney(t.gross_pnl)],
+                ["Simulated slippage", costMoney(t.slippage_usd)],
+                ["Simulated fees", costMoney(t.fees_usd)],
+                ["Net PAPER P&L", <b key="n" className={`t-${tone(t.realized_pnl)}`}>{signedMoney(t.realized_pnl)}</b>],
+                ["Cost profile", text(t.cost_profile)],
+              ] as [string, ReactNode][])
+            : ([["Realized PAPER P&L", signedMoney(t.realized_pnl)]] as [string, ReactNode][])),
           ["Return", percent(t.return_pct)],
           ["Opened", <span key="o" className="mono-s">{stamp(t.opened_at)}</span>],
           ["Closed", <span key="c" className="mono-s">{stamp(t.closed_at)}</span>],

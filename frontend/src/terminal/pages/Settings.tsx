@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../../components/icons";
 import { connectionLabel } from "../classify";
-import { clock, money, NA, signedMoney, stamp } from "../fmt";
+import { clock, costMoney, money, NA, signedMoney, stamp } from "../fmt";
 import { candleAgeSeconds, markets } from "../health";
 import { StatusBadge } from "../components/ui";
 import { useDash } from "../store";
@@ -48,10 +48,30 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
         <Row k="Status">{p ? (p.active ? "Funded" : "Not funded") : NA}</Row>
         <Row k="PAPER capital added">{t ? money(t.net_funding_usd) : NA}</Row>
         <Row k="Book balance">{t ? money(t.book_balance_usd) : NA}</Row>
-        <Row k="Realized ledger P&L">{t ? signedMoney(t.realized_pnl_usd) : NA}</Row>
+        <Row k={t?.fees_usd !== undefined ? "Realized ledger P&L before fees" : "Realized ledger P&L"}>{t ? signedMoney(t.realized_pnl_usd) : NA}</Row>
+        {t?.fees_usd !== undefined ? <Row k="Simulated fees paid">{costMoney(t.fees_usd)}</Row> : null}
+        {t?.net_realized_pnl_usd !== undefined ? <Row k="Net realized ledger P&L">{signedMoney(t.net_realized_pnl_usd)}</Row> : null}
         <Row k="Open PAPER exposure">{t ? money(t.reserved_usd) : NA}</Row>
         <Row k="Unrealized P&L">{t ? (t.unrealized_pnl_usd === null ? NA : signedMoney(t.unrealized_pnl_usd)) : NA}</Row>
         <div className="li"><span>Fund, transfer, history</span><Link className="link" to="/portfolio">Portfolio →</Link></div>
+      </Group>
+
+      <Group title="Execution costs" sub="Simulated fees and slippage charged on every ALPHA PAPER fill. Set on the Worker (PAPER_COST_PROFILE); shown read-only.">
+        {!p ? <Row k="Cost profile">{NA}</Row>
+          : !p.costs ? <Row k="Cost profile"><StatusBadge tone="muted">NOT AVAILABLE ON THIS WORKER</StatusBadge></Row>
+          : p.costs.invalid ? <Row k="Cost profile"><StatusBadge tone="bad">INVALID: {p.costs.profile ?? "unset"}</StatusBadge></Row>
+          : (
+            <>
+              <Row k="Cost profile">{p.costs.name}</Row>
+              <Row k="Maker fee (limit entry, take-profit)">{p.costs.maker_pct}%</Row>
+              <Row k="Taker fee (stops, time exits, market)">{p.costs.taker_pct}%</Row>
+              <Row k="Taker slippage (estimate)">{p.costs.taker_slippage_pct}%</Row>
+              <Row k="Minimum order">{[p.costs.min_qty > 0 ? `${p.costs.min_qty} units` : null, p.costs.min_notional_usd > 0 ? money(p.costs.min_notional_usd) : null].filter(Boolean).join(" · ") || "None"}</Row>
+              <Row k="Fee source">{p.costs.fee_source}</Row>
+              <Row k="Slippage source">{p.costs.slippage_source}</Row>
+              {p.costs.caveat ? <p className="li-note">{p.costs.caveat}</p> : null}
+            </>
+          )}
       </Group>
 
       <Group title="Markets">

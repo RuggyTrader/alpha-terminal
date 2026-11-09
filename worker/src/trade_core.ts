@@ -10,6 +10,8 @@ import {
   ledgerRiskSnapshot,
 } from "./paper_ledger";
 
+import { parseLiquidity, type Liquidity } from "./costs";
+
 export interface TradeCoreEnv {
   DB: D1Database;
 
@@ -313,6 +315,9 @@ export type ValidIntent = {
 
   symbol: string;
 
+  /** PAPER cost model: MAKER (resting limit filled) or TAKER (default). */
+  liquidity: Liquidity;
+
   action:
     | "buy"
     | "sell"
@@ -614,9 +619,17 @@ export function validateIntent(
           ) ||
         "UNSPECIFIED";
 
+  // Optional execution hint for the PAPER cost model: 'maker' (a resting limit order filled) or 'taker'
+  // (default: stops, market orders, anything unstated).
+  const liquidity = parseLiquidity(body.liquidity);
+  if (liquidity === "INVALID") {
+    return { ok: false, code: "INVALID_LIQUIDITY", message: "liquidity must be 'maker' or 'taker' when given" };
+  }
+
   return {
     ok: true,
     symbol,
+    liquidity,
     action:
       action as
         | "buy"

@@ -1,11 +1,14 @@
 // ALPHA PAPER ledger: internal simulated positions, fills, trades and activity in D1.
 //
-// An accepted DRY-RUN order intent is "filled" at the truthful reference price the risk decision used.
+// An accepted DRY-RUN order intent is "filled" at the truthful reference price the risk decision used, adjusted by
+// the configured execution-cost profile (costs.ts): taker fills move against the trade by the profile's slippage,
+// and every fill pays its maker or taker fee. The reference price stays recorded next to the execution price.
 // These are NOT broker positions: no broker is contacted, and nothing from Alpaca is read here; the risk
 // account for this path (balance, exposure, today's P&L) also comes from D1 (ledgerRiskSnapshot).
 // Marks come only from the instrument's configured source; when that fails the last mark is kept and
 // flagged, never estimated.
 
+import { COST_PROFILES, execute, type CostProfile, type Liquidity } from "./costs";
 import { buyStatements, fromMicro, isStrategyWallet, sellStatements } from "./portfolio";
 import type { RiskAccount } from "./trade_core";
 import {
@@ -154,7 +157,8 @@ async function ledgerAccount(env: LedgerEnv, symbol: string, open: PositionRow[]
     : null;
   const dayStart = `${new Date().toISOString().slice(0, 10)}T00:00:00`;
   const realized = await env.DB.prepare(
-    `SELECT COALESCE(SUM(realized_pnl), 0) AS pnl FROM paper_fills WHERE filled_at >= ?`
+    // Net of simulated fees: a fee is a realized loss for the daily loss limit too.
+    `SELECT COALESCE(SUM(realized_pnl), 0) - COALESCE(SUM(fee_micro), 0) / 1000000.0 AS pnl FROM paper_fills WHERE filled_at >= ?`
   ).bind(dayStart).first<{ pnl: number }>();
   const unmarked = open.filter((p) => p.mark_error !== null);
   const unrealized = open.reduce((s, p) => s + ((p.mark_price ?? p.avg_entry_price) - p.avg_entry_price) * p.qty * p.multiplier, 0);
@@ -194,6 +198,9 @@ export interface DryRunCommit {
   strategy: string;
   orderType: "market";
   timeInForce: "day";
+  /** Execution-cost model (costs.ts). Omitted: no costs (tests and older callers). */
+  liquidity?: Liquidity;
+  costProfile?: CostProfile;
 }
 
 export type CommitResult =
@@ -212,9 +219,10 @@ export type CommitResult =
 const FILL_FROM_POSITION = `
   INSERT INTO paper_fills
     (order_fk, client_order_id, alert_id, risk_decision_fk, position_fk, symbol, side, kind, qty, price,
-     price_source, price_at, realized_pnl, position_qty_after, avg_entry_after, filled_at)
+     price_source, price_at, realized_pnl, position_qty_after, avg_entry_after, filled_at,
+     reference_price, liquidity, fee_micro, slippage_micro, cost_profile)
   SELECT (SELECT id FROM orders WHERE client_order_id = ?), ?, ?, ?, p.id, p.symbol, ?, %KIND%, ?, ?, ?, ?,
-     %REALIZED%, p.qty, p.avg_entry_price, ?
+     %REALIZED%, p.qty, p.avg_entry_price, ?, ?, ?, ?, ?, ?
   FROM (SELECT 1) AS one
   LEFT JOIN paper_positions p ON %WHERE% AND p.last_order_id = ?`;
 
@@ -233,6 +241,10 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     return { ok: false, code: "INVALID_FILL", message: "a simulated fill needs a positive truthful price and quantity", committed: false };
   }
   const now = new Date().toISOString();
+  // Execution: the reference price (market observation) adjusted by the cost profile; fee in micro-USD.
+  const profile = f.costProfile ?? COST_PROFILES.none;
+  const liquidity: Liquidity = f.liquidity ?? "TAKER";
+  const ref = f.price;
   const statements: D1PreparedStatement[] = [
     // 1. The dry-run order intent (never sent to a broker).
     env.DB.prepare(
@@ -251,19 +263,23 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
   let fillQty = f.qty;
   let sellPortfolio: D1PreparedStatement[] | null = null;
   if (f.side === "buy") {
-    // 2. Open, or add to the one OPEN position (weighted average entry from the stored row).
+    const ex = execute(profile, "buy", liquidity, ref, f.qty, instrument.multiplier);
+    // 2. Open, or add to the one OPEN position (weighted average entry from the stored row). Booked at the
+    //    simulated execution price; the mark stays the market observation.
     statements.push(
       env.DB.prepare(
         `INSERT INTO paper_positions
           (symbol, side, status, qty, avg_entry_price, multiplier, strategy, opened_at,
            entry_qty_total, entry_value_total, mark_price, mark_at, mark_source,
-           open_alert_id, open_order_id, last_order_id, updated_at)
-         VALUES (?, 'long', 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           open_alert_id, open_order_id, last_order_id, updated_at, fees_micro, slippage_micro)
+         VALUES (?, 'long', 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(symbol) WHERE status = 'OPEN' DO UPDATE SET
            avg_entry_price = (avg_entry_price * qty + excluded.avg_entry_price * excluded.qty) / (qty + excluded.qty),
            qty = qty + excluded.qty,
            entry_qty_total = entry_qty_total + excluded.entry_qty_total,
            entry_value_total = entry_value_total + excluded.entry_value_total,
+           fees_micro = fees_micro + excluded.fees_micro,
+           slippage_micro = slippage_micro + excluded.slippage_micro,
            mark_price = excluded.mark_price,
            mark_at = excluded.mark_at,
            mark_source = excluded.mark_source,
@@ -273,12 +289,12 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
            last_order_id = excluded.last_order_id,
            updated_at = excluded.updated_at`
       ).bind(
-        f.symbol, f.qty, f.price, instrument.multiplier, f.strategy, now,
-        f.qty, f.qty * f.price, f.price, f.priceAt, f.priceSource,
-        f.alertId, f.clientOrderId, f.clientOrderId, now
+        f.symbol, f.qty, ex.price, instrument.multiplier, f.strategy, now,
+        f.qty, f.qty * ex.price, ref, f.priceAt, f.priceSource,
+        f.alertId, f.clientOrderId, f.clientOrderId, now, ex.feeMicro, ex.slippageMicro
       )
     );
-    // 3. The fill.
+    // 3. The fill (execution price, with the reference price and its costs).
     statements.push(
       env.DB.prepare(
         FILL_FROM_POSITION.replace("%KIND%", "CASE WHEN p.open_order_id = ? THEN 'OPEN' ELSE 'ADD' END")
@@ -286,11 +302,17 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
           .replace("%WHERE%", "p.symbol = ? AND p.status = 'OPEN'")
       ).bind(
         f.clientOrderId, f.clientOrderId, f.alertId, f.riskDecisionId, "buy", f.clientOrderId,
-        f.qty, f.price, f.priceSource, f.priceAt, now, f.symbol, f.clientOrderId
+        f.qty, ex.price, f.priceSource, f.priceAt, now,
+        ref, ex.liquidity, ex.feeMicro, ex.slippageMicro, ex.profile,
+        f.symbol, f.clientOrderId
       )
     );
-    // 4. PAPER portfolio: reserve the position value from its strategy balance (fails the batch if short of funds).
-    statements.push(...(await buyStatements(env.DB, f, now)));
+    // 4. PAPER portfolio: reserve the position value and pay the fee from its strategy balance (fails the batch
+    //    if short of funds).
+    statements.push(...(await buyStatements(env.DB, {
+      ...f, price: ex.price, feeMicro: ex.feeMicro,
+      feeNote: `${ex.liquidity} fee ${profile.name}: BUY ${f.qty} @ ${ex.price}`,
+    }, now)));
   } else {
     // SELL reduces, CLOSE empties. Never below zero, never a short.
     const pos = await env.DB.prepare(
@@ -303,6 +325,8 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     }
     fillQty = q;
     const closes = pos.qty - q <= QTY_EPSILON;
+    const ex = execute(profile, "sell", liquidity, ref, q, pos.multiplier);
+    const px = ex.price; // simulated execution price (reference minus slippage on a taker fill)
     // 2. Reduce/close exactly the row version that was read (last_order_id), or nothing.
     statements.push(
       env.DB.prepare(
@@ -317,19 +341,22 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
            close_order_id = CASE WHEN ? THEN ? ELSE NULL END,
            mark_price = ?, mark_at = ?, mark_source = ?, mark_error = NULL, mark_error_at = NULL,
            logged_unrealized_pnl = NULL,
+           fees_micro = fees_micro + ?,
+           slippage_micro = slippage_micro + ?,
            last_order_id = ?,
            updated_at = ?
          WHERE id = ? AND status = 'OPEN' AND last_order_id = ?`
       ).bind(
-        f.price, q,
+        px, q,
         q,
-        q, f.price,
+        q, px,
         closes ? 1 : 0, q,
         closes ? 1 : 0,
         closes ? 1 : 0, now,
         closes ? 1 : 0, f.alertId,
         closes ? 1 : 0, f.clientOrderId,
-        f.price, f.priceAt, f.priceSource,
+        ref, f.priceAt, f.priceSource,
+        ex.feeMicro, ex.slippageMicro,
         f.clientOrderId,
         now,
         pos.id, pos.last_order_id
@@ -343,11 +370,17 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
           .replace("%WHERE%", "p.id = ?")
       ).bind(
         f.clientOrderId, f.clientOrderId, f.alertId, f.riskDecisionId, "sell",
-        q, f.price, f.priceSource, f.priceAt, f.price, q, now, pos.id, f.clientOrderId
+        q, px, f.priceSource, f.priceAt, px, q, now,
+        ref, ex.liquidity, ex.feeMicro, ex.slippageMicro, ex.profile,
+        pos.id, f.clientOrderId
       )
     );
-    // PAPER portfolio: release the reserved cost basis and credit the realized P&L to the position's balance.
-    sellPortfolio = sellStatements(env.DB, pos, { qty: q, price: f.price, alertId: f.alertId, clientOrderId: f.clientOrderId, closes }, now);
+    // PAPER portfolio: release the reserved cost basis, credit the realized P&L (at the execution price) and pay
+    // the exit fee, all to the position's balance.
+    sellPortfolio = sellStatements(env.DB, pos, {
+      qty: q, price: px, alertId: f.alertId, clientOrderId: f.clientOrderId, closes, feeMicro: ex.feeMicro,
+      feeNote: `${ex.liquidity} fee ${profile.name}: SELL ${q} @ ${px}`,
+    }, now);
     if (closes) {
       // 4. The trade (fails, and rolls back, unless this order closed the position).
       statements.push(
@@ -356,19 +389,24 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
             (symbol, direction, status, strategy, open_alert_id, open_order_id, close_order_id,
              entry_qty, entry_avg_price, exit_qty, exit_avg_price, open_qty, closed_cost_basis,
              realized_pnl, return_pct, opened_at, closed_at, leg_order_ids_json,
-             source, position_fk, close_alert_id, price_sources)
+             source, position_fk, close_alert_id, price_sources,
+             gross_pnl, fees_usd, slippage_usd, cost_profile)
            SELECT p.symbol, 'LONG', 'CLOSED', p.strategy, p.open_alert_id, p.open_order_id, p.close_order_id,
              round(p.entry_qty_total, 8), round(p.entry_value_total / p.entry_qty_total, 8),
              round(p.exit_qty_total, 8), round(p.exit_value_total / p.exit_qty_total, 8), '0',
              round(p.entry_value_total * p.multiplier, 8),
-             round(p.realized_pnl, 8), round(p.realized_pnl / (p.entry_value_total * p.multiplier) * 100, 6),
+             -- NET: P&L at execution prices minus fees. Gross = at market (reference) prices, before any cost.
+             round(p.realized_pnl - p.fees_micro / 1000000.0, 8),
+             round((p.realized_pnl - p.fees_micro / 1000000.0) / (p.entry_value_total * p.multiplier) * 100, 6),
              p.opened_at, p.closed_at,
              (SELECT json_group_array(client_order_id) FROM (SELECT client_order_id FROM paper_fills WHERE position_fk = p.id ORDER BY id)),
              'ALPHA_PAPER', p.id, p.close_alert_id,
-             (SELECT group_concat(DISTINCT price_source) FROM paper_fills WHERE position_fk = p.id)
+             (SELECT group_concat(DISTINCT price_source) FROM paper_fills WHERE position_fk = p.id),
+             round(p.realized_pnl + p.slippage_micro / 1000000.0, 8), round(p.fees_micro / 1000000.0, 8),
+             round(p.slippage_micro / 1000000.0, 8), ?
            FROM (SELECT 1) AS one
            LEFT JOIN paper_positions p ON p.id = ? AND p.last_order_id = ? AND p.status = 'CLOSED'`
-        ).bind(pos.id, f.clientOrderId)
+        ).bind(profile.id, pos.id, f.clientOrderId)
       );
     }
   }
@@ -528,7 +566,8 @@ export async function refreshMarks(env: LedgerEnv): Promise<{ refreshed: boolean
 export async function paperSection(env: LedgerEnv) {
   const [open, realizedRow, closedRow] = await Promise.all([
     env.DB.prepare(`SELECT * FROM paper_positions WHERE status = 'OPEN' ORDER BY opened_at DESC`).all<PositionRow>(),
-    env.DB.prepare(`SELECT COALESCE(SUM(realized_pnl), 0) AS realized FROM paper_positions`).first<{ realized: number }>(),
+    env.DB.prepare(`SELECT COALESCE(SUM(realized_pnl), 0) AS realized, COALESCE(SUM(fees_micro), 0) AS fees, COALESCE(SUM(slippage_micro), 0) AS slippage FROM paper_positions`)
+      .first<{ realized: number; fees: number; slippage: number }>(),
     env.DB.prepare(`SELECT COUNT(*) AS n FROM trades WHERE source = 'ALPHA_PAPER'`).first<{ n: number }>(),
   ]);
   const staleAfter = secondsEnv(env.PAPER_MARK_STALE_SECONDS, 120);
@@ -569,13 +608,19 @@ export async function paperSection(env: LedgerEnv) {
   });
   const unrealizedKnown = positions.every((p) => p.unrealized_pnl !== null);
   const unrealized = positions.reduce((s, p) => s + (p.unrealized_pnl ?? 0), 0);
-  const realized = Number(realizedRow?.realized ?? 0);
+  // Realized is NET of simulated fees (entry fees of open positions are already paid). Slippage is inside the
+  // execution prices; it is reported separately for transparency.
+  const fees = Number(realizedRow?.fees ?? 0) / 1e6;
+  const slippage = Number(realizedRow?.slippage ?? 0) / 1e6;
+  const realized = Number(realizedRow?.realized ?? 0) - fees;
   return {
     label: LEDGER_LABEL,
     simulated: true,
     broker_positions: false,
     positions,
     performance: {
+      fees_usd: round(fees, 6),
+      slippage_usd: round(slippage, 6),
       realized_pnl: round(realized, 8),
       unrealized_pnl: unrealizedKnown ? round(unrealized, 8) : null,
       total_pnl: unrealizedKnown ? round(realized + unrealized, 8) : null,

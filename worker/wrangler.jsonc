@@ -33,7 +33,9 @@
     "MAX_TOTAL_EXPOSURE": "25000",
     "MAX_OPEN_POSITIONS": "5",
     "SHORT_SELLING_ENABLED": "false",
-    "DAILY_LOSS_LIMIT": "2000"
+    "DAILY_LOSS_LIMIT": "2000",
+    // Simulated execution costs on ALPHA PAPER fills (src/costs.ts): none | ndax | kraken_pro_t1.
+    "PAPER_COST_PROFILE": "ndax"
   },
 
   "d1_databases": [
