@@ -121,3 +121,33 @@ Authorized by the owner. Production now runs **`b1c87441-bc4f-47b5-8f8c-7e3f8235
   covered by the local tests with Alpaca keys blank. The stored Alpaca keys (`alpaca_configured: true`) are still
   rejected by Alpaca; ALPHA PAPER does not read them; only the optional broker panel shows the error.
 - Not done (separate steps): webhook secret rotation, engine sync, funding.
+
+## Update 2026-11-09 ~03:15 UTC: `cde07af` (verified performance UI, read-only proof routes)
+
+Approved by the owner. Production now runs **`2cd0119d-0336-431e-98c9-2163ed4f2b29`** (commit `cde07af`, message
+"ALPHA TERMINAL cde07af verified performance UI + read-only proof routes (PAPER-only)"). **Rollback target:
+`8077719f-c6fb-45a8-82ba-9260f78f12a3`** (`a8b06db` code with the current secret): `npx wrangler rollback
+8077719f-c6fb-45a8-82ba-9260f78f12a3`. The frontend is served from the Worker's static assets (`assets.directory`
+`../frontend/dist` in `wrangler.jsonc`), so the same command rolls back the frontend too. No data change either way.
+
+- Before: same account and D1; production `8077719f`, bundle `index-BrQhJohL.js`; no pending migration; secrets
+  ADMIN_SECRET, ALPACA_KEY, ALPACA_SECRET, DASHBOARD_PASSPHRASE, WEBHOOK_SECRET (names only).
+- Backup: Time Travel bookmark `00000028-000000b0-0000511e-b52d160f2041969983baf77087537190`; export
+  `C:\Users\hujhj\Documents\AlphaTerminalBackups\alpha-terminal-db-20261109T031419Z-pre-cde07af.sql`
+  (sha256 `d5d25245…7628d50`), loaded into scratch SQLite: integrity ok, migrations 0001-0003, counts equal
+  production (10 alerts, 8 risk decisions, 4 intents, 0 fills/positions/trades/entries, wallets $0, SOL v1 $10
+  APPLIED, 1 backtest).
+- Change versus production: Worker `dashboard_api.ts` (GET `/api/dashboard/performance`, `/api/dashboard/trade-proof`,
+  SELECT only) and `portfolio.ts` (read-only limits display); frontend redesign. `wrangler.jsonc`, migrations,
+  trading logic, limits and strategy inputs unchanged. Fresh frontend build `index-C5DZ1x4O.js` / `index-hWuUg80P.css`.
+- Tests at `cde07af`: engine 80/80, Worker 148/148, frontend 92/92, demo 13/13, typecheck (pre-existing index.ts
+  warning only), build and dry run clean.
+- After: new bundle served; `/health` PAPER, `enable_trading: false`, D1 connected; signed out: dashboard,
+  performance, trade proof and PAPER actions 401, wrong webhook secret refused. D1 counts and all six balances
+  unchanged. Engine (PC, supervisor 28032 / engine 4260, not restarted) polled after the deploy, ledger check OK.
+- Signed in at 402 × 874 and 1280 × 860: Home (Verified P&L $0.00, return / win rate N/A, 0 closed trades, ENGINE
+  ONLINE; CRYPTO ACTIVE Kraken, STOCKS NOT CONFIGURED; System Health all HEALTHY, live execution DISABLED),
+  Verified Performance ("NOT ENOUGH VERIFIED TRADING HISTORY", 0 verified trades, 0 excluded), Trades (history empty),
+  Trade Proof (route answers; no trades exist yet), Engine, Activity, Settings (8 groups), SOL strategy: no
+  horizontal overflow, no error states. The engine's own simulation (18 trades, +$16.33) is shown only as "Engine
+  simulation · not verified" and is not counted anywhere.
