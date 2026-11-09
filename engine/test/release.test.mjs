@@ -4,13 +4,14 @@
 
 import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import http from "node:http";
+
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
-import { activate, installLauncher, prepare, resolveRef, rollback, selftest, status, validate, verifyTree } from "../deploy/release.mjs";
+import { activate, installLauncher, prepare, resolveRef, rollback, selftest, status, taskXml, validate, verifyTree } from "../deploy/release.mjs";
+import { cloneRepo, startOhlcStub } from "./lib/release-fixtures.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ENGINE = join(HERE, "..");
@@ -23,22 +24,15 @@ const g = (...a) => execFileSync("git", ["-C", clone, ...a], { encoding: "utf8",
 const tool = (...a) => spawnSync(process.execPath, [join(ENGINE, "deploy", "release.mjs"), ...a], { encoding: "utf8" });
 const taskAction = () => (WIN ? spawnSync("powershell.exe", ["-NoProfile", "-Command", "(Get-ScheduledTask -TaskName 'ALPHA TERMINAL Engine' -ErrorAction SilentlyContinue).Actions | ForEach-Object { $_.Execute + ' ' + $_.Arguments + ' ' + $_.WorkingDirectory }"], { encoding: "utf8" }).stdout.trim() : "");
 
-// Local stand-in for Kraken's public OHLC endpoint, serving the committed real SOLUSD 5m fixture.
-const CANDLES = JSON.parse(readFileSync(join(ENGINE, "test", "fixtures", "SOLUSD-5m-kraken.json"), "utf8")).candles;
-const kraken = http.createServer((req, res) => {
-  const url = new URL(req.url, "http://127.0.0.1");
-  if (url.pathname !== "/0/public/OHLC") { res.writeHead(404).end(); return; }
-  const rows = CANDLES.map((k) => [k.t / 1000, String(k.o), String(k.h), String(k.l), String(k.c), String(k.c), String(k.v ?? 1), k.n ?? 1]);
-  res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ error: [], result: { SOLUSD: rows, last: rows.at(-1)[0] } }));
-});
-let krakenBase = "";
+// Local stand-in for Kraken's public OHLC endpoint (its own process: engines run with spawnSync block this one).
+let kraken, krakenBase = "";
 let C1, C2, taskBefore;
 
 before(async () => {
   taskBefore = taskAction();
-  await new Promise((r) => kraken.listen(0, "127.0.0.1", r));
-  krakenBase = `http://127.0.0.1:${kraken.address().port}`;
-  execFileSync("git", ["clone", "--quiet", "--shared", REPO, clone]);
+  kraken = await startOhlcStub();
+  krakenBase = kraken.base;
+  cloneRepo(REPO, clone);
   g("config", "user.email", "release-test@example.invalid"); g("config", "user.name", "release test");
   // C1: the clone's HEAD plus this checkout's (possibly uncommitted) release tooling, committed in the CLONE only.
   for (const f of ["release.mjs", "run-release.ps1"]) copyFileSync(join(ENGINE, "deploy", f), join(clone, "engine", "deploy", f));
@@ -46,10 +40,11 @@ before(async () => {
   C1 = g("rev-parse", "HEAD");
   // Production-shaped configuration, outside every release.
   mkdirSync(join(root, "config"), { recursive: true });
-  writeFileSync(join(root, "config", "engine.env"), ["ENGINE_PROFILE=solusd-5m", "ENGINE_SYNC=off", `KRAKEN_API_BASE=${krakenBase}`, "ENGINE_DATA_DIR=somewhere-else"].join("\n") + "\n");
+  // ENGINE_FRESH_START_OK: these tests start from an empty state on purpose (state hand-over: state-migration.test.mjs).
+  writeFileSync(join(root, "config", "engine.env"), ["ENGINE_PROFILE=solusd-5m", "ENGINE_SYNC=off", `KRAKEN_API_BASE=${krakenBase}`, "ENGINE_FRESH_START_OK=yes"].join("\n") + "\n");
 });
-after(() => {
-  kraken.close();
+after(async () => {
+  await kraken?.close();
   try { rmSync(work, { recursive: true, force: true }); } catch { /* locked on Windows */ }
 });
 
@@ -119,7 +114,7 @@ describe("configuration and activation", () => {
     assert.equal(v.config.riskUSD, 10);
     assert.equal(v.config.allowLong, true);
     assert.equal(v.config.allowShort, true);
-    assert.equal(v.config.dataDir, join(root, "data"), "ENGINE_DATA_DIR in the file cannot move state into the release");
+    assert.equal(v.config.dataDir, join(root, "data"), "default state folder");
     assert.equal(v.config.secret, "(not set)");
   });
 
@@ -133,6 +128,14 @@ describe("configuration and activation", () => {
       assert.match(validate({ root, release: C1.slice(0, 12) }).problems.join(";"), /rejected/);
       writeFileSync(cfg, good.replace("ENGINE_PROFILE=solusd-5m", "ENGINE_PROFILE=does-not-exist"));
       assert.equal(validate({ root, release: C1.slice(0, 12) }).ok, false);
+      writeFileSync(cfg, good + "ENGINE_DATA_DIR=relative\\path\n");
+      assert.match(validate({ root, release: C1.slice(0, 12) }).problems.join(";"), /must be an absolute path/);
+      writeFileSync(cfg, good + `ENGINE_DATA_DIR=${join(root, "releases", "x")}\n`);
+      assert.match(validate({ root, release: C1.slice(0, 12) }).problems.join(";"), /inside the releases folder/);
+      writeFileSync(cfg, good + `ENGINE_DATA_DIR=${join(clone, "engine", "data")}\n`);
+      assert.match(validate({ root, release: C1.slice(0, 12) }).problems.join(";"), /inside the git work tree/);
+      writeFileSync(cfg, good.replace("ENGINE_FRESH_START_OK=yes", ""));
+      assert.match(validate({ root, release: C1.slice(0, 12) }).problems.join(";"), /no saved engine state/);
       writeFileSync(cfg, good.replace("ENGINE_PROFILE=solusd-5m", "ENGINE_PROFILE=paper-test"));
       assert.match(validate({ root, release: C1.slice(0, 12), expectProfile: "solusd-5m", expectRisk: 10 }).problems.join(";"), /profile is paper-test/);
       assert.throws(() => activate({ root, release: C1.slice(0, 12), expectProfile: "solusd-5m", expectRisk: 10 }), /does not validate/);
@@ -144,8 +147,8 @@ describe("configuration and activation", () => {
 
   it("activate, status, rollback: pointers only; state in data\\ is preserved across release changes", () => {
     mkdirSync(join(root, "data"), { recursive: true });
-    const state = join(root, "data", "state-SOLUSD-5m.json");
-    writeFileSync(state, JSON.stringify({ marker: "isolated test state" }));
+    const state = join(root, "data", "audit-SOLUSD-5m.jsonl");
+    writeFileSync(state, JSON.stringify({ marker: "isolated test state" }) + "\n");
     activate({ root, release: C1.slice(0, 12), expectProfile: "solusd-5m", expectRisk: 10 });
     activate({ root, release: C2.slice(0, 12), expectProfile: "solusd-5m", expectRisk: 10 });
     let s = status({ root });
@@ -154,7 +157,7 @@ describe("configuration and activation", () => {
     assert.equal(r.commit, C1);
     s = status({ root });
     assert.deepEqual([s.current.commit, s.previous.commit], [C1, C2]);
-    assert.equal(JSON.parse(readFileSync(state, "utf8")).marker, "isolated test state");
+    assert.equal(JSON.parse(readFileSync(state, "utf8").trim()).marker, "isolated test state");
     assert.deepEqual(s.history.map((h) => h.action).slice(-3), ["activate", "activate", "rollback"]);
     rmSync(state);
   });
@@ -174,6 +177,7 @@ describe("running the pinned release (isolated)", () => {
     const r = selftest({ root, release: C1.slice(0, 12), krakenBase });
     assert.equal(r.ok, true, JSON.stringify(r));
     assert.ok(r.state_files.some((f) => f.startsWith("state-SOLUSD-5m")));
+    assert.ok(r.candles_processed >= 700, `real candles were fetched and processed (${r.candles_processed} of the fixture's 720)`);
     assert.equal(existsSync(join(root, "data", "state-SOLUSD-5m.json")), false, "the self-test never writes the root's state");
   });
 
@@ -219,12 +223,18 @@ describe("running the pinned release (isolated)", () => {
     assert.match(readFileSync(join(root, "logs", "supervisor.log"), "utf8"), /does not verify; not starting/);
   });
 
-  it("the revised task is only displayed (show), and the real scheduled task is unchanged", { skip: !WIN && "Windows task" }, () => {
-    const r = spawnSync("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", join(ENGINE, "deploy", "windows-task-release.ps1"), "show", "-Root", root, "-TaskName", "ALPHA TERMINAL Engine (release test, not registered)"], { encoding: "utf8" });
-    assert.equal(r.status, 0, r.stderr);
-    const plan = JSON.parse(r.stdout);
-    assert.ok(plan.arguments.includes(join(root, "bin", "run-release.ps1")));
-    assert.ok(!plan.arguments.includes(REPO));
+  it("task-xml: exports the real task read-only; the pinned definition differs only in its action; nothing registered", { skip: (!WIN || !taskBefore) && "needs the Windows task" }, () => {
+    const r = taskXml({ root, node: process.execPath });
+    assert.equal(r.installed_matches_original, true);
+    assert.equal(r.unchanged_outside_action, true, "triggers, settings, principal and conhost command are untouched");
+    assert.match(r.command, /conhost\.exe$/i);
+    assert.ok(r.pinned_arguments.includes(join(root, "bin", "run-release.ps1")) && !r.pinned_arguments.includes(REPO));
+    const pinned = readFileSync(r.pinned, "utf16le");
+    assert.ok(pinned.includes(`<WorkingDirectory>${root}</WorkingDirectory>`));
+    // original.xml is written once and never overwritten; repeating is safe.
+    const first = readFileSync(r.original);
+    taskXml({ root, node: process.execPath });
+    assert.deepEqual(readFileSync(r.original), first);
     assert.equal(taskAction(), taskBefore, "the installed task's action is exactly as before the tests");
   });
 });

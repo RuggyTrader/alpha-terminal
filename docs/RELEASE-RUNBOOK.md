@@ -44,6 +44,24 @@ engine commit before then is `943eaea`. The engine runtime changes since then ar
 
 From the first pinned release onwards, the launcher logs the exact commit at every start.
 
+## 1a. Read-only production checks (2026-11-09 22:14–22:35 UTC)
+
+| Check | Result | How |
+|---|---|---|
+| Engine running normally | **Yes.** PID 16048 (since 13:33 −05:00); one candle processed every 5 minutes, latest 22:05 UTC processed at 22:10; `state-check`: ok, 969 candles, 0 resets, 39 signals, 0 duplicates, 0 pending | `state-check --dir engine\data\production`, `engine.log` (read only) |
+| Engine state folder | `engine\data\production` (`ENGINE_DATA_DIR=data/production`, relative) | `engine\.env` (value only) |
+| Open PAPER positions | **None.** Engine state: no position. Ledger: 0 fills, 0 trades, $0 reserved in every wallet (positions are only created with a fill). A direct `COUNT(*)` query timed out; see the note below | D1 `SELECT` |
+| Balances reconcile | **Yes.** MAIN $90.00, SOLUSD $10.00, others $0; each wallet's available and reserved equal its entry history; realized $0; funding $100 | D1 `SELECT` (`changed_db: false`, `rows_written: 0`) |
+| Worker version | `2cd0119d-0336-431e-98c9-2163ed4f2b29` (`cde07af`), deployed 2026-11-09 03:16 UTC | `wrangler deployments list` |
+| Database schema | **3**: `d1_migrations` = 0001, 0002, 0003 | D1 `SELECT` |
+| D1 Time Travel | **Available.** Current bookmark returned. Retention depends on the plan; check before deploying | `wrangler d1 time-travel info` (read-only) |
+| Database export | **Available.** Schema-only export succeeded (15 tables, no data rows) | `wrangler d1 export --remote --no-data` |
+| Scheduled task | **Still points to the development checkout** (`…lpha-terminal\engine\deployun-windows-production.ps1`, working directory `…lpha-terminal\engine`) | `Export-ScheduledTask` (read-only) |
+
+Note: after the first successful query, `wrangler d1 execute --remote` hung on every later attempt (timeouts at
+150–300 s), while `time-travel info` and `export` worked. Nothing was changed by any attempt. Re-run the section 2
+pre-flight queries on the day of deployment.
+
 ## 2. Pre-flight (all read-only) — abort if any check fails
 
 1. **Engine healthy.** The dashboard shows Engine ONLINE with a recent heartbeat, and `engine.log` has no repeated errors.
@@ -156,98 +174,159 @@ roll-forward:
 
 (Funding $200 in every row. Test data on a throwaway local D1: `worker/test/rollback_release.test.mjs`.)
 
-## 7. Pinned production engine **[APPROVAL]** for steps 7.4–7.6
+## 7. Pinned production engine **[APPROVAL]** for steps 7.4–7.7
 
-**Layout** (proposed root `%LOCALAPPDATA%\AlphaTerminal\engine-prod`, outside every git checkout):
+### 7.0 Principle: one state folder, moved once, never copied into a second live place
 
-```
-<ROOT>\releases\<commit12>\   engine runtime files + RELEASE.json (SHA-256 per file); never edited in place
-<ROOT>\config\engine.env      settings and secrets (copied once from engine\.env; never in a release)
-<ROOT>\data\                  state, audit log, lock (ENGINE_DATA_DIR is forced here)
-<ROOT>\logs\                  engine.log, supervisor.log
-<ROOT>\bin\                   run-release.ps1 + release.mjs, installed from an exact commit
-<ROOT>\current, previous      active and previous release ids
-<ROOT>\history.log            prepare / activate / rollback record
-```
+The engine's saved state lives in one folder:
+- `state-SOLUSD-5m.json`: last processed candle, strategy state, outbox of signals, website risk setting;
+- `audit-SOLUSD-5m.jsonl`;
+- the lock file;
+- the logs.
 
-A release holds only the import closure of `src/cli/run.mjs` and `src/cli/sync-setup.mjs`, plus `package.json` and
-`profiles/*.env`. It never contains tests, fixtures, research tools, reports, parity files or data. Files come
-from git objects, so uncommitted edits can never enter a release.
+That folder is moved **once** to a shared location outside every git checkout. **Both** setups then point at it:
 
-### 7.1 Prepare and validate (safe to run any time; touches only `<ROOT>`)
+| Setup | How it finds the state | Value |
+|---|---|---|
+| Current (development checkout, `run-windows-production.ps1`) | `ENGINE_DATA_DIR` in `engine\.env`, **relative** to the engine folder | written by `migrate-state` |
+| Pinned (`<ROOT>\bin\run-release.ps1`) | `ENGINE_DATA_DIR` in `<ROOT>\config\engine.env`, **absolute** | written by `migrate-state` |
+
+So whichever setup starts next (pinned release, an older release, or the original engine) resumes the **same,
+latest** state. There is never a stale copy to fall back to, and the engine's lock file in that one folder refuses a
+second engine from either setup.
+
+- **Why relative for the current setup.** `run-windows-production.ps1` computes
+  `[IO.Path]::GetFullPath((Join-Path <engine> <ENGINE_DATA_DIR>))`. Given an absolute path, that expression **throws**
+  ("The given path's format is not supported"), and the supervisor would not start. `migrate-state` therefore writes
+  a relative path and checks it with the supervisor's own expression.
+- **Today** the live value is `data/production`, i.e. `<checkout>\engine\data\production`.
+
+Safety rules built into the tool (each covered by `engine/test/state-migration.test.mjs`):
+- `migrate-state` and `revert-state` refuse while any engine holds the lock on either folder.
+- `migrate-state` keeps a checksum-verified backup in `<ROOT>\backups\state-<time>` and copies the state
+  byte for byte, verifying it. It renames the old folder `…\production.migrated-<time>`, never deleting it, so
+  nothing can resume it by mistake. On any failure, every step already done is undone.
+- `validate`, and therefore the launcher, refuse to start:
+  - when the state folder is inside a git work tree (a `git clean -x` could delete it);
+  - when it is empty (unless the config says `ENGINE_FRESH_START_OK=yes` on purpose);
+  - when the release's strategy settings differ from the saved state's (the engine would discard the state and
+    start a fresh warm-up).
+- A faulty release cannot damage the state. The test's crashing release left it byte-identical.
+
+### 7.1 Prepare and validate (safe any time; touches only `<ROOT>`)
 
 ```
 set ROOT=%LOCALAPPDATA%\AlphaTerminal\engine-prod
+set STATE=%LOCALAPPDATA%\AlphaTerminal\engine-state
 node engine\deploy\release.mjs prepare --repo . --ref <full 40-char commit SHA or release tag> --root %ROOT%
 node engine\deploy\release.mjs install-launcher --repo . --ref <same commit> --root %ROOT%
+node engine\deploy\release.mjs task-xml --root %ROOT% --node "C:\Program Files\nodejs\node.exe"
+node engine\deploy\release.mjs status --root %ROOT%
 ```
 
-- `prepare` refuses branch names, `HEAD`, short SHAs, revision expressions, and names that are both a tag and a
-  branch.
-- Repeating it is a verified no-op. A tampered release is refused.
+- `task-xml` only *reads* the installed task (Export-ScheduledTask). It writes two files:
+  - `%ROOT%\task\original.xml`: today's task exactly, written once and never overwritten;
+  - `%ROOT%\task\pinned.xml`: identical except the action's arguments and working directory.
+- It registers nothing.
+- *(A PowerShell script that registers a task is deleted by Microsoft Defender on this PC as potentially unwanted
+  software; XML definitions are not.)*
 
 ### 7.2 Configuration (one time)
 
-Copy the live `engine\.env` to `%ROOT%\config\engine.env` *by hand*. It holds the webhook secret, so the tool
-never copies or prints it. `ENGINE_DATA_DIR` in that file is ignored: the launcher forces `%ROOT%\data`.
+Create `%ROOT%\config\engine.env` **by hand** as a copy of the live `engine\.env`. It holds the webhook secret, which
+the tool never copies or prints. Leave `ENGINE_DATA_DIR` out; `migrate-state` sets it.
 
-### 7.3 Verify
+### 7.3 Pre-migration checks (read-only) — abort if any fails
 
-```
-node engine\deploy\release.mjs validate --root %ROOT% --release <commit12> --expect-profile solusd-5m --expect-risk 10
-node engine\deploy\release.mjs selftest --root %ROOT% --release <commit12>
-node engine\deploy\release.mjs status --root %ROOT%
-powershell -NoProfile -File engine\deploy\windows-task-release.ps1 show -Root %ROOT%
-```
+1. `node engine\deploy\release.mjs state-check --dir engine\data\production` must show:
+   - `ok: true`, `duplicate_signal_ids: 0`, `pending_signals: 0`, `open_position: null`;
+   - a `lastCandle` no older than 10 minutes;
+   - `engine.running: true` (the live engine).
+2. The ledger has no open SOLUSD position (section 2, check 2) and is consistent.
+3. `release.mjs validate --root %ROOT% --release <commit12>` reports **only** "no saved engine state" (expected
+   before migration). Nothing else may be reported.
+4. Record a D1 Time Travel bookmark (section 2, check 6).
 
-- `validate` checks every checksum and loads the configuration with **the release's own code**. It confirms the
-  profile (`solusd-5m`), the effective risk ($10, fixed), longs and shorts enabled, and the data directory.
-- `selftest` runs one engine poll from the release with a throwaway data folder, sync forced off and no secret.
-  Neither the live state nor the Worker is touched.
+### 7.4 Stop the engine and move the state **[APPROVAL]**
 
-### 7.4 One-time state hand-over **[APPROVAL]**
+1. Wait until shortly after a 5-minute candle has been processed (`engine.log`: "processed 1 candle(s) up to …"),
+   so the stop happens between polls.
+2. Stop the task and engine: `powershell -NoProfile -File engine\deploy\windows-task.ps1 stop`. Confirm no
+   `run.mjs` process remains, and `state-check` shows `engine.running: false`.
+3. Move the state:
+   ```
+   node engine\deploy\release.mjs migrate-state --root %ROOT% --old-engine <checkout>\engine --state %STATE%
+   ```
+4. Verify:
+   - `state-check --dir %STATE%` shows the **same** `lastCandle`, `candlesProcessed` and signal count as in 7.3;
+   - `engine\.env` now has `ENGINE_DATA_DIR=<relative path>`;
+   - `%ROOT%\config\engine.env` has `ENGINE_DATA_DIR=%STATE%`;
+   - and:
+     ```
+     node engine\deploy\release.mjs validate --root %ROOT% --release <commit12> --expect-profile solusd-5m --expect-risk 10
+     ```
+     prints `ok: true` and `state.resumable: true`.
 
-The engine's saved state (`state-SOLUSD-5m.json`, `audit-SOLUSD-5m.jsonl`, outbox) must move once from
-`engine\data` to `%ROOT%\data` while **no engine runs**. Otherwise the pinned engine would re-warm from scratch,
-and its ledger reconciliation would see any difference.
+**Abort here (before any task change):** `release.mjs revert-state --root %ROOT%` puts the latest state back in
+`engine\data\production` and restores the original `.env` value. Then `windows-task.ps1 install -NoStart` (or sign
+out and in) restarts the original setup exactly as before.
 
-1. Confirm no SOLUSD position is open (pre-flight 2), and note the last processed candle in `engine.log`.
-2. Stop the current task and engine:
-   `powershell -NoProfile -File engine\deploy\windows-task.ps1 stop`.
-   Confirm no `run.mjs` process remains.
-3. Copy `engine\data\*` to `%ROOT%\data\`. Keep the original folder untouched as the backup.
-
-### 7.5 Activate and switch the task **[APPROVAL]**
+### 7.5 First pinned start (one poll), then switch the task **[APPROVAL]**
 
 ```
 node engine\deploy\release.mjs activate --root %ROOT% --release <commit12> --expect-profile solusd-5m --expect-risk 10
-powershell -NoProfile -ExecutionPolicy Bypass -File engine\deploy\windows-task-release.ps1 install -Root %ROOT%
+powershell -NoProfile -ExecutionPolicy Bypass -File %ROOT%\bin\run-release.ps1 -Root %ROOT% -Node "C:\Program Files\nodejs\node.exe" -Once
+node engine\deploy\release.mjs state-check --dir %STATE%
 ```
 
-The task keeps its name, triggers (sign-in, plus a 3-minute fallback) and conhost `--headless` launch. Only its
-action changes:
+- **Expected:**
+  - `supervisor.log` shows "active release <id> commit <sha> … risk $10; state %STATE%";
+  - `candlesProcessed` grew by exactly the candles that closed while stopped, and `lastCandle` is the latest closed
+    candle;
+  - `warmedUpAt` and `resets` are unchanged (no fresh warm-up);
+  - the signal count has not dropped, and there are still 0 duplicates.
+- **Then switch the task** to the pinned definition:
+  ```
+  schtasks /Create /TN "ALPHA TERMINAL Engine" /XML "%ROOT%\task\pinned.xml" /F
+  schtasks /Run /TN "ALPHA TERMINAL Engine"
+  ```
+- **Only the task's action changes:**
 
-| | Today | After migration |
+  | | Today | After |
+  |---|---|---|
+  | Action | `conhost --headless powershell … -File <checkout>\engine\deploy\run-windows-production.ps1 -Node node.exe` | `conhost --headless powershell … -File <ROOT>\bin\run-release.ps1 -Root <ROOT> -Node node.exe` |
+  | Working directory | `<checkout>\engine` | `<ROOT>` |
+  | Triggers, settings, principal | unchanged | unchanged |
+
+### 7.6 Post-migration checks
+
+- Dashboard heartbeat resumes.
+- `engine.log` (now `%ROOT%\logs\engine.log`) shows one candle per 5 minutes.
+- No signal is re-sent: the Worker answers `DUPLICATE` to any repeat, and the alert count does not jump.
+- `state-check` after the next candle shows `+1` candle.
+- Ledger consistency OK.
+
+### 7.7 Rollback (choose the smallest that fixes the problem)
+
+| Problem | Action | State |
 |---|---|---|
-| Action | `conhost --headless powershell -File <dev checkout>\engine\deploy\run-windows-production.ps1 -Node node.exe` | `conhost --headless powershell -File <ROOT>\bin\run-release.ps1 -Root <ROOT> -Node node.exe` |
-| Working directory | `<dev checkout>\engine` | `<ROOT>` |
-| Code that runs | whatever the dev checkout holds at sign-in | the verified `<ROOT>\current` release only |
-| Duplicate guard | mutex per data folder + engine lock | mutex per root + engine lock (unchanged mechanism) |
+| A new engine release misbehaves | `release.mjs rollback --root %ROOT%`, then restart the task | shared folder, latest |
+| The pinned launcher itself misbehaves | `schtasks /Create /TN "ALPHA TERMINAL Engine" /XML "%ROOT%\task\original.xml" /F`, then `schtasks /Run …` (original supervisor; its `.env` already points at the shared folder) | shared folder, latest |
+| Abandon the whole migration | stop the task; `release.mjs revert-state --root %ROOT%`; restore `original.xml` as above | moved back to `engine\data\production`, latest |
 
-Start it (`Start-ScheduledTask -TaskName "ALPHA TERMINAL Engine"`) or sign out and in. Then check:
-- `supervisor.log` shows "active release <id> commit <sha> … verified; profile solusd-5m, risk $10";
-- the engine resumes from the copied state, with no re-sent signals (duplicates are refused by the Worker anyway);
-- the dashboard shows the heartbeat.
+- Always stop the running engine first (task stop and no `run.mjs` process). The tools refuse while it runs.
+- After any rollback, run the 7.6 checks.
+- A database restore is never part of an engine rollback (section 8).
 
-### 7.6 Engine release updates and rollback
+### 7.8 Backups kept
 
-- **Update:** `prepare` a new commit, then `validate`, `selftest`, `activate`, and a deliberate restart of the
-  task. Nothing changes until that restart, and development commits never change `<ROOT>`.
-- **Rollback:** `release.mjs rollback --root %ROOT%` (it switches `current` to `previous` after verifying it),
-  then restart the task. `<ROOT>\data`, the configuration and the logs are untouched.
-- **Back to the old setup** (abort of 7.5): reinstall the old task with
-  `engine\deploy\windows-task.ps1 install -NoStart` while the pinned engine is stopped. The original
-  `engine\data` was left as the backup in 7.4.
+- `<ROOT>\backups\state-<time>`: the state at migration.
+- `<ROOT>\backups\state-before-revert-<time>`: the state at revert.
+- `<ROOT>\backups\old-engine-env-<time>` and `config-env-<time>`: both settings files, which contain the secret, so
+  keep `<ROOT>` private.
+- The renamed `…\production.migrated-<time>` folder.
+
+Delete these only after the new setup has run cleanly for an agreed period.
 
 ## 8. Database restoration (exceptional; separate approval)
 
@@ -274,6 +353,9 @@ Neither needs a restore.
 - The engine heartbeat stops, signals are rejected with codes not seen before the change, or the launcher reports a
   release that does not verify.
 - The Time Travel bookmark was not recorded.
+- Engine switch: `state-check` shows a different `lastCandle`/`candlesProcessed` than recorded before the move, any
+  `duplicate_signal_ids` > 0, `resets` grew, or `validate` reports `state.resumable: false`.
+- Engine switch: any tool refuses with "an engine … is running" (stop it first; never force).
 
 ## 10. Final reconciliation (after each production step)
 
@@ -293,4 +375,5 @@ Then:
 | `worker/test/rollback_release.test.mjs` | production data → 0004 (interrupted rollout) → Ndax fees → rollback Worker → roll-forward; duplicates, restarts, partial exits, positions across the migration, unmigrated schema 3. 11/11 |
 | `worker/test/cost_audit.test.mjs` | migration row-by-row, fee invariants, concurrency; why `cde07af` is not a fee-safe rollback |
 | rollback branch `npm test` | 148/148 (production suite + fee compatibility), deterministic Kraken stand-in |
-| `engine/test/release.test.mjs` | pinned release: refs, manifest, tamper, dev commit isolation, config validation, profile/$10 risk, activate/rollback with state preserved, self-test, duplicate engine refused, launcher restart loads the pinned release, real task unchanged. 12/12 |
+| `engine/test/release.test.mjs` | pinned release: refs, manifest, tamper, dev commit isolation, config validation (absolute / outside releases / outside git / not empty), profile/$10 risk, activate/rollback, self-test that must process real candles, duplicate engine refused, launcher restart loads the pinned release, `task-xml` from the real task read-only (only the action differs; task unchanged). 12/12 |
+| `engine/test/state-migration.test.mjs` | original engine with saved state → migrate-state → pinned release processes new candles → faulty release (state byte-identical) → incompatible release refused → release rollback → original setup on the same state → one engine only across both setups → full revert carries the latest state back; exactly 20 new candles per step, one warm-up, no duplicated signal, one audit log. 10/10 |

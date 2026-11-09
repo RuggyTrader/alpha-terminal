@@ -3,18 +3,21 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File <Root>\bin\run-release.ps1 -Root <Root> [-Node <node.exe>] [-Once]
 # Before EVERY start it reads <Root>\current and verifies that release (checksums + configuration) with the tool in
 # <Root>\bin; it never starts unverified code and never falls back to a development checkout.
-# The engine runs from <Root>\releases\<id> with ENGINE_ENV_FILE=<Root>\config\engine.env and
-# ENGINE_DATA_DIR=<Root>\data, so settings, secrets, state and logs stay outside the replaceable release.
-# Duplicates: one supervisor per root (named mutex) and the engine's own lock file in <Root>\data.
+# The engine runs from <Root>\releases\<id> with ENGINE_ENV_FILE=<Root>\config\engine.env and ENGINE_DATA_DIR = the
+# state folder the validation reports (config ENGINE_DATA_DIR when set: the ONE shared state folder, also used by the
+# old supervisor after `release.mjs migrate-state`; else <Root>\data). Settings, secrets, state and logs stay outside
+# the replaceable release, and a release whose settings would discard the saved state is never started.
+# Duplicates: one supervisor per root (named mutex) and the engine's own lock file in the state folder, which the
+# old supervisor checks too, so the two setups can never run an engine on the same state at once.
 # -Once: verify, run one engine poll (run.mjs --once) and exit (used by tests and by the release runbook).
 param([Parameter(Mandatory = $true)][string]$Root, [string]$Node = "", [switch]$Once)
 $ErrorActionPreference = "Continue"
 $Root = [IO.Path]::GetFullPath($Root)
 $bin = Join-Path $Root "bin"
-$data = Join-Path $Root "data"
+$script:data = $null   # set from the validation of the active release
 $logs = Join-Path $Root "logs"
 $config = Join-Path $Root "config\engine.env"
-New-Item -ItemType Directory -Force $data, $logs | Out-Null
+New-Item -ItemType Directory -Force $logs | Out-Null
 $log = Join-Path $logs "engine.log"
 $supLog = Join-Path $logs "supervisor.log"
 $node = if ($Node) { $Node } elseif ($env:ALPHA_NODE) { $env:ALPHA_NODE } else { (Get-Command node -ErrorAction Stop).Source }
@@ -25,9 +28,9 @@ function Write-Log($msg) {
   try { [IO.File]::AppendAllText($supLog, "$line`r`n") } catch { Write-Host "(could not write to $supLog)" }
 }
 
-# The engine holding a lock in <Root>\data, only if that process really is a node.exe running the engine.
+# The engine holding a lock in the state folder, only if that process really is a node.exe running the engine.
 function Get-LockedEngine {
-  foreach ($lock in Get-ChildItem $data -Filter "engine-*.lock" -ErrorAction SilentlyContinue) {
+  foreach ($lock in Get-ChildItem $script:data -Filter "engine-*.lock" -ErrorAction SilentlyContinue) {
     $id = 0
     if (-not [int]::TryParse((Get-Content $lock.FullName -Raw -ErrorAction SilentlyContinue).Trim(), [ref]$id)) { continue }
     $p = Get-CimInstance Win32_Process -Filter "ProcessId = $id" -ErrorAction SilentlyContinue
@@ -41,7 +44,8 @@ function Get-VerifiedRelease {
   $out = & $node (Join-Path $bin "release.mjs") validate --root $Root 2>&1 | Out-String
   try { $v = $out | ConvertFrom-Json } catch { Write-Log "release check failed to run: $out"; return $null }
   if (-not $v.ok) { Write-Log "active release does not verify; not starting. $($v.problems -join '; ')$($v.error)"; return $null }
-  Write-Log "active release $($v.release) commit $($v.commit) ($($v.ref)) verified; profile $($v.config.profile), risk `$$($v.config.riskUSD)"
+  $script:data = $v.config.dataDir
+  Write-Log "active release $($v.release) commit $($v.commit) ($($v.ref)) verified; profile $($v.config.profile), risk `$$($v.config.riskUSD); state $($script:data) (last candle $($v.config.state.lastCandle))"
   return (Join-Path $Root "releases\$($v.release)")
 }
 
@@ -54,17 +58,18 @@ if (-not $owned) { Write-Log "another supervisor already runs the engine for $Ro
 Write-Log "started (pid $PID); root $Root"
 while ($true) {
   foreach ($f in $log, $supLog) { if ((Test-Path $f) -and (Get-Item $f).Length -gt 20MB) { Move-Item -Force $f "$f.1" } }
+  $release = Get-VerifiedRelease
+  if (-not $release) { if ($Once) { exit 4 }; Start-Sleep -Seconds 60; continue }
   $other = Get-LockedEngine
   if ($other) {
-    Write-Log "engine pid $($other.ProcessId) already holds $data; not starting another"
+    Write-Log "engine pid $($other.ProcessId) already holds $($script:data); not starting another"
     if ($Once) { exit 3 }
     Start-Sleep -Seconds 60; continue
   }
-  $release = Get-VerifiedRelease
-  if (-not $release) { if ($Once) { exit 4 }; Start-Sleep -Seconds 60; continue }
-  Get-ChildItem $data -Filter "engine-*.lock" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+  New-Item -ItemType Directory -Force $script:data | Out-Null
+  Get-ChildItem $script:data -Filter "engine-*.lock" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
   $env:ENGINE_ENV_FILE = $config
-  $env:ENGINE_DATA_DIR = $data
+  $env:ENGINE_DATA_DIR = $script:data
   $engineArgs = if ($Once) { "src\cli\run.mjs --once" } else { "src\cli\run.mjs" }
   Write-Log "starting engine from $release"
   $p = Start-Process -FilePath "$env:SystemRoot\System32\cmd.exe" -WorkingDirectory $release -NoNewWindow -PassThru `
