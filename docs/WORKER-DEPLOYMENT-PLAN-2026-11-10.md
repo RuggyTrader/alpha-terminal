@@ -1,6 +1,6 @@
-# Fee-aware Worker deployment plan (prepared 2026-11-10; NOT executed)
+# Fee-aware Worker deployment plan (prepared 2026-11-10; EXECUTED 2026-11-10, see DEPLOYMENT-2026-11-10-WORKER.md)
 
-**Status: ready for a separately approved deployment. Nothing below has been run against production.** Every step
+**Status: approved and executed on 2026-11-10 (02:03–02:11 UTC); results in `DEPLOYMENT-2026-11-10-WORKER.md`.** Every step
 marked **[APPROVAL]** needs the owner's explicit approval. Simulated execution costs stay **off**
 (`PAPER_COST_PROFILE=none`). Turning on the Ndax estimate is a later, separate approval.
 
