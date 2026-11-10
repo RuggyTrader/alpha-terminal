@@ -23,7 +23,8 @@ const WIN = process.platform === "win32";
 const secret = () => randomBytes(24).toString("base64url");
 const WEBHOOK_SECRET = secret();
 const DASHBOARD_PASSPHRASE = secret();
-const PORT = 8791, BASE = `http://127.0.0.1:${PORT}`;
+// 8805: its own port (8791 is auth.test.mjs; files run in parallel, and a shared port let the other Worker answer).
+const PORT = 8805, BASE = `http://127.0.0.1:${PORT}`;
 const persist = mkdtempSync(join(tmpdir(), "alpha-sync-setup-"));
 const work = mkdtempSync(join(tmpdir(), "alpha-sync-setup-engine-"));
 const ENV_FILE = join(work, "engine.env");

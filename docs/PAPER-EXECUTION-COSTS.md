@@ -41,7 +41,7 @@ Without costs, every ALPHA PAPER fill executed at the Kraken reference price and
 | Profile | Maker | Taker | Taker slippage | Minimum | Fee source |
 |---|---|---|---|---|---|
 | `none` | 0 | 0 | 0 | none | gross simulation (the old behaviour) |
-| `ndax` (default in `wrangler.jsonc`) | 0.20% | 0.20% | 0.10% **estimate** | $5 order value | ndax.io/fees, read 2026-11-09: flat 0.20% on every buy and sell |
+| `ndax` (needs separate approval; `wrangler.jsonc` ships `none`) | 0.20% | 0.20% | 0.10% **estimate** | $5 order value | ndax.io/fees, read 2026-11-09: flat 0.20% on every buy and sell |
 | `kraken_pro_t1` | 0.40% | 0.80% | 0.03% | 0.05 SOL and $0.50 | kraken.com/pro/fees, read 2026-11-09: Tier 1 spot |
 
 - **Ndax caveat.** The engine trades on Kraken SOLUSD prices. The `ndax` profile applies Ndax's fee schedule to
@@ -166,7 +166,7 @@ Superseded by `docs/RELEASE-RUNBOOK.md`, which uses a staged deployment and a fe
 notes below are kept for history.
 
 1. Back up the production D1, then apply `0004_paper_execution_costs.sql` (`wrangler d1 migrations apply alpha-terminal-db --remote`).
-2. Confirm `PAPER_COST_PROFILE` is the intended profile (`ndax` in `wrangler.jsonc`; use `none` to stay gross).
+2. Confirm `PAPER_COST_PROFILE` is the intended profile (`wrangler.jsonc` ships `none`; a cost profile is a separately approved change).
 3. Deploy the Worker. The production engine needs no restart: older engine builds send no `liquidity`, so their
    signals are treated as taker fills (the conservative case) until the engine is updated.
 4. Check the dashboard consistency (`consistency.ok`), the `schema_version` = 4, and one PAPER fill's proof.

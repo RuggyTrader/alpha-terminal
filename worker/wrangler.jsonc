@@ -35,7 +35,9 @@
     "SHORT_SELLING_ENABLED": "false",
     "DAILY_LOSS_LIMIT": "2000",
     // Simulated execution costs on ALPHA PAPER fills (src/costs.ts): none | ndax | kraken_pro_t1.
-    "PAPER_COST_PROFILE": "ndax"
+    // "none" until the owner separately approves a cost profile: a plain `wrangler deploy` must never switch on fees.
+    // Activating one is a deliberate change of this value (docs/RELEASE-RUNBOOK.md section 5).
+    "PAPER_COST_PROFILE": "none"
   },
 
   "d1_databases": [
