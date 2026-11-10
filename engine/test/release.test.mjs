@@ -10,10 +10,13 @@ import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
-import { activate, installLauncher, prepare, resolveRef, rollback, selftest, status, taskXml, validate, verifyTree } from "../deploy/release.mjs";
+import { activate, appDataProblem, installLauncher, prepare, resolveRef, rollback, selftest, status, taskXml, validate, verifyTree } from "../deploy/release.mjs";
 import { cloneRepo, startOhlcStub } from "./lib/release-fixtures.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+// Test roots live in the system temp folder (under %LOCALAPPDATA%), which the release tool refuses for production
+// roots (packaged-app redirection; see deploy/release.mjs appDataProblem). Lifted for these temporary test folders only.
+process.env.ALPHA_RELEASE_ALLOW_APPDATA = "1";
 const ENGINE = join(HERE, "..");
 const REPO = join(ENGINE, "..");
 const WIN = process.platform === "win32";
@@ -59,6 +62,22 @@ describe("release references", () => {
     }
     g("branch", "ambiguous-name", C1); g("tag", "ambiguous-name", C1);
     assert.throws(() => resolveRef(clone, "ambiguous-name"), /both a tag and a branch/);
+  });
+});
+
+describe("production location guard", () => {
+  it("refuses a release root or state folder under %LOCALAPPDATA% / %APPDATA% (redirected for packaged apps)", { skip: !process.env.LOCALAPPDATA && "Windows only" }, () => {
+    delete process.env.ALPHA_RELEASE_ALLOW_APPDATA;
+    try {
+      const bad = join(process.env.LOCALAPPDATA, "AlphaTerminal-guard-test", "engine-prod");
+      assert.throws(() => prepare({ repo: clone, ref: C1, root: bad }), /redirects that folder for packaged apps/);
+      assert.throws(() => installLauncher({ repo: clone, ref: C1, root: bad }), /redirects that folder/);
+      assert.equal(existsSync(bad), false, "nothing was created");
+      assert.equal(appDataProblem(join(process.env.USERPROFILE, "AlphaTerminal", "engine-prod"), "root"), null, "%USERPROFILE%\AlphaTerminal is fine");
+      assert.match(appDataProblem(join(process.env.APPDATA, "x"), "state folder"), /state folder/);
+    } finally {
+      process.env.ALPHA_RELEASE_ALLOW_APPDATA = "1";
+    }
   });
 });
 

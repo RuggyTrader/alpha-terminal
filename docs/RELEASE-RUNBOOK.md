@@ -26,7 +26,7 @@ Production today:
 cd worker
 npx wrangler deployments list            # active Worker version id and its upload time
 npx wrangler versions list               # recent versions (for a rollback target)
-npx wrangler d1 execute alpha-terminal-db --remote --command "SELECT key, value FROM app_meta"   # schema_version
+node node_modules\wrangler\bin\wrangler.js d1 execute alpha-terminal-db --remote --command "SELECT key, value FROM app_meta"   # schema_version
 ```
 
 For the engine, check PID, start time and task action:
@@ -56,7 +56,8 @@ From the first pinned release onwards, the launcher logs the exact commit at eve
 | Database schema | **3**: `d1_migrations` = 0001, 0002, 0003 | D1 `SELECT` |
 | D1 Time Travel | **Available.** Current bookmark returned. Retention depends on the plan; check before deploying | `wrangler d1 time-travel info` (read-only) |
 | Database export | **Available.** Schema-only export succeeded (15 tables, no data rows) | `wrangler d1 export --remote --no-data` |
-| Scheduled task | **Still points to the development checkout** (`…lpha-terminal\engine\deployun-windows-production.ps1`, working directory `…lpha-terminal\engine`) | `Export-ScheduledTask` (read-only) |
+| Scheduled task | **Still points to the development checkout** (`…lpha-terminal\engine\deploy
+un-windows-production.ps1`, working directory `…lpha-terminal\engine`) | `Export-ScheduledTask` (read-only) |
 
 Note: after the first successful query, `wrangler d1 execute --remote` hung on every later attempt (timeouts at
 150–300 s), while `time-travel info` and `export` worked. Nothing was changed by any attempt. Re-run the section 2
@@ -66,7 +67,9 @@ pre-flight queries on the day of deployment.
 
 1. **Engine healthy.** The dashboard shows Engine ONLINE with a recent heartbeat, and `engine.log` has no repeated errors.
 2. **No open SOLUSD PAPER position.** Dashboard → Portfolio shows SOLUSD reserved $0.00, or:
-   `npx wrangler d1 execute alpha-terminal-db --remote --command "SELECT COUNT(*) FROM paper_positions WHERE status='OPEN'"` → `0`.
+   `node node_modules\wrangler\bin\wrangler.js d1 execute alpha-terminal-db --remote --command "SELECT COUNT(*) FROM paper_positions WHERE status='OPEN'"` → `0`.
+   Run D1 queries with `node node_modules\wrangler\bin\wrangler.js …` from `worker\`. Through the Windows `npx`
+   wrapper, quoted SQL can hang before wrangler even starts.
    *Why:* a position open across the change closes with only its exit fee. That is safe (the rehearsal covers
    it), but its trade shows a cost record for one side only.
 3. **Ledger consistent.** Dashboard → Settings/Portfolio consistency is OK. Record the totals:
@@ -213,11 +216,21 @@ Safety rules built into the tool (each covered by `engine/test/state-migration.t
     start a fresh warm-up).
 - A faulty release cannot damage the state. The test's crashing release left it byte-identical.
 
+> **Never put the root or the state under `%LOCALAPPDATA%` or `%APPDATA%`.** The Claude desktop app is a packaged
+> (MSIX) Windows app. Files that its tools write there are redirected into the app's private package folder
+> (`%LOCALAPPDATA%\Packages\Claude_*\LocalCache\…`), which processes started by Task Scheduler cannot see. That made
+> the 2026-11-09 attempt fail:
+> - the pinned task returned `0x8007010B`;
+> - the original supervisor started on an empty folder;
+>
+> see `docs/DEPLOYMENT-2026-11-09-ENGINE-MIGRATION.md`. `release.mjs` now refuses such paths. In the 2026-11-09
+> isolation test, `%USERPROFILE%\AlphaTerminal` and `Documents\…` both worked under Task Scheduler.
+
 ### 7.1 Prepare and validate (safe any time; touches only `<ROOT>`)
 
 ```
-set ROOT=%LOCALAPPDATA%\AlphaTerminal\engine-prod
-set STATE=%LOCALAPPDATA%\AlphaTerminal\engine-state
+set ROOT=%USERPROFILE%\AlphaTerminal\engine-prod
+set STATE=%USERPROFILE%\AlphaTerminal\engine-state
 node engine\deploy\release.mjs prepare --repo . --ref <full 40-char commit SHA or release tag> --root %ROOT%
 node engine\deploy\release.mjs install-launcher --repo . --ref <same commit> --root %ROOT%
 node engine\deploy\release.mjs task-xml --root %ROOT% --node "C:\Program Files\nodejs\node.exe"
@@ -246,6 +259,18 @@ the tool never copies or prints. Leave `ENGINE_DATA_DIR` out; `migrate-state` se
 3. `release.mjs validate --root %ROOT% --release <commit12>` reports **only** "no saved engine state" (expected
    before migration). Nothing else may be reported.
 4. Record a D1 Time Travel bookmark (section 2, check 6).
+5. **Task Scheduler rehearsal (mandatory).** Production keeps running throughout. Prove that a *scheduled task* can
+   start the launcher from the chosen parent folder:
+   1. Prepare a throwaway test root next to `%ROOT%`, for example `%USERPROFILE%\AlphaTerminal-test\engine-prod`.
+      Use a config with `ENGINE_SYNC=off`, no secret, `ENGINE_FRESH_START_OK=yes`, and its own `ENGINE_DATA_DIR`.
+      Then `activate` it.
+   2. Register a **temporary, differently named, trigger-less** task. It is `pinned.xml` with `<Triggers />`, an
+      action pointing at the test root with `-Once`, and a test description.
+   3. Run the task. It must end with result `0x0`, the test `supervisor.log` must show "active release … verified",
+      and the test state must show processed candles.
+   4. Unregister the temporary task.
+
+   A hand-run launcher or the release tests cannot catch the failure this rehearsal exists for.
 
 ### 7.4 Stop the engine and move the state **[APPROVAL]**
 

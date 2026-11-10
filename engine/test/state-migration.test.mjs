@@ -15,6 +15,9 @@ import { activate, envValue, installLauncher, migrateState, prepare, revertState
 import { cloneRepo, startOhlcStub } from "./lib/release-fixtures.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+// Test roots live in the system temp folder (under %LOCALAPPDATA%), which the release tool refuses for production
+// roots (packaged-app redirection; see deploy/release.mjs appDataProblem). Lifted for these temporary test folders only.
+process.env.ALPHA_RELEASE_ALLOW_APPDATA = "1";
 const ENGINE = join(HERE, "..");
 const REPO = join(ENGINE, "..");
 const WIN = process.platform === "win32";

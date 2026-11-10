@@ -1,6 +1,6 @@
 # Engine migration attempt, 2026-11-09 — ROLLED BACK (no data lost)
 
-**Outcome: the pinned-engine migration was attempted with owner approval and rolled back.** ALPHA TERMINAL runs
+**Outcome: the pinned-engine migration was attempted with owner approval and rolled back. Root cause found the same night (section 4).** ALPHA TERMINAL runs
 exactly as before:
 - original scheduled task, byte-identical to the exported original;
 - original supervisor and engine in the development checkout, on `engine\data\production`.
@@ -63,42 +63,62 @@ $10, settings hash unchanged.
 **D1 after rollback (read-only):** identical to preflight. Schema 3; MAIN $90, SOLUSD $10; 0 positions, fills or
 trades; alerts 10 and orders 4, unchanged, so no signal was sent during the window. Worker `2cd0119d` unchanged.
 
-## 4. Why it failed (open; not yet proven)
+## 4. Why it failed — CONFIRMED by an isolated test (2026-11-10 00:00–00:07 UTC)
 
-Both failures happened **only for processes started by Task Scheduler** that use
-`%LOCALAPPDATA%\AlphaTerminal\…`:
+**Cause: Windows file-system redirection for packaged apps, not the antivirus.**
 
-1. The pinned task failed with ERROR_DIRECTORY, although its working directory exists and the identical command
-   works when started by hand.
-2. The original supervisor, started by the same task, ran an engine on the shared folder that hung after creating
-   its lock file. Appends to the moved log files never happened, though they were not locked. The same engine code
-   on the original folder works.
+- The Claude desktop app, which ran every tool command, is a packaged (MSIX) app (`Claude_pzs8sxrjxfjjc`).
+- Files its processes write under `%LOCALAPPDATA%` are redirected into
+  `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Local\…`. Those processes see them at the normal path.
+- Processes started by **Task Scheduler** run outside the app and see the *real* `%LOCALAPPDATA%`, where
+  `AlphaTerminal\engine-prod` did not exist.
+- The redirected copies are confirmed: 45 files for `AlphaTerminal` and 21 for the test root.
 
-The leading hypothesis is that the active antivirus (Reason Cybersecurity) blocks or delays these task-launched,
-hidden processes when they act in `AppData\Local`. It deleted a task-registering script of ours earlier today, and
-its engine database changed at 23:13:21, during the migration. Its database is encrypted, so this is **not
-confirmed**. Windows Defender is passive.
+That explains both failures:
+1. **Pinned task, `0x8007010B` ("directory name is invalid").** For Task Scheduler the working directory did not
+   exist.
+2. **"Hung" original engine (PID 1076).** It was not hung. Its relative `ENGINE_DATA_DIR` resolved to the *real*
+   `%LOCALAPPDATA%\AlphaTerminal\engine-state`, which was empty. It created that folder and ran a **fresh warm-up**
+   there, while the tools were looking at the redirected copy that held the real state.
+
+**What the stray engine did** (its files, copied read-only via a temporary task):
+- `resumed: false`; it warmed up from Kraken's last 720 candles;
+- 28 derived signals, all `historical` (**never sent**); one live candle (23:15) with no signal;
+- one ledger check (OK), one heartbeat to the Worker, and a re-applied risk setting ($10 → $10).
+
+D1 confirms that nothing reached the ledger (alerts 10 and orders 4, unchanged). The real production state was never
+touched by it: it stayed in the redirected folder, was moved back by `revert-state`, and was resumed by the original
+engine.
+
+**Isolation test** (temporary trigger-less task "ALPHA TERMINAL isolation test", test roots, sync off, no secret;
+production untouched throughout; the task was removed afterwards):
+
+| Test | Root | Result under Task Scheduler |
+|---|---|---|
+| T1 | `%LOCALAPPDATA%\AlphaTerminal-test` | `0x8007010B`, launcher never ran (reproduces failure 1) |
+| T1b | same, task working folder = profile | exit 0, but the script was never found (no log) |
+| T2 | `%USERPROFILE%\AlphaTerminal-test` | **OK**: launcher verified the release; engine processed 720 candles |
+| T3 | `%USERPROFILE%\Documents\AlphaTerminal-test` | **OK**: same |
+
+(The first T1–T3 run was invalid: PowerShell had stripped the quotes from the test task's arguments. It was re-run
+with the arguments verified before registering. T2 and T3 also needed their release activated before they could pass.)
 
 ## 5. What is left on disk (kept on purpose; nothing deleted)
 
 | Path | What it is | Note |
 |---|---|---|
-| `%LOCALAPPDATA%\AlphaTerminal\engine-prod\` | release, launcher, task XMLs, logs, history | `config\engine.env` and `backups\old-engine-env-*` / `config-env-*` contain the webhook secret: keep private. `config` now points at `engine\data\production`, inside the git checkout, so the pinned launcher **refuses to start** (it cannot run by accident) |
-| `…\engine-prod\backups\state-2026-11-09T23-13-34-237Z`, `state-before-revert-…` | verified state backups (23:10 and 23:15 states) | stale; for evidence only |
-| `%LOCALAPPDATA%\AlphaTerminal\engine-state.reverted-…` | the shared folder after revert | stale; never resume it |
-| `engine\data\production.migrated-2026-11-09T23-13-34-237Z` (dev checkout, git-ignored) | the pre-migration folder (state as of 23:10) | stale; never rename it back over `production` |
-| `%LOCALAPPDATA%\AlphaTerminal\*.json` | preflight, post-stop, migrate and revert results | evidence |
+| redirected `%LOCALAPPDATA%\AlphaTerminal\engine-prod\` (physically `…\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Local\AlphaTerminal\`) | release, launcher, task XMLs, logs, backups, records | `config\engine.env` and `backups\old-engine-env-*` / `config-env-*` contain the webhook secret: keep private, and delete when no longer needed (owner's decision). Unusable by Task Scheduler; the launcher also refuses it now |
+| real `%LOCALAPPDATA%\AlphaTerminal\engine-state\` | the stray warm-up state of PID 1076 | stale; never resume it |
+| redirected `…\engine-state.reverted-…`, `…\backups\state-*` | the real state as of 23:10 and 23:15 | stale; evidence only |
+| `engine\data\production.migrated-2026-11-09T23-13-34-237Z` (dev checkout, git-ignored) | pre-migration folder (state as of 23:10) | stale; never rename it back over `production` |
+| `%USERPROFILE%\AlphaTerminal-test\`, `%USERPROFILE%\Documents\AlphaTerminal-test\`, redirected `%LOCALAPPDATA%\AlphaTerminal-test\` | isolation-test roots (no secrets) | safe to delete after review |
 
-## 6. Recommended next steps (each needs approval; nothing here was done)
+## 6. Fix and next step
 
-1. **Reproduce in isolation before any new attempt.**
-   - Use a *temporary* scheduled task with a different name, a test root and a test state, sync off.
-   - Start the pinned launcher from `%LOCALAPPDATA%` and from a location under the user profile that is known to
-     work (the current engine runs from `Documents`).
-   - Check Reason Cybersecurity's own event history in its app for blocked actions around 23:13–23:21.
-   - Do not disable protection. An antivirus exclusion is the owner's decision.
-2. **Add a task-launch rehearsal to the runbook preflight.** Before stopping production, a temporary task must start
-   the pinned launcher (`-Once`, test state) and process a candle. Neither the release tests nor the hand-run
-   launcher could catch this failure, because it occurs only under Task Scheduler.
-3. Then repeat the migration with the location that passed step 1, unchanged otherwise. The release, the tooling,
-   state preservation, compatibility and the rollback paths all worked as designed today.
+- **Fixed in development** (`engine/deploy/release.mjs`): `prepare`, `install-launcher`, `migrate-state`, `task-xml`
+  and `validate` refuse a root or state folder under `%LOCALAPPDATA%` or `%APPDATA%`. The runbook default is now
+  `%USERPROFILE%\AlphaTerminal\engine-prod` and `…\engine-state`. Section 7.3 now requires a Task Scheduler
+  rehearsal with a temporary, trigger-less task before production is stopped.
+- **Next migration attempt** (needs approval): the same procedure with root and state under
+  `%USERPROFILE%\AlphaTerminal`, preceded by the 7.3 rehearsal. Everything else worked as designed on 2026-11-09:
+  release, tooling, state preservation, compatibility and rollback.

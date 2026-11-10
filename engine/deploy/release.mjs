@@ -147,6 +147,25 @@ export function stateDirOf(root) {
   return { dir: resolve(v), configured: true };
 }
 
+/**
+ * Folders that Windows redirects for packaged (MSIX) apps. A program started from such an app (for example the
+ * Claude desktop app) that writes under %LOCALAPPDATA% or %APPDATA% actually writes into the app's private package
+ * folder; processes started by Task Scheduler cannot see those files. Found on 2026-11-09: the pinned task failed with
+ * 0x8007010B and the original supervisor ran on an empty folder. Production roots and state must live elsewhere
+ * (e.g. %USERPROFILE%\AlphaTerminal). ALPHA_RELEASE_ALLOW_APPDATA=1 lifts this only for tests in temporary folders.
+ */
+export function appDataProblem(p, what) {
+  if (process.env.ALPHA_RELEASE_ALLOW_APPDATA === "1" || !p) return null;
+  const full = resolve(p).toLowerCase();
+  for (const base of [process.env.LOCALAPPDATA, process.env.APPDATA]) {
+    if (base && (full === resolve(base).toLowerCase() || full.startsWith(resolve(base).toLowerCase() + sep))) {
+      return `${what} ${resolve(p)} is under ${base}: Windows redirects that folder for packaged apps, so a scheduled task may not see it; use a folder such as %USERPROFILE%\\AlphaTerminal`;
+    }
+  }
+  return null;
+}
+const refuseAppData = (p, what) => { const m = appDataProblem(p, what); if (m) fail(m); };
+
 const paths = (root) => ({
   root: resolve(root), releases: join(resolve(root), "releases"), config: join(resolve(root), "config", "engine.env"),
   data: join(resolve(root), "data"), logs: join(resolve(root), "logs"), bin: join(resolve(root), "bin"), backups: join(resolve(root), "backups"),
@@ -187,6 +206,7 @@ export function verifyTree(dir) {
 }
 
 export function prepare({ repo, ref, root }) {
+  refuseAppData(root, "the release root");
   const P = paths(root);
   const r = resolveRef(repo, ref);
   const id = r.commit.slice(0, 12);
@@ -209,6 +229,7 @@ export function prepare({ repo, ref, root }) {
 }
 
 export function installLauncher({ repo, ref, root }) {
+  refuseAppData(root, "the release root");
   const P = paths(root);
   const r = resolveRef(repo, ref);
   const files = new Map();
@@ -248,6 +269,7 @@ function checkConfig(P, dir, { expectProfile = null, expectRisk = null } = {}) {
   const c = JSON.parse(r.stdout.trim().split("\n").at(-1));
   const problems = [];
   if (resolve(c.dataDir) !== sd.dir) problems.push(`data directory ${c.dataDir} is not ${sd.dir}`);
+  for (const [path, what] of [[P.root, "the release root"], [c.dataDir, "the state folder"]]) { const m = appDataProblem(path, what); if (m) problems.push(m); }
   if (resolve(c.dataDir).startsWith(resolve(P.releases))) problems.push("data directory is inside the releases folder");
   const tree = gitWorkTreeOf(c.dataDir);
   if (tree) problems.push(`state folder ${c.dataDir} is inside the git work tree ${tree} (a 'git clean' could delete it); migrate it with migrate-state`);
@@ -449,6 +471,8 @@ export function migrateState({ root, oldEngine, state }) {
   if (existsSync(P.migration)) fail(`a migration is already recorded (${P.migration}); revert it first`);
   if (!existsSync(P.config)) fail(`no configuration file at ${P.config}`);
   if (!isAbsolutePath(state)) fail("--state must be an absolute path");
+  refuseAppData(root, "the release root");
+  refuseAppData(state, "the state folder");
   const engineDir = resolve(oldEngine), target = resolve(state);
   const envFile = join(engineDir, ".env");
   if (!existsSync(envFile)) fail(`no ${envFile}`);
@@ -540,6 +564,7 @@ const xmlEscape = (v) => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").
  */
 export function taskXml({ root, node = null, taskName = "ALPHA TERMINAL Engine" }) {
   if (process.platform !== "win32") fail("task-xml is Windows only");
+  refuseAppData(root, "the release root");
   const P = paths(root);
   const dir = join(P.root, "task");
   mkdirSync(dir, { recursive: true });
