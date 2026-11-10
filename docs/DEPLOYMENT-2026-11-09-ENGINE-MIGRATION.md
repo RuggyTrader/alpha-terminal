@@ -122,3 +122,59 @@ with the arguments verified before registering. T2 and T3 also needed their rele
 - **Next migration attempt** (needs approval): the same procedure with root and state under
   `%USERPROFILE%\AlphaTerminal`, preceded by the 7.3 rehearsal. Everything else worked as designed on 2026-11-09:
   release, tooling, state preservation, compatibility and rollback.
+
+---
+
+# Retry, 2026-11-10 — SUCCEEDED
+
+With owner approval, the migration was repeated with the root and state under `%USERPROFILE%\AlphaTerminal` and with
+the new Task Scheduler rehearsal. **The production engine now runs from the version-pinned release.**
+
+## Active production configuration
+
+| Item | Value |
+|---|---|
+| Scheduled task | `ALPHA TERMINAL Engine`. Action: `conhost --headless powershell … -File %USERPROFILE%\AlphaTerminal\engine-prod\bin\run-release.ps1 -Root %USERPROFILE%\AlphaTerminal\engine-prod -Node "C:\Program Files\nodejs\node.exe"`; working directory `%USERPROFILE%\AlphaTerminal\engine-prod`. Triggers (sign-in, plus sign-in + 3 minutes), settings and principal are identical to the original |
+| Release | `6b70cc97c579` = commit `6b70cc97c57964eb8f0d0fabc761ffb8a77053b3`. 13 runtime files, SHA-256 manifest verified. The files are byte-identical to the `d29ac8f` release, which was shown equivalent to `943eaea` (identical inputs, settings hash, 150-day replay and 69-trade benchmark) |
+| Launcher | `bin\run-release.ps1` + `bin\release.mjs` from the same commit, verified |
+| State (one shared folder) | `%USERPROFILE%\AlphaTerminal\engine-state`. The pinned config uses the absolute path; the original supervisor's `engine\.env` uses `ENGINE_DATA_DIR=..\..\..\..\..\..\..\AlphaTerminal\engine-state` (relative, as it requires) |
+| Strategy | `solusd-5m`, fixed $10 risk (website setting v1), longs and shorts on, fixed sizing, sync on to the production Worker, settings hash `c826d785d58a4a39`; all research options off |
+| Rollback definition | `%USERPROFILE%\AlphaTerminal\engine-prod\task\original.xml` (the task exactly as before) |
+
+## Evidence (UTC)
+
+| Time | Step | Result |
+|---|---|---|
+| 00:33–00:34 | Preflight | One engine (PID 5832); state ok (997 candles, 39 signals, 0 duplicates, 0 pending, no position); no errors since the rollback; Reason AV on; D1 read three times successfully, identical, no writes (one attempt hit a transient Cloudflare 7403 and was repeated): schema 3, 0004 absent, 0 positions, $0 reserved, MAIN $90 / SOLUSD $10 reconciled, risk $10; Worker `2cd0119d`, trading disabled |
+| 00:34 | Prepare | Release and launcher from the full SHA; settings copied (8 keys, identical except the data folder); task XMLs (installed = original; only the action differs); validate: only "no saved engine state"; self-test (rehearsal root): 720 candles |
+| 00:34:44 | **Task Scheduler rehearsal** | Temporary trigger-less task, rehearsal root `%USERPROFILE%\AlphaTerminal-rehearsal`, sync off: result `0x0`, release verified, 720 candles; task removed |
+| 00:35:05 | Safe point | 00:30 candle processed; strategy "Waiting for a swing" (no order, no position); 0 pending signals |
+| 00:35:25 | Stop | `windows-task.ps1 stop`: 0 engines, 0 supervisors; lock released |
+| 00:35:37 | `migrate-state` | Checksums identical to the post-stop record (shared folder and backup); both setups resolve the shared folder; old folder renamed `engine\data\production.migrated-…`; validate ok, resumable |
+| 00:35:49 | Activate + `-Once` | Verified commit `6b70cc9…`; `resumed: true`; ledger check OK; heartbeat OK |
+| 00:36:04 | Task switched (`schtasks /Create /XML pinned.xml`) and started | Pinned supervisor (PID 10404) and one engine (PID 15976); lock in the shared folder = 15976; `resumed: true` |
+| 00:40:05 | Fresh candle | 00:35 candle processed by the pinned engine; 999 candles; warm-up time unchanged (2026-11-09T01:28:50Z); 0 resets |
+| 00:40 | Post-checks | D1 identical (schema 3, MAIN $90, SOLUSD $10, 0 positions/fills/trades, alerts 10, orders 4, risk $10); Worker `2cd0119d` unchanged |
+
+**Continuity:** candles 00:10 to 00:35 were each processed exactly once, at their normal times (0 gaps, 0
+duplicates). Every start resumed saved state. 39 signals, 0 duplicates, 0 pending; no signal was sent during the
+switch.
+
+## Rollback (if ever needed)
+
+Runbook 7.7. In short:
+1. Stop the task.
+2. `schtasks /Create /TN "ALPHA TERMINAL Engine" /XML "%USERPROFILE%\AlphaTerminal\engine-prod\task\original.xml" /F`.
+3. Start it.
+
+The original supervisor reads the same shared state. A full abandon additionally runs `release.mjs revert-state
+--root %USERPROFILE%\AlphaTerminal\engine-prod` with both engines stopped.
+
+## Kept, not deleted
+
+- `%USERPROFILE%\AlphaTerminal\engine-prod\backups\state-*`: the state at 00:35. It, and the `old-engine-env-*` and
+  `config-env-*` backups next to it, contain the secret: keep private.
+- `engine\data\production.migrated-*`: stale; never rename it back.
+- The test and rehearsal roots `%USERPROFILE%\AlphaTerminal-test`, `%USERPROFILE%\Documents\AlphaTerminal-test`,
+  `%USERPROFILE%\AlphaTerminal-rehearsal`. They hold no secrets.
+- The 2026-11-09 leftovers listed in section 5.

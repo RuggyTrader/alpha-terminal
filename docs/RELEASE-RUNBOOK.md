@@ -20,6 +20,9 @@ Production today:
 - Engine running as PID 16048 since 2026-11-09 13:33 −05:00, **from the development checkout** (scheduled task
   `ALPHA TERMINAL Engine` → `outputs\alpha-terminal\engine\deploy\run-windows-production.ps1`).
 
+**Update 2026-11-10:** the engine now runs from the pinned release `6b70cc97c579` under `%USERPROFILE%\AlphaTerminal`
+(task switched, state shared). See `docs/DEPLOYMENT-2026-11-09-ENGINE-MIGRATION.md` (retry section).
+
 ## 1. Identify what runs now (read-only)
 
 ```
