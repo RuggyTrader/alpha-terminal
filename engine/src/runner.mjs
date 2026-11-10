@@ -32,6 +32,17 @@ import { join } from "node:path";
 import { fetchCompletedCandles } from "./kraken.mjs";
 import { abandonPosition, createState, onBar, summarize } from "./ote.mjs";
 import { DEFAULT_SIZING } from "./sizing.mjs";
+import { activate, createMirror, MIRROR_STATE_VERSION, mirrorPosition, mirrorStep, resetForGap } from "./mirror.mjs";
+
+/** The pinned release this engine runs from (RELEASE.json next to src/), or null in a development checkout. */
+const RELEASE = (() => {
+  try {
+    const m = JSON.parse(readFileSync(new URL("../RELEASE.json", import.meta.url), "utf8"));
+    return { release: String(m.release ?? "").slice(0, 40) || null, commit: String(m.commit ?? "").slice(0, 40) || null };
+  } catch {
+    return { release: null, commit: null };
+  }
+})();
 
 export const ENGINE_VERSION = "0.1.0";
 export const STRATEGY_NAME = "OTE Pro Strat (engine)";
@@ -65,6 +76,143 @@ export class EngineRunner {
     // expired unsent: drop it now (once), so the engine starts consistent with the ledger.
     const open = this.state?.openEntryId ? this.state.outbox.find((x) => x.id === this.state.openEntryId) : null;
     if (open && open.kind === "ENTRY" && (open.status === "rejected" || open.status === "skipped") && this.dropRefusedEntry(open)) this.save();
+    // Track B, the Strategy Mirror: its own file, its own state. Nothing the funded track does can change it.
+    this.mirrorFile = join(cfg.dataDir, `mirror-${cfg.symbol}-${cfg.intervalMin}m.json`);
+    this.mirror = cfg.mirror ? this.loadMirror() : null;
+  }
+
+  loadMirror() {
+    if (!existsSync(this.mirrorFile)) return null;
+    const m = JSON.parse(readFileSync(this.mirrorFile, "utf8"));
+    if (m.version === MIRROR_STATE_VERSION && m.inputsHash === inputsHash(this.cfg)) return m;
+    // Different strategy inputs are a different mirror account: keep the old file, start a new one.
+    const keep = `${this.mirrorFile}.superseded-${iso(this.now()).replace(/:/g, "-")}`;
+    renameSync(this.mirrorFile, keep);
+    this.log(`[engine] mirror state was made with different settings; kept as ${keep}, starting a new mirror account`);
+    return null;
+  }
+
+  saveMirror() {
+    if (!this.mirror) return;
+    const tmp = `${this.mirrorFile}.tmp`;
+    writeFileSync(tmp, JSON.stringify(this.mirror));
+    renameSync(tmp, this.mirrorFile);
+  }
+
+  mirrorCtx(nowMs) {
+    const risk = this.state?.settings?.riskUSD;
+    return {
+      nowMs, lateMs: this.cfg.lateBars * this.step, symbol: this.cfg.symbol, intervalMin: this.cfg.intervalMin,
+      inputs: { ...this.cfg.inputs, ...(typeof risk === "number" ? { riskUSD: risk } : {}) }, pivotTies: this.cfg.pivotTies,
+      inputsHash: inputsHash(this.cfg),
+    };
+  }
+
+  /**
+   * Feeds the mirror every candle of this poll it has not seen yet. A failure here is recorded and reported; it never
+   * stops or changes the funded track.
+   */
+  stepMirror(candles, nowMs) {
+    const ctx = this.mirrorCtx(nowMs);
+    if (!this.mirror) {
+      this.mirror = createMirror(ctx);
+      this.audit({ type: "mirror_created", account_id: this.mirror.accountId });
+    }
+    const M = this.mirror;
+    try {
+      const last = M.strategy.lastTime;
+      const mine = candles.filter((k) => last === null || k.t > last);
+      if (last !== null && mine.length && mine[0].t > last + this.step) {
+        const missing = Math.round((mine[0].t - last) / this.step) - 1;
+        const reason = `gap of ${missing} candles after ${iso(last)}`;
+        const open = !!M.strategy.broker.pos;
+        resetForGap(M, ctx, reason);
+        this.audit({ type: "mirror_reset", reason, open_position_interrupted: open });
+        this.log(`[engine] mirror: ${reason}; fresh warm-up${open ? ", open hypothetical position recorded as interrupted" : ""}`);
+      }
+      for (const k of mine) mirrorStep(M, k, ctx);
+      if (M.activatedAt === null && M.candlesProcessed > 0 && activate(M, nowMs)) {
+        this.audit({ type: "mirror_activated", account_id: M.accountId, activated_at: M.activatedAt, warmup_candles: M.candlesProcessed, warmup_trades: M.recordedTrades });
+        this.log(`[engine] mirror activated at ${M.activatedAt} after ${M.candlesProcessed} warm-up candle(s); later candles are live observations`);
+      }
+      M.lastError = null;
+    } catch (e) {
+      M.lastError = { at: iso(nowMs), where: "mirror", message: String(e.message ?? e).slice(0, 240) };
+      this.audit({ type: "mirror_error", where: "mirror", message: M.lastError.message });
+      this.log(`[engine] mirror error: ${M.lastError.message}`);
+    }
+    this.saveMirror();
+  }
+
+  /** What the Worker stores about this mirror account (no secret, no funded-ledger data). */
+  mirrorAccount() {
+    const M = this.mirror;
+    return {
+      account_id: M.accountId, symbol: M.symbol, timeframe: `${M.intervalMin}m`, profile: this.cfg.profile ?? "default",
+      strategy: STRATEGY_NAME, inputs_hash: M.inputsHash, engine_version: ENGINE_VERSION,
+      engine_release: RELEASE.release, engine_commit: RELEASE.commit,
+      created_at: M.createdAt, activated_at: M.activatedAt, last_candle_time: M.lastCandle?.t ?? null,
+      last_candle_close: M.lastCandle?.close ?? null, candles_processed: M.candlesProcessed, risk_usd: M.strategy.inputs.riskUSD,
+      last_seq: M.seq, pending: M.outbox.filter((x) => x.status === "pending").length,
+      refused: M.outbox.filter((x) => x.status === "refused").length,
+      open_position: mirrorPosition(M), resets: M.resets.length, interruptions: M.interruptions,
+      skipped_candles: M.skippedCandles, last_error: M.lastError,
+    };
+  }
+
+  /**
+   * Delivers mirror records in sequence order (idempotent on the Worker by trade id and sequence). A network failure,
+   * timeout or 5xx leaves them pending for the next poll; a record the Worker refuses (conflict, invalid) is kept and
+   * reported as a divergence, never dropped silently. Independent of the funded outbox.
+   */
+  async flushMirror() {
+    const M = this.mirror;
+    if (!M || !this.cfg.sync) return;
+    for (let round = 0; round < 20; round++) {
+      const batch = M.outbox.filter((x) => x.status === "pending").slice(0, 100);
+      let status = 0, body = {};
+      try {
+        const r = await this.http(`${this.cfg.apiBase}/webhook/engine-mirror`, {
+          method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(20_000),
+          body: JSON.stringify({ secret: this.cfg.webhookSecret, account: this.mirrorAccount(), items: batch.map(({ status: _s, attempts: _a, refused_code: _c, refused_reason: _r, ...x }) => x) }),
+        });
+        status = r.status;
+        body = await r.json().catch(() => ({}));
+      } catch (e) {
+        for (const it of batch) it.attempts += 1;
+        M.lastError = { at: iso(this.now()), where: "mirror-sync", message: String(e.message ?? e).slice(0, 240) };
+        break;
+      }
+      if (status !== 200 || body.ok !== true) {
+        for (const it of batch) it.attempts += 1;
+        M.lastError = { at: iso(this.now()), where: "mirror-sync", message: `${body.code ?? `HTTP_${status}`} ${body.message ?? ""}`.trim().slice(0, 240) };
+        break;
+      }
+      const results = new Map((Array.isArray(body.results) ? body.results : []).map((x) => [x.seq, x]));
+      let done = 0;
+      for (const it of batch) {
+        const res = results.get(it.seq);
+        if (!res) continue; // not acknowledged: stays pending
+        if (res.status === "stored" || res.status === "duplicate") {
+          it.status = "delivered";
+          M.delivered += 1;
+          M.lastDeliveredSeq = Math.max(M.lastDeliveredSeq, it.seq);
+          done += 1;
+        } else {
+          // Kept with the Worker's answer under separate names (the record's own fields stay untouched).
+          Object.assign(it, { status: "refused", refused_code: String(res.code ?? "REFUSED"), refused_reason: String(res.message ?? "").slice(0, 240) });
+          this.audit({ type: "mirror_divergence", seq: it.seq, id: it.trade_id ?? it.event_id, code: it.refused_code, reason: it.refused_reason });
+          this.log(`[engine] mirror record ${it.seq} refused by ALPHA TERMINAL (${it.refused_code}): ${it.refused_reason}`);
+        }
+      }
+      M.health = body.account && typeof body.account === "object" ? { ...body.account, at: iso(this.now()) } : null;
+      M.lastError = null;
+      M.outbox = M.outbox.filter((x) => x.status !== "delivered");
+      const refused = M.outbox.filter((x) => x.status === "refused");
+      if (refused.length > 50) M.outbox = M.outbox.filter((x) => x.status !== "refused" || refused.slice(-50).includes(x));
+      if (done < batch.length || !M.outbox.some((x) => x.status === "pending")) break;
+    }
+    this.saveMirror();
   }
 
   load() {
@@ -122,6 +270,8 @@ export class EngineRunner {
     const previous = S.strategy.inputs.riskUSD;
     S.settings = { version, riskUSD: risk, appliedAt: iso(this.now()) };
     S.strategy.inputs.riskUSD = risk;
+    // The mirror follows the strategy's risk input too (new entries only); each mirror trade records its own risk.
+    if (this.mirror) { this.mirror.strategy.inputs.riskUSD = risk; this.saveMirror(); }
     this.save();
     this.audit({ type: "settings_applied", version, risk_usd: risk, previous_risk_usd: previous, open_position: !!S.strategy.broker.pos });
     this.log(`[engine] risk per trade ${previous} -> ${risk} (website version ${version}); new entries only`);
@@ -160,9 +310,15 @@ export class EngineRunner {
     await this.prepareSizing();
     // The first batch after a (re)start from scratch is warm-up history: processed, never sent.
     const warmup = S.warmedUpAt === null;
-    let candles;
+    let candles, all;
+    // With the mirror on, fetch from whichever track is further behind (a new mirror warms up on Kraken's history);
+    // the funded track still processes only the candles after its own last one, exactly as without the mirror.
+    const mirrorLast = this.cfg.mirror ? (this.mirror ? this.mirror.strategy.lastTime : null) : undefined;
+    const sinceMs = mirrorLast === undefined ? S.strategy.lastTime
+      : mirrorLast === null || S.strategy.lastTime === null ? null : Math.min(mirrorLast, S.strategy.lastTime);
     try {
-      candles = await this.fetchCandles({ symbol: this.cfg.symbol, intervalMin: this.cfg.intervalMin, sinceMs: S.strategy.lastTime, base: this.cfg.krakenBase, nowMs });
+      all = await this.fetchCandles({ symbol: this.cfg.symbol, intervalMin: this.cfg.intervalMin, sinceMs, base: this.cfg.krakenBase, nowMs });
+      candles = all.filter((k) => S.strategy.lastTime === null || k.t > S.strategy.lastTime);
     } catch (e) {
       S.lastError = { at: iso(nowMs), where: "market-data", message: String(e.message ?? e) };
       this.log(`[engine] candle fetch failed: ${S.lastError.message}`);
@@ -234,12 +390,14 @@ export class EngineRunner {
         }
       }
     }
+    if (this.cfg.mirror) this.stepMirror(all, nowMs);
     if (warmup) S.warmedUpAt = iso(nowMs);
     this.trimOutbox();
     S.lastError = null;
     this.save();
     if (processed) this.log(`[engine] processed ${processed} candle(s) up to ${S.lastCandle.t}; status: ${S.strategy.status}`);
     await this.flush();
+    if (this.cfg.mirror) await this.flushMirror();
     if (S.lastError) this.audit({ type: "error", ...S.lastError, at: undefined, error_at: S.lastError.at });
     await this.verifyLedger();
     await this.heartbeat();

@@ -1,0 +1,24 @@
+/* Strategy Mirror: the hypothetical label is always visible; categories are visually separate. */
+.mirror-banner { border: 1px solid rgba(255, 178, 87, 0.55); background: rgba(255, 178, 87, 0.1); display: flex; flex-direction: column; gap: 6px; }
+.mirror-banner b { font-size: 13px; letter-spacing: 0.02em; color: #b5650d; }
+.mirror-banner p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
+.mirror-sep { margin: -4px 2px 0; font-size: 12px; color: var(--muted); }
+.mirror-warn { margin: 10px 0 0; padding: 9px 11px; border-radius: var(--r-md); background: rgba(255, 107, 94, 0.15); color: var(--red-hero); font-size: 12px; }
+.mirror-issues { margin: 10px 0 0; padding-left: 18px; font-size: 12px; color: #ffb257; display: flex; flex-direction: column; gap: 4px; }
+.mirror-trade { text-decoration: none; color: inherit; }
+.mirror-trade span { min-width: 0; overflow-wrap: anywhere; }
+.mirror-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; color: inherit; }
+.mirror-link span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.mirror-link i { font-style: normal; font-size: 12px; color: var(--muted); }
+.mirror-link > b { color: var(--orange); font-size: 18px; }
+.list-card .li b i.muted-s { font-weight: 500; font-style: normal; margin-left: 6px; }
+/* Light detail lists inside the charcoal cards: dark text and the light-theme tones, for contrast. */
+.mirror-page .dark-card .list-card { color: var(--ink); }
+.mirror-page .dark-card .list-card .t-pos, .mirror-page .dark-card .list-card .t-ok { color: var(--green); }
+.mirror-page .dark-card .list-card .t-neg, .mirror-page .dark-card .list-card .t-bad { color: var(--red); }
+.mirror-page .dark-card .list-card .t-warn { color: var(--amber); }
+.mirror-page .dark-card .list-card .muted-s { color: var(--muted); }
+/* Phone width: labels shrink and wrap; figures never break in the middle. */
+.mirror-page .li > span { flex-shrink: 1; min-width: 0; }
+.mirror-page .li > b { flex-shrink: 0; white-space: nowrap; overflow-wrap: normal; }
+.mirror-page .li > b.mirror-wrap { white-space: normal; flex-shrink: 1; overflow-wrap: anywhere; }

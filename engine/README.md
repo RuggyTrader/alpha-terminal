@@ -87,6 +87,15 @@ exist. For `compare-tv`, export TradingView's Strategy Tester "List of trades" f
 period with the same inputs. TradingView starts the strategy from its whole chart history, so the first trades of a
 window can differ while state warms up; compare a window that starts some days after the data begins.
 
+## Strategy Mirror (`ENGINE_MIRROR`, off by default)
+
+`ENGINE_MIRROR=on` runs a second, independent copy of the unchanged strategy (`src/mirror.mjs`) on the same completed
+candles. It has its own state file (`mirror-<symbol>-<tf>m.json`), LONG and SHORT, fixed $10 risk and TradingView's
+margin-0 property, and is never dropped when the funded ledger refuses an entry. Its trades go to
+`/webhook/engine-mirror` and are shown on the dashboard's Strategy Mirror page as **hypothetical**, separately from
+funded PAPER. With the mirror off, the funded track is byte-identical (tested). Design, parity and evidence:
+`docs/STRATEGY-MIRROR-V1.md`.
+
 ## SOLUSD 5m profile, TradingView parity and the website simulator
 
 `profiles/solusd-5m.env` holds the user's TradingView inputs for KRAKEN:SOLUSD 5m (`ENGINE_PROFILE=solusd-5m`).

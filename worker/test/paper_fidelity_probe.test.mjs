@@ -1,12 +1,13 @@
 // Why the funded PAPER ledger does not execute the strategy's trades (investigation, 2026-11-10).
 // Replays the live engine's REAL entry sizes (from the production engine state; ids are test ids) against the Worker
-// code deployed as e941387e (commit 8b188c8; the Worker code is unchanged since), on a throwaway local D1 shaped like
+// deployed as e941387e, run exactly as committed at 8b188c8 (test/lib/worker-at.mjs), on a throwaway local D1 shaped like
 // production: schema 4, MAIN $90, SOLUSD $10, PAPER_COST_PROFILE=none from the committed wrangler.jsonc,
 // ENABLE_TRADING=false. Nothing here touches production.
 //   node --test test/paper_fidelity_probe.test.mjs
 // Isolated: port 8806, its own persist dir, Kraken prices from the committed real fixture on 127.0.0.1.
 
 import { execFileSync, spawn } from "node:child_process";
+import { DEPLOYED_REF, workerAt } from "./lib/worker-at.mjs";
 import { randomBytes } from "node:crypto";
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -18,7 +19,7 @@ import { fileURLToPath } from "node:url";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const DIR = join(HERE, "..");
+const DIR = workerAt(DEPLOYED_REF); // the Worker deployed as e941387e, exactly as committed
 const WIN = process.platform === "win32";
 const secret = () => randomBytes(24).toString("base64url");
 const WEBHOOK_SECRET = secret(), DASHBOARD_PASSPHRASE = secret(), ADMIN_SECRET = secret();

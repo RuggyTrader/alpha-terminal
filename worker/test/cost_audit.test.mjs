@@ -8,6 +8,7 @@
 //   node --test test/cost_audit.test.mjs
 
 import { execFileSync, spawn } from "node:child_process";
+import { DEPLOYED_REF, workerAt } from "./lib/worker-at.mjs";
 import { randomBytes } from "node:crypto";
 import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
@@ -44,6 +45,8 @@ const fixture = http.createServer((req, res) => {
 
 const work = mkdtempSync(join(tmpdir(), "alpha-cost-audit-"));
 const OLD_DIR = join(work, "old", "worker");
+// Migrations as released with 0004 (the deployed commit): 0005 and later are covered by their own tests.
+const REL_0004 = workerAt(DEPLOYED_REF);
 const persist = join(work, "d1");
 function extractProduction() {
   // Every tracked file of worker/ at the production commit, written out without touching this checkout.
@@ -220,7 +223,7 @@ describe("1. production Worker (cde07af) on schema 3 creates the prior data", ()
 
 describe("2. migration 0004 on that data", () => {
   it("applies once through wrangler; every prior row, id, key, amount and index is unchanged", () => {
-    const out = wrangler(NEW_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
+    const out = wrangler(REL_0004, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
     assert.match(out, /0004_paper_execution_costs/);
     assert.equal(d1(`SELECT value FROM app_meta WHERE key = 'schema_version'`)[0].value, "4");
     assert.deepEqual(d1(`SELECT * FROM portfolio_entries ORDER BY id`), before3.entries);
@@ -242,7 +245,7 @@ describe("2. migration 0004 on that data", () => {
 
   it("re-applying through wrangler is a no-op", () => {
     const snap = portfolioSnapshot();
-    const out = wrangler(NEW_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
+    const out = wrangler(REL_0004, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
     assert.match(out, /No migrations to apply/i);
     assert.equal(portfolioSnapshot(), snap);
   });

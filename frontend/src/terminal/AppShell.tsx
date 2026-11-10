@@ -99,7 +99,8 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
 ];
 
 function activeIndex(pathname: string): number {
-  const seg = "/" + (pathname.split("/")[1] ?? "");
+  const first = pathname.split("/")[1] ?? "";
+  const seg = "/" + (first === "mirror" ? "engine" : first); // the Strategy Mirror is reached from the Engine page
   const i = NAV.findIndex((n) => n.to === seg);
   return i < 0 ? 0 : i;
 }

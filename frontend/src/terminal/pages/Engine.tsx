@@ -5,6 +5,7 @@ import { engineTone } from "../classify";
 import { AlphaGlobe } from "../components/AlphaGlobe";
 import { EngineBotCard } from "../components/EngineBotCard";
 import { SystemHealthCard } from "../components/SystemHealth";
+import { MirrorLinkCard } from "./Mirror";
 import { EmptyState, SectionHeader, StatusBadge } from "../components/ui";
 import { candleAgeSeconds } from "../health";
 import { money, NA, price, stamp, when } from "../fmt";
@@ -94,6 +95,8 @@ export function EnginePage({ now = Date.now() }: { now?: number }) {
           <Stat k="LIVE TRADING" v={d ? (d.enable_trading || d.broker_submission ? "ON" : "OFF") : NA} tone={d?.enable_trading || d?.broker_submission ? "neg" : undefined} />
         </div>
       </section>
+
+      <MirrorLinkCard />
 
       {d && (d.enable_trading || d.broker_submission || d.execution !== "DRY_RUN_ONLY") ? (
         <EmptyState title="Non-dry-run setting reported" tone="bad">Check the Worker configuration.</EmptyState>

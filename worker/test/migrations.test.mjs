@@ -14,9 +14,48 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 to 0004", () => {
+  it("are exactly 0001 to 0005", () => {
     assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
-      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql"]);
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql"]);
+  });
+
+  it("0005 (Strategy Mirror) only adds tables: every existing table and row is unchanged; its constraints hold", () => {
+    const db = new DatabaseSync(":memory:");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql"]) db.exec(sql(f));
+    const now = "2026-11-10T00:00:00Z";
+    db.prepare("UPDATE portfolio_wallets SET available_micro = 90000000, net_funding_micro = 90000000 WHERE wallet = 'MAIN'").run();
+    db.prepare("UPDATE portfolio_wallets SET available_micro = 10000000, net_funding_micro = 10000000 WHERE wallet = 'SOLUSD'").run();
+    db.prepare("INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, note) VALUES ('d', 'd', ?, 'DEPOSIT', 'MAIN', 100000000, 0, 'x')").run(now);
+    const tables = () => db.prepare("SELECT name, sql FROM sqlite_master WHERE type IN ('table', 'index') AND name NOT LIKE 'mirror_%' AND name NOT LIKE 'idx_mirror_%' AND name NOT LIKE 'sqlite_autoindex_mirror_%' ORDER BY name").all().map((r) => ({ ...r }));
+    const dump = () => Object.fromEntries(tables().filter((t) => t.sql && !t.name.startsWith("sqlite_") && t.sql.startsWith("CREATE TABLE")).map((t) => [t.name, db.prepare(`SELECT * FROM ${t.name}`).all().map((r) => ({ ...r }))]));
+    const schemaBefore = tables(), rowsBefore = dump();
+    db.exec(sql("0005_strategy_mirror.sql"));
+    assert.deepEqual(tables(), schemaBefore, "no existing table or index definition changed");
+    const after = dump();
+    after.app_meta = after.app_meta.filter((r) => r.key !== "schema_version");
+    rowsBefore.app_meta = rowsBefore.app_meta.filter((r) => r.key !== "schema_version");
+    assert.deepEqual(after, rowsBefore, "no existing row changed");
+    assert.equal(db.prepare(`SELECT value FROM app_meta WHERE key = 'schema_version'`).get().value, "5");
+    assert.deepEqual(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'mirror_%' ORDER BY name").all().map((r) => r.name), ["mirror_accounts", "mirror_entries", "mirror_trades"]);
+    db.prepare("INSERT INTO mirror_accounts (account_id, symbol, timeframe, inputs_hash, created_at, updated_at) VALUES ('A', 'SOLUSD', '5m', 'ab', ?, ?)").run(now, now);
+    assert.equal(db.prepare("SELECT reporting_equity_usd, cost_profile FROM mirror_accounts").get().cost_profile, "ndax");
+    const trade = db.prepare(`INSERT INTO mirror_trades (account_id, trade_id, seq, side, qty, entry_time, entry_price, exit_time, exit_price, exit_kind, result, gross_pnl,
+      notional_usd, entry_liquidity, exit_liquidity, cost_profile, est_fees, est_slippage, net_modelled_pnl, classification, exit_candle_json, processed_at, received_at, inputs_hash, payload_hash)
+      VALUES ('A', ?, ?, ?, 1, ?, 100, ?, 101, 'TP', 'TP2', 1, 100, 'maker', 'maker', 'ndax', 0.4, 0, 0.6, ?, '{}', ?, ?, 'ab', 'h')`);
+    trade.run("T1", 1, "LONG", now, now, "live", now, now);
+    assert.throws(() => trade.run("T1", 2, "LONG", now, now, "live", now, now), /UNIQUE/, "trade id is unique within an account");
+    db.prepare("INSERT INTO mirror_accounts (account_id, symbol, timeframe, inputs_hash, created_at, updated_at) VALUES ('B', 'SOLUSD', '5m', 'cd', ?, ?)").run(now, now);
+    db.prepare(`INSERT INTO mirror_trades (account_id, trade_id, seq, side, qty, entry_time, entry_price, exit_time, exit_price, exit_kind, result, gross_pnl,
+      notional_usd, entry_liquidity, exit_liquidity, cost_profile, est_fees, est_slippage, net_modelled_pnl, classification, exit_candle_json, processed_at, received_at, inputs_hash, payload_hash)
+      VALUES ('B', 'T1', 1, 'LONG', 1, ?, 100, ?, 101, 'TP', 'TP2', 1, 100, 'maker', 'maker', 'ndax', 0.4, 0, 0.6, 'live', '{}', ?, ?, 'cd', 'h')`).run(now, now, now, now); // same id, another account
+    assert.throws(() => trade.run("T2", 1, "LONG", now, now, "live", now, now), /UNIQUE/, "sequence is unique per account");
+    assert.throws(() => trade.run("T3", 3, "BOTH", now, now, "live", now, now), /CHECK/);
+    assert.throws(() => trade.run("T4", 4, "SHORT", now, now, "funded", now, now), /CHECK/, "only historical, catch_up or live");
+    const e = db.prepare("INSERT INTO mirror_entries (account_id, entry_key, seq, kind, amount_usd, classification, created_at) VALUES ('A', ?, ?, ?, ?, 'live', ?)");
+    assert.throws(() => e.run("EVENT:x", 5, "POSITION_INTERRUPTED", 3, now), /CHECK/, "an interruption carries no P&L");
+    assert.throws(() => e.run("FEE:x", null, "FEE", -1, now), /CHECK/, "no fee entries in the mirror journal");
+    // The funded ledger is untouched by mirror rows.
+    assert.deepEqual(db.prepare("SELECT wallet, available_micro FROM portfolio_wallets WHERE wallet IN ('MAIN', 'SOLUSD') ORDER BY wallet").all().map((r) => [r.wallet, r.available_micro]), [["MAIN", 90000000], ["SOLUSD", 10000000]]);
   });
 
   it("0002 applies on top of 0001 with existing rows, and does not label legacy trades ALPHA PAPER", () => {

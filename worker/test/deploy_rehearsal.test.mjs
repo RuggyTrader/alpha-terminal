@@ -8,6 +8,7 @@
 //   node --test test/deploy_rehearsal.test.mjs
 
 import { execFileSync, spawn } from "node:child_process";
+import { DEPLOYED_REF, workerAt } from "./lib/worker-at.mjs";
 import { randomBytes } from "node:crypto";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -135,7 +136,7 @@ describe("planned production Worker deployment, rehearsed", () => {
   });
 
   it("2. migration 0004: schema 4, every existing row and balance unchanged, no FEE entry", () => {
-    wrangler(DEV_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
+    wrangler(workerAt(DEPLOYED_REF), ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]); // 0004 as deployed
     assert.equal(d1("SELECT value FROM app_meta WHERE key = 'schema_version'")[0].value, "4");
     const strip = (j) => JSON.stringify(JSON.parse(j).map((t, i) => (i === 0 ? t.map(({ fees_micro, ...w }) => w) : t)));
     assert.equal(strip(books()), strip(prior));

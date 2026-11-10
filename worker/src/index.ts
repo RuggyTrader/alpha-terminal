@@ -1,3 +1,4 @@
+import { handleEngineMirror } from "./mirror";
 import {
   createDryRunOrder,
   simulateUnknownState,
@@ -1414,6 +1415,11 @@ export default {
         request,
         env
       );
+    }
+
+    // Strategy Mirror: hypothetical trades of the original strategy (margin 0), stored apart from the funded ledger.
+    if (url.pathname === "/webhook/engine-mirror" && request.method === "POST") {
+      return handleEngineMirror(request, env);
     }
 
     // Verified engine backtest uploaded for the dashboard's risk simulator (cache only, no trading).

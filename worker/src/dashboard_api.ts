@@ -1,3 +1,4 @@
+import { mirrorDashboard, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
   alpacaGet,
   asArray,
@@ -1247,6 +1248,25 @@ export async function handleDashboardApi(
       if (!Number.isInteger(id) || id <= 0) return json({ ok: false, code: "INVALID_ID", message: "id must be a positive integer" }, 400);
       const proof = await getTradeProof(env, id);
       return proof ? json({ ok: true, data: proof }) : json({ ok: false, code: "NOT_FOUND", message: `trade ${id} not found` }, 404);
+    }
+
+    // Strategy Mirror (hypothetical, margin 0): summary by category, trade list, and one trade's proof.
+    if (pathname === "/api/dashboard/mirror") {
+      return json({ ok: true, data: await mirrorDashboard(env.DB, searchParams) });
+    }
+    if (pathname === "/api/dashboard/mirror/trades") {
+      try {
+        return json({ ok: true, data: await mirrorTrades(env.DB, searchParams) });
+      } catch (e) {
+        if ((e as { code?: string }).code === "INVALID_CATEGORY") return json({ ok: false, code: "INVALID_CATEGORY", message: (e as Error).message }, 400);
+        throw e;
+      }
+    }
+    if (pathname === "/api/dashboard/mirror/trade") {
+      const id = searchParams.get("id") ?? "";
+      if (!/^MIR-[A-Z0-9]+-\d{1,3}-\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ-(LONG|SHORT)$/.test(id)) return json({ ok: false, code: "INVALID_ID", message: "id must be a mirror trade id" }, 400);
+      const proof = await mirrorTradeProof(env.DB, id, searchParams.get("account"));
+      return proof ? json({ ok: true, data: proof }) : json({ ok: false, code: "NOT_FOUND", message: `mirror trade ${id} not found` }, 404);
     }
 
     if (pathname === "/api/dashboard/backtest") {

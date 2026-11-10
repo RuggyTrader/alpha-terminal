@@ -10,6 +10,7 @@ import { TradesPage } from "./pages/Trades";
 import { PerformancePage } from "./pages/Performance";
 import { TradeProofPage } from "./pages/TradeProof";
 import { DashboardProvider } from "./store";
+import { MirrorPage, MirrorTradePage } from "./pages/Mirror";
 
 /** Page routes, shared by the app and tests (tests supply their own router). */
 export function TerminalRoutes(): ReactNode {
@@ -21,6 +22,8 @@ export function TerminalRoutes(): ReactNode {
         <Route path="/trades/:id" element={<TradeProofPage />} />
         <Route path="/performance" element={<PerformancePage />} />
         <Route path="/engine" element={<EnginePage />} />
+        <Route path="/mirror" element={<MirrorPage />} />
+        <Route path="/mirror/trade/:id" element={<MirrorTradePage />} />
         <Route path="/portfolio" element={<PortfolioPage />} />
         <Route path="/portfolio/:symbol" element={<StrategyPage />} />
         <Route path="/activity" element={<ActivityPage />} />

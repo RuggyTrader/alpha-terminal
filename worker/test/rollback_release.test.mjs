@@ -9,6 +9,7 @@
 //   node --test test/rollback_release.test.mjs        (ROLLBACK_REF=<commit> to test another build)
 
 import { execFileSync, spawn } from "node:child_process";
+import { DEPLOYED_REF, workerAt } from "./lib/worker-at.mjs";
 import { randomBytes } from "node:crypto";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import http from "node:http";
@@ -209,7 +210,7 @@ describe("1. production code, schema 3: prior data", () => {
 describe("2. interrupted rollout: migration 0004 applied, production code still running", () => {
   after(stop);
   it("before any fee exists the production code stays consistent on schema 4 and keeps trading", async () => {
-    wrangler(DEV_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
+    wrangler(workerAt(DEPLOYED_REF), ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]); // 0004 as released
     assert.equal(d1(`SELECT value FROM app_meta WHERE key = 'schema_version'`)[0].value, "4");
     await start(PROD_DIR);
     assert.equal((await dashboard()).portfolio.consistency.ok, true);

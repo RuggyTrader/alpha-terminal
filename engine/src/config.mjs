@@ -84,6 +84,13 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
     krakenBase: get("KRAKEN_API_BASE", ""),
     // Take the risk per trade set on the ALPHA TERMINAL website (versioned, confirmed back). Off by default.
     remoteSettings: get("ENGINE_REMOTE_SETTINGS", "off") === "on",
+    // Strategy Mirror (src/mirror.mjs): an independent, hypothetical copy of the strategy with margin-0 semantics,
+    // reported separately from the funded ledger. Off by default: turning it on is a deliberate activation.
+    mirror: (() => {
+      const v = get("ENGINE_MIRROR", "off");
+      if (!["on", "off"].includes(v)) throw new Error("ENGINE_MIRROR must be on or off");
+      return v === "on";
+    })(),
     // Conservative limit fills: a resting limit order fills only when price trades this many ticks THROUGH it (a touch
     // may stay unfilled in the queue). 0 (default) keeps the TradingView emulator rule unchanged.
     limitThroughTicks: (() => {
