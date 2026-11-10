@@ -51,6 +51,14 @@ function HealthCard({ s }: { s: MirrorSummary }) {
         <div className="li"><span>Engine release · inputs</span><b className="mirror-wrap">{a ? `${a.engine_release ?? "development"} · ${a.inputs_hash}` : NA}</b></div>
       </div>
       {s.health.issues.length ? <ul className="mirror-issues">{s.health.issues.map((i) => <li key={i}>{i}</li>)}</ul> : null}
+      {s.health.observation_gaps?.length ? (
+        <div className="mirror-gaps" aria-label="Observation gaps">
+          <b>Observation gaps</b>
+          <p>The engine processed these candles late, so they were not observed live. Trades from them are listed under Catch-up, never Live.</p>
+          <ul>{s.health.observation_gaps.map((g) => <li key={`${g.from}-${g.to}`}>{stamp(g.from)} → {stamp(g.to)} · {g.candles ?? NA} candles · processed {g.processed_at ? stamp(g.processed_at) : NA}</li>)}</ul>
+        </div>
+      ) : null}
+      {s.health.no_trade_intervals ? <p className="proof-note mirror-dim">{s.health.no_trade_intervals} interval(s) without any Kraken trade: no bar, as on TradingView.</p> : null}
     </section>
   );
 }

@@ -352,7 +352,7 @@ describe("candles: repeated, out of order, late, missing; no lookahead", () => {
   });
 
   it("a real data gap: fresh warm-up, an open hypothetical position is recorded as POSITION_INTERRUPTED (no exit, no P&L)", async () => {
-    // Find a candle where the mirror holds a position, then make the next 30 candles unavailable (beyond Kraken's history).
+    // Find a candle where the mirror holds a position; the engine then stays down past Kraken's history and 30 candles are lost.
     let cut = null;
     const ctx = { nowMs: 0, lateMs: 2 * STEP, symbol: "SOLUSD", intervalMin: 5, inputs: P5.inputs, inputsHash: "0123456789abcdef" };
     const M = createMirror({ ...ctx, nowMs: C720[0].t });
@@ -367,6 +367,7 @@ describe("candles: repeated, out of order, late, missing; no lookahead", () => {
     await r.tick();
     assert.ok(r.mirror.strategy.broker.pos, "open position before the gap");
     h.visible = cut + missing + 5;
+    h.clockMs = C720[cut - 1].t + 800 * STEP; // down for more than Kraken's 720-candle history: the missing candles are gone
     await r.tick();
     const ev = h.worker.stored.filter((x) => x.type === "POSITION_INTERRUPTED");
     assert.equal(ev.length, 1);
@@ -375,6 +376,69 @@ describe("candles: repeated, out of order, late, missing; no lookahead", () => {
     assert.equal(h.worker.stored.filter((x) => x.type === "TRADE" && x.trade_id === ev[0].trade_id).length, 0, "the interrupted position has no invented exit");
     assert.ok(h.audit().some((a) => a.type === "mirror_reset" && a.open_position_interrupted === true));
     assert.equal(r.mirror.activatedAt !== null, true, "activation is not reset");
+  });
+
+  it("an interval without trades inside Kraken's window is no bar (as on TradingView): no reset, nothing interrupted", async () => {
+    const drop = WARM + 120; // Kraken serves no candle for this interval (n = 0 rows are dropped by the fetch)
+    const without = C720.filter((_, i) => i !== drop);
+    const h = harness({ visible: WARM, feed: async (hh, { sinceMs }) => C720.slice(0, hh.visible).filter((k, i) => i !== drop && (sinceMs === null || k.t > sinceMs)) });
+    const r = h.make();
+    await r.tick();
+    await runLive(h, r);
+    assert.equal(r.mirror.resets.length, 0);
+    assert.equal(r.mirror.interruptions, 0);
+    assert.ok(r.mirror.noTradeIntervals >= 1);
+    const ref = runBacktest({ candles: without, symbol: "SOLUSD", intervalMin: 5, inputs: P5.inputs }).trades;
+    assert.deepEqual(h.worker.stored.filter((x) => x.type === "TRADE").map(mkey), ref.map(key), "same trades as the history without that bar");
+    // Pre-existing funded-track behaviour, deliberately unchanged here: it re-warms when the next candle is not adjacent.
+    assert.ok(h.audit().some((a) => a.type === "reset"), "funded track: unchanged re-warm on a missing interval (reported, not fixed)");
+  });
+
+  it("replica of the 2026-11-10 outage (engine down 17 hours): one observation gap, trades catch_up, no reset, live again after", async () => {
+    const h = harness({ visible: WARM });
+    const r = h.make();
+    await r.tick();
+    await runLive(h, r, WARM + 40);
+    const before = h.visible;
+    h.visible = before + 204; // 17 hours of 5-minute candles, still inside Kraken's 720-candle history
+    await r.tick();
+    await runLive(h, r);
+    const gaps = r.mirror.observationGaps;
+    assert.equal(gaps.length, 1);
+    // The newest 2 candles of the catch-up closed within ENGINE_LATE_BARS (2) of processing: observed on time.
+    assert.equal(gaps[0].candles, 202);
+    assert.equal(gaps[0].from, iso(C720[before].t));
+    assert.equal(gaps[0].to, iso(C720[before + 201].t));
+    assert.equal(r.mirror.resets.length, 0);
+    const stored = h.worker.stored.filter((x) => x.type === "TRADE");
+    const inGap = (t) => Date.parse(t.entry_time) >= C720[before].t && Date.parse(t.entry_time) <= C720[before + 201].t;
+    assert.ok(stored.filter(inGap).length > 0, "trades during the outage are kept");
+    assert.ok(stored.filter(inGap).every((t) => t.classification === "catch_up"), "never live");
+    assert.ok(stored.filter((t) => Date.parse(t.entry_time) > C720[before + 205].t).every((t) => t.classification === "live"));
+    assert.deepEqual(h.worker.accounts.at(-1).observation_gaps.map((g) => g.candles), [202], "the gap is reported to the Worker");
+  });
+
+  it("delivery is bounded (at most 25 records per request) and throttled (about one request per candle, not per poll)", async () => {
+    const h = harness({ visible: WARM, worker: fakeMirrorWorker() });
+    h.worker.mode = "down";
+    const r = h.make();
+    await r.tick(); // warm-up records stay pending while the Worker is down
+    await runLive(h, r, WARM + 300);
+    h.worker.mode = "up";
+    await r.tick();
+    const posts = h.sent.filter((s) => s.url.endsWith("/engine-mirror"));
+    assert.ok(posts.every((p) => p.body.items.length <= 25));
+    assert.equal(r.mirror.outbox.length, 0, "the backlog was delivered in bounded requests");
+    const n = () => h.sent.filter((s) => s.url.endsWith("/engine-mirror")).length;
+    const a = n();
+    await r.tick(); await r.tick(); await r.tick(); // three more polls, no new candle
+    assert.equal(n(), a, "no request without new records or a new candle");
+    h.visible += 1;
+    await r.tick();
+    assert.equal(n(), a + 1, "one request for the new candle");
+    h.clockMs = h.now() + 16 * 60_000;
+    await r.tick();
+    assert.equal(n(), a + 2, "a health report after 15 minutes without a candle");
   });
 
   it("no lookahead: everything decided up to a candle is identical whether or not later candles exist", () => {

@@ -61,7 +61,13 @@ export interface MirrorSummary {
     candles_processed: number | null; risk_usd: number | null; reporting_equity_usd: number; margin: string;
   } | null;
   cost_model: { id: string; name: string; maker_pct: number; taker_pct: number; taker_slippage_pct: number; fee_source: string; slippage_source: string; caveat: string | null; note: string } | null;
-  health: { state: "OK" | "DEGRADED" | "DIVERGED" | "STALE" | "NOT_ACTIVE"; issues: string[]; last_seen_age_seconds?: number | null; pending?: number | null; last_contiguous_seq?: number; max_seq_seen?: number };
+  health: {
+    state: "OK" | "DEGRADED" | "DIVERGED" | "STALE" | "NOT_ACTIVE"; issues: string[]; last_seen_age_seconds?: number | null; pending?: number | null;
+    last_contiguous_seq?: number; max_seq_seen?: number;
+    /** Spans after activation that the engine processed late (engine down, catch-up). Their trades are catch_up, not live. */
+    observation_gaps?: { from: string; to: string; candles: number | null; processed_at: string | null }[];
+    no_trade_intervals?: number;
+  };
   reconciliation?: { ok: boolean; journal_entries: number; journal_total: number; trades: number; trades_gross: number; issues: string[] };
   categories: Record<MirrorCategory, MirrorMetrics> | null;
   open_position: MirrorPosition | null;

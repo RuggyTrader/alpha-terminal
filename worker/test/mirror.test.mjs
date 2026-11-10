@@ -117,7 +117,13 @@ const postJson = async (path, body) => {
   const r = await fetch(`${BASE}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   return { http: r.status, ...(await r.json()) };
 };
-const mirrorPost = (account, items, s = WEBHOOK_SECRET) => postJson("/webhook/engine-mirror", { secret: s, account, items });
+// Every mirror response reports how many D1 queries it used; the suite checks the Workers Free bound (50) with margin.
+const QUERY_COUNTS = [];
+const mirrorPost = async (account, items, s = WEBHOOK_SECRET) => {
+  const r = await postJson("/webhook/engine-mirror", { secret: s, account, items });
+  if (typeof r.d1_queries === "number") QUERY_COUNTS.push(r.d1_queries);
+  return r;
+};
 const signal = (id, action, qty) => ({ secret: WEBHOOK_SECRET, id, symbol: "SOLUSD", timeframe: "5", action, strategy: "OTE Pro Strat (engine)", ...(qty === undefined ? {} : { qty }), timestamp: new Date().toISOString(), liquidity: "maker" });
 
 /** Every funded table, every row: the books the mirror must never touch. */
@@ -193,14 +199,14 @@ describe("Strategy Mirror on the Worker", () => {
   });
 
   it("the 150-day mirror (579 trades) is stored once; a full re-delivery is all duplicates", async () => {
-    for (let i = 0; i < ITEMS.length; i += 100) {
-      const r = await mirrorPost(account(), ITEMS.slice(i, i + 100));
+    for (let i = 0; i < ITEMS.length; i += 25) {
+      const r = await mirrorPost(account(), ITEMS.slice(i, i + 25));
       assert.equal(r.http, 200);
       assert.ok(r.results.every((x) => x.status === "stored"), JSON.stringify(r.results.find((x) => x.status !== "stored")));
     }
     assert.equal(d1("SELECT COUNT(*) AS n FROM mirror_trades WHERE account_id = ?", account().account_id)[0].n, 579);
-    for (let i = 0; i < ITEMS.length; i += 200) {
-      const r = await mirrorPost(account(), ITEMS.slice(i, i + 200));
+    for (let i = 0; i < ITEMS.length; i += 25) {
+      const r = await mirrorPost(account(), ITEMS.slice(i, i + 25));
       assert.ok(r.results.every((x) => x.status === "duplicate"));
       assert.deepEqual([r.account.last_contiguous_seq, r.account.max_seq_seen, r.account.missing], [579, 579, 0]);
     }
@@ -290,6 +296,57 @@ describe("Strategy Mirror on the Worker", () => {
     assert.ok(m.health.issues.some((i) => /interrupted/.test(i)));
     assert.equal(m.interruptions.length, 1);
     assert.equal(d1("SELECT COUNT(*) AS n FROM mirror_entries WHERE kind = 'POSITION_INTERRUPTED' AND amount_usd <> 0")[0].n, 0, "no P&L for an interruption");
+  });
+
+  it("Workers Free bounds: at most 25 records per request; every request used at most 9 D1 queries (limit 50)", async () => {
+    const r = await mirrorPost(account(), ITEMS.slice(0, 26));
+    assert.deepEqual([r.http, r.code], [400, "INVALID_ITEMS"]);
+    // A worst-case mixed request: 25 records, new + duplicate + conflicting + invalid, in one call.
+    const acc = account({ inputs_hash: "dddddddddddddddd", account_id: "MIRROR-SOLUSD-5m-dddddddddddddddd" });
+    const fresh = ITEMS.slice(100, 125);
+    const first = await mirrorPost(acc, fresh.slice(0, 10));
+    assert.ok(first.results.every((x) => x.status === "stored"));
+    const mixed = [...fresh.slice(0, 5), { ...fresh[5], exit_r: 42 }, ...fresh.slice(10, 22), { ...fresh[22], gross_pnl: 1e6 }, { ...fresh[23], seq: fresh[0].seq }, fresh[24]];
+    const m = await mirrorPost(acc, mixed);
+    assert.equal(m.http, 200);
+    assert.ok(m.d1_queries <= 9, `used ${m.d1_queries} queries`);
+    const by = (st) => m.results.filter((x) => x.status === st).length;
+    assert.deepEqual([by("duplicate"), by("conflict"), by("invalid"), by("stored")], [5, 2, 1, 13]);
+    assert.ok(QUERY_COUNTS.length > 30 && Math.max(...QUERY_COUNTS) <= 9, `max ${Math.max(...QUERY_COUNTS)} over ${QUERY_COUNTS.length} requests`);
+  });
+
+  it("dashboard with thousands of trades: 5,000+ stored in bounded requests; summary served, figures exact, response size measured", async () => {
+    const acc = account({ inputs_hash: "eeeeeeeeeeeeeeee", account_id: "MIRROR-SOLUSD-5m-eeeeeeeeeeeeeeee" });
+    const shift = (iso, k) => new Date(Date.parse(iso) + k * 150 * 86_400_000).toISOString().replace(".000Z", "Z");
+    const copies = 9;
+    const many = [];
+    for (let k = 0; k < copies; k++) {
+      for (const t of ITEMS) {
+        const e = shift(t.entry_time, k), x = shift(t.exit_time, k);
+        many.push({ ...t, seq: k * ITEMS.length + t.seq, trade_id: t.trade_id.replace(t.entry_time, e), entry_time: e, exit_time: x,
+          entry_candle: { ...t.entry_candle, t: e }, exit_candle: { ...t.exit_candle, t: x }, processed_at: shift(t.processed_at, k), entry_processed_at: shift(t.entry_processed_at, k) });
+      }
+    }
+    const t0 = Date.now();
+    for (let i = 0; i < many.length; i += 25) {
+      const r = await mirrorPost(acc, many.slice(i, i + 25));
+      assert.ok(r.results.every((x) => x.status === "stored"), JSON.stringify(r.results.find((x) => x.status !== "stored")));
+    }
+    const ingestMs = Date.now() - t0;
+    const t1 = Date.now();
+    if (!cookie) await login();
+    const res = await fetch(`${BASE}/api/dashboard/mirror?account=${acc.account_id}`, { headers: { Cookie: cookie, "X-Alpha-Terminal": "1" } });
+    const text = await res.text();
+    const dashMs = Date.now() - t1;
+    const d = JSON.parse(text).data;
+    assert.equal(d.categories.historical.trades, ITEMS.length * copies);
+    assert.equal(Math.round(d.categories.historical.gross_pnl * 100) / 100, Math.round(150.24 * copies * 100) / 100);
+    assert.equal(d.reconciliation.ok, true);
+    assert.ok(d.categories.historical.curve.length <= 401, "chart points are bounded");
+    assert.ok(text.length < 200_000, `summary ${text.length} bytes`);
+    const list = await get(`/api/dashboard/mirror/trades?account=${acc.account_id}&category=historical&limit=500`);
+    assert.equal(list.trades.length, 500, "trade list is paginated (max 500 per page)");
+    console.log(`# capacity: ${many.length} trades stored in ${Math.ceil(many.length / 25)} requests (${ingestMs} ms locally); dashboard summary ${text.length} bytes in ${dashMs} ms locally`);
   });
 
   it("activation is set once: another activation time for the same account is refused", async () => {

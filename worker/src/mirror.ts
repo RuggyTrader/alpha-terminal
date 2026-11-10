@@ -30,7 +30,9 @@ export const MIRROR_DISCLOSURE =
   "Strategy Mirror trades are the original strategy's own simulated fills on completed Kraken candles (limit orders at their limit price, stops at their stop, TradingView's documented intrabar path), with TradingView's margin-0 property: no buying-power limit and no liquidation. They are not orders, not exchange executions and not funded PAPER results. Cost figures are a comparison model; maker/taker is inferred from order types, not verified against an order book.";
 
 const MAX_BYTES = 1_000_000;
-const MAX_ITEMS = 200;
+// Records per request. Each request uses at most 9 D1 queries whatever its size (Workers Free allows 50); the engine
+// sends at most MIRROR_BATCH (engine/src/runner.mjs) per request.
+const MAX_ITEMS = 25;
 const CATEGORIES = ["historical", "catch_up", "live"] as const;
 type Category = (typeof CATEGORIES)[number];
 const RESULTS = ["TP2", "SL", "BREAK_EVEN", "TRAILING_SL", "TIME_EXIT", "SAME_BAR", "UNLABELLED"];
@@ -84,7 +86,12 @@ function validateAccount(a: unknown): Account | string {
   if (id !== `MIRROR-${symbol}-${timeframe}-${inputs}`) return "account.account_id does not match symbol, timeframe and inputs_hash";
   const op = isObj(a.open_position) ? a.open_position : null;
   const health: Obj = {};
-  for (const k of ["pending", "refused", "resets", "interruptions", "skipped_candles"]) if (fin(a[k])) health[k] = a[k];
+  for (const k of ["pending", "refused", "resets", "interruptions", "skipped_candles", "no_trade_intervals"]) if (fin(a[k])) health[k] = a[k];
+  if (Array.isArray(a.observation_gaps)) {
+    health.observation_gaps = a.observation_gaps.slice(-20).filter(isObj).map((g) => ({
+      from: isoOrNull(g.from), to: isoOrNull(g.to), candles: Number.isInteger(g.candles) ? g.candles : null, processed_at: isoOrNull(g.processed_at),
+    })).filter((g) => g.from && g.to);
+  }
   if (isObj(a.last_error)) health.last_error = { at: isoOrNull(a.last_error.at), where: str(a.last_error.where, 40), message: str(String(a.last_error.message ?? ""), 240) };
   return {
     account_id: id, symbol, timeframe, tfMs: Number(m[1]) * 60_000, profile: str(a.profile, 40), strategy: str(a.strategy, 64),
@@ -188,19 +195,6 @@ export function mirrorCosts(p: CostProfile, t: { side: "LONG" | "SHORT"; qty: nu
 
 type ItemResult = { seq: number | null; id: string | null; status: "stored" | "duplicate" | "conflict" | "invalid"; code?: string; message?: string };
 
-async function existingSeqOwner(db: D1Database, account: string, seq: number): Promise<string | null> {
-  const t = await db.prepare(`SELECT trade_id FROM mirror_trades WHERE account_id = ? AND seq = ?`).bind(account, seq).first<{ trade_id: string }>();
-  if (t) return t.trade_id;
-  const e = await db.prepare(`SELECT entry_key FROM mirror_entries WHERE account_id = ? AND seq = ? AND kind = 'POSITION_INTERRUPTED'`).bind(account, seq).first<{ entry_key: string }>();
-  return e ? e.entry_key : null;
-}
-
-async function conflict(db: D1Database, account: string, r: ItemResult, now: string): Promise<ItemResult> {
-  await db.prepare(`UPDATE mirror_accounts SET conflicts = conflicts + 1, last_conflict_json = ?, updated_at = ? WHERE account_id = ?`)
-    .bind(JSON.stringify({ ...r, at: now }), now, account).run();
-  return r;
-}
-
 export async function handleEngineMirror(request: Request, env: MirrorEnv): Promise<Response> {
   const text = await request.text();
   if (text.length > MAX_BYTES) return json({ ok: false, code: "TOO_LARGE" }, 413);
@@ -243,16 +237,14 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
     acc.last_seq, acc.open_position ? JSON.stringify(acc.open_position) : null, JSON.stringify(acc.health)).run();
   const profile = COST_PROFILES[prior?.cost_profile ?? "ndax"] ?? COST_PROFILES.ndax;
 
-  let refPrice: { price: number | null; at: string | null } | null = null;
-  const reference = async () => {
-    if (refPrice) return refPrice;
-    const inst = getInstrument(acc.symbol);
-    const r = inst ? await referencePrice(inst, env).catch(() => null) : null;
-    refPrice = r && r.ok && typeof r.price === "number" ? { price: r.price, at: (r as { at: string }).at } : { price: null, at: null };
-    return refPrice;
-  };
-
+  // Bounded work per request (Workers Free: 50 D1 queries per invocation, a db.batch counts as one): every item is
+  // validated and hashed locally, existing records are read with three IN queries, and every new row is written in
+  // ONE atomic batch. At most 9 queries per request whatever the batch size (MAX_ITEMS). If the batch fails, none of
+  // its items is acknowledged, so the engine sends them again; nothing is half-written.
+  let queries = 2; // the account read and upsert above
   const results: ItemResult[] = [];
+  type Cand = { seq: number; id: string; hash: string; kind: "TRADE"; t: TradeRec } | { seq: number; id: string; hash: string; kind: "EVENT"; key: string; cls: Category; detail: Obj };
+  const cands: Cand[] = [];
   const sorted = [...items].sort((a, b) => (isObj(a) && isObj(b) ? Number(a.seq) - Number(b.seq) : 0));
   for (const raw of sorted) {
     if (!isObj(raw) || !Number.isInteger(raw.seq) || (raw.seq as number) < 1) {
@@ -261,81 +253,123 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
     }
     const seq = raw.seq as number;
     const hash = await sha256(canonical(raw));
-    try {
-      if (raw.type === "TRADE") {
-        const t = validateTrade(raw, acc);
-        if (typeof t === "string") { results.push({ seq, id: str(raw.trade_id, 80), status: "invalid", code: "INVALID_TRADE", message: t }); continue; }
-        const have = await db.prepare(`SELECT payload_hash, seq FROM mirror_trades WHERE account_id = ? AND trade_id = ?`).bind(acc.account_id, t.trade_id).first<{ payload_hash: string; seq: number }>();
-        if (have) {
-          results.push(have.payload_hash === hash && have.seq === seq ? { seq, id: t.trade_id, status: "duplicate" }
-            : await conflict(db, acc.account_id, { seq, id: t.trade_id, status: "conflict", code: "TRADE_CONFLICT", message: `${t.trade_id} is already stored with different content (seq ${have.seq}); not overwritten` }, now));
-          continue;
-        }
-        const owner = await existingSeqOwner(db, acc.account_id, seq);
-        if (owner) { results.push(await conflict(db, acc.account_id, { seq, id: t.trade_id, status: "conflict", code: "SEQ_CONFLICT", message: `seq ${seq} already belongs to ${owner}` }, now)); continue; }
-        const c = mirrorCosts(profile, t);
-        const ref = t.classification === "live" ? await reference() : { price: null, at: null };
-        await db.batch([
-          db.prepare(
-            `INSERT INTO mirror_trades (account_id, trade_id, seq, side, qty, entry_time, entry_price, exit_time, exit_price, stop_price, tp2_price,
-               exit_kind, result, exit_r, gross_pnl, risk_usd, notional_usd, entry_order_type, entry_liquidity, exit_liquidity, cost_profile,
-               est_fees, est_slippage, net_modelled_pnl, classification, entry_candle_json, exit_candle_json, entry_processed_at, processed_at,
-               exit_late, provenance_complete, received_at, reference_price, reference_price_at, engine_release, inputs_hash, profile, payload_hash)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-          ).bind(acc.account_id, t.trade_id, seq, t.side, t.qty, t.entry_time, t.entry_price, t.exit_time, t.exit_price, t.stop_price, t.tp2_price,
-            t.exit_kind, t.result, t.exit_r, t.gross_pnl, t.risk_usd, t.notional_usd, t.entry_order_type, t.entry_liquidity, t.exit_liquidity, profile.id,
-            c.fees, c.slippage, c.net, t.classification, t.entry_candle ? JSON.stringify(t.entry_candle) : null, JSON.stringify(t.exit_candle),
-            t.entry_processed_at, t.processed_at, t.exit_late ? 1 : 0, t.provenance_complete ? 1 : 0, now, ref.price, ref.at, acc.engine_release,
-            acc.inputs_hash, acc.profile, hash),
-          db.prepare(`INSERT INTO mirror_entries (account_id, entry_key, seq, kind, amount_usd, trade_id, classification, created_at, payload_hash)
-                      VALUES (?, ?, NULL, 'REALIZED_GROSS_PNL', ?, ?, ?, ?, ?)`).bind(acc.account_id, `PNL:${acc.account_id}:${t.trade_id}`, t.gross_pnl, t.trade_id, t.classification, now, hash),
-        ]);
-        results.push({ seq, id: t.trade_id, status: "stored" });
-      } else if (raw.type === "POSITION_INTERRUPTED") {
-        const eid = str(raw.event_id, 160);
-        const cls = raw.classification;
-        if (!eid || !eid.startsWith(`${acc.account_id}:INTERRUPTED:`) || !CATEGORIES.includes(cls as Category) || isoMs(raw.entry_time) === null
-          || (raw.side !== "LONG" && raw.side !== "SHORT") || !pos(raw.qty) || !pos(raw.entry_price) || typeof raw.reason !== "string") {
-          results.push({ seq, id: eid, status: "invalid", code: "INVALID_EVENT", message: "POSITION_INTERRUPTED needs event_id, side, qty, entry_time, entry_price, reason and classification" });
-          continue;
-        }
-        const key = `EVENT:${eid}`;
-        const have = await db.prepare(`SELECT payload_hash, seq FROM mirror_entries WHERE entry_key = ?`).bind(key).first<{ payload_hash: string; seq: number }>();
-        if (have) {
-          results.push(have.payload_hash === hash && have.seq === seq ? { seq, id: eid, status: "duplicate" }
-            : await conflict(db, acc.account_id, { seq, id: eid, status: "conflict", code: "EVENT_CONFLICT", message: `${eid} is already stored with different content` }, now));
-          continue;
-        }
-        const owner = await existingSeqOwner(db, acc.account_id, seq);
-        if (owner) { results.push(await conflict(db, acc.account_id, { seq, id: eid, status: "conflict", code: "SEQ_CONFLICT", message: `seq ${seq} already belongs to ${owner}` }, now)); continue; }
-        const detail = { trade_id: str(raw.trade_id, 80), side: raw.side, qty: raw.qty, entry_time: raw.entry_time, entry_price: raw.entry_price,
-          stop_price: fin(raw.stop_price) ? raw.stop_price : null, tp2_price: fin(raw.tp2_price) ? raw.tp2_price : null,
-          last_candle: isoOrNull(raw.last_candle), last_close: fin(raw.last_close) ? raw.last_close : null, reason: String(raw.reason).slice(0, 240), processed_at: isoOrNull(raw.processed_at) };
-        await db.prepare(`INSERT INTO mirror_entries (account_id, entry_key, seq, kind, amount_usd, trade_id, classification, created_at, detail_json, payload_hash)
-                          VALUES (?, ?, ?, 'POSITION_INTERRUPTED', 0, ?, ?, ?, ?, ?)`)
-          .bind(acc.account_id, key, seq, detail.trade_id, cls, now, JSON.stringify(detail), hash).run();
-        results.push({ seq, id: eid, status: "stored" });
-      } else {
-        results.push({ seq, id: null, status: "invalid", code: "UNKNOWN_TYPE", message: "type must be TRADE or POSITION_INTERRUPTED" });
+    if (raw.type === "TRADE") {
+      const t = validateTrade(raw, acc);
+      if (typeof t === "string") results.push({ seq, id: str(raw.trade_id, 80), status: "invalid", code: "INVALID_TRADE", message: t });
+      else cands.push({ seq, id: t.trade_id, hash, kind: "TRADE", t });
+    } else if (raw.type === "POSITION_INTERRUPTED") {
+      const eid = str(raw.event_id, 160);
+      const cls = raw.classification;
+      if (!eid || !eid.startsWith(`${acc.account_id}:INTERRUPTED:`) || !CATEGORIES.includes(cls as Category) || isoMs(raw.entry_time) === null
+        || (raw.side !== "LONG" && raw.side !== "SHORT") || !pos(raw.qty) || !pos(raw.entry_price) || typeof raw.reason !== "string") {
+        results.push({ seq, id: eid, status: "invalid", code: "INVALID_EVENT", message: "POSITION_INTERRUPTED needs event_id, side, qty, entry_time, entry_price, reason and classification" });
+        continue;
       }
-    } catch (e) {
-      // A concurrent identical delivery can win the UNIQUE race: report what is stored now; anything else is
-      // left unacknowledged (no result), so the engine retries it.
-      const m = String((e as Error)?.message ?? e);
-      if (!/UNIQUE/i.test(m)) break;
-      const t = await db.prepare(`SELECT payload_hash FROM mirror_trades WHERE account_id = ? AND trade_id = ?`).bind(acc.account_id, str(raw.trade_id, 80)).first<{ payload_hash: string }>();
-      results.push(t && t.payload_hash === hash ? { seq, id: str(raw.trade_id, 80), status: "duplicate" }
-        : { seq, id: str(raw.trade_id, 80), status: "conflict", code: "UNIQUE_CONFLICT", message: m.slice(0, 200) });
+      cands.push({ seq, id: eid, hash, kind: "EVENT", key: `EVENT:${eid}`, cls: cls as Category, detail: {
+        trade_id: str(raw.trade_id, 80), side: raw.side, qty: raw.qty, entry_time: raw.entry_time, entry_price: raw.entry_price,
+        stop_price: fin(raw.stop_price) ? raw.stop_price : null, tp2_price: fin(raw.tp2_price) ? raw.tp2_price : null,
+        last_candle: isoOrNull(raw.last_candle), last_close: fin(raw.last_close) ? raw.last_close : null, reason: String(raw.reason).slice(0, 240), processed_at: isoOrNull(raw.processed_at) } });
+    } else {
+      results.push({ seq, id: null, status: "invalid", code: "UNKNOWN_TYPE", message: "type must be TRADE or POSITION_INTERRUPTED" });
     }
   }
 
-  const seqs = await advanceSequence(db, acc.account_id, now);
-  return json({ ok: true, mode: "PAPER", hypothetical: true, broker_request_sent: false, results, account: seqs });
+  const conflicts: ItemResult[] = [];
+  const stmts: D1PreparedStatement[] = [];
+  const stored: ItemResult[] = [];
+  if (cands.length) {
+    const ph = (n: number) => Array(n).fill("?").join(", ");
+    const tradeIds = cands.filter((c) => c.kind === "TRADE").map((c) => c.id);
+    const eventKeys = cands.flatMap((c) => (c.kind === "EVENT" ? [c.key] : []));
+    const seqs = cands.map((c) => c.seq);
+    const haveTrades = new Map<string, { payload_hash: string; seq: number }>();
+    const haveEvents = new Map<string, { payload_hash: string; seq: number }>();
+    if (tradeIds.length) {
+      queries += 1;
+      for (const r of (await db.prepare(`SELECT trade_id, payload_hash, seq FROM mirror_trades WHERE account_id = ? AND trade_id IN (${ph(tradeIds.length)})`)
+        .bind(acc.account_id, ...tradeIds).all<{ trade_id: string; payload_hash: string; seq: number }>()).results) haveTrades.set(r.trade_id, r);
+    }
+    if (eventKeys.length) {
+      queries += 1;
+      for (const r of (await db.prepare(`SELECT entry_key, payload_hash, seq FROM mirror_entries WHERE entry_key IN (${ph(eventKeys.length)})`)
+        .bind(...eventKeys).all<{ entry_key: string; payload_hash: string; seq: number }>()).results) haveEvents.set(r.entry_key, r);
+    }
+    queries += 1;
+    const owners = new Map<number, string>();
+    for (const r of (await db.prepare(
+      `SELECT seq, trade_id AS owner FROM mirror_trades WHERE account_id = ? AND seq IN (${ph(seqs.length)})
+       UNION ALL SELECT seq, entry_key AS owner FROM mirror_entries WHERE account_id = ? AND kind = 'POSITION_INTERRUPTED' AND seq IN (${ph(seqs.length)})`
+    ).bind(acc.account_id, ...seqs, acc.account_id, ...seqs).all<{ seq: number; owner: string }>()).results) owners.set(r.seq, r.owner);
+
+    let ref: { price: number | null; at: string | null } | null = null;
+    for (const c of cands) {
+      const have = c.kind === "TRADE" ? haveTrades.get(c.id) : haveEvents.get(c.key);
+      if (have) {
+        if (have.payload_hash === c.hash && have.seq === c.seq) results.push({ seq: c.seq, id: c.id, status: "duplicate" });
+        else conflicts.push({ seq: c.seq, id: c.id, status: "conflict", code: c.kind === "TRADE" ? "TRADE_CONFLICT" : "EVENT_CONFLICT", message: `${c.id} is already stored with different content (seq ${have.seq}); not overwritten` });
+        continue;
+      }
+      const owner = owners.get(c.seq);
+      if (owner) { conflicts.push({ seq: c.seq, id: c.id, status: "conflict", code: "SEQ_CONFLICT", message: `seq ${c.seq} already belongs to ${owner}` }); continue; }
+      // Claim the id and sequence for this request, so a repeat inside the same request is caught too.
+      owners.set(c.seq, c.id);
+      if (c.kind === "TRADE") haveTrades.set(c.id, { payload_hash: c.hash, seq: c.seq }); else haveEvents.set(c.key, { payload_hash: c.hash, seq: c.seq });
+      if (c.kind === "TRADE") {
+        const t = c.t;
+        if (t.classification === "live" && ref === null) {
+          // At most one read-only Kraken request (a subrequest, not a D1 query); comparison only.
+          const inst = getInstrument(acc.symbol);
+          const r = inst ? await referencePrice(inst, env).catch(() => null) : null;
+          ref = r && r.ok && typeof r.price === "number" ? { price: r.price, at: (r as { at: string }).at } : { price: null, at: null };
+        }
+        const rp = t.classification === "live" && ref ? ref : { price: null, at: null };
+        const k = mirrorCosts(profile, t);
+        stmts.push(db.prepare(
+          `INSERT INTO mirror_trades (account_id, trade_id, seq, side, qty, entry_time, entry_price, exit_time, exit_price, stop_price, tp2_price,
+             exit_kind, result, exit_r, gross_pnl, risk_usd, notional_usd, entry_order_type, entry_liquidity, exit_liquidity, cost_profile,
+             est_fees, est_slippage, net_modelled_pnl, classification, entry_candle_json, exit_candle_json, entry_processed_at, processed_at,
+             exit_late, provenance_complete, received_at, reference_price, reference_price_at, engine_release, inputs_hash, profile, payload_hash)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(acc.account_id, t.trade_id, c.seq, t.side, t.qty, t.entry_time, t.entry_price, t.exit_time, t.exit_price, t.stop_price, t.tp2_price,
+          t.exit_kind, t.result, t.exit_r, t.gross_pnl, t.risk_usd, t.notional_usd, t.entry_order_type, t.entry_liquidity, t.exit_liquidity, profile.id,
+          k.fees, k.slippage, k.net, t.classification, t.entry_candle ? JSON.stringify(t.entry_candle) : null, JSON.stringify(t.exit_candle),
+          t.entry_processed_at, t.processed_at, t.exit_late ? 1 : 0, t.provenance_complete ? 1 : 0, now, rp.price, rp.at, acc.engine_release,
+          acc.inputs_hash, acc.profile, c.hash));
+        stmts.push(db.prepare(`INSERT INTO mirror_entries (account_id, entry_key, seq, kind, amount_usd, trade_id, classification, created_at, payload_hash)
+                    VALUES (?, ?, NULL, 'REALIZED_GROSS_PNL', ?, ?, ?, ?, ?)`).bind(acc.account_id, `PNL:${acc.account_id}:${t.trade_id}`, t.gross_pnl, t.trade_id, t.classification, now, c.hash));
+      } else {
+        stmts.push(db.prepare(`INSERT INTO mirror_entries (account_id, entry_key, seq, kind, amount_usd, trade_id, classification, created_at, detail_json, payload_hash)
+                    VALUES (?, ?, ?, 'POSITION_INTERRUPTED', 0, ?, ?, ?, ?, ?)`)
+          .bind(acc.account_id, c.key, c.seq, (c.detail.trade_id as string | null) ?? null, c.cls, now, JSON.stringify(c.detail), c.hash));
+      }
+      stored.push({ seq: c.seq, id: c.id, status: "stored" });
+    }
+  }
+  if (conflicts.length) {
+    stmts.push(db.prepare(`UPDATE mirror_accounts SET conflicts = conflicts + ?, last_conflict_json = ?, updated_at = ? WHERE account_id = ?`)
+      .bind(conflicts.length, JSON.stringify({ ...conflicts[conflicts.length - 1], at: now }), now, acc.account_id));
+  }
+  if (stmts.length) {
+    queries += 1;
+    try {
+      await db.batch(stmts);
+      results.push(...stored, ...conflicts);
+    } catch {
+      // Nothing of this batch was written (a D1 batch is one transaction). Its items stay unacknowledged: the engine
+      // keeps them pending and sends them again, and the read-back on that attempt sorts duplicates from new records.
+    }
+  }
+
+  const seqState = await advanceSequence(db, acc.account_id, now);
+  queries += seqState.queries;
+  const { queries: _q, ...account } = seqState;
+  return json({ ok: true, mode: "PAPER", hypothetical: true, broker_request_sent: false, results, account, d1_queries: queries });
 }
 
 /** Moves the contiguous-sequence mark forward and reports gaps (numbered by the engine, never stored). */
 async function advanceSequence(db: D1Database, account: string, now: string) {
-  const a = await db.prepare(`SELECT last_contiguous_seq, engine_last_seq, conflicts FROM mirror_accounts WHERE account_id = ?`).bind(account).first<{ last_contiguous_seq: number; engine_last_seq: number | null; conflicts: number }>();
+  const a = await db.prepare(`SELECT last_contiguous_seq, max_seq_seen, engine_last_seq, conflicts FROM mirror_accounts WHERE account_id = ?`).bind(account).first<{ last_contiguous_seq: number; max_seq_seen: number; engine_last_seq: number | null; conflicts: number }>();
+  let queries = 2;
   let last = a?.last_contiguous_seq ?? 0;
   const rows = await db.prepare(
     `SELECT seq FROM mirror_trades WHERE account_id = ?1 AND seq > ?2
@@ -344,9 +378,12 @@ async function advanceSequence(db: D1Database, account: string, now: string) {
   const above = rows.results.map((r) => r.seq);
   for (const s of above) { if (s === last + 1) last = s; else break; }
   const maxSeen = Math.max(last, ...above);
-  await db.prepare(`UPDATE mirror_accounts SET last_contiguous_seq = ?, max_seq_seen = ?, updated_at = ? WHERE account_id = ?`).bind(last, maxSeen, now, account).run();
+  if (last !== (a?.last_contiguous_seq ?? 0) || maxSeen !== (a?.max_seq_seen ?? 0)) {
+    queries += 1; // written only when it changed (rows written count against the free daily quota)
+    await db.prepare(`UPDATE mirror_accounts SET last_contiguous_seq = ?, max_seq_seen = ?, updated_at = ? WHERE account_id = ?`).bind(last, maxSeen, now, account).run();
+  }
   const storedAbove = above.filter((s) => s > last).length;
-  return { last_contiguous_seq: last, max_seq_seen: maxSeen, missing: maxSeen - last - storedAbove, engine_last_seq: a?.engine_last_seq ?? null, conflicts: a?.conflicts ?? 0 };
+  return { last_contiguous_seq: last, max_seq_seen: maxSeen, missing: maxSeen - last - storedAbove, engine_last_seq: a?.engine_last_seq ?? null, conflicts: a?.conflicts ?? 0, queries };
 }
 
 // ------------------------------------------------------------------ dashboard (read-only)
@@ -429,8 +466,11 @@ function health(acc: Obj | null, recon: { ok: boolean; issues: string[] }, inter
   const age = acc.last_seen_at ? Math.round((now - Date.parse(String(acc.last_seen_at))) / 1000) : null;
   const stale = age === null || age > 30 * 60;
   const diverged = !recon.ok || Number(acc.conflicts) > 0 || max > last || eh.refused > 0;
+  // Observation gaps are disclosed, not errors: trades from them are classified catch_up, never live.
+  const gaps = Array.isArray(eh.observation_gaps) ? eh.observation_gaps : [];
   return {
     state: diverged ? "DIVERGED" : stale ? "STALE" : issues.length ? "DEGRADED" : "OK", issues, last_seen_age_seconds: age,
+    observation_gaps: gaps, no_trade_intervals: eh.no_trade_intervals ?? 0,
     pending: eh.pending ?? null, resets: eh.resets ?? 0, interruptions, last_contiguous_seq: last, max_seq_seen: max, engine_last_seq: engine,
   };
 }

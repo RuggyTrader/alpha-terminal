@@ -56,7 +56,8 @@ The mirror is **off by default**: `ENGINE_MIRROR=off`. Turning it on is the acti
    - `live`: after activation, processed on time.
 5. **A data gap** the strategy cannot bridge starts a fresh warm-up. Any open hypothetical position is recorded as a
    `POSITION_INTERRUPTED` event: no exit and no P&L are invented, and the event is shown on the dashboard.
-6. **Delivery** is an ordered outbox, up to 100 records per request, sent after the funded track's own delivery.
+6. **Delivery** is an ordered outbox, up to 25 records per request, sent after the funded track's own delivery, only
+   when there are records, a new candle, or a 15-minute health report.
    - A network error, timeout or 5xx keeps records pending.
    - A lost reply becomes a `duplicate` on the retry.
    - A refused record (conflict, invalid) is kept with the Worker's code, audited as `mirror_divergence` and
@@ -219,9 +220,9 @@ Tested in `engine/test/mirror.test.mjs` and `worker/test/mirror.test.mjs`:
 
 ## 8a. Production observation that this addresses (read-only, 2026-11-10)
 
-- The pinned production engine (release `6b70cc97c579`) was not running from about **03:25 to 20:21 UTC**. Its
-  supervisor restarted it at 20:21 (new PID 11900), most likely at a PC restart or sign-in; the audit has no stop
-  record.
+- The pinned production engine (release `6b70cc97c579`) was not running from **03:46 to 20:21 UTC**. The PC was
+  powered off at 03:46 (clean shutdown) and the engine restarted at the next sign-in. Evidence:
+  `STRATEGY-MIRROR-READINESS-AUDIT-2026-11-10.md` section 5.
 - It resumed from its saved state with no reset and caught up 197 candles from Kraken history, with no gap and no
   duplicate.
 - Three real strategy entries in that window (05:45 SELL, 07:30 SELL, 08:00 BUY) were correctly **expired, not

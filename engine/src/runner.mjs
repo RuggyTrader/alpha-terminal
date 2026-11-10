@@ -58,6 +58,16 @@ export function inputsHash(cfg) {
 
 const FINAL = new Set(["accepted", "rejected", "skipped", "historical", "late"]);
 
+// Strategy Mirror delivery. Each request carries at most MIRROR_BATCH records (the Worker accepts 25 and uses at most
+// 9 D1 queries per request, inside Workers Free limits). Without new records or a new candle, the mirror reports at
+// most every MIRROR_HEARTBEAT_MS, so it adds about one request per candle, not one per poll.
+export const MIRROR_BATCH = 25;
+export const MIRROR_HEARTBEAT_MS = 15 * 60_000;
+// Kraken's OHLC endpoint serves the latest 720 candles. A hole after the mirror's last candle is a real data gap only
+// when that candle is older than this window; inside it, Kraken served the missing intervals as "no trades" (dropped,
+// because TradingView has no bar for them).
+const KRAKEN_OHLC_WINDOW = 720;
+
 export class EngineRunner {
   constructor(cfg, { fetchCandles = fetchCompletedCandles, http = fetch, now = () => Date.now(), log = console.log } = {}) {
     this.cfg = cfg;
@@ -122,7 +132,10 @@ export class EngineRunner {
     try {
       const last = M.strategy.lastTime;
       const mine = candles.filter((k) => last === null || k.t > last);
-      if (last !== null && mine.length && mine[0].t > last + this.step) {
+      if (last !== null && mine.length && mine[0].t > last + this.step && nowMs - last <= (KRAKEN_OHLC_WINDOW - 2) * this.step) {
+        // Inside Kraken's window: the skipped intervals had no trades. No bar, as on TradingView; nothing to reset.
+        M.noTradeIntervals = (M.noTradeIntervals ?? 0) + Math.round((mine[0].t - last) / this.step) - 1;
+      } else if (last !== null && mine.length && mine[0].t > last + this.step) {
         const missing = Math.round((mine[0].t - last) / this.step) - 1;
         const reason = `gap of ${missing} candles after ${iso(last)}`;
         const open = !!M.strategy.broker.pos;
@@ -157,6 +170,7 @@ export class EngineRunner {
       refused: M.outbox.filter((x) => x.status === "refused").length,
       open_position: mirrorPosition(M), resets: M.resets.length, interruptions: M.interruptions,
       skipped_candles: M.skippedCandles, last_error: M.lastError,
+      observation_gaps: M.observationGaps ?? [], no_trade_intervals: M.noTradeIntervals ?? 0,
     };
   }
 
@@ -168,8 +182,11 @@ export class EngineRunner {
   async flushMirror() {
     const M = this.mirror;
     if (!M || !this.cfg.sync) return;
-    for (let round = 0; round < 20; round++) {
-      const batch = M.outbox.filter((x) => x.status === "pending").slice(0, 100);
+    const due = M.outbox.some((x) => x.status === "pending") || !M.lastSent || M.lastSent.candle !== (M.lastCandle?.t ?? null)
+      || this.now() - Date.parse(M.lastSent.at) >= MIRROR_HEARTBEAT_MS;
+    if (!due) return;
+    for (let round = 0; round < 40; round++) {
+      const batch = M.outbox.filter((x) => x.status === "pending").slice(0, MIRROR_BATCH);
       let status = 0, body = {};
       try {
         const r = await this.http(`${this.cfg.apiBase}/webhook/engine-mirror`, {
@@ -207,6 +224,7 @@ export class EngineRunner {
       }
       M.health = body.account && typeof body.account === "object" ? { ...body.account, at: iso(this.now()) } : null;
       M.lastError = null;
+      M.lastSent = { at: iso(this.now()), candle: M.lastCandle?.t ?? null };
       M.outbox = M.outbox.filter((x) => x.status !== "delivered");
       const refused = M.outbox.filter((x) => x.status === "refused");
       if (refused.length > 50) M.outbox = M.outbox.filter((x) => x.status !== "refused" || refused.slice(-50).includes(x));

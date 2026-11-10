@@ -101,6 +101,15 @@ describe("Strategy Mirror page", () => {
     expect(h).toContain("3 of 5");
   });
 
+  it("observation gaps (engine down, candles processed late) are disclosed in the health card", () => {
+    const h = html(<MirrorView s={summary({ health: { state: "OK", issues: [], last_contiguous_seq: 3, max_seq_seen: 3, no_trade_intervals: 2,
+      observation_gaps: [{ from: "2026-11-10T03:25:00Z", to: "2026-11-10T20:15:00Z", candles: 197, processed_at: "2026-11-10T20:21:02Z" }] } })} category="live" onCategory={() => {}} trades={[]} />);
+    expect(h).toContain("Observation gaps");
+    expect(h).toContain("197 candles");
+    expect(h).toContain("never Live");
+    expect(h).toContain("2 interval(s) without any Kraken trade");
+  });
+
   it("before the mirror reports, nothing is shown in its place", () => {
     const h = html(<MirrorView s={summary({ account: null, categories: null, health: { state: "NOT_ACTIVE", issues: ["no mirror account has reported yet"] } })} category="live" onCategory={() => {}} trades={null} />);
     expect(h).toContain("has not reported yet");

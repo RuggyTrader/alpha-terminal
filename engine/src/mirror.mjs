@@ -48,6 +48,9 @@ export function createMirror(ctx) {
     seq: 0, outbox: [], delivered: 0, lastDeliveredSeq: 0,
     candlesProcessed: 0, lastCandle: null, skippedCandles: 0,
     resets: [], interruptions: 0, recordedTrades: 0, lastError: null, health: null,
+    // Spans of candles after activation that were processed late (engine down, catch-up): disclosed on the dashboard
+    // even when no trade happened in them. noTradeIntervals: intervals Kraken served without trades (no bar).
+    observationGaps: [], noTradeIntervals: 0, lastSent: null,
   };
 }
 
@@ -87,6 +90,14 @@ export function mirrorStep(M, k, ctx) {
   const events = onBar(S, k);
   M.candlesProcessed += 1;
   M.lastCandle = { t: iso(k.t), close: k.c, processedAt: iso(ctx.nowMs), late };
+  if (late && M.activatedAt !== null) {
+    // One outage is caught up in one poll: candles processed late in the same poll form one observation gap.
+    M.observationGaps ??= [];
+    const g = M.observationGaps[M.observationGaps.length - 1];
+    if (g && g.processed_at === iso(ctx.nowMs)) { g.to = iso(k.t); g.candles += 1; }
+    else M.observationGaps.push({ from: iso(k.t), to: iso(k.t), candles: 1, processed_at: iso(ctx.nowMs) });
+    M.observationGaps = M.observationGaps.slice(-20);
+  }
 
   for (const e of events) {
     if (e.type === "ENTRY_FILL") {

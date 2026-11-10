@@ -261,7 +261,7 @@ function checkConfig(P, dir, { expectProfile = null, expectRisk = null } = {}) {
     const { inputsHash } = await import(${JSON.stringify(pathToFileURL(join(dir, "src", "runner.mjs")).href)});
     const c = loadConfig(process.env, process.cwd());
     const i = { ...DEFAULT_INPUTS, ...c.inputs };
-    console.log(JSON.stringify({ profile: c.profile, symbol: c.symbol, intervalMin: c.intervalMin, sync: c.sync, apiBase: c.apiBase, dataDir: c.dataDir, riskUSD: i.riskUSD, allowLong: i.allowLong, allowShort: i.allowShort, sizing: c.sizing?.mode ?? "fixed", secret: redacted(c).webhookSecret, inputsHash: inputsHash(c) }));`;
+    console.log(JSON.stringify({ profile: c.profile, symbol: c.symbol, intervalMin: c.intervalMin, sync: c.sync, apiBase: c.apiBase, dataDir: c.dataDir, riskUSD: i.riskUSD, allowLong: i.allowLong, allowShort: i.allowShort, sizing: c.sizing?.mode ?? "fixed", secret: redacted(c).webhookSecret, inputsHash: inputsHash(c), mirror: c.mirror === undefined ? null : c.mirror }));`;
   const r = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
     cwd: dir, encoding: "utf8", env: { ...process.env, ENGINE_ENV_FILE: P.config, ENGINE_DATA_DIR: sd.dir },
   });
@@ -285,9 +285,13 @@ function checkConfig(P, dir, { expectProfile = null, expectRisk = null } = {}) {
     // An empty state folder means a first start warms up from scratch and forgets any open position: only on purpose.
     if (envValue(P.config, "ENGINE_FRESH_START_OK") !== "yes") problems.push(`no saved engine state in ${c.dataDir}: run migrate-state first (or set ENGINE_FRESH_START_OK=yes in the config for a deliberate fresh start)`);
   }
+  // Strategy Mirror: reported. ENGINE_MIRROR=on with a release that has no mirror is a WARNING, not a refusal: a rollback
+  // to such a release must still start the funded engine (the mirror is then simply not running).
+  const warnings = [];
+  if (envValue(P.config, "ENGINE_MIRROR") === "on" && c.mirror !== true) warnings.push("ENGINE_MIRROR=on, but this release has no Strategy Mirror: the mirror will not run");
   if (expectProfile !== null && c.profile !== expectProfile) problems.push(`profile is ${c.profile}, expected ${expectProfile}`);
   if (expectRisk !== null && Number(c.riskUSD) !== Number(expectRisk)) problems.push(`risk per trade is ${c.riskUSD}, expected ${expectRisk}`);
-  return { ok: problems.length === 0, problems, config: c };
+  return { ok: problems.length === 0, problems, warnings, config: c };
 }
 
 export function validate({ root, release = null, expectProfile = null, expectRisk = null }) {
@@ -301,7 +305,7 @@ export function validate({ root, release = null, expectProfile = null, expectRis
   if (files.manifest && files.manifest.commit.slice(0, 12) !== id) problems.push(`manifest commit ${files.manifest.commit} does not match release id ${id}`);
   const cfg = files.ok ? checkConfig(P, dir, { expectProfile, expectRisk }) : { ok: false, problems: [] };
   problems.push(...cfg.problems);
-  return { ok: problems.length === 0, release: id, commit: files.manifest?.commit ?? null, ref: files.manifest?.ref ?? null, problems, config: cfg.config ?? null };
+  return { ok: problems.length === 0, release: id, commit: files.manifest?.commit ?? null, ref: files.manifest?.ref ?? null, problems, warnings: cfg.warnings ?? [], config: cfg.config ?? null };
 }
 
 export function activate({ root, release, expectProfile = null, expectRisk = null }) {
