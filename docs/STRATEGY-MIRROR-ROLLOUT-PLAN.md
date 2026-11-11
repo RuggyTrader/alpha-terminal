@@ -169,7 +169,7 @@ T selftest --root R --release <commit12>          (one poll with throwaway state
    2. **This ends only the task's conhost.** The release supervisor (`powershell … run-release.ps1`), its cmd and the
       node engine keep running (observed 2026-11-11). Stop that supervisor tree explicitly:
       `taskkill /PID <supervisor pid> /T /F`.
-   3. Confirm that no `run-release.ps1` or `src\cliun.mjs` process remains and that `T status --root R` shows the
+   3. Confirm that no `run-release.ps1` or `src\cli\run.mjs` process remains and that `T status --root R` shows the
       engine not running.
    4. Then `schtasks /Run /TN "ALPHA TERMINAL Engine"`, and confirm exactly one supervisor and one engine.
 
