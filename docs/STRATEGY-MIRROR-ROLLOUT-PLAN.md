@@ -1,6 +1,8 @@
-# Strategy Mirror V1 — production rollout plan (prepared 2026-11-10; NOT executed)
+# Strategy Mirror V1 — production rollout plan (prepared 2026-11-10; Stage A EXECUTED 2026-11-11, B–D not executed)
 
-**Every stage is a separate owner approval.** Nothing below has been run against production.
+**Every stage is a separate owner approval.** Status:
+- **Stage A** was executed on 2026-11-11 (record: `DEPLOYMENT-2026-11-11-MIRROR-STAGE-A.md`).
+- **Stages B, C and D** have not been run.
 
 Production today:
 - engine release `6b70cc97c579` (no mirror code);
@@ -63,6 +65,8 @@ W d1 export alpha-terminal-db --remote --output=%USERPROFILE%\AlphaTerminal\back
 ```
 
 Verify the export: for each funded table, the number of `INSERT INTO "<table>"` lines equals its `<COUNTS>` value.
+**A running export blocks other D1 requests** (Cloudflare docs). Start it right after a candle; expect up to one failed
+engine heartbeat, as observed on 2026-11-11.
 The file contains PAPER history and the session table: keep it private and never commit it.
 
 **A3. Apply.**
