@@ -240,7 +240,8 @@ The Free-plan limits are 100k requests per day, 10 ms CPU per invocation, 50 sub
 **Order: migration 0006 → VAPID secrets → Worker → engine flag.** Every step is optional on its own, so stopping
 anywhere leaves a working system.
 
-1. **Stage N1: migration 0006** (additive: 5 new tables, cursors at the current end, schema 6).
+1. **Stage N1: migration 0006** (additive: 5 new tables, cursors at the current end, schema 6). **EXECUTED
+   2026-11-11 05:20:24 UTC**; record: `DEPLOYMENT-2026-11-11-NOTIFICATIONS-STAGE-N1.md`.
    - Rehearsed: `worker/test/migrations.test.mjs` shows every existing table and row unchanged, and that re-applying is
      a no-op.
    - The current production Worker ignores the new tables.
