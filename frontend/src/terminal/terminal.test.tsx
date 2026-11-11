@@ -573,8 +573,14 @@ describe("remember this device", () => {
     const sources = import.meta.glob(["./**/*.{ts,tsx}", "!./**/*.test.tsx"], { query: "?raw", import: "default", eager: true }) as Record<string, string>;
     expect(Object.keys(sources).length).toBeGreaterThan(10);
     for (const [file, text] of Object.entries(sources)) {
+      // The one exception: the Light/Dark/System choice (theme.ts), a single non-sensitive key.
+      if (file === "./theme.ts") continue;
       expect(text, file).not.toMatch(/localStorage|sessionStorage|document\.cookie|indexedDB/);
     }
+    const theme = sources["./theme.ts"].replace(/\/\/.*$/gm, "");
+    expect(theme).not.toMatch(/sessionStorage|document\.cookie|indexedDB/);
+    expect(Array.from(theme.matchAll(/localStorage\.(\w+)\(([^,)]*)/g), (m) => `${m[1]}(${m[2]})`).sort()).toEqual(["getItem(KEY)", "setItem(KEY)"]);
+    expect(theme).toContain('const KEY = "at-theme";');
   });
 });
 

@@ -481,3 +481,56 @@ describe("configuration", () => {
     assert.notEqual(r.mirror.accountId.endsWith("ffffffffffffffff"), true);
   });
 });
+
+describe("explicit ENTRY records (ENGINE_MIRROR_EVENTS, for entry notifications)", () => {
+  const run = (entryEvents) => {
+    const ctx = { nowMs: 0, lateMs: 2 * STEP, symbol: "SOLUSD", intervalMin: 5, inputs: P5.inputs, inputsHash: "0123456789abcdef", entryEvents };
+    const M = createMirror({ ...ctx, nowMs: C720[0].t });
+    C720.forEach((k, i) => {
+      mirrorStep(M, k, { ...ctx, nowMs: k.t + STEP + 5_000 });
+      if (i === 200) activate(M, k.t + STEP + 5_000);
+    });
+    return M;
+  };
+
+  it("off (the default): the outbox is exactly as before, no ENTRY record", () => {
+    assert.equal(cfg150.mirrorEvents, false);
+    const off = run(false);
+    const plain = run(undefined);
+    assert.equal(off.outbox.filter((x) => x.type === "ENTRY").length, 0);
+    assert.equal(JSON.stringify(off.outbox), JSON.stringify(plain.outbox), "byte-identical");
+  });
+
+  it("on: one ENTRY per trade, emitted on its fill candle, before its TRADE; trades themselves unchanged", () => {
+    const on = run(true), off = run(false);
+    const trades = (M) => M.outbox.filter((x) => x.type === "TRADE").map(({ seq, ...t }) => t);
+    assert.deepEqual(trades(on), trades(off), "trade records identical apart from sequence numbers");
+    const entries = on.outbox.filter((x) => x.type === "ENTRY");
+    assert.ok(entries.length >= trades(on).length && entries.length > 0);
+    const seqs = on.outbox.map((x) => x.seq);
+    assert.deepEqual(seqs, seqs.map((_, i) => i + 1), "contiguous sequence");
+    for (const t of on.outbox.filter((x) => x.type === "TRADE")) {
+      const e = entries.find((x) => x.trade_id === t.trade_id);
+      assert.ok(e, `ENTRY for ${t.trade_id}`);
+      assert.ok(e.seq < t.seq, "ENTRY before its TRADE");
+      assert.equal(e.event_id, `${t.trade_id}:ENTRY`);
+      assert.deepEqual([e.side, e.qty, e.entry_time, e.entry_price, e.classification], [t.side, t.qty, t.entry_time, t.entry_price, t.classification]);
+      assert.ok(e.entry_price >= e.entry_candle.l && e.entry_price <= e.entry_candle.h, "the fill lies inside its candle");
+      assert.ok(Date.parse(e.processed_at) >= Date.parse(e.entry_time) + STEP, "only after the fill candle closed (no lookahead)");
+    }
+    const act = Date.parse(on.activatedAt);
+    for (const e of entries) assert.equal(e.classification, Date.parse(e.entry_time) + STEP <= act ? "historical" : "live");
+  });
+
+  it("an order that never fills gives no ENTRY (nothing is inferred from a pending limit order)", () => {
+    const on = run(true);
+    const tradeIds = new Set(on.outbox.filter((x) => x.type === "TRADE").map((t) => t.trade_id));
+    const open = on.openTrade ? 1 : 0;
+    assert.equal(on.outbox.filter((x) => x.type === "ENTRY" && !tradeIds.has(x.trade_id)).length, open, "every ENTRY is a fill: a trade, or the one position still open");
+  });
+
+  it("ENGINE_MIRROR_EVENTS accepts only on/off", () => {
+    assert.equal(loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_MIRROR_EVENTS: "on" }, join(HERE, "..")).mirrorEvents, true);
+    assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_MIRROR_EVENTS: "yes" }, join(HERE, "..")), /ENGINE_MIRROR_EVENTS/);
+  });
+});

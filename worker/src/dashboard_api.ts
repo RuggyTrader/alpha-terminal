@@ -1,3 +1,4 @@
+import { activityFeed } from "./events";
 import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
   alpacaGet,
@@ -1253,6 +1254,10 @@ export async function handleDashboardApi(
     // Strategy Mirror (hypothetical, margin 0): summary by category, trade list, and one trade's proof.
     if (pathname === "/api/dashboard/mirror") {
       return json({ ok: true, data: await mirrorDashboard(env.DB, searchParams) });
+    }
+    // Recent genuine activity (trade events, funded signals, engine heartbeat, observation gaps); bounded.
+    if (pathname === "/api/dashboard/events") {
+      return json({ ok: true, data: await activityFeed(env.DB, Number(searchParams.get("limit")) || 30) });
     }
     if (pathname === "/api/dashboard/mirror/overview") {
       return json({ ok: true, data: await mirrorOverview(env.DB) });

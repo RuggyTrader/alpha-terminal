@@ -1,0 +1,93 @@
+/* ALPHA TERMINAL themes: Light (cream, the original design), Dark (deep charcoal), System (follows the device).
+   Every screen reads these shared tokens; components never hard-code light-only colours. index.html sets
+   data-theme="light|dark" before the first paint (src/terminal/theme.ts keeps it in sync). */
+
+:root {
+  /* Tokens added for theming (light values = the original design). */
+  --on-ink: #ffffff;                    /* text on an --ink filled button or chip */
+  --line-strong: rgba(22, 19, 15, 0.14);
+  --nav-bg: rgba(255, 255, 255, 0.96);
+  --nav-shadow: 0 -8px 24px rgba(22, 19, 15, 0.04);
+  --seg-bg: #e7e2d9;
+  --toggle-off: #d9d3c8;
+  --skel-a: #ebe7df;
+  --skel-b: #f6f3ee;
+  --banner-warn-bg: #fff4e5;
+  --banner-warn-fg: #7a4310;
+  --banner-bad-bg: #fdecea;
+  --banner-bad-fg: #8a2a22;
+  --accent-flash: #fff6e9;
+  --amber-strong: #b5650d;
+  --card-edge: transparent;             /* hairline around cards (visible in dark mode) */
+  --dark-card-bg: linear-gradient(160deg, #221d18 0%, #17130f 100%);
+  --lift-shadow: 0 2px 4px rgba(22, 19, 15, 0.05), 0 12px 28px rgba(22, 19, 15, 0.09);
+  --theme-color: #f3f0ea;
+}
+
+/* Dark: deep charcoal background, layered dark cards, warm white text, restrained accents, brand orange kept. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f0d0b;
+  --surface: #1a1714;
+  --surface-2: #221e1a;
+  --ink: #f4efe6;
+  --ink-2: #d9d2c6;
+  --muted: #a1988b;
+  --muted-2: #6f675d;
+  --line: rgba(255, 240, 220, 0.08);
+  --line-strong: rgba(255, 240, 220, 0.16);
+  --hero: #14110e;
+  --green: #40d98a;
+  --green-soft: rgba(64, 217, 138, 0.14);
+  --red: #ff7b6f;
+  --red-soft: rgba(255, 123, 111, 0.14);
+  --amber: #f2a24c;
+  --amber-soft: rgba(242, 162, 76, 0.16);
+  --blue: #86aeff;
+  --blue-soft: rgba(134, 174, 255, 0.14);
+  --gray-soft: rgba(255, 240, 220, 0.07);
+  --orange-soft: rgba(242, 102, 27, 0.18);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.5), 0 18px 40px rgba(0, 0, 0, 0.5);
+  --on-ink: #15130f;
+  --nav-bg: rgba(20, 17, 14, 0.94);
+  --nav-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+  --seg-bg: #29241e;
+  --toggle-off: #3b352d;
+  --skel-a: #221e1a;
+  --skel-b: #2d2822;
+  --banner-warn-bg: #3a2a15;
+  --banner-warn-fg: #ffd29a;
+  --banner-bad-bg: #3d1b18;
+  --banner-bad-fg: #ffb6ad;
+  --accent-flash: rgba(242, 102, 27, 0.2);
+  --amber-strong: #f2a24c;
+  --card-edge: rgba(255, 240, 220, 0.07);
+  --dark-card-bg: linear-gradient(160deg, #201b17 0%, #151210 100%);
+  --lift-shadow: 0 2px 4px rgba(0, 0, 0, 0.45), 0 14px 30px rgba(0, 0, 0, 0.45);
+  --theme-color: #0f0d0b;
+}
+
+/* No script (or before it runs): follow the device. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #0f0d0b; --surface: #1a1714; --surface-2: #221e1a; --ink: #f4efe6; --ink-2: #d9d2c6; --muted: #a1988b;
+    --line: rgba(255, 240, 220, 0.08); --green: #40d98a; --red: #ff7b6f; --amber: #f2a24c; --on-ink: #15130f;
+    --nav-bg: rgba(20, 17, 14, 0.94); --seg-bg: #29241e; --skel-a: #221e1a; --skel-b: #2d2822; --card-edge: rgba(255, 240, 220, 0.07);
+  }
+}
+
+/* Layering in dark mode: cards keep a hairline so they separate from the background. */
+.card, .dark-card, .hero, .engine-card { border-color: var(--card-edge); }
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .dark-card,
+:root[data-theme="dark"] .hero,
+:root[data-theme="dark"] .engine-card { box-shadow: inset 0 0 0 1px var(--card-edge), var(--shadow); }
+:root[data-theme="dark"] .mirror-banner b { color: var(--amber-strong); }
+:root[data-theme="dark"] .hero-pct { background: #f4efe6; }
+
+/* Theme switches animate gently; never for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  body, .card, .bnav, .topbar { transition: background-color 220ms var(--ease), color 220ms var(--ease); }
+}

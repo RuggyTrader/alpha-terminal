@@ -10,7 +10,7 @@
 
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -38,6 +38,12 @@ const persist = join(work, "d1");
 const DEPLOYED = workerAt(DEPLOYED_REF);
 const ROLLBACK = workerAt("c5bb67e");
 
+// Stage A as executed in production: the migrations of that release (0001-0005). Later migrations (0006, not yet
+// approved for production) are left out here, so this stays a faithful rehearsal of what was applied.
+const STAGE_A_DIR = join(work, "stage-a");
+mkdirSync(join(STAGE_A_DIR, "migrations"), { recursive: true });
+copyFileSync(join(DEV_DIR, "wrangler.jsonc"), join(STAGE_A_DIR, "wrangler.jsonc"));
+for (const f of readdirSync(join(DEV_DIR, "migrations")).filter((f) => /^000[1-5]_.*\.sql$/.test(f))) copyFileSync(join(DEV_DIR, "migrations", f), join(STAGE_A_DIR, "migrations", f));
 const wrangler = (dir, args) => execFileSync(WIN ? "npx.cmd" : "npx", ["wrangler", ...args], { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], shell: WIN, timeout: 120000 });
 function d1(sql, ...args) {
   const dir = join(persist, "v3", "d1", "miniflare-D1DatabaseObject");
@@ -149,14 +155,14 @@ describe("Stage A: migration 0005 on production-shaped schema-4 data", () => {
   });
 
   it("0005 applies alone; every funded table and row is byte-identical; balances unchanged; re-applying is a no-op", () => {
-    const out = wrangler(DEV_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
+    const out = wrangler(STAGE_A_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
     assert.match(out, /0005_strategy_mirror/);
     assert.doesNotMatch(out, /0004_paper_execution_costs\.sql\s*│\s*✅/, "only 0005 was pending");
     assert.equal(d1("SELECT value FROM app_meta WHERE key = 'schema_version'")[0].value, "5");
     assert.equal(funded(["d1_migrations"]), base);
     assert.equal(appMeta(), baseMeta);
     assert.deepEqual(wallets(), baseWallets);
-    assert.match(wrangler(DEV_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]), /No migrations to apply/i);
+    assert.match(wrangler(STAGE_A_DIR, ["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]), /No migrations to apply/i);
     assert.equal(funded(["d1_migrations"]), base);
   });
 });
@@ -185,6 +191,11 @@ describe("Stage B: Workers on schema 5", () => {
     const d = await get("/api/dashboard");
     assert.equal(d.portfolio.costs.profile, "none");
     assert.deepEqual(d.portfolio.limits, { ...d.portfolio.limits, max_order_notional_usd: 5000, short_selling_enabled: false, max_position_exposure_usd: 10000, max_total_exposure_usd: 25000, max_open_positions: 5, daily_loss_limit_usd: 2000 });
+    // This Worker also carries notifications (migration 0006): on schema 5 they report "not available" and change nothing.
+    const n = await get("/api/notifications/config");
+    assert.equal(n.available, false);
+    assert.match(n.reason, /not configured|migration/);
+    assert.equal((await get("/api/dashboard/events")).items.every((i) => i.source !== "mirror" || i.title), true);
   });
 
   it("security: every webhook still refuses a wrong secret; mirror routes need a session; nothing secret is returned", async () => {

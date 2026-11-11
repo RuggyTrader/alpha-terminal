@@ -115,6 +115,7 @@ export class EngineRunner {
       nowMs, lateMs: this.cfg.lateBars * this.step, symbol: this.cfg.symbol, intervalMin: this.cfg.intervalMin,
       inputs: { ...this.cfg.inputs, ...(typeof risk === "number" ? { riskUSD: risk } : {}) }, pivotTies: this.cfg.pivotTies,
       inputsHash: inputsHash(this.cfg),
+      entryEvents: this.cfg.mirrorEvents === true,
     };
   }
 

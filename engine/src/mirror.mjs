@@ -110,6 +110,15 @@ export function mirrorStep(M, k, ctx) {
         riskUSD: S.inputs.riskUSD, entryCandle: candleOf(k), entryLate: late, entryProcessedAt: iso(ctx.nowMs),
         classification: classify(M, closeMs, late),
       };
+      // ENGINE_MIRROR_EVENTS=on: an explicit, durable ENTRY record (for entry notifications). It is emitted only here,
+      // when the simulated fill is confirmed on this candle; never for a pending order. Same-candle trades give
+      // ENTRY then TRADE, in sequence order.
+      if (ctx.entryEvents) {
+        const o = M.openTrade;
+        const trade_id = mirrorTradeId(M.symbol, M.intervalMin, k.t, e.side);
+        push(M, { type: "ENTRY", event_id: `${trade_id}:ENTRY`, trade_id, side: sideName(e.side), qty: e.qty, entry_time: iso(k.t), entry_price: e.price,
+          stop_price: o.stop, tp2_price: o.tp2, classification: o.classification, entry_candle: o.entryCandle, processed_at: iso(ctx.nowMs) });
+      }
     }
   }
 

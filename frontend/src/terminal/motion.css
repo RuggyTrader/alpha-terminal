@@ -48,7 +48,7 @@
 .m-item.is-new { animation: m-slide-down var(--m-slow) var(--m-ease-out) both; animation-delay: 0ms; }
 .m-item.is-new > .xc, .m-item.is-new > .card, .m-item.is-new > .feed-item { animation: m-new-accent 1.6s ease-out both; }
 .m-item.is-leaving { animation: m-leave var(--m-normal) var(--m-ease) both; pointer-events: none; }
-@keyframes m-new-accent { 0%, 30% { background-color: #fff6e9; } 100% { background-color: var(--m-accent-end, var(--surface)); } }
+@keyframes m-new-accent { 0%, 30% { background-color: var(--accent-flash); } 100% { background-color: var(--m-accent-end, var(--surface)); } }
 .m-item.is-new > .feed-item { --m-accent-end: var(--surface-2); }
 
 /* Lower sections reveal once when scrolled into view. Without JS, nothing is hidden. */
@@ -82,7 +82,7 @@
 .m-press:disabled { transition: none; }
 @media (hover: hover) {
   .m-lift { transition: transform var(--m-normal) var(--m-ease), box-shadow var(--m-normal) ease; }
-  .m-lift:hover { transform: translateY(-2px); box-shadow: 0 2px 4px rgba(22, 19, 15, 0.05), 0 12px 28px rgba(22, 19, 15, 0.09); }
+  .m-lift:hover { transform: translateY(-2px); box-shadow: var(--lift-shadow); }
   .m-press:hover:not(:disabled) { filter: brightness(1.04); }
 }
 

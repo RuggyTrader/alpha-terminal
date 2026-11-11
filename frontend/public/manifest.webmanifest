@@ -1,16 +1,18 @@
 {
+  "id": "/",
   "name": "ALPHA TERMINAL — PAPER DESK",
   "short_name": "Alpha",
   "description": "Private PAPER trading terminal, dry-run only (simulated balances, no broker orders).",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-    "background_color": "#F3F0EA",
-  "theme_color": "#F3F0EA",
+  "orientation": "portrait",
+  "background_color": "#15130F",
+  "theme_color": "#15130F",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }

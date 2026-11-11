@@ -7,6 +7,8 @@ import { candleAgeSeconds, markets } from "../health";
 import { StatusBadge } from "../components/ui";
 import { useDash } from "../store";
 import { PAPER_FILL_DISCLOSURE } from "../disclosures";
+import { THEME_LABEL, THEME_PREFS, useThemePref } from "../theme";
+import { NotificationSettings } from "../components/NotificationSettings";
 
 function Group({ title, sub, children }: { title: string; sub?: string; children: ReactNode }) {
   return (
@@ -27,6 +29,24 @@ function Row({ k, children }: { k: string; children: ReactNode }) {
   );
 }
 
+/** Light / Dark / System, stored on this device only. */
+function AppearanceGroup() {
+  const [pref, setPref] = useThemePref();
+  const idx = THEME_PREFS.indexOf(pref);
+  return (
+    <section className="sg" aria-label="Appearance">
+      <h2 className="sg-t">Appearance</h2>
+      <p className="sg-sub">Applies to every screen. System follows your device's light or dark setting.</p>
+      <div className="seg" role="radiogroup" aria-label="Theme" style={{ ["--i" as string]: idx, ["--n" as string]: THEME_PREFS.length }}>
+        <span className="seg-pill" aria-hidden />
+        {THEME_PREFS.map((t) => (
+          <button key={t} type="button" role="radio" aria-checked={pref === t} className={`m-press${pref === t ? " on" : ""}`} onClick={() => setPref(t)}>{THEME_LABEL[t]}</button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function SettingsPage({ now = Date.now() }: { now?: number }) {
   const { state, signOut, doSignOut } = useDash();
   const d = state.data;
@@ -43,6 +63,9 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
   return (
     <div className="page-narrow m-stagger">
       <h1 className="page-title">Settings</h1>
+
+      <AppearanceGroup />
+      <NotificationSettings />
 
       <Group title="Simulated account" sub="ALPHA PAPER balances are simulated. They are not cash and cannot be withdrawn.">
         <Row k="Account"><StatusBadge tone="info">ALPHA PAPER</StatusBadge></Row>

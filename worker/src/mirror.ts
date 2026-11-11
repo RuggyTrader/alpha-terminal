@@ -18,6 +18,7 @@
 import { COST_PROFILES, execute, type CostProfile } from "./costs";
 import { getInstrument, referencePrice } from "./instruments";
 import { secureEqual } from "./trade_core";
+import { tables } from "./events";
 
 interface MirrorEnv {
   DB: D1Database;
@@ -180,6 +181,33 @@ function validateTrade(it: Obj, acc: Account): TradeRec | string {
   };
 }
 
+interface EntryRec { trade_id: string; event_id: string; side: "LONG" | "SHORT"; qty: number; entry_time: string; entry_price: number; stop_price: number | null; tp2_price: number | null;
+  classification: Category; entry_candle: Candle; processed_at: string }
+
+/** An explicit mirror ENTRY record (engine ENGINE_MIRROR_EVENTS=on): the hypothetical fill, confirmed on its candle. */
+function validateEntry(it: Obj, acc: Account): EntryRec | string {
+  const id = str(it.trade_id, 80);
+  const m = id ? /^MIR-([A-Z0-9]+)-(\d{1,3})-(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)-(LONG|SHORT)$/.exec(id) : null;
+  if (!m || m[1] !== acc.symbol || `${m[2]}m` !== acc.timeframe) return "trade_id must be MIR-<symbol>-<tf>-<entry time>-<side> for this account";
+  if (it.event_id !== `${id}:ENTRY`) return "event_id must be <trade_id>:ENTRY";
+  const side = it.side;
+  if ((side !== "LONG" && side !== "SHORT") || m[4] !== side || m[3] !== it.entry_time) return "trade_id does not match entry_time and side";
+  if (!pos(it.qty) || !pos(it.entry_price)) return "qty and entry_price must be positive";
+  const et = isoMs(it.entry_time);
+  if (et === null || et % acc.tfMs !== 0) return "entry_time must be a candle time on the timeframe grid";
+  const stop = it.stop_price === null || it.stop_price === undefined ? null : it.stop_price, tp2 = it.tp2_price === null || it.tp2_price === undefined ? null : it.tp2_price;
+  if ((stop !== null && !pos(stop)) || (tp2 !== null && !pos(tp2))) return "stop_price and tp2_price must be positive or null";
+  if (stop !== null && tp2 !== null && (side === "LONG" ? !(stop < tp2) : !(stop > tp2))) return "stop and TP2 are on the wrong sides for this direction";
+  if (!CATEGORIES.includes(it.classification as Category)) return "classification must be historical, catch_up or live";
+  const k = candle(it.entry_candle, acc.tfMs);
+  if (!k || k.t !== it.entry_time) return "entry_candle must be the valid candle at entry_time";
+  if (!inRange(it.entry_price as number, k)) return "entry_price lies outside its candle's range";
+  const processed = isoMs(it.processed_at);
+  if (processed === null || processed < et + acc.tfMs) return "processed_at must be after the entry candle closed (no lookahead)";
+  return { trade_id: id as string, event_id: `${id}:ENTRY`, side, qty: it.qty as number, entry_time: it.entry_time as string, entry_price: it.entry_price as number,
+    stop_price: stop as number | null, tp2_price: tp2 as number | null, classification: it.classification as Category, entry_candle: k, processed_at: it.processed_at as string };
+}
+
 /** Comparison costs of one hypothetical round trip under a profile (never charged anywhere). */
 export function mirrorCosts(p: CostProfile, t: { side: "LONG" | "SHORT"; qty: number; entry_price: number; exit_price: number; entry_liquidity: string; exit_liquidity: string; gross_pnl: number }) {
   const inSide = t.side === "LONG" ? "buy" : "sell";
@@ -243,7 +271,9 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
   // its items is acknowledged, so the engine sends them again; nothing is half-written.
   let queries = 2; // the account read and upsert above
   const results: ItemResult[] = [];
-  type Cand = { seq: number; id: string; hash: string; kind: "TRADE"; t: TradeRec } | { seq: number; id: string; hash: string; kind: "EVENT"; key: string; cls: Category; detail: Obj };
+  type Cand = { seq: number; id: string; hash: string; kind: "TRADE"; t: TradeRec } | { seq: number; id: string; hash: string; kind: "EVENT"; key: string; cls: Category; detail: Obj }
+    | { seq: number; id: string; hash: string; kind: "ENTRY"; e: EntryRec };
+  const hasOpens = (await tables(db)).has("mirror_open_events");
   const cands: Cand[] = [];
   const sorted = [...items].sort((a, b) => (isObj(a) && isObj(b) ? Number(a.seq) - Number(b.seq) : 0));
   for (const raw of sorted) {
@@ -269,8 +299,15 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
         trade_id: str(raw.trade_id, 80), side: raw.side, qty: raw.qty, entry_time: raw.entry_time, entry_price: raw.entry_price,
         stop_price: fin(raw.stop_price) ? raw.stop_price : null, tp2_price: fin(raw.tp2_price) ? raw.tp2_price : null,
         last_candle: isoOrNull(raw.last_candle), last_close: fin(raw.last_close) ? raw.last_close : null, reason: String(raw.reason).slice(0, 240), processed_at: isoOrNull(raw.processed_at) } });
+    } else if (raw.type === "ENTRY") {
+      if (!hasOpens) { // this Worker's database has no entry table yet (migration 0006): left unacknowledged, retried later
+        continue;
+      }
+      const e = validateEntry(raw, acc);
+      if (typeof e === "string") results.push({ seq, id: str(raw.event_id, 120), status: "invalid", code: "INVALID_ENTRY", message: e });
+      else cands.push({ seq, id: e.event_id, hash, kind: "ENTRY", e });
     } else {
-      results.push({ seq, id: null, status: "invalid", code: "UNKNOWN_TYPE", message: "type must be TRADE or POSITION_INTERRUPTED" });
+      results.push({ seq, id: null, status: "invalid", code: "UNKNOWN_TYPE", message: "type must be TRADE, ENTRY or POSITION_INTERRUPTED" });
     }
   }
 
@@ -284,6 +321,13 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
     const seqs = cands.map((c) => c.seq);
     const haveTrades = new Map<string, { payload_hash: string; seq: number }>();
     const haveEvents = new Map<string, { payload_hash: string; seq: number }>();
+    const haveOpens = new Map<string, { payload_hash: string; seq: number }>();
+    const openIds = cands.flatMap((c) => (c.kind === "ENTRY" ? [c.id] : []));
+    if (openIds.length) {
+      queries += 1;
+      for (const r of (await db.prepare(`SELECT event_id, payload_hash, seq FROM mirror_open_events WHERE account_id = ? AND event_id IN (${ph(openIds.length)})`)
+        .bind(acc.account_id, ...openIds).all<{ event_id: string; payload_hash: string; seq: number }>()).results) haveOpens.set(r.event_id, r);
+    }
     if (tradeIds.length) {
       queries += 1;
       for (const r of (await db.prepare(`SELECT trade_id, payload_hash, seq FROM mirror_trades WHERE account_id = ? AND trade_id IN (${ph(tradeIds.length)})`)
@@ -298,22 +342,34 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
     const owners = new Map<number, string>();
     for (const r of (await db.prepare(
       `SELECT seq, trade_id AS owner FROM mirror_trades WHERE account_id = ? AND seq IN (${ph(seqs.length)})
-       UNION ALL SELECT seq, entry_key AS owner FROM mirror_entries WHERE account_id = ? AND kind = 'POSITION_INTERRUPTED' AND seq IN (${ph(seqs.length)})`
-    ).bind(acc.account_id, ...seqs, acc.account_id, ...seqs).all<{ seq: number; owner: string }>()).results) owners.set(r.seq, r.owner);
+       UNION ALL SELECT seq, entry_key AS owner FROM mirror_entries WHERE account_id = ? AND kind = 'POSITION_INTERRUPTED' AND seq IN (${ph(seqs.length)})` +
+      (hasOpens ? ` UNION ALL SELECT seq, event_id AS owner FROM mirror_open_events WHERE account_id = ? AND seq IN (${ph(seqs.length)})` : "")
+    ).bind(acc.account_id, ...seqs, acc.account_id, ...seqs, ...(hasOpens ? [acc.account_id, ...seqs] : [])).all<{ seq: number; owner: string }>()).results) owners.set(r.seq, r.owner);
 
     let ref: { price: number | null; at: string | null } | null = null;
     for (const c of cands) {
-      const have = c.kind === "TRADE" ? haveTrades.get(c.id) : haveEvents.get(c.key);
+      const have = c.kind === "TRADE" ? haveTrades.get(c.id) : c.kind === "ENTRY" ? haveOpens.get(c.id) : haveEvents.get(c.key);
       if (have) {
         if (have.payload_hash === c.hash && have.seq === c.seq) results.push({ seq: c.seq, id: c.id, status: "duplicate" });
-        else conflicts.push({ seq: c.seq, id: c.id, status: "conflict", code: c.kind === "TRADE" ? "TRADE_CONFLICT" : "EVENT_CONFLICT", message: `${c.id} is already stored with different content (seq ${have.seq}); not overwritten` });
+        else conflicts.push({ seq: c.seq, id: c.id, status: "conflict", code: c.kind === "TRADE" ? "TRADE_CONFLICT" : c.kind === "ENTRY" ? "ENTRY_CONFLICT" : "EVENT_CONFLICT", message: `${c.id} is already stored with different content (seq ${have.seq}); not overwritten` });
         continue;
       }
       const owner = owners.get(c.seq);
       if (owner) { conflicts.push({ seq: c.seq, id: c.id, status: "conflict", code: "SEQ_CONFLICT", message: `seq ${c.seq} already belongs to ${owner}` }); continue; }
       // Claim the id and sequence for this request, so a repeat inside the same request is caught too.
       owners.set(c.seq, c.id);
-      if (c.kind === "TRADE") haveTrades.set(c.id, { payload_hash: c.hash, seq: c.seq }); else haveEvents.set(c.key, { payload_hash: c.hash, seq: c.seq });
+      if (c.kind === "TRADE") haveTrades.set(c.id, { payload_hash: c.hash, seq: c.seq });
+      else if (c.kind === "ENTRY") haveOpens.set(c.id, { payload_hash: c.hash, seq: c.seq });
+      else haveEvents.set(c.key, { payload_hash: c.hash, seq: c.seq });
+      if (c.kind === "ENTRY") {
+        const e = c.e;
+        stmts.push(db.prepare(
+          `INSERT INTO mirror_open_events (account_id, event_id, trade_id, seq, side, qty, entry_time, entry_price, stop_price, tp2_price, classification, entry_candle_json, processed_at, received_at, payload_hash)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(acc.account_id, e.event_id, e.trade_id, c.seq, e.side, e.qty, e.entry_time, e.entry_price, e.stop_price, e.tp2_price, e.classification, JSON.stringify(e.entry_candle), e.processed_at, now, c.hash));
+        stored.push({ seq: c.seq, id: c.id, status: "stored" });
+        continue;
+      }
       if (c.kind === "TRADE") {
         const t = c.t;
         if (t.classification === "live" && ref === null) {
@@ -368,12 +424,14 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
 
 /** Moves the contiguous-sequence mark forward and reports gaps (numbered by the engine, never stored). */
 async function advanceSequence(db: D1Database, account: string, now: string) {
+  const hasOpens = (await tables(db)).has("mirror_open_events");
   const a = await db.prepare(`SELECT last_contiguous_seq, max_seq_seen, engine_last_seq, conflicts FROM mirror_accounts WHERE account_id = ?`).bind(account).first<{ last_contiguous_seq: number; max_seq_seen: number; engine_last_seq: number | null; conflicts: number }>();
   let queries = 2;
   let last = a?.last_contiguous_seq ?? 0;
   const rows = await db.prepare(
     `SELECT seq FROM mirror_trades WHERE account_id = ?1 AND seq > ?2
-     UNION SELECT seq FROM mirror_entries WHERE account_id = ?1 AND seq IS NOT NULL AND seq > ?2 ORDER BY seq`
+     UNION SELECT seq FROM mirror_entries WHERE account_id = ?1 AND seq IS NOT NULL AND seq > ?2` +
+    (hasOpens ? ` UNION SELECT seq FROM mirror_open_events WHERE account_id = ?1 AND seq > ?2` : "") + ` ORDER BY seq`
   ).bind(account, last).all<{ seq: number }>();
   const above = rows.results.map((r) => r.seq);
   for (const s of above) { if (s === last + 1) last = s; else break; }

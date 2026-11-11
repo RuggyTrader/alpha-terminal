@@ -4,12 +4,14 @@ import { AlertCard } from "../components/AlertCard";
 import { AlphaPaperPerformance } from "../components/AlphaPaperPerformance";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
 import { EngineBotCard } from "../components/EngineBotCard";
+import { ActivityPanel, PipelinePanel } from "../components/HomePanels";
 import { PortfolioSummaryCard } from "../components/PaperPortfolio";
 import { PositionCard } from "../components/PositionCard";
 import { SafetyCard } from "../components/SafetyCard";
 import { MarketsCard, SystemHealthCard } from "../components/SystemHealth";
 import { EmptyState, SectionHeader, SkeletonCards } from "../components/ui";
 import { AnimatedList, Reveal } from "../motion";
+import { useActivity } from "../activity";
 import { useDash } from "../store";
 import { useVerified } from "../useVerified";
 
@@ -64,10 +66,15 @@ export function HomePage() {
   const d = state.data;
   const alerts = d?.recent.alerts ?? [];
   const total = d?.counts.alerts.total ?? 0;
+  const activity = useActivity(reconnected, state.status === "stale" || state.status === "error");
   return (
     <div className="home-grid">
       <div className="col-main m-stagger">
         <AccountHero state={state} verified={verified} reconnected={reconnected} />
+        <div className="hp-panels">
+          <PipelinePanel state={state} mirror={activity.mirror} />
+          <ActivityPanel activity={activity} />
+        </div>
         <MarketsCard state={state} />
         {d?.portfolio ? <PortfolioSummaryCard portfolio={d.portfolio} /> : null}
         {d?.paper ? <AlphaPaperPerformance paper={d.paper} /> : null}

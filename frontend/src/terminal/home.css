@@ -1,0 +1,86 @@
+/* Home: Pipeline and Activity panels (beneath the account hero). Theme tokens only, so light and dark both work.
+   The only continuous motion is a soft pulse on a stage that is genuinely active; reduced motion turns it off. */
+
+.hp-panels { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 900px) { .hp-panels { grid-template-columns: 1fr 1fr; align-items: start; } }
+.hp-card { border: 1px solid var(--card-edge); }
+.hp-card .sh { margin-bottom: 8px; }
+
+/* ---------- pipeline ---------- */
+.pl-list { list-style: none; margin: 0; padding: 0; }
+.pl-stage { display: grid; grid-template-columns: 22px 1fr; gap: 10px; min-height: 52px; }
+.pl-rail { position: relative; display: flex; flex-direction: column; align-items: center; }
+.pl-dot {
+  --c: var(--muted-2, var(--muted));
+  position: relative; width: 12px; height: 12px; margin-top: 4px; border-radius: 50%; flex: none;
+  background: var(--c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent);
+  transition: background-color var(--m-normal) var(--m-ease), box-shadow var(--m-normal) var(--m-ease);
+}
+.pl-line { flex: 1; width: 2px; margin: 4px 0 0; border-radius: 1px; background: var(--line-strong); }
+.pl-body { min-width: 0; padding-bottom: 12px; }
+.pl-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.pl-title { font-weight: 650; font-size: 14px; color: var(--ink); }
+.pl-status {
+  --c: var(--muted);
+  flex: none; font-size: 11.5px; font-weight: 650; letter-spacing: 0.01em; padding: 2px 8px; border-radius: 999px;
+  color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); white-space: nowrap;
+}
+.pl-detail { margin-top: 2px; font-size: 12.5px; line-height: 1.4; color: var(--ink-2); overflow-wrap: anywhere; }
+.pl-sub { margin-top: 3px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.pl-sub::before { content: "◇ "; color: var(--blue); }
+
+.pl-ok .pl-dot, .pl-ok .pl-status { --c: var(--green); }
+.pl-info .pl-dot, .pl-info .pl-status { --c: var(--orange); }
+.pl-warn .pl-dot, .pl-warn .pl-status { --c: var(--amber); }
+.pl-bad .pl-dot, .pl-bad .pl-status { --c: var(--red); }
+.pl-muted .pl-dot { --c: var(--muted); }
+
+/* A stage doing something right now: a ring that breathes outward. */
+.pl-stage.is-active .pl-dot::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--c);
+  animation: pl-pulse 1.8s var(--m-ease-out) infinite;
+}
+@keyframes pl-pulse { 0% { opacity: 0.7; transform: scale(0.8); } 100% { opacity: 0; transform: scale(1.9); } }
+
+/* ---------- activity ---------- */
+.ac-list { display: flex; flex-direction: column; gap: 8px; }
+.ac-item {
+  display: block; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2);
+  color: inherit; text-decoration: none; border-left: 3px solid var(--c, var(--line-strong));
+  transition: transform var(--m-fast) var(--m-ease), background-color var(--m-normal) var(--m-ease);
+}
+a.ac-item:active { transform: scale(0.985); }
+@media (hover: hover) { a.ac-item:hover { background: var(--gray-soft); } }
+.ac-ok { --c: var(--green); }
+.ac-bad { --c: var(--red); }
+.ac-warn { --c: var(--amber); }
+.ac-info { --c: var(--orange); }
+.ac-muted { --c: var(--line-strong); }
+.ac-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; color: var(--muted); }
+.ac-time { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.ac-src { font-style: normal; font-weight: 700; letter-spacing: 0.04em; font-size: 10px; padding: 1px 6px; border-radius: 6px; }
+.ac-src-funded { color: var(--orange); background: var(--orange-soft); }
+.ac-src-mirror { color: var(--blue); background: var(--blue-soft); }
+.ac-src-system, .ac-src-device { color: var(--muted); background: var(--gray-soft); }
+.ac-cls { font-size: 10px; font-weight: 650; color: var(--amber-strong); background: var(--amber-soft); padding: 1px 6px; border-radius: 6px; }
+.ac-title { margin-top: 3px; font-weight: 650; font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; }
+.ac-out { margin-top: 1px; font-size: 12.5px; color: var(--ink-2); overflow-wrap: anywhere; }
+.ac-legend { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.ac-stale { font-size: 12px; color: var(--banner-warn-fg); background: var(--banner-warn-bg); padding: 6px 10px; border-radius: var(--r-sm); margin-bottom: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-stage.is-active .pl-dot::after { animation: none; opacity: 0.5; transform: none; }
+}
+
+/* ---------- Settings → Notifications ---------- */
+.nt-card { padding: 12px 16px; }
+.nt-form { display: flex; flex-direction: column; gap: 12px; }
+.nt-group { display: flex; flex-direction: column; gap: 6px; }
+.nt-row small { font-size: 12px; color: var(--muted); }
+.nt-row b { font-size: 14px; font-weight: 650; color: var(--ink); }
+.nt-note { font-size: 13.5px; line-height: 1.45; color: var(--ink-2); margin: 4px 0; }
+.nt-warn { color: var(--banner-warn-fg); background: var(--banner-warn-bg); padding: 8px 10px; border-radius: var(--r-sm); }
+.nt-steps { margin: 4px 0 8px; padding-left: 20px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.nt-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.nt-off { color: var(--red); }
+.remember input:disabled + .remember-switch { opacity: 0.5; }

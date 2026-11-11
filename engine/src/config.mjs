@@ -102,6 +102,13 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
       return v === "on";
     })(),
     funded,
+    // Explicit Strategy Mirror ENTRY records for entry notifications. Off by default: turn on only after the Worker
+    // that stores them (migration 0006) is deployed; an older Worker would leave them pending.
+    mirrorEvents: (() => {
+      const v = get("ENGINE_MIRROR_EVENTS", "off");
+      if (!["on", "off"].includes(v)) throw new Error("ENGINE_MIRROR_EVENTS must be on or off");
+      return v === "on";
+    })(),
     // Conservative limit fills: a resting limit order fills only when price trades this many ticks THROUGH it (a touch
     // may stay unfilled in the queue). 0 (default) keeps the TradingView emulator rule unchanged.
     limitThroughTicks: (() => {

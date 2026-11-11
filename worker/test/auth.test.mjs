@@ -332,6 +332,12 @@ describe("static safety", () => {
       const text = readFileSync(f, "utf8");
       assert.ok(!/\/v2\/orders/.test(text), `${f} references /v2/orders`);
       assert.ok(!/https:\/\/api\.alpaca\.markets|live-api\.alpaca/.test(text), `${f} references a live Alpaca host`);
+      // The one exception: Web Push delivery (webpush.ts) POSTs to a push service, and only to an allowlisted one.
+      if (f.endsWith("webpush.ts")) {
+        assert.match(text, /if \(!allowedEndpoint\(sub\.endpoint\)\) return/, "push POSTs only to allowlisted push services");
+        assert.ok(!/alpaca/i.test(text), "no broker host in push delivery");
+        continue;
+      }
       assert.ok(!/method:\s*["'](POST|PUT|PATCH|DELETE)["']/.test(text), `${f} makes a non-GET fetch`);
       const hosts = text.match(/https:\/\/[a-z.-]*alpaca\.markets/g) ?? [];
       for (const h of hosts) assert.ok(["https://paper-api.alpaca.markets", "https://data.alpaca.markets"].includes(h), `${f}: ${h}`);

@@ -5,3 +5,14 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 /index.html
   Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+/apple-touch-icon.png
+  Cache-Control: no-cache
+/apple-touch-icon-precomposed.png
+  Cache-Control: no-cache
+/icon-*.png
+  Cache-Control: public, max-age=86400

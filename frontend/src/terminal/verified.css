@@ -2,7 +2,7 @@
    performance, trade proof, markets, system health, engine controls. Detail lists stay light for reading. */
 
 .dark-card {
-  background: linear-gradient(160deg, #221d18 0%, #17130f 100%);
+  background: var(--dark-card-bg);
   color: var(--on-dark); box-shadow: var(--shadow-lg); border-radius: var(--r-xl);
 }
 .dark-card .sh h2 { color: #fff; }
@@ -106,7 +106,7 @@
 /* activity filters */
 .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
-.chip { flex-shrink: 0; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: #e7e2d9; font-size: 12px; font-weight: 750; letter-spacing: 0.06em; color: var(--ink-2); }
+.chip { flex-shrink: 0; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--seg-bg); font-size: 12px; font-weight: 750; letter-spacing: 0.06em; color: var(--ink-2); }
 .chip.on { background: var(--hero); color: #fff; }
 .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 11.5px; color: var(--muted); }
 .lg::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; background: var(--muted-2); }

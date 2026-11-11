@@ -160,8 +160,8 @@ after(async () => { await stop(); await KRAKEN.close(); try { rmSync(work, { rec
 
 let fundedBefore;
 describe("Strategy Mirror on the Worker", () => {
-  it("setup equals production: schema 5 here, costs none, trading off, MAIN $90 / SOLUSD $10, consistent", async () => {
-    assert.equal(d1("SELECT value FROM app_meta WHERE key = 'schema_version'")[0].value, "5");
+  it("setup equals production apart from the schema (development schema 6: 0006 events and push), costs none, trading off, MAIN $90 / SOLUSD $10, consistent", async () => {
+    assert.equal(d1("SELECT value FROM app_meta WHERE key = 'schema_version'")[0].value, "6");
     const d = await get("/api/dashboard");
     assert.equal(d.enable_trading, false);
     assert.equal(d.portfolio.costs.profile, "none");

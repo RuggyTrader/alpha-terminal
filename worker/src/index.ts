@@ -1,3 +1,4 @@
+import { handleNotificationsApi, processEvents } from "./events";
 import { handleEngineMirror } from "./mirror";
 import {
   createDryRunOrder,
@@ -51,6 +52,10 @@ interface Env extends TradeCoreEnv {
   // Dashboard sign-in only (/auth/login). Read-only session; no admin access.
   DASHBOARD_PASSPHRASE?: string;
   DASHBOARD_ORIGINS?: string;
+  // Web Push (optional). Without them the app works exactly as before and notifications report "not configured".
+  VAPID_PUBLIC_KEY?: string;
+  VAPID_PRIVATE_KEY?: string; // SECRET (wrangler secret put VAPID_PRIVATE_KEY)
+  VAPID_SUBJECT?: string;
 }
 
 const ALPACA_PAPER_BASE =
@@ -544,8 +549,15 @@ async function handleEngineControl(
 export default {
   async fetch(
     request: Request,
-    env: Env
+    env: Env,
+    ctx?: ExecutionContext
   ): Promise<Response> {
+    // Trade events and notifications run AFTER the response of an event-producing request, so they can never delay
+    // or fail a signal, a fill or mirror ingestion (worker/src/events.ts).
+    const afterwards = (res: Response): Response => {
+      ctx?.waitUntil(processEvents(env));
+      return res;
+    };
     const url =
       new URL(
         request.url
@@ -1395,10 +1407,10 @@ export default {
       request.method ===
         "POST"
     ) {
-      return handleDryRunWebhook(
+      return afterwards(await handleDryRunWebhook(
         request,
         env
-      );
+      ));
     }
 
     // ========================================================
@@ -1411,15 +1423,15 @@ export default {
       request.method ===
         "POST"
     ) {
-      return handleEngineStatus(
+      return afterwards(await handleEngineStatus(
         request,
         env
-      );
+      ));
     }
 
     // Strategy Mirror: hypothetical trades of the original strategy (margin 0), stored apart from the funded ledger.
     if (url.pathname === "/webhook/engine-mirror" && request.method === "POST") {
-      return handleEngineMirror(request, env);
+      return afterwards(await handleEngineMirror(request, env));
     }
 
     // Verified engine backtest uploaded for the dashboard's risk simulator (cache only, no trading).
@@ -2049,6 +2061,11 @@ export default {
     // PAPER PORTFOLIO ACTIONS (simulated transfers, funding, risk setting)
     // Session + same-origin header + passphrase re-entered per action.
     // ========================================================
+
+    // Web Push notifications: device subscription and preferences (session; enabling needs the passphrase).
+    if (url.pathname.startsWith("/api/notifications/")) {
+      return handleNotificationsApi(request, env, url.pathname);
+    }
 
     if (url.pathname.startsWith("/api/paper/")) {
       return handlePaperApi(request, env, url.pathname);

@@ -14,9 +14,46 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 to 0005", () => {
+  it("are exactly 0001 to 0006", () => {
     assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
-      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql"]);
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql"]);
+  });
+
+  it("0006 (events and push) only adds tables; existing rows unchanged; cursors start at the current end (no backlog)", () => {
+    const db = new DatabaseSync(":memory:");
+    db.exec("PRAGMA foreign_keys = OFF");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql"]) db.exec(sql(f));
+    const now = "2026-11-10T00:00:00Z";
+    db.prepare("INSERT INTO mirror_accounts (account_id, symbol, timeframe, inputs_hash, created_at, updated_at) VALUES ('A', 'SOLUSD', '5m', 'ab', ?, ?)").run(now, now);
+    for (let i = 1; i <= 3; i++) db.prepare(`INSERT INTO mirror_trades (account_id, trade_id, seq, side, qty, entry_time, entry_price, exit_time, exit_price, exit_kind, result, gross_pnl,
+      notional_usd, entry_liquidity, exit_liquidity, cost_profile, est_fees, est_slippage, net_modelled_pnl, classification, exit_candle_json, processed_at, received_at, inputs_hash, payload_hash)
+      VALUES ('A', ?, ?, 'LONG', 1, ?, 100, ?, 101, 'TP', 'TP2', 1, 100, 'maker', 'maker', 'ndax', 0.4, 0, 0.6, 'live', '{}', ?, ?, 'ab', 'h')`).run(`T${i}`, i, now, now, now, now);
+    const NEW = ["event_cursors", "mirror_open_events", "push_deliveries", "push_subscriptions", "trade_events"];
+    const tables = () => db.prepare("SELECT name, sql FROM sqlite_master WHERE type IN ('table', 'index') ORDER BY name").all().map((r) => ({ ...r }))
+      .filter((t) => !NEW.some((n) => t.name === n || t.name.includes(n)) && t.name !== "idx_push_deliveries_pending");
+    const dump = () => Object.fromEntries(tables().filter((t) => t.sql && t.sql.startsWith("CREATE TABLE")).map((t) => [t.name, db.prepare(`SELECT * FROM ${t.name}`).all().map((r) => ({ ...r }))]));
+    const schemaBefore = tables(), rowsBefore = dump();
+    db.exec(sql("0006_events_and_push.sql"));
+    assert.deepEqual(tables(), schemaBefore, "no existing table or index definition changed");
+    const after = dump();
+    for (const d of [after, rowsBefore]) d.app_meta = d.app_meta.filter((r) => r.key !== "schema_version");
+    assert.deepEqual(after, rowsBefore, "no existing row changed");
+    assert.equal(db.prepare(`SELECT value FROM app_meta WHERE key = 'schema_version'`).get().value, "6");
+    const cur = Object.fromEntries(db.prepare("SELECT name, last_id FROM event_cursors").all().map((r) => [r.name, r.last_id]));
+    assert.deepEqual(cur, { paper_fills: 0, mirror_trades: 3, mirror_open_events: 0 });
+    // constraints
+    const ev = db.prepare("INSERT INTO trade_events (event_key, kind, source, classification, occurred_at, created_at) VALUES (?, ?, ?, ?, ?, ?)");
+    ev.run("K1", "MIRROR_CLOSE", "mirror", "live", now, now);
+    assert.throws(() => ev.run("K1", "MIRROR_CLOSE", "mirror", "live", now, now), /UNIQUE/, "one event per source row");
+    assert.throws(() => ev.run("K2", "PROFIT", "mirror", "live", now, now), /CHECK/);
+    assert.throws(() => ev.run("K3", "MIRROR_CLOSE", "broker", "live", now, now), /CHECK/);
+    db.prepare("INSERT INTO push_subscriptions (endpoint, p256dh, auth, prefs_json, created_at, updated_at) VALUES ('https://web.push.apple.com/x', 'p', 'a', '{}', ?, ?)").run(now, now);
+    const dl = db.prepare("INSERT INTO push_deliveries (event_id, subscription_id, status, created_at) VALUES (1, 1, ?, ?)");
+    dl.run("pending", now);
+    assert.throws(() => dl.run("pending", now), /UNIQUE/, "at most one notification per event per device");
+    // re-running the migration is harmless
+    db.exec(sql("0006_events_and_push.sql"));
+    assert.equal(db.prepare("SELECT last_id FROM event_cursors WHERE name = 'mirror_trades'").get().last_id, 3);
   });
 
   it("0005 (Strategy Mirror) only adds tables: every existing table and row is unchanged; its constraints hold", () => {

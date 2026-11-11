@@ -82,7 +82,7 @@ function clientIp(request: Request): string {
 }
 
 /** CSRF guard for state-changing /auth routes: custom header + allowed Origin. */
-function sameOriginOk(request: Request, env: AuthEnv): boolean {
+export function sameOriginOk(request: Request, env: AuthEnv): boolean {
   if (request.headers.get("x-alpha-terminal") !== "1") return false;
   const origin = request.headers.get("origin");
   if (!origin) return true; // non-browser client; the custom header is still required

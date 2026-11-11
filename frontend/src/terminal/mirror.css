@@ -1,6 +1,6 @@
 /* Strategy Mirror: the hypothetical label is always visible; categories are visually separate. */
 .mirror-banner { border: 1px solid rgba(255, 178, 87, 0.55); background: rgba(255, 178, 87, 0.1); display: flex; flex-direction: column; gap: 6px; }
-.mirror-banner b { font-size: 13px; letter-spacing: 0.02em; color: #b5650d; }
+.mirror-banner b { font-size: 13px; letter-spacing: 0.02em; color: var(--amber-strong); }
 .mirror-banner p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
 .mirror-sep { margin: -4px 2px 0; font-size: 12px; color: var(--muted); }
 .mirror-warn { margin: 10px 0 0; padding: 9px 11px; border-radius: var(--r-md); background: rgba(255, 107, 94, 0.15); color: var(--red-hero); font-size: 12px; }
