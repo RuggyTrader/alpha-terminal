@@ -8,6 +8,9 @@ import { DEFAULT_INPUTS } from "./ote.mjs";
 // Validated for the engine so far. Other supported crypto only after their own validation; futures and gold
 // stay disabled until a truthful data feed exists.
 export const ENGINE_SYMBOLS = Object.freeze(["SOLUSD"]);
+// Strategy Mirror only (ENGINE_FUNDED=off): hypothetical trades, never a funded signal, transfer or broker order.
+// Pair mapping and completed 5m OHLC verified against Kraken (AssetPairs XXBTZUSD tick 0.1, XETHZUSD tick 0.01).
+export const MIRROR_ONLY_SYMBOLS = Object.freeze(["BTCUSD", "ETHUSD"]);
 
 export function loadEnvFile(path) {
   if (!path || !existsSync(path)) return {};
@@ -36,8 +39,14 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   const profileEnv = profileFile === null ? {} : loadEnvFile(profileFile);
   if (Object.keys(profileEnv).some((k) => /SECRET|API_BASE|SYNC/.test(k))) throw new Error(`profile ${profile} may only hold strategy/engine settings, not secrets or sync targets`);
   const get = (k, d) => (env[k] ?? fileEnv[k] ?? profileEnv[k] ?? d);
+  // ENGINE_FUNDED=off: a mirror-only market. The funded track (signals to the PAPER ledger, ledger checks, engine
+  // status and website risk settings) does not run at all; only the Strategy Mirror does.
+  const fundedSetting = get("ENGINE_FUNDED", "on");
+  if (!["on", "off"].includes(fundedSetting)) throw new Error("ENGINE_FUNDED must be on or off");
+  const funded = fundedSetting === "on";
   const symbol = get("ENGINE_SYMBOL", "SOLUSD");
-  if (!ENGINE_SYMBOLS.includes(symbol)) throw new Error(`${symbol} is not enabled for the engine (enabled: ${ENGINE_SYMBOLS.join(", ")})`);
+  if (funded && !ENGINE_SYMBOLS.includes(symbol)) throw new Error(`${symbol} is not enabled for the engine (enabled: ${ENGINE_SYMBOLS.join(", ")})`);
+  if (!funded && !MIRROR_ONLY_SYMBOLS.includes(symbol)) throw new Error(`${symbol} is not enabled as a mirror-only market (enabled: ${MIRROR_ONLY_SYMBOLS.join(", ")})`);
   const intervalMin = Number(get("ENGINE_INTERVAL_MIN", "5"));
   if (![1, 5, 15, 30, 60].includes(intervalMin)) throw new Error(`unsupported ENGINE_INTERVAL_MIN ${intervalMin}`);
 
@@ -83,14 +92,16 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
     lateBars: Number(get("ENGINE_LATE_BARS", "2")),
     krakenBase: get("KRAKEN_API_BASE", ""),
     // Take the risk per trade set on the ALPHA TERMINAL website (versioned, confirmed back). Off by default.
-    remoteSettings: get("ENGINE_REMOTE_SETTINGS", "off") === "on",
+    remoteSettings: funded && get("ENGINE_REMOTE_SETTINGS", "off") === "on",
     // Strategy Mirror (src/mirror.mjs): an independent, hypothetical copy of the strategy with margin-0 semantics,
     // reported separately from the funded ledger. Off by default: turning it on is a deliberate activation.
     mirror: (() => {
       const v = get("ENGINE_MIRROR", "off");
       if (!["on", "off"].includes(v)) throw new Error("ENGINE_MIRROR must be on or off");
+      if (!funded && v !== "on") throw new Error("ENGINE_FUNDED=off runs only the Strategy Mirror: it needs ENGINE_MIRROR=on");
       return v === "on";
     })(),
+    funded,
     // Conservative limit fills: a resting limit order fills only when price trades this many ticks THROUGH it (a touch
     // may stay unfilled in the queue). 0 (default) keeps the TradingView emulator rule unchanged.
     limitThroughTicks: (() => {
@@ -99,6 +110,25 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
       return v;
     })(),
   };
+}
+
+/**
+ * Mirror-only markets of a multi-market process (ENGINE_MARKETS=BTCUSD,ETHUSD), or [] when not set. Each market gets
+ * its own config from the same settings: ENGINE_FUNDED=off, its own symbol, its own state and audit files. SOLUSD is
+ * refused here: it runs in its own (funded) engine, and a second SOLUSD mirror would report into the same account.
+ */
+export function marketList(env = process.env, baseDir = process.cwd()) {
+  const fileEnv = loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env"));
+  const raw = (env.ENGINE_MARKETS ?? fileEnv.ENGINE_MARKETS ?? "").trim();
+  if (!raw) return [];
+  const list = raw.split(",").map((x) => x.trim()).filter(Boolean);
+  for (const m of list) if (!MIRROR_ONLY_SYMBOLS.includes(m)) throw new Error(`ENGINE_MARKETS: ${m} is not a mirror-only market (allowed: ${MIRROR_ONLY_SYMBOLS.join(", ")})`);
+  if (new Set(list).size !== list.length) throw new Error("ENGINE_MARKETS lists a market twice");
+  return list;
+}
+
+export function loadMarketConfigs(env = process.env, baseDir = process.cwd()) {
+  return marketList(env, baseDir).map((symbol) => loadConfig({ ...env, ENGINE_SYMBOL: symbol, ENGINE_FUNDED: "off" }, baseDir));
 }
 
 /** Config safe to print (no secret). */

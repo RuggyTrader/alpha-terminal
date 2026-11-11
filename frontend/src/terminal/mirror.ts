@@ -92,10 +92,28 @@ async function getData<T>(path: string): Promise<T> {
   return env.data;
 }
 
-export const fetchMirror = () => getData<MirrorSummary>("/api/dashboard/mirror");
-export const fetchMirrorTrades = (category: MirrorCategory, limit = 50) =>
-  getData<{ trades: MirrorTrade[]; total: number }>(`/api/dashboard/mirror/trades?category=${category}&limit=${limit}`);
-export const fetchMirrorProof = (id: string) => getData<MirrorProof>(`/api/dashboard/mirror/trade?id=${encodeURIComponent(id)}`);
+const acct = (account?: string | null) => (account ? `account=${encodeURIComponent(account)}` : "");
+export const fetchMirror = (account?: string | null) => getData<MirrorSummary>(`/api/dashboard/mirror${account ? `?${acct(account)}` : ""}`);
+export const fetchMirrorTrades = (category: MirrorCategory, account?: string | null, limit = 50) =>
+  getData<{ trades: MirrorTrade[]; total: number }>(`/api/dashboard/mirror/trades?category=${category}&limit=${limit}${account ? `&${acct(account)}` : ""}`);
+export const fetchMirrorProof = (id: string, account?: string | null) => getData<MirrorProof>(`/api/dashboard/mirror/trade?id=${encodeURIComponent(id)}${account ? `&${acct(account)}` : ""}`);
+export const fetchMirrorOverview = () => getData<MirrorOverview>("/api/dashboard/mirror/overview");
+
+/** Strategy Mirror V2: every market side by side. Each market and category stands alone; there is no total. */
+export interface MirrorCategoryTotals { trades: number; longs: number; shorts: number; wins: number; gross_pnl: number; net_modelled_pnl: number; last_exit_at: string | null }
+export interface MirrorMarket {
+  account_id: string; symbol: string; timeframe: string; profile: string | null; inputs_hash: string; engine_release: string | null;
+  activated_at: string | null; last_seen_at: string | null; last_candle_time: string | null; last_candle_close: number | null;
+  health: { state: MirrorSummary["health"]["state"]; issues: string[]; last_seen_age_seconds: number | null; observation_gaps: { from: string; to: string; candles: number | null }[] };
+  reconciled: boolean; open_position: MirrorPosition | null; categories: Record<MirrorCategory, MirrorCategoryTotals>;
+}
+export interface MirrorOverview { label: string; disclosure: string; note: string; markets: MirrorMarket[] }
+
+/** The market shown first: SOLUSD (the funded strategy's market) when present, else the first one. */
+export function defaultMarket(o: MirrorOverview | null): string | null {
+  if (!o || !o.markets.length) return null;
+  return (o.markets.find((m) => m.symbol === "SOLUSD") ?? o.markets[0]).account_id;
+}
 
 export const RESULT_LABEL: Record<string, string> = {
   TP2: "Take profit (TP2)", SL: "Stop loss", TRAILING_SL: "Trailing stop", BREAK_EVEN: "Break-even", TIME_EXIT: "Time exit", SAME_BAR: "Same-candle entry and exit", UNLABELLED: "Unlabelled",

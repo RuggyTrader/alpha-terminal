@@ -320,8 +320,38 @@ export class EngineRunner {
     st.maxNotional = this.balance?.max_order_notional_usd ?? null;
   }
 
+  /**
+   * Mirror-only market (ENGINE_FUNDED=off): fetch this market's completed candles, feed the Strategy Mirror, deliver.
+   * No funded state, no signal to the PAPER ledger, no ledger check, no engine status, no website settings. A market
+   * data failure is recorded and reported; it never throws, so other markets in the same process carry on.
+   */
+  async tickMirrorOnly() {
+    const nowMs = this.now();
+    let candles;
+    try {
+      candles = await this.fetchCandles({ symbol: this.cfg.symbol, intervalMin: this.cfg.intervalMin, sinceMs: this.mirror ? this.mirror.strategy.lastTime : null, base: this.cfg.krakenBase, nowMs });
+    } catch (e) {
+      const message = String(e.message ?? e).slice(0, 240);
+      this.log(`[engine] ${this.cfg.symbol} candle fetch failed: ${message}`);
+      this.audit({ type: "error", where: "market-data", message });
+      if (this.mirror) {
+        this.mirror.lastError = { at: iso(nowMs), where: "market-data", message };
+        this.saveMirror();
+        await this.flushMirror();
+      }
+      return { processed: 0, error: { where: "market-data", message } };
+    }
+    const before = this.mirror ? this.mirror.candlesProcessed : 0;
+    this.stepMirror(candles, nowMs);
+    const processed = this.mirror.candlesProcessed - before;
+    if (processed) this.log(`[engine] ${this.cfg.symbol} mirror processed ${processed} candle(s) up to ${this.mirror.lastCandle?.t}; status: ${this.mirror.strategy.status}`);
+    await this.flushMirror();
+    return { processed };
+  }
+
   /** One poll: process every new completed candle, then sync. Safe to call at any time. */
   async tick() {
+    if (this.cfg.funded === false) return this.tickMirrorOnly();
     const nowMs = this.now();
     if (!this.state) this.fresh();
     const S = this.state;

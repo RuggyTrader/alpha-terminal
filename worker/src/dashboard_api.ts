@@ -1,4 +1,4 @@
-import { mirrorDashboard, mirrorTradeProof, mirrorTrades } from "./mirror";
+import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
   alpacaGet,
   asArray,
@@ -1253,6 +1253,9 @@ export async function handleDashboardApi(
     // Strategy Mirror (hypothetical, margin 0): summary by category, trade list, and one trade's proof.
     if (pathname === "/api/dashboard/mirror") {
       return json({ ok: true, data: await mirrorDashboard(env.DB, searchParams) });
+    }
+    if (pathname === "/api/dashboard/mirror/overview") {
+      return json({ ok: true, data: await mirrorOverview(env.DB) });
     }
     if (pathname === "/api/dashboard/mirror/trades") {
       try {

@@ -28,3 +28,13 @@
 .mirror-gaps p { margin: 0 0 6px; color: var(--on-dark-2); }
 .mirror-gaps ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 3px; }
 .mirror-dim { color: var(--on-dark-2); }
+/* Strategy Mirror V2: one card per market; markets and categories are never summed. */
+.mirror-markets { display: flex; flex-direction: column; gap: 10px; }
+.mirror-market-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.mirror-market { display: flex; flex-direction: column; gap: 6px; text-align: left; border: 1px solid transparent; font: inherit; cursor: pointer; }
+.mirror-market.is-on { border-color: var(--orange); }
+.mirror-market .mm-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #fff; }
+.mirror-market .mm-sub { font-size: 11px; color: var(--on-dark-2); }
+.mirror-market .mm-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; font-size: 12px; align-items: baseline; }
+.mirror-market .mm-row i { font-style: normal; color: var(--on-dark-2); }
+.mirror-market .mm-row b { white-space: nowrap; }

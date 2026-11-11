@@ -96,6 +96,20 @@ margin-0 property, and is never dropped when the funded ledger refuses an entry.
 funded PAPER. With the mirror off, the funded track is byte-identical (tested). Design, parity and evidence:
 `docs/STRATEGY-MIRROR-V1.md`.
 
+## Mirror-only markets (Strategy Mirror V2: `ENGINE_MARKETS`)
+
+`ENGINE_MARKETS=BTCUSD,ETHUSD` (with `ENGINE_MIRROR=on`) makes `src/cli/run.mjs` start the mirror-only multi-market
+process (`src/cli/run-markets.mjs`, `src/markets.mjs`) instead of the single-market engine.
+- Each market runs the unchanged strategy on its own Kraken pair (XBTUSD, ETHUSD), with its own mirror state, audit
+  file, lock, account and trade ids.
+- Markets are polled one after another; a failure, hang or data gap in one never stops another.
+- These markets are **hypothetical only** (`ENGINE_FUNDED=off`): no PAPER signal, ledger query, engine status, website
+  setting, transfer or broker order exists for them.
+- SOLUSD is refused in `ENGINE_MARKETS`: it keeps its own funded engine, which runs exactly as before when
+  `ENGINE_MARKETS` is not set.
+
+Design, tests and the staged rollout: `docs/STRATEGY-MIRROR-V2-MULTI-CRYPTO.md`.
+
 ## SOLUSD 5m profile, TradingView parity and the website simulator
 
 `profiles/solusd-5m.env` holds the user's TradingView inputs for KRAKEN:SOLUSD 5m (`ENGINE_PROFILE=solusd-5m`).

@@ -3,13 +3,13 @@
 // mirror number is ever added to a funded total. Nothing is estimated in place of missing data.
 
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { money, NA, price, qty as fmtQty, signedMoney, stamp, tone, when } from "../fmt";
 import {
-  CATEGORY_INFO, fetchMirror, fetchMirrorProof, fetchMirrorTrades, MIRROR_CATEGORIES, RESULT_LABEL,
-  type MirrorCategory, type MirrorMetrics, type MirrorProof, type MirrorSummary, type MirrorTrade,
+  CATEGORY_INFO, defaultMarket, fetchMirror, fetchMirrorOverview, fetchMirrorProof, fetchMirrorTrades, MIRROR_CATEGORIES, RESULT_LABEL,
+  type MirrorCategory, type MirrorMetrics, type MirrorOverview, type MirrorProof, type MirrorSummary, type MirrorTrade,
 } from "../mirror";
 import { EquityCurve } from "./Performance";
 
@@ -134,9 +134,9 @@ export function CategoryView({ c, m, baseline }: { c: MirrorCategory; m: MirrorM
   );
 }
 
-function TradeRow({ t }: { t: MirrorTrade }) {
+function TradeRow({ t, account }: { t: MirrorTrade; account: string | null }) {
   return (
-    <Link className="li mirror-trade m-press" to={`/mirror/trade/${encodeURIComponent(t.trade_id)}`}>
+    <Link className="li mirror-trade m-press" to={`/mirror/trade/${encodeURIComponent(t.trade_id)}${account ? `?account=${encodeURIComponent(account)}` : ""}`}>
       <span>
         <b>{t.side}</b> {t.qty.toFixed(2)} · {price(t.entry_price)} → {price(t.exit_price)}
         <i className="muted-s"> {RESULT_LABEL[t.result] ?? t.result} · {stamp(t.exit_time)}</i>
@@ -183,7 +183,7 @@ export function MirrorView({ s, category, onCategory, trades }: { s: MirrorSumma
           <section className="card dark-card" aria-label="Trades">
             <SectionHeader title={`${CATEGORY_INFO[category].short} trades`} sub="Newest first · tap for proof and provenance" />
             {trades === null ? <SkeletonCards count={2} /> : trades.length === 0 ? <p className="proof-note">None in this category.</p> : (
-              <div className="card list-card">{trades.map((t) => <TradeRow key={t.trade_id} t={t} />)}</div>
+              <div className="card list-card">{trades.map((t) => <TradeRow key={t.trade_id} t={t} account={s.account?.account_id ?? null} />)}</div>
             )}
           </section>
 
@@ -207,24 +207,72 @@ function errText(e: unknown): string {
   return e instanceof ApiError ? `${e.code}: ${e.message}` : String(e);
 }
 
+/**
+ * Strategy Mirror V2: one card per market with its health, open position and, per category, trades and hypothetical
+ * results. Markets are never added together. Selecting a card shows that market below.
+ */
+export function MarketOverview({ o, selected, onSelect }: { o: MirrorOverview; selected: string | null; onSelect: (account: string) => void }) {
+  if (o.markets.length < 2) return null;
+  const idx = Math.max(0, o.markets.findIndex((m) => m.account_id === selected));
+  return (
+    <section className="mirror-markets" aria-label="Markets">
+      <div className="seg" role="tablist" aria-label="Market" style={{ ["--i" as string]: idx, ["--n" as string]: o.markets.length }}>
+        <span className="seg-pill" aria-hidden />
+        {o.markets.map((m) => (
+          <button key={m.account_id} type="button" role="tab" className={`m-press${m.account_id === selected ? " on" : ""}`} aria-selected={m.account_id === selected} onClick={() => onSelect(m.account_id)}>{m.symbol}</button>
+        ))}
+      </div>
+      <div className="mirror-market-grid">
+        {o.markets.map((m) => (
+          <button key={m.account_id} type="button" className={`card dark-card mirror-market m-press${m.account_id === selected ? " is-on" : ""}`} onClick={() => onSelect(m.account_id)} aria-label={`${m.symbol} market`}>
+            <span className="mm-head"><b>{m.symbol}</b><StatusBadge tone={HEALTH_TONE[m.health.state]}>{m.health.state.replace("_", " ")}</StatusBadge></span>
+            <span className="mm-sub">{m.last_candle_time ? `last candle ${stamp(m.last_candle_time)}` : "no candle yet"}{m.open_position ? ` · open ${m.open_position.side}` : ""}{m.health.observation_gaps.length ? ` · ${m.health.observation_gaps.length} observation gap(s)` : ""}</span>
+            {MIRROR_CATEGORIES.map((c) => (
+              <span className="mm-row" key={c}>
+                <i>{CATEGORY_INFO[c].short}</i>
+                <span>{m.categories[c].trades} trade{m.categories[c].trades === 1 ? "" : "s"}</span>
+                <b className={m.categories[c].trades ? `t-${tone(m.categories[c].gross_pnl)}` : "na"}>{m.categories[c].trades ? signedMoney(m.categories[c].gross_pnl) : NA}</b>
+              </span>
+            ))}
+          </button>
+        ))}
+      </div>
+      <p className="mirror-sep">{o.note}</p>
+    </section>
+  );
+}
+
 export function MirrorPage() {
   const [s, setS] = useState<{ status: "loading" | "ok" | "unsupported" | "error"; data: MirrorSummary | null; error: string | null }>({ status: "loading", data: null, error: null });
+  const [overview, setOverview] = useState<MirrorOverview | null>(null);
+  // null = not decided yet; "" = no overview (older Worker or no market): the Worker's default account.
+  const [account, setAccount] = useState<string | null>(null);
   const [category, setCategory] = useState<MirrorCategory>("live");
   const [trades, setTrades] = useState<MirrorTrade[] | null>(null);
 
   useEffect(() => {
     let live = true;
-    fetchMirror()
+    fetchMirrorOverview()
+      .then((o) => { if (live) { setOverview(o); setAccount((a) => a ?? (defaultMarket(o) ?? "")); } })
+      .catch(() => { if (live) setAccount((a) => a ?? ""); });
+    return () => { live = false; };
+  }, []);
+
+  useEffect(() => {
+    if (account === null) return;
+    let live = true;
+    setS((x) => ({ ...x, status: "loading" }));
+    fetchMirror(account || null)
       .then((data) => { if (live) setS({ status: "ok", data, error: null }); })
       .catch((e: unknown) => { if (live) setS({ status: e instanceof ApiError && e.status === 404 ? "unsupported" : "error", data: null, error: errText(e) }); });
     return () => { live = false; };
-  }, []);
+  }, [account]);
 
   useEffect(() => {
     if (s.status !== "ok" || !s.data?.account) return;
     let live = true;
     setTrades(null);
-    fetchMirrorTrades(category).then((r) => { if (live) setTrades(r.trades); }).catch(() => { if (live) setTrades([]); });
+    fetchMirrorTrades(category, s.data.account.account_id).then((r) => { if (live) setTrades(r.trades); }).catch(() => { if (live) setTrades([]); });
     return () => { live = false; };
   }, [category, s.status, s.data?.account]);
 
@@ -235,6 +283,7 @@ export function MirrorPage() {
         <h1 className="page-title">Strategy Mirror</h1>
         <p className="page-sub">The original strategy, both directions, fixed $10 risk · hypothetical fills, not orders</p>
       </div>
+      {overview ? <MarketOverview o={overview} selected={account || null} onSelect={(a) => setAccount(a)} /> : null}
       {s.status === "loading" ? <SkeletonCards count={3} tall />
         : s.status === "unsupported" ? <EmptyState title="The Strategy Mirror is not available from this backend yet" tone="warn">The deployed Worker does not provide it. Nothing is estimated in its place.</EmptyState>
           : s.status === "error" || !s.data ? <EmptyState title="The Strategy Mirror could not be loaded" tone="bad">{s.error}</EmptyState>
@@ -295,12 +344,14 @@ export function MirrorProofView({ p }: { p: MirrorProof }) {
 
 export function MirrorTradePage() {
   const { id = "" } = useParams();
+  const [search] = useSearchParams();
+  const account = search.get("account");
   const [s, setS] = useState<{ status: "loading" | "ok" | "error"; p: MirrorProof | null; error: string | null }>({ status: "loading", p: null, error: null });
   useEffect(() => {
     let live = true;
-    fetchMirrorProof(id).then((p) => { if (live) setS({ status: "ok", p, error: null }); }).catch((e: unknown) => { if (live) setS({ status: "error", p: null, error: errText(e) }); });
+    fetchMirrorProof(id, account).then((p) => { if (live) setS({ status: "ok", p, error: null }); }).catch((e: unknown) => { if (live) setS({ status: "error", p: null, error: errText(e) }); });
     return () => { live = false; };
-  }, [id]);
+  }, [id, account]);
   return (
     <div className="page-narrow m-stagger mirror-page">
       <div className="page-head">

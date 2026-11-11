@@ -4,8 +4,8 @@ import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import type { MirrorMetrics, MirrorProof, MirrorSummary, MirrorTrade } from "./mirror";
-import { MirrorLinkCard, MirrorProofView, MirrorView } from "./pages/Mirror";
+import { defaultMarket, type MirrorMarket, type MirrorMetrics, type MirrorOverview, type MirrorProof, type MirrorSummary, type MirrorTrade } from "./mirror";
+import { MarketOverview, MirrorLinkCard, MirrorProofView, MirrorView } from "./pages/Mirror";
 
 const html = (n: ReactElement) => renderToStaticMarkup(<MemoryRouter>{n}</MemoryRouter>);
 
@@ -144,5 +144,41 @@ describe("Strategy Mirror trade proof and entry point", () => {
   });
   it("the Engine page entry point says it is kept apart from funded PAPER", () => {
     expect(html(<MirrorLinkCard />)).toContain("kept apart from funded PAPER");
+  });
+});
+
+describe("Strategy Mirror V2: market overview and selector", () => {
+  const cat = (trades: number, gross: number) => ({ trades, longs: trades, shorts: 0, wins: trades ? 1 : 0, gross_pnl: gross, net_modelled_pnl: gross - 1, last_exit_at: null });
+  const market = (symbol: string, over: Partial<MirrorMarket> = {}): MirrorMarket => ({
+    account_id: `MIRROR-${symbol}-5m-abc`, symbol, timeframe: "5m", profile: "solusd-5m", inputs_hash: "abc", engine_release: "rel", activated_at: "2026-11-11T03:41:08Z",
+    last_seen_at: "2026-11-11T04:00:00Z", last_candle_time: "2026-11-11T03:55:00Z", last_candle_close: 1,
+    health: { state: "OK", issues: [], last_seen_age_seconds: 10, observation_gaps: [] }, reconciled: true, open_position: null,
+    categories: { live: cat(0, 0), catch_up: cat(0, 0), historical: cat(6, 29.36) }, ...over,
+  });
+  const o = (markets: MirrorMarket[]): MirrorOverview => ({ label: "Hypothetical — unlimited buying power, not executable performance", disclosure: "d", note: "Each market and each category is measured on its own. Nothing is added across markets or to funded PAPER results.", markets });
+
+  it("one card per market with each category separate, and no total across markets", () => {
+    const ov = o([market("BTCUSD", { categories: { live: cat(1, -10.5), catch_up: cat(0, 0), historical: cat(3, 12) } }), market("ETHUSD", { health: { state: "STALE", issues: [], last_seen_age_seconds: 4000, observation_gaps: [{ from: "a", to: "b", candles: 40 }] } }), market("SOLUSD")]);
+    const h = html(<MarketOverview o={ov} selected="MIRROR-SOLUSD-5m-abc" onSelect={() => {}} />);
+    for (const s of ["BTCUSD", "ETHUSD", "SOLUSD"]) expect(h).toContain(`${s} market`);
+    expect(h).toContain("−$10.50");
+    expect(h).toContain("+$12.00");
+    expect(h).toContain("STALE");
+    expect(h).toContain("1 observation gap(s)");
+    expect(h).toContain("Nothing is added across markets");
+    expect(h).not.toMatch(/total/i);
+    expect(h).not.toContain("+$41.36"); // 12 + 29.36: never summed
+  });
+
+  it("SOLUSD is shown first by default; a single market needs no selector; older Workers (no overview) fall back", () => {
+    expect(defaultMarket(o([market("BTCUSD"), market("SOLUSD")]))).toBe("MIRROR-SOLUSD-5m-abc");
+    expect(defaultMarket(o([market("ETHUSD"), market("BTCUSD")]))).toBe("MIRROR-ETHUSD-5m-abc");
+    expect(defaultMarket(null)).toBeNull();
+    expect(html(<MarketOverview o={o([market("SOLUSD")])} selected={null} onSelect={() => {}} />)).toBe("");
+  });
+
+  it("trade links carry the market's account", () => {
+    const h = html(<MirrorView s={summary()} category="historical" onCategory={() => {}} trades={[trade()]} />);
+    expect(h).toContain("?account=MIRROR-SOLUSD-5m-c826d785d58a4a39");
   });
 });

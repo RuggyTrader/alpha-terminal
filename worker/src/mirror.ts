@@ -530,6 +530,54 @@ export async function mirrorDashboard(db: D1Database, params: URLSearchParams) {
   };
 }
 
+/**
+ * Every mirror market side by side (Strategy Mirror V2): health, open position and, per category, trade count and
+ * hypothetical results. Each market and each category is reported on its own: there is no total across markets and
+ * nothing is combined with funded PAPER. Four queries whatever the number of markets.
+ */
+export async function mirrorOverview(db: D1Database) {
+  const accounts = (await db.prepare(`SELECT * FROM mirror_accounts ORDER BY symbol, account_id`).all<Obj>()).results;
+  const cats = (await db.prepare(
+    `SELECT account_id, classification, COUNT(*) AS trades, SUM(side = 'LONG') AS longs, SUM(side = 'SHORT') AS shorts, SUM(gross_pnl > 0) AS wins,
+       SUM(gross_pnl) AS gross, SUM(net_modelled_pnl) AS net, MAX(exit_time) AS last_exit
+     FROM mirror_trades GROUP BY account_id, classification`
+  ).all<Obj>()).results;
+  const journal = (await db.prepare(
+    `SELECT e.account_id, COUNT(*) AS n, SUM(e.amount_usd) AS total,
+       SUM(CASE WHEN t.trade_id IS NULL OR ABS(t.gross_pnl - e.amount_usd) > 1e-9 OR t.classification <> e.classification THEN 1 ELSE 0 END) AS bad
+     FROM mirror_entries e LEFT JOIN mirror_trades t ON t.account_id = e.account_id AND t.trade_id = e.trade_id
+     WHERE e.kind = 'REALIZED_GROSS_PNL' GROUP BY e.account_id`
+  ).all<Obj>()).results;
+  const ints = (await db.prepare(`SELECT account_id, COUNT(*) AS n FROM mirror_entries WHERE kind = 'POSITION_INTERRUPTED' GROUP BY account_id`).all<Obj>()).results;
+  const now = Date.now();
+  const markets = accounts.map((acc) => {
+    const id = String(acc.account_id);
+    const mine = cats.filter((c) => c.account_id === id);
+    const categories = Object.fromEntries(CATEGORIES.map((c) => {
+      const r = mine.find((x) => x.classification === c);
+      return [c, r ? { trades: Number(r.trades), longs: Number(r.longs), shorts: Number(r.shorts), wins: Number(r.wins), gross_pnl: r6(Number(r.gross)), net_modelled_pnl: r6(Number(r.net)), last_exit_at: r.last_exit }
+        : { trades: 0, longs: 0, shorts: 0, wins: 0, gross_pnl: 0, net_modelled_pnl: 0, last_exit_at: null }];
+    }));
+    const trades = mine.reduce((s, c) => s + Number(c.trades), 0);
+    const gross = mine.reduce((s, c) => s + Number(c.gross), 0);
+    const j = journal.find((x) => x.account_id === id);
+    const recon = { ok: true, issues: [] as string[] };
+    if ((j ? Number(j.n) : 0) !== trades) { recon.ok = false; recon.issues.push(`${j ? j.n : 0} journal entries for ${trades} trades`); }
+    if (j && Math.abs(Number(j.total) - gross) > 1e-6) { recon.ok = false; recon.issues.push("journal total differs from the trades' gross"); }
+    if (j && Number(j.bad) > 0) { recon.ok = false; recon.issues.push(`${j.bad} journal entries do not match their trade`); }
+    const h = health(acc, recon, Number(ints.find((x) => x.account_id === id)?.n ?? 0), now);
+    return {
+      account_id: id, symbol: acc.symbol, timeframe: acc.timeframe, profile: acc.profile, inputs_hash: acc.inputs_hash, engine_release: acc.engine_release,
+      activated_at: acc.activated_at, last_seen_at: acc.last_seen_at, last_candle_time: acc.last_candle_time, last_candle_close: acc.last_candle_close,
+      health: { state: h.state, issues: h.issues, last_seen_age_seconds: h.last_seen_age_seconds ?? null, observation_gaps: (h as { observation_gaps?: unknown[] }).observation_gaps ?? [] },
+      reconciled: recon.ok,
+      open_position: acc.open_position_json ? JSON.parse(String(acc.open_position_json)) : null,
+      categories,
+    };
+  });
+  return { label: MIRROR_LABEL, disclosure: MIRROR_DISCLOSURE, note: "Each market and each category is measured on its own. Nothing is added across markets or to funded PAPER results.", markets };
+}
+
 export async function mirrorTrades(db: D1Database, params: URLSearchParams) {
   const acc = await pickAccount(db, params.get("account"));
   if (!acc) return { trades: [], total: 0 };
