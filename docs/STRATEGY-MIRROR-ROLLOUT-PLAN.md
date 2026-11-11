@@ -1,10 +1,12 @@
-# Strategy Mirror V1 — production rollout plan (prepared 2026-11-10; Stages A and B EXECUTED 2026-11-11, C–D not executed)
+# Strategy Mirror V1 — production rollout plan (prepared 2026-11-10; Stages A, B and C EXECUTED 2026-11-11, D not executed)
 
 **Every stage is a separate owner approval.** Status:
 - **Stage A** was executed on 2026-11-11 (record: `DEPLOYMENT-2026-11-11-MIRROR-STAGE-A.md`).
 - **Stage B** was executed on 2026-11-11: Worker `4d3ddcb6-08a3-472d-8f99-81ff8b317ae2` (record:
   `DEPLOYMENT-2026-11-11-MIRROR-STAGE-B.md`).
-- **Stages C and D** have not been run.
+- **Stage C** was executed on 2026-11-11: release `0db082fbd044`, mirror activated 03:41:08Z (record:
+  `DEPLOYMENT-2026-11-11-MIRROR-STAGE-C.md`).
+- **Stage D** has not been run.
 
 Production today:
 - engine release `6b70cc97c579` (no mirror code);
@@ -163,8 +165,13 @@ T selftest --root R --release <commit12>          (one poll with throwaway state
    `ok: true`, `state.resumable: true`.
 3. Right after a candle: `T activate --root R --release <commit12> --expect-profile solusd-5m --expect-risk 10`.
 4. Restart the task (its definition is unchanged):
-   `schtasks /End /TN "ALPHA TERMINAL Engine"`, confirm with `T status --root R` that the engine stopped, then
-   `schtasks /Run /TN "ALPHA TERMINAL Engine"`.
+   1. `schtasks /End /TN "ALPHA TERMINAL Engine"`.
+   2. **This ends only the task's conhost.** The release supervisor (`powershell … run-release.ps1`), its cmd and the
+      node engine keep running (observed 2026-11-11). Stop that supervisor tree explicitly:
+      `taskkill /PID <supervisor pid> /T /F`.
+   3. Confirm that no `run-release.ps1` or `src\cliun.mjs` process remains and that `T status --root R` shows the
+      engine not running.
+   4. Then `schtasks /Run /TN "ALPHA TERMINAL Engine"`, and confirm exactly one supervisor and one engine.
 
 The supervisor verifies the active release before starting it.
 
@@ -190,8 +197,8 @@ enable the mirror.)
 | Situation | Action | Data |
 |---|---|---|
 | `validate` or `selftest` fails | stop before `activate`; remove the config line | unchanged |
-| Funded track misbehaves after the restart | `T rollback --root R`, then `schtasks /End` + `/Run`. `6b70cc97c579` starts with a warning ("this release has no Strategy Mirror"), resumes the shared state and ignores the mirror file (rehearsed: funded state byte-identical to a no-upgrade control) | funded state continues |
-| Only the mirror misbehaves | set `ENGINE_MIRROR=off`, `schtasks /End` + `/Run`. The funded track is unchanged; the mirror file stays for later | mirror paused |
+| Funded track misbehaves after the restart | `T rollback --root R`, then `schtasks /End`, stop the supervisor tree (step 4), `/Run`. `6b70cc97c579` starts with a warning ("this release has no Strategy Mirror"), resumes the shared state and ignores the mirror file (rehearsed: funded state byte-identical to a no-upgrade control) | funded state continues |
+| Only the mirror misbehaves | set `ENGINE_MIRROR=off`, then restart as in step 4. The funded track is unchanged; the mirror file stays for later | mirror paused |
 | Mirror re-enabled later | it resumes from its file; candles it missed are processed late (`catch_up`, disclosed as an observation gap); ids and sequence continue; nothing is recorded twice (rehearsed) | — |
 
 **Never delete `S\mirror-SOLUSD-5m.json`.** A new file would bring a new activation time, which the Worker refuses
