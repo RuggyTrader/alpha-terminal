@@ -1,8 +1,10 @@
-# Strategy Mirror V1 — production rollout plan (prepared 2026-11-10; Stage A EXECUTED 2026-11-11, B–D not executed)
+# Strategy Mirror V1 — production rollout plan (prepared 2026-11-10; Stages A and B EXECUTED 2026-11-11, C–D not executed)
 
 **Every stage is a separate owner approval.** Status:
 - **Stage A** was executed on 2026-11-11 (record: `DEPLOYMENT-2026-11-11-MIRROR-STAGE-A.md`).
-- **Stages B, C and D** have not been run.
+- **Stage B** was executed on 2026-11-11: Worker `4d3ddcb6-08a3-472d-8f99-81ff8b317ae2` (record:
+  `DEPLOYMENT-2026-11-11-MIRROR-STAGE-B.md`).
+- **Stages C and D** have not been run.
 
 Production today:
 - engine release `6b70cc97c579` (no mirror code);
