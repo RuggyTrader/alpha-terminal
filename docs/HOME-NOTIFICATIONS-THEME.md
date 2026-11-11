@@ -246,12 +246,13 @@ anywhere leaves a working system.
      a no-op.
    - The current production Worker ignores the new tables.
    - Rollback: none needed. The tables can stay; never restore D1.
-2. **Stage N2: VAPID keys.**
-   - Generate a P-256 key pair on the owner's PC.
-   - `wrangler secret put VAPID_PRIVATE_KEY` (the `d` value). Set `VAPID_PUBLIC_KEY` (raw uncompressed, base64url) and
-     `VAPID_SUBJECT` (`mailto:` address) as vars.
-   - The private key never goes in git, logs or chat.
-   - Rollback: delete the secret, and notifications report "not configured".
+2. **Stage N2: VAPID keys.** **EXECUTED 2026-11-11 22:49 UTC** as undeployed version `3cbfa292` (all three stored as
+   secrets; record: `DEPLOYMENT-2026-11-11-NOTIFICATIONS-STAGE-N2.md`).
+   - A P-256 key pair was generated in memory on the owner's PC and self-checked with the Worker's own code.
+   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` (the Worker's https URL, not an e-mail address) were
+     stored with `wrangler versions secret bulk`, so production stayed on `4d3ddcb6`. Stage N3's deploy keeps them.
+   - The private key was never printed, logged, written to disk or committed.
+   - Rollback: never deploy `3cbfa292`, or set the three secrets to null; the current Worker never reads them.
 3. **Stage N3: Worker deployment** (this commit; includes the frontend, `sw.js` and icons).
    - Pre-checks: `npm test` in worker, engine and frontend; `wrangler deploy --dry-run` (bundle 235 KiB).
    - The same Worker works on schema 5 and on schema 6.
