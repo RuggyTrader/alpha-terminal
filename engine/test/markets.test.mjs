@@ -89,9 +89,9 @@ describe("configuration", () => {
     }
   });
 
-  it("refusals: a funded BTCUSD, a mirror-only market without the mirror, SOLUSD or duplicates in ENGINE_MARKETS, unknown values", () => {
+  it("refusals: a funded ETHUSD, a mirror-only market without the mirror, SOLUSD or duplicates in ENGINE_MARKETS, unknown values", () => {
     const L = (env) => () => loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_PROFILE: "solusd-5m", ...env }, ENGINE);
-    assert.throws(L({ ENGINE_SYMBOL: "BTCUSD" }), /not enabled for the engine/);
+    assert.throws(L({ ENGINE_SYMBOL: "ETHUSD" }), /not enabled for the engine/); // BTCUSD is funded-eligible since 2026-11-12 (owner approval)
     assert.throws(L({ ENGINE_SYMBOL: "ETHUSD", ENGINE_FUNDED: "off" }), /needs ENGINE_MIRROR=on/);
     assert.throws(L({ ENGINE_SYMBOL: "SOLUSD", ENGINE_FUNDED: "off", ENGINE_MIRROR: "on" }), /not enabled as a mirror-only market/);
     assert.throws(L({ ENGINE_FUNDED: "maybe" }), /ENGINE_FUNDED must be on or off/);
@@ -104,10 +104,11 @@ describe("configuration", () => {
   });
 });
 
-/** JSON text (or JSON lines) with every "sizing" metadata object removed; everything else unchanged. */
+/** JSON text (or JSON lines) with the reporting-only metadata objects ("sizing", and the fleet telemetry "strategy_state" /
+ * "bot_risk") removed; every decision, request and record otherwise unchanged. */
 const noSizing = (text) => text.split(String.fromCharCode(10)).map((line) => {
   if (!line.trim()) return line;
-  try { return JSON.stringify(JSON.parse(line, (k, v) => (k === "sizing" ? undefined : v))); } catch { return line; }
+  try { return JSON.stringify(JSON.parse(line, (k, v) => (k === "sizing" || k === "strategy_state" || k === "bot_risk" ? undefined : v))); } catch { return line; }
 }).join(String.fromCharCode(10));
 
 describe("SOLUSD is byte-identical to the deployed release 0db082f", () => {

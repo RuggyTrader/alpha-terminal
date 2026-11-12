@@ -163,6 +163,8 @@ export async function referencePrices(instruments: readonly Instrument[], cfg: M
     const r = await fetch(`${krakenBase(cfg.KRAKEN_API_BASE)}/0/public/Ticker?pair=${encodeURIComponent(pairs).replace(/%2C/g, ",")}`, {
       method: "GET",
       headers: { Accept: "application/json" },
+      // Bounded: a stalled market-data request must not hold a fill or the dashboard (reported as unavailable).
+      signal: AbortSignal.timeout(5000),
     });
     if (!r.ok) {
       for (const k of kraken) out.set(k.i.symbol, unavailable(k.i.symbol, `Kraken market data returned HTTP ${r.status} for {symbol}`));

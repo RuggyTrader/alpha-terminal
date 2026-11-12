@@ -303,6 +303,16 @@ export async function processEvents(env: EventsEnv): Promise<void> {
 
 // ------------------------------------------------------------------ activity feed (read-only, session)
 
+/** The one status mapping for a funded signal: the same words as the Trades page (frontend classify.ts alertLabel) (no view may say "accepted" for a
+ *  signal that is still processing or that failed). */
+export function signalState(status: string, code: string | null): { label: string; tone: FeedItem["tone"] } {
+  if (status === "dry_run" || code === "DRY_RUN_ACCEPTED") return { label: "DRY-RUN ACCEPTED", tone: "ok" };
+  if (status === "rejected") return { label: "REJECTED", tone: "bad" };
+  if (status === "processing") return { label: "PROCESSING", tone: "muted" };
+  if (status === "error") return { label: "ERROR", tone: "bad" };
+  return { label: status.toUpperCase(), tone: "muted" };
+}
+
 export interface FeedItem { id: string; at: string; source: "funded" | "mirror" | "system"; symbol: string | null; title: string; outcome: string; tone: "ok" | "bad" | "warn" | "info" | "muted"; url: string | null; classification?: string }
 
 /** Recent genuine activity: trade events, funded signals and their outcomes, the engine heartbeat, observation gaps. */
@@ -318,9 +328,21 @@ export async function activityFeed(db: D1Database, limit = 30): Promise<{ items:
     }
   }
   for (const a of (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason FROM alerts ORDER BY id DESC LIMIT ?`).bind(n).all<Obj>()).results) {
-    const refused = a.status === "rejected";
-    items.push({ id: `A${a.id}`, at: String(a.received_at), source: "funded", symbol: String(a.symbol), title: `${String(a.symbol)} ${String(a.action).toUpperCase()} signal ${refused ? "refused" : "accepted"}`,
-      outcome: refused ? `${a.response_code}: ${String(a.rejection_reason ?? "").slice(0, 120)}` : String(a.response_code ?? a.status), tone: refused ? "warn" : "ok", url: "/trades" });
+    // ONE status mapping, shared with the Trades page (signalState): processing and error are never shown as accepted.
+    const st = signalState(String(a.status), a.response_code === null ? null : String(a.response_code));
+    items.push({ id: `A${a.id}`, at: String(a.received_at), source: "funded", symbol: String(a.symbol), title: `${String(a.symbol)} ${String(a.action).toUpperCase()} signal ${st.label}`,
+      outcome: `${String(a.alert_id)} · ${a.response_code ?? a.status}${a.rejection_reason ? `: ${String(a.rejection_reason).slice(0, 120)}` : ""}`, tone: st.tone,
+      url: `/trades?signal=${encodeURIComponent(String(a.alert_id))}` });
+  }
+  // Fleet bot orders (migration 0007), under the SAME order id the engine, the ledger and the trade proof use.
+  if ((await tables(db)).has("bot_orders")) {
+    for (const o of (await db.prepare(`SELECT o.order_id, o.bot_id, o.action, o.symbol, o.status, o.code, o.message, o.received_at, b.name, b.timeframe_min FROM bot_orders o JOIN bots b ON b.bot_id = o.bot_id ORDER BY o.received_at DESC LIMIT ?`).bind(n).all<Obj>()).results) {
+      const ok = o.status === "ACCEPTED";
+      items.push({ id: `O${String(o.order_id)}`, at: String(o.received_at), source: "funded", symbol: String(o.symbol),
+        title: `${String(o.name)} | ${String(o.symbol)} ${String(o.timeframe_min)}m · ${String(o.action).replace("_", " ")} ${ok ? "filled (PAPER)" : "refused"}`,
+        outcome: `${String(o.order_id)} · ${String(o.code)}${o.message ? `: ${String(o.message).slice(0, 120)}` : ""}`, tone: ok ? "ok" : "warn",
+        url: `/bots?bot=${encodeURIComponent(String(o.bot_id))}` });
+    }
   }
   const hb = await db.prepare(`SELECT value FROM app_meta WHERE key = 'engine_status'`).first<{ value: string }>();
   if (hb) {

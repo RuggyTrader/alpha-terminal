@@ -187,10 +187,13 @@ export async function alpacaGet(
 
   try {
     response =
+      // Bounded: a stalled broker API must never hold the dashboard past the browser's 12 s limit (TIMEOUT root
+      // cause, 2026-11-12); a timeout is reported as BROKER_UNAVAILABLE like any other failure.
       await fetch(url, {
         method: "GET",
         headers:
           alpacaHeaders(env),
+        signal: AbortSignal.timeout(3500),
       });
   } catch {
     return {

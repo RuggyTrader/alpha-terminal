@@ -1,3 +1,4 @@
+import { PerformanceSelector } from "../components/PerformanceSelector";
 import { Link } from "react-router-dom";
 import { AccountHero } from "../components/AccountHero";
 import { AlertCard } from "../components/AlertCard";
@@ -72,6 +73,7 @@ export function HomePage() {
     <div className="home-grid">
       <div className="col-main m-stagger">
         <AccountHero state={state} verified={verified} reconnected={reconnected} />
+        <PerformanceSelector verified={verified} />
         <div className="hp-panels">
           <PipelinePanel state={state} mirror={activity.mirror} />
           <BotPipelinePanel />

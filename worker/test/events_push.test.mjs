@@ -400,7 +400,7 @@ describe("activity feed", () => {
     assert.ok(!items.some((i) => /test notification/i.test(i.title)));
     for (let i = 1; i < items.length; i++) assert.ok(items[i - 1].at >= items[i].at, "newest first");
     assert.ok(items.some((i) => i.source === "mirror" && i.classification === "catch_up"));
-    assert.ok(items.some((i) => i.source === "funded" && /refused/.test(i.title)));
+    assert.ok(items.some((i) => i.source === "funded" && /REJECTED/.test(i.title)));
     assert.equal(new Set(items.map((i) => i.id)).size, items.length);
   });
 });

@@ -71,7 +71,7 @@ describe("configuration", () => {
     assert.equal(loadConfig({ ENGINE_ENV_FILE: "none" }).sizing.mode, "fixed");
     const c = loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_SIZING: "percent", ENGINE_RISK_PCT: "1" });
     assert.deepEqual([c.sizing.mode, c.sizing.riskPct, c.sizing.feePct, c.sizing.priceBufferPct], ["percent", 1, 0.4, 0.5]);
-    assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_SIZING: "leverage" }), /fixed or percent/);
+    assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_SIZING: "leverage" }), /fixed, percent or dollar/);
     assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_SIZING: "percent", ENGINE_RISK_PCT: "50" }), /between/);
   });
 });
