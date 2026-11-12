@@ -91,8 +91,10 @@ local preview (`home-light-402.jpg`, `home-dark-402.jpg`). **The owner should co
 ## Interruption seen during the window (not caused by the deployment)
 
 From **23:52 to about 00:16 UTC** every engine request (Kraken and the Worker) failed with `fetch failed`. Windows
-logged clock-change events at 00:04 and a power-state transition (Kernel-Power 566) at 00:12, consistent with the PC
-sleeping or losing its network. At 00:16:10 the engine caught up 5 candles. The mirror recorded an observation gap
+logged clock-change events at 00:04 and a power-state transition (Kernel-Power 566) at 00:12, which suggested
+sleep. **Correction (2026-11-12 01:10):** the PC did not sleep; Windows logged no sleep/resume events, sleep is set to
+Never, and the Wi-Fi stayed associated. Internet connectivity was lost upstream (router or ISP); see
+`N4-COMBINED-RELEASE-PROPOSAL.md` section 9. At 00:16:10 the engine caught up 5 candles. The mirror recorded an observation gap
 (23:50–00:00, 3 candles processed late, classified as catch-up). No trade, sequence or ledger record was lost. The
 deployment came afterwards, at 00:18:05.
 
