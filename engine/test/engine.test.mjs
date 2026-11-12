@@ -336,9 +336,10 @@ describe("live runner: completed candles, outbox, restarts", () => {
 });
 
 describe("configuration", () => {
-  it("only SOLUSD is enabled; futures and gold are refused; secrets stay out of printed config", () => {
+  it("SOLUSD and BTCUSD (owner-approved 2026-11-12) are enabled; futures, gold and stocks are refused; secrets stay out of printed config", () => {
     assert.equal(loadConfig({ ENGINE_ENV_FILE: "does-not-exist" }).symbol, "SOLUSD");
-    for (const s of ["MES1!", "MES", "MNQ", "GOLD", "BTCUSD", "SPY"]) assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "x", ENGINE_SYMBOL: s }), /not enabled/);
+    assert.equal(loadConfig({ ENGINE_ENV_FILE: "x", ENGINE_SYMBOL: "BTCUSD" }).symbol, "BTCUSD");
+    for (const s of ["MES1!", "MES", "MNQ", "GOLD", "ETHUSD", "SPY"]) assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "x", ENGINE_SYMBOL: s }), /not enabled/);
     assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "x", ENGINE_SYNC: "on" }), /needs ALPHA_API_BASE/);
     assert.equal(loadConfig({ ENGINE_ENV_FILE: "x", STRAT_RISK_USD: "20" }).inputs.riskUSD, 20);
   });

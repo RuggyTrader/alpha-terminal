@@ -4,7 +4,8 @@
 // The dashboard derives ONLINE / STALE / OFFLINE from the heartbeat's age on the server, so a stopped engine
 // can never look alive.
 
-import { botAvailableMicro, resolveOwner, statusKeys } from "./bots";
+import { BOT_ID_RE, resolveOwner, statusKeys, type BotRow } from "./bots";
+import { botSettingsExchange } from "./bot_ledger";
 import { secureEqual } from "./trade_core";
 import { getInstrument } from "./instruments";
 import { engineSettingsExchange } from "./portfolio";
@@ -47,6 +48,8 @@ function clean(s: Record<string, unknown>) {
     engine: str(s.engine, 40), version: str(s.version, 20), mode: "PAPER",
     symbol: str(s.symbol, 16), timeframe: str(s.timeframe, 8), strategy: str(s.strategy, 64),
     bot_name: str(s.bot_name, 40),
+    bot_risk: s.bot_risk && typeof s.bot_risk === "object" ? { version: num((s.bot_risk as Record<string, unknown>).version), risk_usd: num((s.bot_risk as Record<string, unknown>).risk_usd) } : null,
+    strategy_state: s.strategy_state && typeof s.strategy_state === "object" ? s.strategy_state : null,
     started_at: isoOrNull(s.started_at), warmed_up_at: isoOrNull(s.warmed_up_at), last_poll_at: isoOrNull(s.last_poll_at),
     last_candle_time: isoOrNull(s.last_candle_time), last_candle_close: num(s.last_candle_close),
     candles_processed: num(s.candles_processed), status_text: str(s.status_text, 80), sync: s.sync === true,
@@ -68,8 +71,8 @@ function clean(s: Record<string, unknown>) {
     last_error: err ? { at: isoOrNull(err.at), where: str(err.where, 20), message: str(err.message, 200) } : null,
     refused_entries: num(s.refused_entries),
     // Position sizing reported by the engine (display only; the Worker's own checks are unchanged).
-    sizing: sz && (sz.mode === "fixed" || sz.mode === "percent") ? {
-      mode: sz.mode, risk_pct: num(sz.risk_pct), risk_usd_fixed: num(sz.risk_usd_fixed), fee_pct: num(sz.fee_pct),
+    sizing: sz && (sz.mode === "fixed" || sz.mode === "percent" || sz.mode === "dollar") ? {
+      mode: sz.mode, risk_pct: num(sz.risk_pct), risk_usd_fixed: num(sz.risk_usd_fixed), risk_usd: num(sz.risk_usd), fee_pct: num(sz.fee_pct),
       max_risk_usd: num(sz.max_risk_usd), fixed_reason: str(sz.fixed_reason, 160), symbol: str(sz.symbol, 16),
       price_buffer_pct: num(sz.price_buffer_pct), min_qty: num(sz.min_qty), min_cost: num(sz.min_cost), capital_usd: num(sz.capital_usd),
       last: szLast ? {
@@ -107,6 +110,17 @@ export async function handleEngineStatus(request: Request, env: EngineStatusEnv)
     return json({ ok: false, code: "INVALID_STATUS", message: "status.symbol must be a supported instrument" }, 400);
   }
   const raw = body.status as Record<string, unknown>;
+  // Fleet bots (own wallets) report under their own key and exchange their OWN dollar-risk setting.
+  if (typeof raw.bot_id === "string" && BOT_ID_RE.test(raw.bot_id)) {
+    const fleet = await env.DB.prepare(`SELECT * FROM bots WHERE bot_id = ?`).bind(raw.bot_id).first<BotRow>().catch(() => null);
+    if (fleet && fleet.ledger_api === "bot") {
+      if (fleet.symbol !== status.symbol || `${fleet.timeframe_min}m` !== status.timeframe) return json({ ok: false, code: "BOT_MISMATCH", message: `${fleet.bot_id} is ${fleet.symbol} ${fleet.timeframe_min}m` }, 400);
+      const rec = { ...status, bot_id: fleet.bot_id, received_at: new Date().toISOString() };
+      await env.DB.prepare(`INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`).bind(`engine_status:${fleet.bot_id}`, JSON.stringify(rec)).run();
+      const settings = await botSettingsExchange(env.DB, fleet, raw.bot_risk);
+      return json({ ok: true, mode: "PAPER", broker_request_sent: false, settings });
+    }
+  }
   const who = await resolveOwner(env.DB, { bot_id: raw.bot_id, timeframe: raw.timeframe }, status.symbol);
   if (!who.ok) return json({ ok: false, code: who.code, message: who.message }, 400);
   const record = { ...status, bot_id: who.owner || null, received_at: new Date().toISOString() };
@@ -199,13 +213,7 @@ export async function handleEngineLedger(request: Request, env: EngineStatusEnv)
     max_position_exposure_usd: limit(env.MAX_POSITION_EXPOSURE), max_total_exposure_usd: limit(env.MAX_TOTAL_EXPOSURE),
     max_open_positions: limit(env.MAX_OPEN_POSITIONS),
     position_exposure_usd: Number(exp?.position ?? 0), total_exposure_usd: Number(exp?.total ?? 0), open_positions: Number(exp?.n ?? 0),
-    // The bot's own share (migration 0007): what it may still reserve, given its allocation cap.
-    ...(who.bot ? {
-      bot_id: who.bot.bot_id,
-      bot_reserved_usd: who.bot.reserved_micro / 1e6,
-      bot_allocation_cap_usd: who.bot.allocation_cap_micro === null ? null : who.bot.allocation_cap_micro / 1e6,
-      bot_available_usd: botAvailableMicro(who.bot, Number(wallet.available_micro)) / 1e6,
-    } : {}),
+    ...(who.bot ? { bot_id: who.bot.bot_id } : {}),
   } : null;
   return json({ ok: true, mode: "PAPER", symbol, position: position ?? null, alerts, balance, read_only: true });
 }

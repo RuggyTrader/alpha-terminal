@@ -1,3 +1,5 @@
+import { handleCandles } from "./candles";
+import { allocationPreview } from "./bot_ledger";
 import { fleetSection } from "./bots";
 import { activityFeed } from "./events";
 import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
@@ -1260,6 +1262,16 @@ export async function handleDashboardApi(
     // hypothetical Strategy Mirror results. Read-only.
     if (pathname === "/api/dashboard/bots") {
       return json({ ok: true, data: await fleetSection(env.DB) });
+    }
+    // Real Kraken OHLC for a bot chart (completed candles + the forming one, labelled). Read-only.
+    if (pathname === "/api/dashboard/candles") {
+      return handleCandles(env as never, searchParams);
+    }
+    // Read-only preview of an allocation to a group: the exact equal split, before the owner confirms it.
+    if (pathname === "/api/dashboard/allocation-preview") {
+      const amount = Number(searchParams.get("amount"));
+      if (!(amount > 0)) return json({ ok: false, code: "INVALID_AMOUNT" }, 400);
+      return json({ ok: true, data: await allocationPreview(env.DB, String(searchParams.get("group") ?? ""), amount) });
     }
     // Recent genuine activity (trade events, funded signals, engine heartbeat, observation gaps); bounded.
     if (pathname === "/api/dashboard/events") {

@@ -48,24 +48,28 @@ export interface Prefs {
   funded_entry: boolean; funded_close: boolean; mirror_entry: boolean; mirror_close: boolean;
   include_pnl: boolean; hide_amounts: boolean;
   include_catch_up: boolean; include_historical: boolean;
+  muted_bots?: string[];
 }
 export const DEFAULT_PREFS: Prefs = {
-  enabled: true, funded_entry: true, funded_close: true, mirror_entry: true, mirror_close: true,
+  enabled: true, funded_entry: true, funded_close: true, mirror_entry: true, mirror_close: true, muted_bots: [],
   include_pnl: true, hide_amounts: false,
   // Only genuine live events by default: no flood from warm-up replays or catch-up after the PC was off.
   include_catch_up: false, include_historical: false,
 };
 export function cleanPrefs(v: unknown, base: Prefs = DEFAULT_PREFS): Prefs {
   const o = v && typeof v === "object" ? (v as Obj) : {};
-  const out = { ...base };
-  for (const k of Object.keys(DEFAULT_PREFS) as (keyof Prefs)[]) if (typeof o[k] === "boolean") out[k] = o[k] as boolean;
+  const out = { ...base, muted_bots: [...(base.muted_bots ?? [])] };
+  // Per-bot preference: bots whose events this device does not want (ALPHA-NN ids only).
+  if (Array.isArray(o.muted_bots)) out.muted_bots = o.muted_bots.filter((x): x is string => typeof x === "string" && /^ALPHA-\d{2}$/.test(x)).slice(0, 20);
+  for (const k of Object.keys(DEFAULT_PREFS) as (keyof Prefs)[]) if (k !== "muted_bots" && typeof o[k] === "boolean") (out as unknown as Record<string, boolean>)[k] = o[k] as boolean;
   return out;
 }
 
 /** Whether one device wants one event. TEST events go only to the device that asked for them. */
-export function wants(p: Prefs, e: { kind: string; classification: string; ref?: string | null }, subId: number): boolean {
+export function wants(p: Prefs, e: { kind: string; classification: string; ref?: string | null; bot_id?: string | null }, subId: number): boolean {
   if (e.kind === "TEST") return e.ref === String(subId);
   if (!p.enabled) return false;
+  if (e.bot_id && (p.muted_bots ?? []).includes(e.bot_id)) return false;
   if (e.classification === "historical" && !p.include_historical) return false;
   if (e.classification === "catch_up" && !p.include_catch_up) return false;
   if (e.kind === "FUNDED_ENTRY" || e.kind === "FUNDED_ADD") return p.funded_entry;
@@ -82,7 +86,8 @@ const px = (v: number) => (v >= 1000 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.
 const qty = (v: number) => (v >= 100 ? v.toFixed(2) : v >= 1 ? v.toFixed(4) : v.toPrecision(4)).replace(/\.?0+$/, "");
 
 export interface EventRow { id: number; event_key: string; kind: string; source: string; symbol: string | null; side: string | null; qty: number | null; price: number | null;
-  pnl: number | null; pnl_net: number | null; fees: number | null; classification: string; ref: string | null; account_id: string | null; url: string | null; occurred_at: string }
+  pnl: number | null; pnl_net: number | null; fees: number | null; classification: string; ref: string | null; account_id: string | null; url: string | null; occurred_at: string;
+  bot_id?: string | null; detail_json?: string | null }
 
 /** The notification for one event and one device's preferences. Amounts are left out when hide_amounts is on. */
 export function message(e: EventRow, p: Prefs): { title: string; body: string; url: string; tag: string } {
@@ -90,6 +95,27 @@ export function message(e: EventRow, p: Prefs): { title: string; body: string; u
   const pnl = amounts && p.include_pnl;
   const label = e.classification === "live" ? "" : e.classification === "catch_up" ? " (catch-up)" : " (historical)";
   const base = { url: e.url ?? "/", tag: e.event_key };
+  // Fleet bots: "ALPHA 01 | SOLUSD 1m", then the recorded figures (never estimates).
+  let d: Obj | null = null;
+  try { d = e.detail_json ? JSON.parse(e.detail_json) : null; } catch { d = null; }
+  if (e.bot_id && d) {
+    const head = `${String(d.bot_name ?? e.bot_id)} | ${e.symbol} ${String(d.timeframe ?? "")}`.trim();
+    const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+    if (e.kind === "FUNDED_ENTRY") {
+      const parts = amounts ? [e.price !== null ? `Entry $${px(e.price)}` : null, e.qty !== null ? `Qty ${qty(e.qty)}` : null,
+        n(d.stop) !== null ? `Stop $${px(n(d.stop)!)}` : null, n(d.tp) !== null ? `Target $${px(n(d.tp)!)}` : null].filter(Boolean) : [];
+      return { ...base, title: head, body: `PAPER ${String(e.side)} entered${parts.length ? ` · ${parts.join(" · ")}` : ""} · simulated${e.side === "SHORT" ? " (hypothetical short)" : ""}` };
+    }
+    if (e.kind === "FUNDED_CLOSE") {
+      const parts = pnl ? [n(d.gross) !== null ? `Gross ${usd(n(d.gross)!)}` : null, n(e.fees) !== null ? `Fees $${e.fees!.toFixed(2)}` : null,
+        n(e.pnl) !== null ? `Net ${usd(e.pnl!)}` : null, n(d.swept) !== null ? `Transferred to MAIN $${n(d.swept)!.toFixed(2)}` : null].filter(Boolean) : [];
+      return { ...base, title: head, body: `PAPER ${String(e.side)} closed${parts.length ? ` · ${parts.join(" · ")}` : ""}` };
+    }
+    if (e.kind === "MIRROR_ENTRY" || e.kind === "MIRROR_CLOSE") {
+      const what = e.kind === "MIRROR_ENTRY" ? `${e.side} opened` : `closed${pnl && e.pnl !== null ? ` · ${usd(e.pnl)} hypothetical gross` : ""}`;
+      return { ...base, title: head, body: `STRATEGY MIRROR (hypothetical) ${what}${label} · not an order` };
+    }
+  }
   switch (e.kind) {
     case "FUNDED_ENTRY": case "FUNDED_ADD":
       return { ...base, title: `ALPHA PAPER · ${e.symbol} ${String(e.side).toUpperCase()} filled`,
@@ -160,8 +186,34 @@ export async function syncTradeEvents(db: D1Database, now = new Date().toISOStri
   }
   if (closes.length) cursor("mirror_trades", Number(closes[closes.length - 1].id));
 
+  // Fleet bots (migration 0007): every bot fill, labelled with its bot and the recorded figures.
+  let botFills: Obj[] = [];
+  if (t.has("bot_fills")) {
+    botFills = (await db.prepare(
+      `SELECT f.id, f.kind, f.side, f.qty, f.price, f.fee_micro, f.filled_at, f.trade_id, b.bot_id, b.name, b.symbol, b.timeframe_min,
+              p.stop, p.tp, p.gross_pnl_micro, p.net_pnl_micro, p.entry_fee_micro, p.exit_fee_micro, p.swept_micro
+       FROM bot_fills f JOIN bots b ON b.bot_id = f.bot_id LEFT JOIN bot_positions p ON p.trade_id = f.trade_id
+       WHERE f.id > ? ORDER BY f.id LIMIT ?`).bind(cur.bot_fills ?? 0, SYNC_BATCH).all<Obj>()).results;
+    for (const f of botFills) {
+      const exit = f.kind === "EXIT";
+      const detail = { bot_name: f.name, timeframe: `${f.timeframe_min}m`, stop: f.stop, tp: f.tp,
+        gross: exit && f.gross_pnl_micro !== null ? Number(f.gross_pnl_micro) / 1e6 : null, swept: exit ? Number(f.swept_micro ?? 0) / 1e6 : null };
+      stmts.push(db.prepare(
+        `INSERT OR IGNORE INTO trade_events (event_key, kind, source, symbol, side, qty, price, pnl, pnl_net, fees, classification, ref, account_id, url, occurred_at, created_at, bot_id, detail_json)
+         VALUES (?, ?, 'funded', ?, ?, ?, ?, ?, ?, ?, 'live', ?, NULL, ?, ?, ?, ?, ?)`).bind(
+        `BOTFILL:${f.id}`, exit ? "FUNDED_CLOSE" : "FUNDED_ENTRY", String(f.symbol), String(f.side), Number(f.qty), Number(f.price),
+        exit && f.net_pnl_micro !== null ? Number(f.net_pnl_micro) / 1e6 : null, exit && f.net_pnl_micro !== null ? Number(f.net_pnl_micro) / 1e6 : null,
+        exit ? (Number(f.entry_fee_micro ?? 0) + Number(f.exit_fee_micro ?? 0)) / 1e6 : Number(f.fee_micro) / 1e6,
+        String(f.trade_id), `/bots?bot=${encodeURIComponent(String(f.bot_id))}`, String(f.filled_at), now, String(f.bot_id), JSON.stringify(detail)));
+    }
+    if (botFills.length) cursor("bot_fills", Number(botFills[botFills.length - 1].id));
+    // Mirror events of a fleet bot carry the bot label too (the account's bot, migration 0007).
+    stmts.push(db.prepare(`UPDATE trade_events SET bot_id = (SELECT a.bot_id FROM mirror_accounts a WHERE a.account_id = trade_events.account_id),
+        detail_json = (SELECT json_object('bot_name', b.name, 'timeframe', b.timeframe_min || 'm') FROM mirror_accounts a JOIN bots b ON b.bot_id = a.bot_id WHERE a.account_id = trade_events.account_id)
+      WHERE source = 'mirror' AND bot_id IS NULL AND account_id IS NOT NULL AND id > (SELECT COALESCE(MAX(id), 0) - 200 FROM trade_events)`));
+  }
   if (stmts.length) await db.batch(stmts); // events and cursor moves together: all or nothing
-  return fills.length + closes.length;
+  return fills.length + closes.length + botFills.length;
 }
 
 // ------------------------------------------------------------------ delivery

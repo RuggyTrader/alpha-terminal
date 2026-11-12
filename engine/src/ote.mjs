@@ -284,9 +284,9 @@ export function onBar(S, bar) {
     S.armed = armedNow;
     plan = { entry: l705, sl: slPlan, tp2: tp2v, score: sc, tags: tags.trim() };
     const eid = S.dir === 1 ? "OTE Long" : "OTE Short";
-    // Sizing: fixed mode keeps the Pine formula exactly; percent mode sizes from the PAPER balance (sizing.mjs).
+    // Sizing: fixed mode keeps the Pine formula exactly; percent and dollar modes size from the PAPER balance (sizing.mjs).
     const sz = place
-      ? (S.sizing?.mode === "percent"
+      ? (S.sizing?.mode === "percent" || S.sizing?.mode === "dollar"
         ? sizeOrder({ sizing: S.sizing, capital: S.capital, entry: ep, stop: slPlan, side: S.dir, maxNotional: S.maxNotional ?? null })
         : { ok: true, mode: "fixed", qty: (I.riskUSD * usdRate) / (Math.abs(ep - slPlan) * pointValue), riskTarget: I.riskUSD, riskActual: I.riskUSD, entry: ep, stop: slPlan, side: S.dir, capped: false })
       : null;

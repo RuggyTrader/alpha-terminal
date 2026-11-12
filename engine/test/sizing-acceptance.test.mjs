@@ -47,9 +47,10 @@ describe("instrument registry: verified, per-market rules", () => {
     assert.deepEqual([INSTRUMENTS.BTCUSD.minQty, INSTRUMENTS.ETHUSD.minQty, INSTRUMENTS.SOLUSD.minQty], [0.00006, 0.002, 0.05]);
   });
   it("funded markets = verified AND approved; everything else is unavailable with a reason", () => {
-    assert.deepEqual(FUNDED_SYMBOLS, ["SOLUSD"]);
+    assert.deepEqual(FUNDED_SYMBOLS, ["SOLUSD", "BTCUSD"], "BTCUSD approved by the owner on 2026-11-12 for its fleet bots");
     assert.deepEqual(ENGINE_SYMBOLS, FUNDED_SYMBOLS, "the engine's funded list comes from the registry only");
-    assert.match(fundedStatus("BTCUSD").reason, /Strategy Mirror only/);
+    assert.match(fundedStatus("ETHUSD").reason, /Strategy Mirror only/);
+    assert.equal(fundedStatus("BTCUSD").ok, true);
     for (const unknown of ["AAPL", "MES", "MNQ", "GOLD", "DOGEUSD"]) {
       assert.equal(fundedStatus(unknown).ok, false, unknown);
       assert.throws(() => loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_SYMBOL: unknown }), /not enabled for the engine/, unknown);

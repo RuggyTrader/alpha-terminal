@@ -3,14 +3,12 @@
 // * One EngineRunner per bot (src/bots.mjs), each with its own config, candle stream, strategy state, pending orders,
 //   positions, exits, mirror account, audit file, signal ids and ledger ownership. Nothing a bot decides is visible to
 //   another bot's strategy: they share only the process, a per-round market-data cache and the capital book.
-// * Bots are polled one after another in a deterministic order (priority, then id). That order is also the capital
-//   allocation order: a bot that places a resting entry first keeps its earmark; the next bot on the same wallet sizes
-//   from what is left (src/capital.mjs). The ledger's CHECK constraints remain the final authority.
+// * Bots are polled one after another in a deterministic order (priority, then id). Every bot sizes from its OWN
+//   wallet (the Worker's bot ledger), so no bot's order can depend on, or consume, another bot's capital.
 // * Failure isolation: an exception or a hung poll in one bot is recorded for that bot only; the others continue. A bot
 //   whose poll is still running is never polled a second time (no two writers on one state).
 // * Market data: one Kraken OHLC request per (symbol, timeframe) per round, served to every bot that needs it.
 
-import { CapitalBook, pendingEntryCost } from "./capital.mjs";
 import { fetchCompletedCandles } from "./kraken.mjs";
 import { EngineRunner } from "./runner.mjs";
 
@@ -54,12 +52,9 @@ export class FleetRunner {
     this.timeoutMs = timeoutMs;
     this.log = log;
     this.cache = new CandleCache(fetchCandles);
-    this.capital = new CapitalBook();
     const ordered = [...bots].sort((a, b) => (a.bot.priority - b.bot.priority) || a.bot.id.localeCompare(b.bot.id));
     this.bots = ordered.map(({ bot, cfg }) => {
-      const runner = makeRunner(cfg, { fetchCandles: (args) => this.cache.fetch(args), capitalBook: this.capital });
-      // Earmark: the bot's own resting long entry (funded track only; the mirror never touches capital).
-      if (cfg.funded) this.capital.register(bot.id, { wallet: bot.wallet, priority: bot.priority, pendingCost: () => pendingEntryCost(runner.state?.strategy) });
+      const runner = makeRunner(cfg, { fetchCandles: (args) => this.cache.fetch(args) });
       return { id: bot.id, bot, runner, last: null, inflight: null };
     });
   }

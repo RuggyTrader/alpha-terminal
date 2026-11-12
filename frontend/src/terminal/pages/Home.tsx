@@ -5,6 +5,7 @@ import { AlphaPaperPerformance } from "../components/AlphaPaperPerformance";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
 import { EngineBotCard } from "../components/EngineBotCard";
 import { ActivityPanel, PipelinePanel } from "../components/HomePanels";
+import { BotPipelinePanel } from "../components/BotPipeline";
 import { PortfolioSummaryCard } from "../components/PaperPortfolio";
 import { PositionCard } from "../components/PositionCard";
 import { SafetyCard } from "../components/SafetyCard";
@@ -73,6 +74,7 @@ export function HomePage() {
         <AccountHero state={state} verified={verified} reconnected={reconnected} />
         <div className="hp-panels">
           <PipelinePanel state={state} mirror={activity.mirror} />
+          <BotPipelinePanel />
           <ActivityPanel activity={activity} />
         </div>
         <MarketsCard state={state} />

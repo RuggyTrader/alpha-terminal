@@ -13,7 +13,10 @@ const KRAKEN_SPOT = Object.freeze({
   provider: "Kraken", assetClass: "crypto", fractional: true, multiplier: 1,
   // Spot only for ALPHA PAPER: no margin and no leverage, although Kraken offers margin on these pairs (leverage_buy 2-10).
   margin: Object.freeze({ allowed: false, initialPct: 100, note: "spot, fully paid: no leverage or borrowing" }),
-  shortable: false, // the ALPHA PAPER ledger is long-only (Worker SHORT_SELLING_ENABLED=false)
+  shortable: false, // no real short on the spot venue (and Ndax shows no short/margin product; see docs)
+  // Funded PAPER fleet bots SIMULATE shorts (hypothetical, labelled): fully collateralised with cash equal to the short's
+  // entry notional, no leverage, no borrowing-fee model (none verified). docs/MULTI-BOT-ARCHITECTURE.md §6.
+  paperShort: Object.freeze({ model: "FULLY_COLLATERALISED", collateralPctOfNotional: 100, financing: "not modelled (no verified borrowing fee)" }),
   hours: "24/7",
   // Kraken's public API publishes no fee schedule (AssetPairs returned no 'fees' arrays on 2026-11-12). The engine
   // reserves an ASSUMED fee for headroom (ENGINE_FEE_PCT, default 0.40%/side); the ledger charges what its Worker cost
@@ -33,7 +36,7 @@ export const INSTRUMENTS = Object.freeze({
     ...KRAKEN_SPOT, symbol: "BTCUSD", providerSymbol: "XBTUSD", providerPair: "XXBTZUSD",
     tick: 0.1, qtyDecimals: 8, qtyStep: 1e-8, minQty: 0.00006, minNotional: 0.5,
     verified: Object.freeze({ source: "Kraken public AssetPairs (pair XXBTZUSD): tick_size 0.1, lot_decimals 8, ordermin 0.00006, costmin 0.5", at: "2026-11-12T01:00:29Z" }),
-    fundedEligible: false, fundedNote: "Strategy Mirror only: funded execution needs separate approval", priority: 2,
+    fundedEligible: true, fundedNote: "Approved by the owner 2026-11-12 for the BTCUSD fleet bots (ALPHA-03, ALPHA-04)", priority: 2,
   }),
   ETHUSD: Object.freeze({
     ...KRAKEN_SPOT, symbol: "ETHUSD", providerSymbol: "ETHUSD", providerPair: "XETHZUSD",

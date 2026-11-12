@@ -11,6 +11,13 @@
 // The quantity is never raised to reach the risk target or a venue minimum: a setup that cannot be taken within the
 // rules is skipped with an exact, documented code and reason. No leverage, borrowing, shorts or fabricated capital.
 //
+// "dollar" (fleet bots, docs/MULTI-BOT-ARCHITECTURE.md §5): the owner's dollar risk per trade, NOT a % of equity:
+//   risk target   = the bot's riskUSD
+//   quantity      = min(riskUSD ÷ (|entry − stop| × multiplier), spend limit ÷ cash per unit), rounded DOWN
+//   cash per unit = entry × multiplier × (1 + price buffer) × (1 + fee); a LONG pays it, a simulated SHORT posts it as
+//                   collateral (fully collateralised, no leverage), so both directions use the same affordability rule.
+// The quantity is never raised to reach the dollar risk or a minimum; the actual stop risk may be far below the target.
+//
 // "fixed" is the original Pine formula (risk in USD ÷ stop distance). It is what the Strategy Mirror and TradingView
 // parity use; funded engines use it only with an explicit, recorded research reason (config.mjs).
 
@@ -24,7 +31,9 @@ export const DEFAULT_SIZING = Object.freeze({
   // Strategy-level default: the strategy object itself is neutral (mirror, backtests, parity). Funded engines choose
   // "percent" through config.mjs, which is where the funded default lives.
   mode: "fixed",
-  riskPct: 1, // % of the available strategy equity risked at the stop
+  riskPct: 1, // % of the available strategy equity risked at the stop (percent mode, legacy ALPHA-02)
+  riskUSD: null, // the bot's dollar risk per trade (dollar mode)
+  simulatedShort: false, // dollar mode: SHORT setups are sized as fully collateralised simulated shorts
   maxRiskUSD: 10, // the most a funded trade may risk (the website's risk setting when synced); null = no cap
   feePct: 0.4, // assumed fee per side, % of notional (reserved at entry)
   priceBufferPct: 0.5, // headroom for the ledger filling at the live price a moment after the engine's fill
@@ -36,6 +45,7 @@ export const DEFAULT_SIZING = Object.freeze({
 export const OUTCOMES = Object.freeze({
   FULL_RISK: "Sized at the full target risk within your available equity.",
   REDUCED_TO_FIT: "This trade was reduced to fit your available equity and limits; its actual risk is below the target.",
+  DOLLAR_RISK: "Sized from this bot's own dollar risk and its own wallet; never another bot's capital.",
   RISK_CAPPED: "The 1% target was above the maximum risk per trade, so the maximum was used.",
   BELOW_MIN_QTY: "This trade cannot be taken: the smallest permitted order is larger than what your equity and risk allow.",
   BELOW_MIN_COST: "This trade cannot be taken: the order value would be below the market's minimum order value.",
@@ -69,10 +79,13 @@ const lim = (v) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : n
  *   price       { ageSec, maxAgeSec } (optional freshness of the entry price)
  */
 export function sizePosition({ instrument, capital, entry, stop, side, policy = {}, limits = {}, exposure = {}, price = null }) {
-  const p = { riskPct: 1, maxRiskUSD: 10, feePct: 0.4, priceBufferPct: 0.5, minStopPct: 0, allowShort: false, ...policy };
+  const p = { mode: "percent", riskPct: 1, riskUSD: null, maxRiskUSD: 10, feePct: 0.4, priceBufferPct: 0.5, minStopPct: 0, allowShort: false, simulatedShort: false, ...policy };
+  const dollar = p.mode === "dollar";
   const spec = instrument ?? null;
   const unit = spec?.symbol ? spec.symbol.replace(/USD$/, "") : "units";
-  const base = { mode: "percent", symbol: spec?.symbol ?? null, entry, stop, side, riskPct: p.riskPct, maxRiskUSD: lim(p.maxRiskUSD), capital: capital ?? null,
+  const base = { mode: dollar ? "dollar" : "percent", symbol: spec?.symbol ?? null, entry, stop, side, riskPct: dollar ? null : p.riskPct, riskUSD: dollar ? lim(p.riskUSD) : null,
+    maxRiskUSD: dollar ? null : lim(p.maxRiskUSD), capital: capital ?? null, direction: side === 1 ? "LONG" : "SHORT",
+    collateralModel: side === 1 ? "CASH_PURCHASE" : "FULLY_COLLATERALISED_SHORT",
     minQty: spec?.minQty ?? null, minCost: spec?.minNotional ?? null };
   const no = (code, reason, extra = {}) => ({ ...base, ...extra, ok: false, code, reason, explanation: OUTCOMES[code] });
 
@@ -80,7 +93,8 @@ export function sizePosition({ instrument, capital, entry, stop, side, policy = 
   if (problems.length) return no("NO_INSTRUMENT_SPEC", `no verified instrument specification: ${problems.join("; ")}`);
   const dist = Math.abs(entry - stop);
   if (!(dist > 0) || !(entry > 0)) return no("INVALID_STOP", "entry and stop must differ");
-  if (side !== 1 && !(p.allowShort && spec.shortable)) return no("SHORT_NOT_ALLOWED", "funded PAPER is long-only: no short selling");
+  if (side !== 1 && !(p.allowShort && spec.shortable) && !(dollar && p.simulatedShort && spec.paperShort)) return no("SHORT_NOT_ALLOWED", "funded PAPER is long-only: no short selling");
+  if (dollar && !(lim(p.riskUSD) !== null)) return no("INVALID_STOP", "dollar mode needs a positive dollar risk per trade");
   if (price && Number.isFinite(price.ageSec) && Number.isFinite(price.maxAgeSec) && price.ageSec > price.maxAgeSec) {
     return no("STALE_PRICE", `entry price is ${Math.round(price.ageSec)} s old (limit ${price.maxAgeSec} s)`);
   }
@@ -96,8 +110,9 @@ export function sizePosition({ instrument, capital, entry, stop, side, policy = 
   }
 
   // Risk: a percentage of equity, never above the maximum per trade. Never raised to reach anything.
-  const riskUncapped = capital * (p.riskPct / 100);
-  const maxRisk = lim(p.maxRiskUSD);
+  // dollar: the bot's own dollar risk (no % of equity, no hidden cap); percent (legacy): % of equity, capped.
+  const riskUncapped = dollar ? lim(p.riskUSD) : capital * (p.riskPct / 100);
+  const maxRisk = dollar ? null : lim(p.maxRiskUSD);
   const riskTarget = maxRisk !== null ? Math.min(riskUncapped, maxRisk) : riskUncapped;
   const riskCapped = maxRisk !== null && riskUncapped > maxRisk;
   // Buying power: fully paid (no leverage), within every Worker limit that applies.
@@ -122,6 +137,7 @@ export function sizePosition({ instrument, capital, entry, stop, side, policy = 
     requiredCapital: r2(riskQty * perUnit), // capital the full risk target would need
     spendLimit: r2(spend), capped, cappedBy: capped ? bindName : null,
     feeEstimate: r2(notional * (p.feePct / 100) * 2),
+    collateral: r2(qty * perUnit), // cash reserved: the purchase (LONG) or the short's collateral (SHORT), incl. headroom
     minOrderCost: r2(spec.minQty * perUnit),
     checks: { minQty: qty >= spec.minQty, minCost: notional >= spec.minNotional, buyingPower: qty * perUnit <= spend + 1e-9 },
   };
@@ -135,7 +151,7 @@ export function sizePosition({ instrument, capital, entry, stop, side, policy = 
     return { ...out, ok: false, code: "BELOW_MIN_COST", reason: `order value $${r2(notional)} is below the minimum of $${spec.minNotional}`, explanation: OUTCOMES.BELOW_MIN_COST };
   }
   const outcome = capped ? "REDUCED_TO_FIT" : "FULL_RISK";
-  return { ...out, ok: true, outcome, explanation: `${OUTCOMES[outcome]}${riskCapped ? ` ${OUTCOMES.RISK_CAPPED}` : ""}` };
+  return { ...out, ok: true, outcome, explanation: `${OUTCOMES[outcome]}${riskCapped ? ` ${OUTCOMES.RISK_CAPPED}` : ""}${dollar ? ` ${OUTCOMES.DOLLAR_RISK}` : ""}` };
 }
 
 /**
@@ -173,7 +189,7 @@ export function allocateCapital(candidates, { capital, policy = {}, limits = {},
  */
 export function sizeOrder({ sizing = DEFAULT_SIZING, riskUSD, capital, entry, stop, side, maxNotional = null }) {
   const z = { ...DEFAULT_SIZING, ...sizing };
-  if (z.mode !== "percent") {
+  if (z.mode !== "percent" && z.mode !== "dollar") {
     const dist = Math.abs(entry - stop);
     const base = { mode: z.mode, entry, stop, side, riskPct: null, capital: capital ?? null };
     if (!(dist > 0) || !(entry > 0)) return { ...base, ok: false, code: "INVALID_STOP", reason: "entry and stop must differ" };
@@ -184,7 +200,9 @@ export function sizeOrder({ sizing = DEFAULT_SIZING, riskUSD, capital, entry, st
   const instrument = z.instrument ?? (z.symbol ? getInstrument(z.symbol) : null);
   return sizePosition({
     instrument, capital, entry, stop, side,
-    policy: { riskPct: z.riskPct, maxRiskUSD: z.maxRiskUSD, feePct: z.feePct, priceBufferPct: z.priceBufferPct, minStopPct: z.minStopPct },
+    policy: z.mode === "dollar"
+      ? { mode: "dollar", riskUSD: z.riskUSD, feePct: z.feePct, priceBufferPct: z.priceBufferPct, minStopPct: z.minStopPct, simulatedShort: z.simulatedShort === true }
+      : { riskPct: z.riskPct, maxRiskUSD: z.maxRiskUSD, feePct: z.feePct, priceBufferPct: z.priceBufferPct, minStopPct: z.minStopPct },
     limits: { ...(z.limits ?? {}), maxOrderNotional: maxNotional ?? z.limits?.maxOrderNotional ?? null },
     exposure: z.exposure ?? {},
   });

@@ -288,6 +288,7 @@ export class EngineRunner {
    */
   applySettings(next) {
     const S = this.state;
+    if (this.cfg.ledgerApi === "bot") return this.applyBotRisk(next);
     if (!this.cfg.remoteSettings || !S || !next || typeof next !== "object") return false;
     const { version, risk_usd: risk } = next;
     if (!Number.isInteger(version) || typeof risk !== "number" || !Number.isFinite(risk) || risk < 1 || risk > 1_000_000) return false;
@@ -304,6 +305,24 @@ export class EngineRunner {
   }
 
   /**
+   * A fleet bot's dollar risk per trade, set on the website for THIS bot only (versioned, confirmed back). It changes the
+   * funded sizing for new orders only; the Strategy Mirror keeps its $10 reference risk; open positions are untouched.
+   */
+  applyBotRisk(next) {
+    const S = this.state;
+    if (!S || !next || typeof next !== "object" || next.bot_id !== this.cfg.botId) return false;
+    const { version, risk_usd: risk } = next;
+    if (!Number.isInteger(version) || typeof risk !== "number" || !Number.isFinite(risk) || risk < 0.01 || risk > 1_000_000) return false;
+    if (S.botRisk && S.botRisk.version === version && S.botRisk.riskUSD === risk) return false;
+    const previous = S.botRisk?.riskUSD ?? this.cfg.sizing?.riskUSD ?? null;
+    S.botRisk = { version, riskUSD: risk, appliedAt: iso(this.now()) };
+    this.save();
+    this.audit({ type: "bot_risk_applied", bot_id: this.cfg.botId, version, risk_usd: risk, previous_risk_usd: previous, open_position: !!S.strategy.broker.pos });
+    this.log(`[engine] ${this.cfg.botId} dollar risk per trade ${previous} -> ${risk} (website version ${version}); new orders only`);
+    return true;
+  }
+
+  /**
    * Sizing settings come from the engine config (a saved state from an older engine gets them here too). In percent
    * mode the strategy sizes from the strategy's AVAILABLE ALPHA PAPER balance, read from the Worker's read-only ledger
    * view (the latest reading, refreshed after every poll); without sync, from ENGINE_PAPER_CAPITAL plus the engine's
@@ -315,10 +334,12 @@ export class EngineRunner {
     st.sizing = { ...DEFAULT_SIZING, ...st.sizing, ...cfgSizing };
     // Maximum risk per trade: the strategy's risk setting (the website's, confirmed back) unless configured otherwise.
     st.sizing.maxRiskUSD = maxRisk === "off" ? null : typeof maxRisk === "number" ? maxRisk : st.inputs.riskUSD;
+    // dollar mode: the bot's own dollar risk, the website's confirmed per-bot setting when there is one.
+    if (st.sizing.mode === "dollar") st.sizing.riskUSD = this.state.botRisk?.riskUSD ?? cfgSizing.riskUSD;
     // Execution rule for resting limit orders (config; 0 = the default emulator rule, unchanged).
     if (this.cfg.limitThroughTicks > 0) st.broker.opts = { ...(st.broker.opts ?? {}), limitThroughTicks: this.cfg.limitThroughTicks, tick: st.sym.mintick };
     else if (st.broker.opts?.limitThroughTicks) { const { limitThroughTicks: _l, tick: _t, ...rest } = st.broker.opts; st.broker.opts = rest; }
-    if (st.sizing.mode !== "percent") return;
+    if (st.sizing.mode !== "percent" && st.sizing.mode !== "dollar") return;
     if (!this.cfg.sync) {
       st.capital = this.cfg.localCapital === null ? null : this.cfg.localCapital + st.broker.netProfit;
       return;
@@ -434,7 +455,9 @@ export class EngineRunner {
       for (const e of events) {
         if (e.type !== "ENTRY_FILL" && e.type !== "EXIT_FILL") continue;
         const isExit = e.type === "EXIT_FILL";
-        const action = isExit ? "CLOSE" : e.side === 1 ? "BUY" : "SELL";
+        // Fleet bots (ledger path "bot"): explicit OPEN_LONG / OPEN_SHORT / CLOSE (the bot's own position only).
+        const botPath = this.cfg.ledgerApi === "bot";
+        const action = isExit ? "CLOSE" : botPath ? (e.side === 1 ? "OPEN_LONG" : "OPEN_SHORT") : e.side === 1 ? "BUY" : "SELL";
         const id = `${this.idPrefix}-${iso(k.t)}-${action}`;
         const entryId = isExit ? S.openEntryId : null;
         if (isExit) S.openEntryId = null; else S.openEntryId = id;
@@ -442,6 +465,7 @@ export class EngineRunner {
         S.outbox.push({
           id, action, kind: isExit ? "EXIT" : "ENTRY", entryId, qty: isExit ? null : fmtQty(e.qty), enginePrice: e.price,
           exitKind: e.kind ?? null, barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs),
+          ...(botPath && !isExit ? { stop: S.strategy.curStop ?? S.strategy.planSL ?? null, tp: S.strategy.planTP2 ?? null, riskUSD: S.strategy.sizing?.riskUSD ?? null } : {}),
           // Exits are never dropped for lateness here: whether they go out depends on their entry (see flush).
           status: warmup ? "historical" : late && !isExit ? "skipped" : "pending",
           code: !warmup && late && !isExit ? "SIGNAL_EXPIRED" : null,
@@ -491,7 +515,7 @@ export class EngineRunner {
 
   /** Read-only view of the ALPHA PAPER ledger: the open position for this symbol and the outcome of given signals. */
   async ledger(alertIds = []) {
-    const r = await this.http(`${this.cfg.apiBase}/webhook/engine-ledger`, {
+    const r = await this.http(`${this.cfg.apiBase}${this.cfg.ledgerApi === "bot" ? "/webhook/bot-ledger" : "/webhook/engine-ledger"}`, {
       method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15_000),
       body: JSON.stringify({ secret: this.cfg.webhookSecret, symbol: this.cfg.symbol, alert_ids: alertIds, ...this.botFields() }),
     });
@@ -599,9 +623,14 @@ export class EngineRunner {
       item.attempts += 1;
       let status = 0, body = {};
       try {
-        const r = await this.http(`${this.cfg.apiBase}/webhook/dry-run`, {
+        const r = await this.http(`${this.cfg.apiBase}${this.cfg.ledgerApi === "bot" ? "/webhook/bot-order" : "/webhook/dry-run"}`, {
           method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(20_000),
-          body: JSON.stringify({
+          body: JSON.stringify(this.cfg.ledgerApi === "bot" ? {
+            secret: this.cfg.webhookSecret, bot_id: this.cfg.botId, order_id: item.id, action: item.action, symbol: this.cfg.symbol,
+            timeframe: String(this.cfg.intervalMin), ...(item.qty === null ? {} : { qty: Number(item.qty) }), timestamp: item.barClose,
+            liquidity: this.liquidityFor(item), stop: item.stop ?? null, tp: item.tp ?? null, risk_usd: item.riskUSD ?? null,
+            profile: this.cfg.profile, config_hash: inputsHash(this.cfg), entry_order_id: item.entryId ?? null,
+          } : {
             secret: this.cfg.webhookSecret, id: item.id, symbol: this.cfg.symbol, timeframe: String(this.cfg.intervalMin),
             action: item.action, strategy: STRATEGY_NAME, ...(item.qty === null ? {} : { qty: Number(item.qty) }), timestamp: item.barClose,
             liquidity: this.liquidityFor(item), ...this.botFields(),
@@ -707,6 +736,14 @@ export class EngineRunner {
       strategy: STRATEGY_NAME, started_at: S.startedAt, warmed_up_at: S.warmedUpAt, last_poll_at: S.lastPollAt,
       last_candle_time: S.lastCandle?.t ?? null, last_candle_close: lastClose, candles_processed: S.candlesProcessed,
       status_text: st.status, sync: this.cfg.sync,
+      // Structured strategy state (never reconstructed from status text): setup, resting order and its levels.
+      strategy_state: {
+        direction: st.dir === 1 ? "LONG" : st.dir === -1 ? "SHORT" : null, leg_start: st.dir ? st.legStart : null, leg_end: st.dir ? st.legEnd : null,
+        setup_bars: st.dir && Number.isFinite(st.legEndBar) ? st.bar - st.legEndBar : null, max_age_bars: st.inputs.maxAge,
+        pending_order: st.broker.entry ? { side: st.broker.entry.side === 1 ? "LONG" : "SHORT", qty: st.broker.entry.qty, limit: st.broker.entry.limit, stop: st.planSL ?? null, tp: st.planTP2 ?? null } : null,
+        current_stop: st.broker.pos ? st.curStop : null, break_even_done: !!st.beDone, trailing: !!st.trailOn,
+      },
+      bot_risk: S.botRisk ? { version: S.botRisk.version, risk_usd: S.botRisk.riskUSD } : null,
       profile: this.cfg.profile ?? "default", risk_usd: st.inputs.riskUSD,
       remote_settings: !!this.cfg.remoteSettings,
       settings: S.settings ? { version: S.settings.version, risk_usd: S.settings.riskUSD } : null,
@@ -747,7 +784,7 @@ export class EngineRunner {
     const d = st.lastSizing;
     const r2 = (v) => (typeof v === "number" && Number.isFinite(v) ? Math.round(v * 100) / 100 : null);
     return {
-      mode: z.mode, risk_pct: z.mode === "percent" ? z.riskPct : null, risk_usd_fixed: z.mode === "percent" ? null : st.inputs.riskUSD,
+      mode: z.mode, risk_pct: z.mode === "percent" ? z.riskPct : null, risk_usd_fixed: z.mode === "fixed" ? st.inputs.riskUSD : null, risk_usd: z.mode === "dollar" ? r2(z.riskUSD) : null,
       max_risk_usd: z.mode === "percent" ? r2(z.maxRiskUSD) : null, fixed_reason: z.mode === "percent" ? null : this.cfg.sizing?.fixedReason ?? null,
       symbol: this.cfg.symbol, min_qty: z.instrument?.minQty ?? z.minQty, min_cost: z.instrument?.minNotional ?? z.minCost,
       fee_pct: z.feePct, price_buffer_pct: z.priceBufferPct,
@@ -781,7 +818,7 @@ export class EngineRunner {
       });
       if (!r.ok) this.log(`[engine] status update rejected: HTTP ${r.status}`);
       this.heartbeatState(r.ok ? "ok" : `HTTP ${r.status}`);
-      if (r.ok && this.cfg.remoteSettings) {
+      if (r.ok && (this.cfg.remoteSettings || this.cfg.ledgerApi === "bot")) {
         const body = await r.json().catch(() => null);
         // Applied now → confirm right away (once) so the website can show Applied.
         if (this.applySettings(body?.settings) && !confirming) await this.heartbeat(true);

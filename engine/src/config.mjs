@@ -72,7 +72,10 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   // (the Pine formula, risk in USD regardless of equity) is refused unless ENGINE_SIZING_FIXED_REASON records why
   // (research or parity runs only). Without a ledger (sync off) "fixed" stays the default for local research.
   const mode = get("ENGINE_SIZING", funded && sync ? "percent" : "fixed");
-  if (!["fixed", "percent"].includes(mode)) throw new Error(`ENGINE_SIZING must be fixed or percent, not ${mode}`);
+  if (!["fixed", "percent", "dollar"].includes(mode)) throw new Error(`ENGINE_SIZING must be fixed, percent or dollar, not ${mode}`);
+  // dollar (fleet bots): the bot's own dollar risk per trade, from the registry / the website's per-bot setting.
+  const riskUSD = mode === "dollar" ? Number(get("ENGINE_RISK_USD", "")) : null;
+  if (mode === "dollar" && !(riskUSD > 0)) throw new Error("ENGINE_SIZING=dollar needs ENGINE_RISK_USD (a positive dollar amount)");
   const fixedReason = get("ENGINE_SIZING_FIXED_REASON", "").trim();
   if (funded && sync && mode === "fixed" && !fixedReason) {
     throw new Error("ENGINE_SIZING=fixed for a funded engine that trades against the PAPER ledger needs ENGINE_SIZING_FIXED_REASON (research only); funded sizing is percent of available equity (docs/UNIVERSAL-POSITION-SIZING.md)");
@@ -88,6 +91,7 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   const sizing = {
     mode,
     riskPct: pct("ENGINE_RISK_PCT", 1, 0.01, 10),
+    riskUSD, simulatedShort: mode === "dollar",
     feePct: pct("ENGINE_FEE_PCT", 0.4, 0, 2),
     priceBufferPct: pct("ENGINE_PRICE_BUFFER_PCT", 0.5, 0, 5),
     maxRisk: maxRiskRaw === "setting" || maxRiskRaw === "off" ? maxRiskRaw : Number(maxRiskRaw),
@@ -170,15 +174,26 @@ export function botList(env = process.env, baseDir = process.cwd()) {
 export function loadBotConfigs(ids, env = process.env, baseDir = process.cwd(), { list = BOTS, allowProposed = false } = {}) {
   return selectBots(ids, { list, allowProposed }).map((bot) => {
     if (!bot.profile) throw new Error(`${bot.id}: no strategy profile; the owner's inputs for ${bot.symbol} ${bot.intervalMin}m are required`);
+    // Strategy inputs come ONLY from the bot's own profile file: STRAT_* in the environment or env file are ignored
+    // for fleet bots, so no global setting can leak into another bot's strategy.
+    const strategyFree = Object.fromEntries(Object.entries(env).filter(([k]) => !k.startsWith("STRAT_")));
+    const fileEnv = loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env"));
+    const leaked = Object.keys(fileEnv).filter((k) => k.startsWith("STRAT_"));
+    if (leaked.length) throw new Error(`${bot.id}: strategy inputs (${leaked.join(", ")}) in the shared env file would override bot profiles; remove them`);
+    const sizingEnv = bot.ledgerApi === "bot"
+      ? { ENGINE_SIZING: "dollar", ENGINE_RISK_USD: String(bot.riskUSD), ENGINE_FEE_PCT: "0.2", ENGINE_REMOTE_SETTINGS: "off" }
+      : { ENGINE_RISK_PCT: "1", ENGINE_MAX_RISK_USD: String(bot.riskUSD) };
     const cfg = loadConfig({
-      ...env, ENGINE_SYMBOL: bot.symbol, ENGINE_INTERVAL_MIN: String(bot.intervalMin), ENGINE_PROFILE: bot.profile,
-      ENGINE_FUNDED: bot.funded ? "on" : "off", ENGINE_RISK_PCT: String(bot.riskPct), ENGINE_MAX_RISK_USD: String(bot.maxRiskUSD),
+      ...strategyFree, ENGINE_SYMBOL: bot.symbol, ENGINE_INTERVAL_MIN: String(bot.intervalMin), ENGINE_PROFILE: bot.profile,
+      ENGINE_FUNDED: bot.funded ? "on" : "off", ...sizingEnv,
       // the single-engine settings that would mix bots are not inherited
       ENGINE_MARKETS: "", ENGINE_BOTS: "",
     }, baseDir);
-    return { bot, cfg: { ...cfg, botId: bot.id, botName: bot.name, fileTag: botTag(bot), idPrefix: botIdPrefix(bot), priority: bot.priority, wallet: bot.wallet } };
+    return { bot, cfg: { ...cfg, botId: bot.id, botName: bot.name, fileTag: botTag(bot), idPrefix: botIdPrefix(bot), priority: bot.priority, wallet: bot.wallet,
+      ledgerApi: bot.ledgerApi, group: bot.group } };
   });
 }
+
 
 /** Config safe to print (no secret). */
 export const redacted = (cfg) => ({ ...cfg, webhookSecret: cfg.webhookSecret ? "(set)" : "(not set)" });

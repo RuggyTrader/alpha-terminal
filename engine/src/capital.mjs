@@ -1,142 +1,118 @@
-// Central capital protection for a fleet of bots (docs/MULTI-BOT-ARCHITECTURE.md §3).
+// Funded PAPER accounting for the bot fleet, simulated with EXACTLY the rules of the Worker's bot ledger
+// (worker/src/bot_ledger.ts; docs/MULTI-BOT-ARCHITECTURE.md §6–§8). Used by backtests and tests; integer micro-USD.
 //
-// The Worker's ALPHA PAPER ledger is the authority. Every accepted entry reserves its full cost in ONE D1 transaction
-// guarded by CHECK constraints: the wallet can never go below $0, and a bot with an allocation cap can never hold more
-// reserved than its cap. Two bots therefore can never both spend the same dollars, whatever the engine believes.
-//
-// The engine adds EARMARKS so that bots sharing a wallet do not plan against the same dollars in the first place: a
-// resting entry order (placed, not yet filled) reserves nothing in the ledger yet, so without an earmark a second bot
-// would size its own order from the full balance and one of the two would be refused at fill time. With earmarks:
-//   capital a bot may size from = ledger available for that bot − cost of OTHER bots' resting entries on the wallet.
-// Bots are processed in a deterministic order (src/fleet.mjs), so the first bot to place an order keeps its earmark and
-// the next one sizes from what is left (allocateCapital's ordering: candle close, priority, id).
+//   * Every bot owns its wallet. No bot can spend another bot's money; MAIN never covers a bot's loss.
+//   * Allocation: money moved from MAIN to a group is split EQUALLY between the group's bots (remainder micro-USD in
+//     priority order), so the parts always sum exactly to the amount.
+//   * LONG: the bot pays qty × price (reserved as the position's cost). SHORT (simulated): the bot posts cash equal to
+//     qty × entry price as collateral; the proceeds are never spendable; no financing cost is modelled.
+//   * Fees: FEE_PCT of every fill's notional (Ndax-equivalent 0.20%), entry and exit, charged to the bot.
+//   * Close: gross = (exit − entry) × qty (LONG) or (entry − exit) × qty (SHORT); net = gross − entry fee − exit fee.
+//     A positive net is swept to MAIN immediately (the bot's wallet returns to its pre-trade balance); a loss stays
+//     with the bot. A loss beyond the bot's collateral and cash is a recorded shortfall and pauses its entries.
 
-/** Estimated cash a resting entry order will need when it fills: qty × limit with the price buffer and fee headroom. */
-export function pendingEntryCost(S) {
-  const e = S?.broker?.entry;
-  if (!e || !(e.qty > 0) || e.side !== 1) return 0; // long-only funded ledger: a short reserves nothing (never sent)
-  const px = e.limit ?? S.lastClose ?? null;
-  if (!(px > 0)) return 0;
-  const z = S.sizing ?? {};
-  return e.qty * px * (1 + (z.priceBufferPct ?? 0) / 100) * (1 + (z.feePct ?? 0) / 100);
+export const FEE_PCT = 0.2;
+const M = 1_000_000;
+export const toMicro = (usd) => Math.round(usd * M);
+export const fromMicro = (m) => m / M;
+
+export function splitEqual(amountMicro, botIds) {
+  const n = botIds.length;
+  if (!n) return [];
+  const base = Math.floor(amountMicro / n);
+  const rem = amountMicro - base * n;
+  return botIds.map((id, i) => ({ botId: id, amountMicro: base + (i < rem ? 1 : 0) }));
 }
 
-export class CapitalBook {
-  constructor() {
-    this.members = new Map(); // botId -> { wallet, priority, pendingCost(): number }
-  }
-
-  register(botId, { wallet, priority = 99, pendingCost }) {
-    if (this.members.has(botId)) throw new Error(`${botId} is already registered in the capital book`);
-    if (typeof pendingCost !== "function") throw new Error("pendingCost must be a function");
-    this.members.set(botId, { wallet, priority, pendingCost });
-  }
-
-  /** Earmarks of resting entries on a wallet: [{ botId, cost }] (cost > 0 only). */
-  earmarks(wallet, exceptBotId = null) {
-    const out = [];
-    for (const [id, m] of this.members) {
-      if (m.wallet !== wallet || id === exceptBotId) continue;
-      const cost = Number(m.pendingCost()) || 0;
-      if (cost > 0) out.push({ botId: id, cost });
-    }
-    return out;
-  }
-
-  /**
-   * What `botId` may size from, given what the ledger reports as available to it (already net of every filled
-   * position's reservation, and of its own allocation cap). Unknown stays unknown (null), never guessed.
-   */
-  capitalFor(botId, ledgerAvailable) {
-    if (ledgerAvailable === null || ledgerAvailable === undefined || !Number.isFinite(ledgerAvailable)) return null;
-    const m = this.members.get(botId);
-    if (!m) throw new Error(`${botId} is not in the capital book`);
-    const others = this.earmarks(m.wallet, botId).reduce((s, x) => s + x.cost, 0);
-    return Math.max(0, ledgerAvailable - others);
-  }
-
-  snapshot() {
-    const wallets = {};
-    for (const [id, m] of this.members) (wallets[m.wallet] ??= []).push({ botId: id, priority: m.priority, earmarked: Number((m.pendingCost() || 0).toFixed(6)) });
-    return wallets;
-  }
-}
-
-/**
- * Simulated ALPHA PAPER ledger for backtests: the same rules the Worker enforces (long-only, full cost reserved from
- * the wallet at fill, optional per-bot cap, account-wide limits, fees on both sides), applied in one place for every
- * bot so shared capital is modelled exactly once. Returns a refusal code or null.
- */
-export class SimLedger {
-  constructor({ wallets, caps = {}, feePct = 0, slippagePct = 0, maxOrderNotional = null, maxTotalExposure = null, maxOpenPositions = null }) {
-    this.available = { ...wallets };
-    this.start = { ...wallets };
-    this.caps = { ...caps };
+export class FleetLedgerSim {
+  /** bots: [{ id, group, priority }]; main: starting MAIN balance (USD). */
+  constructor({ bots, main = 0, feePct = FEE_PCT, slippagePct = 0, maxOrderNotional = null, maxTotalExposure = null, maxOpenPositions = null }) {
+    this.bots = [...bots].sort((a, b) => (a.priority - b.priority) || a.id.localeCompare(b.id));
+    this.wallet = { MAIN: { available: toMicro(main), reserved: 0, funding: toMicro(main), realized: 0, fees: 0, shortfall: 0 } };
+    for (const b of this.bots) this.wallet[b.id] = { available: 0, reserved: 0, funding: 0, realized: 0, fees: 0, shortfall: 0 };
     this.feePct = feePct;
     this.slippagePct = slippagePct;
-    this.maxOrderNotional = maxOrderNotional;
-    this.maxTotalExposure = maxTotalExposure;
-    this.maxOpenPositions = maxOpenPositions;
-    this.positions = new Map(); // `${botId}` -> { wallet, qty, entry, cost }
-    this.reservedByBot = {};
-    this.realized = {}; // botId -> net P&L
-    this.walletRealized = {}; // wallet -> net P&L (reconciliation)
-    this.fees = {};
-    this.peakReserved = 0;
+    this.limits = { maxOrderNotional, maxTotalExposure, maxOpenPositions };
+    this.positions = new Map(); // botId -> position
+    this.trades = [];           // closed trades (authoritative results)
+    this.fills = [];            // every fill with its fee record
+    this.sweeps = [];           // profit transfers to MAIN
+    this.allocations = [];
+    this.paused = new Set();
+    this.settled = new Set();   // settlement keys (idempotency)
     this.peakConcurrent = 0;
-    this.minAvailable = Math.min(...Object.values(wallets)); // must never go below 0 (the Worker's CHECK)
   }
 
-  totalReserved() { let s = 0; for (const p of this.positions.values()) s += p.cost; return s; }
-  availableFor(botId, wallet) {
-    const w = this.available[wallet] ?? 0;
-    const cap = this.caps[botId];
-    return cap === undefined || cap === null ? w : Math.min(w, cap - (this.reservedByBot[botId] ?? 0));
+  /** MAIN → group, equal split (owner action). Refused if MAIN lacks the unreserved money. */
+  allocate(group, amountUsd, key = `ALLOC-${this.allocations.length + 1}`) {
+    if (this.settled.has(key)) return { ok: true, duplicate: true };
+    const amount = toMicro(amountUsd);
+    const ids = this.bots.filter((b) => b.group === group).map((b) => b.id);
+    if (!ids.length) return { ok: false, code: "NO_ACTIVE_BOTS" };
+    if (amount > this.wallet.MAIN.available) return { ok: false, code: "INSUFFICIENT_MAIN" };
+    const split = splitEqual(amount, ids);
+    this.wallet.MAIN.available -= amount; this.wallet.MAIN.funding -= amount;
+    for (const s of split) { this.wallet[s.botId].available += s.amountMicro; this.wallet[s.botId].funding += s.amountMicro; }
+    this.settled.add(key);
+    this.allocations.push({ key, group, amountMicro: amount, split });
+    return { ok: true, split };
   }
 
-  buy(botId, wallet, qty, refPrice) {
-    if (this.positions.has(botId)) return "POSITION_ALREADY_OPEN"; // one position per bot (never merged across bots)
-    const px = refPrice * (1 + this.slippagePct / 100);
-    const cost = qty * px;
-    const fee = cost * this.feePct / 100;
-    if (this.maxOrderNotional && cost > this.maxOrderNotional) return "MAX_ORDER_NOTIONAL";
-    if (this.maxOpenPositions && this.positions.size >= this.maxOpenPositions) return "MAX_OPEN_POSITIONS";
-    if (this.maxTotalExposure && this.totalReserved() + cost > this.maxTotalExposure) return "MAX_TOTAL_EXPOSURE";
-    const cap = this.caps[botId];
-    if (cap !== undefined && cap !== null && (this.reservedByBot[botId] ?? 0) + cost > cap + 1e-9) return "BOT_ALLOCATION_EXCEEDED";
-    if (cost + fee > (this.available[wallet] ?? 0) + 1e-9) return "INSUFFICIENT_PAPER_CAPITAL";
-    this.available[wallet] -= cost + fee;
-    this.minAvailable = Math.min(this.minAvailable, this.available[wallet]);
-    this.reservedByBot[botId] = (this.reservedByBot[botId] ?? 0) + cost;
-    this.positions.set(botId, { wallet, qty, entry: px, cost });
-    this.fees[botId] = (this.fees[botId] ?? 0) + fee;
-    this.realized[botId] = (this.realized[botId] ?? 0) - fee;
-    this.walletRealized[wallet] = (this.walletRealized[wallet] ?? 0) - fee;
-    this.peakReserved = Math.max(this.peakReserved, this.totalReserved());
+  available(botId) { return fromMicro(this.wallet[botId].available); }
+  totalReservedMicro() { let s = 0; for (const p of this.positions.values()) s += p.collateral; return s; }
+
+  /** Opens a bot's position at the reference price. Returns null or a refusal code (nothing changes on refusal). */
+  open(botId, side, qty, refPrice, meta = {}) {
+    const w = this.wallet[botId];
+    if (this.paused.has(botId)) return "BOT_ENTRIES_PAUSED";
+    if (this.positions.has(botId)) return "POSITION_ALREADY_OPEN";
+    const px = refPrice * (1 + (side === "LONG" ? 1 : -1) * this.slippagePct / 100);
+    const notional = toMicro(qty * px);
+    const fee = Math.round(notional * this.feePct / 100);
+    const L = this.limits;
+    if (L.maxOrderNotional && notional > toMicro(L.maxOrderNotional)) return "MAX_ORDER_NOTIONAL";
+    if (L.maxOpenPositions && this.positions.size >= L.maxOpenPositions) return "MAX_OPEN_POSITIONS";
+    if (L.maxTotalExposure && this.totalReservedMicro() + notional > toMicro(L.maxTotalExposure)) return "MAX_TOTAL_EXPOSURE";
+    if (notional + fee > w.available) return "INSUFFICIENT_BOT_CAPITAL";
+    w.available -= notional + fee; w.reserved += notional; w.fees += fee;
+    this.positions.set(botId, { botId, side, qty, entry: px, collateral: notional, entryFee: fee, ...meta });
+    this.fills.push({ botId, kind: "ENTRY", side, qty, price: px, notional, fee });
     this.peakConcurrent = Math.max(this.peakConcurrent, this.positions.size);
     return null;
   }
 
-  sell(botId, refPrice) {
+  /** Closes the bot's OWN position (never another bot's). Idempotent by trade key. */
+  close(botId, refPrice, meta = {}) {
     const p = this.positions.get(botId);
-    if (!p) return "NO_POSITION";
-    const px = refPrice * (1 - this.slippagePct / 100);
-    const value = p.qty * px;
-    const fee = value * this.feePct / 100;
-    this.available[p.wallet] += value - fee;
-    this.reservedByBot[botId] -= p.cost;
+    if (!p) return { code: "NO_POSITION" };
+    const key = `SWEEP:${botId}:${p.openTime ?? this.trades.length}`;
+    if (this.settled.has(key)) return { code: "ALREADY_SETTLED" };
+    const w = this.wallet[botId];
+    const px = refPrice * (1 + (p.side === "LONG" ? -1 : 1) * this.slippagePct / 100);
+    const exitNotional = toMicro(p.qty * px);
+    const gross = p.side === "LONG" ? exitNotional - p.collateral : p.collateral - exitNotional;
+    const exitFee = Math.round(exitNotional * this.feePct / 100);
+    const net = gross - p.entryFee - exitFee;
+    const paid = p.collateral + gross - exitFee;
+    const shortfall = Math.max(0, -(w.available + paid));
+    w.reserved -= p.collateral; w.fees += exitFee; w.realized += gross + shortfall; w.shortfall += shortfall;
+    w.available = Math.max(0, w.available + paid);
+    const sweep = net > 0 ? net : 0;
+    if (sweep) { w.available -= sweep; w.funding -= sweep; this.wallet.MAIN.available += sweep; this.wallet.MAIN.funding += sweep; this.sweeps.push({ botId, amountMicro: sweep, key }); }
+    if (shortfall) this.paused.add(botId);
+    this.settled.add(key);
     this.positions.delete(botId);
-    this.fees[botId] = (this.fees[botId] ?? 0) + fee;
-    this.realized[botId] = (this.realized[botId] ?? 0) + (value - p.cost) - fee;
-    this.walletRealized[p.wallet] = (this.walletRealized[p.wallet] ?? 0) + (value - p.cost) - fee;
-    return null;
+    this.fills.push({ botId, kind: "EXIT", side: p.side, qty: p.qty, price: px, notional: exitNotional, fee: exitFee });
+    const t = { ...p, ...meta, exit: px, gross, entryFee: p.entryFee, exitFee, net, sweep, shortfall };
+    this.trades.push(t);
+    return { trade: t };
   }
 
-  /** wallet balance = start + Σ realized (after every position is closed), the reconciliation invariant. */
+  /** Per wallet: available + reserved = funding + realized − fees (realized = what the wallet paid; shortfall apart). */
   reconciles() {
-    for (const w of Object.keys(this.start)) {
-      const open = [...this.positions.values()].filter((p) => p.wallet === w).reduce((s, p) => s + p.cost, 0);
-      if (Math.abs(this.available[w] + open - (this.start[w] + (this.walletRealized[w] ?? 0))) > 1e-6) return false;
+    for (const [, w] of Object.entries(this.wallet)) {
+      if (w.available < 0 || w.reserved < 0) return false;
+      if (w.available + w.reserved !== w.funding + w.realized - w.fees) return false;
     }
     return true;
   }

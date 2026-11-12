@@ -13,7 +13,7 @@
 // Before any deposit every balance is $0, so every exposure-increasing BUY is rejected: unfunded balances
 // cannot spend money that does not exist. "Active" (first deposit) only changes what the dashboard shows.
 
-import { getBot } from "./bots";
+import { handleBotOwnerAction } from "./bot_ledger";
 import { authorizePaperAction } from "./auth_session";
 import { getInstrument } from "./instruments";
 import { secureEqual } from "./trade_core";
@@ -91,16 +91,6 @@ export async function portfolioGate(
   const need = value + fee;
   const w = await wallet(db, f.symbol);
   const have = w?.available_micro ?? 0;
-  // A bot with an allocation cap may hold at most its cap reserved (bots.ts; the batch's CHECK enforces it again).
-  if (owner) {
-    const bot = await getBot(db, owner);
-    if (bot && bot.allocation_cap_micro !== null && bot.reserved_micro + value > bot.allocation_cap_micro) {
-      return {
-        code: "BOT_ALLOCATION_EXCEEDED",
-        message: `${owner} may hold $${fromMicro(bot.allocation_cap_micro).toFixed(2)} reserved and already holds $${fromMicro(bot.reserved_micro).toFixed(2)}; this BUY needs $${fromMicro(value).toFixed(2)}. Nothing was filled.`,
-      };
-    }
-  }
   if (need > have) {
     return {
       code: "INSUFFICIENT_PAPER_CAPITAL",
@@ -154,8 +144,6 @@ export async function buyStatements(
       `BUY ${f.qty} @ ${f.price}: position value reserved${owner ? ` (${owner})` : ""}`),
     db.prepare(`UPDATE paper_positions SET wallet = ?, reserved_micro = reserved_micro + ? WHERE ${byOwner}symbol = ? AND status = 'OPEN' AND last_order_id = ?`)
       .bind(f.symbol, need, ...ownerBind, f.symbol, f.clientOrderId),
-    // The bot's own reserved total; CHECK bot_allocation_cap fails the whole batch above its cap.
-    ...(owner ? [db.prepare(`UPDATE bots SET reserved_micro = reserved_micro + ?, updated_at = ? WHERE bot_id = ?`).bind(need, now, owner)] : []),
     ...feeStatements(db, f.symbol, { feeMicro: f.feeMicro ?? 0, alertId: f.alertId, clientOrderId: f.clientOrderId, note: f.feeNote ?? "simulated execution fee" },
       null, { symbol: f.symbol, owner }, now),
   ];
@@ -187,7 +175,6 @@ export function sellStatements(
     ).bind(`PNL:${f.clientOrderId}`, f.clientOrderId, now, pos.wallet, pnl, f.alertId, pos.id, `realized PAPER P&L`),
     db.prepare(`UPDATE paper_positions SET reserved_micro = reserved_micro - ? WHERE id = ? AND last_order_id = ?`)
       .bind(release, pos.id, f.clientOrderId),
-    ...(pos.bot_id ? [db.prepare(`UPDATE bots SET reserved_micro = reserved_micro - ?, updated_at = ? WHERE bot_id = ?`).bind(release, now, pos.bot_id)] : []),
     // The exit fee comes out of the proceeds just credited (proceeds >= fee, so the balance cannot go negative).
     ...feeStatements(db, pos.wallet, { feeMicro: f.feeMicro ?? 0, alertId: f.alertId, clientOrderId: f.clientOrderId, note: f.feeNote ?? "simulated execution fee" },
       pos.id, null, now),
@@ -228,6 +215,10 @@ export async function handlePaperApi(request: Request, env: PortfolioEnv, pathna
   if (pathname === "/api/paper/fund") return fund(env, body);
   if (pathname === "/api/paper/transfer") return transfer(env, body);
   if (pathname === "/api/paper/risk") return applyRisk(env, body);
+  // Fleet bots (bot_ledger.ts): equal-split group allocation, per-bot dollar risk, pause/resume new entries.
+  if (pathname === "/api/paper/allocate" || pathname === "/api/paper/bot-risk" || pathname === "/api/paper/bot-entries") {
+    return handleBotOwnerAction(env as never, pathname, body);
+  }
   return json({ ok: false, code: "NOT_FOUND" }, 404);
 }
 
@@ -486,8 +477,16 @@ async function consistency(db: D1Database) {
        COALESCE(SUM(CASE WHEN e.kind IN ('DEPOSIT', 'WITHDRAW', 'TRANSFER_IN', 'TRANSFER_OUT') THEN e.available_change_micro END), 0) AS funding_sum
      FROM portfolio_wallets w LEFT JOIN portfolio_entries e ON e.wallet = w.wallet GROUP BY w.wallet`
   ).all<Record<string, number | string>>()).results;
-  const pos = (await db.prepare(`SELECT wallet, COALESCE(SUM(reserved_micro), 0) AS r FROM paper_positions WHERE wallet IS NOT NULL AND status = 'OPEN' GROUP BY wallet`)
+  const pos: { wallet: string; r: number }[] = (await db.prepare(`SELECT wallet, COALESCE(SUM(reserved_micro), 0) AS r FROM paper_positions WHERE wallet IS NOT NULL AND status = 'OPEN' GROUP BY wallet`)
     .all<{ wallet: string; r: number }>()).results;
+  // Fleet bots (migration 0007): a bot wallet's reserved money is the collateral of its own OPEN bot positions.
+  try {
+    const bp = (await db.prepare(`SELECT b.wallet, COALESCE(SUM(p.collateral_micro), 0) AS r FROM bots b LEFT JOIN bot_positions p ON p.bot_id = b.bot_id AND p.status = 'OPEN'
+      WHERE b.ledger_api = 'bot' GROUP BY b.wallet`).all<{ wallet: string; r: number }>()).results;
+    for (const x of bp) { const i = pos.findIndex((y) => y.wallet === x.wallet); if (i >= 0) pos[i] = { wallet: x.wallet, r: Number(pos[i].r) + Number(x.r) }; else pos.push(x); }
+  } catch (e) {
+    if (!/no such table: bots|no such table: bot_positions/i.test(String(e instanceof Error ? e.message : e))) throw e;
+  }
   const issues: string[] = [];
   for (const s of sums) {
     if (Number(s.available_micro) !== Number(s.avail_sum)) issues.push(`${s.wallet}: available differs from its history`);
@@ -498,15 +497,6 @@ async function consistency(db: D1Database) {
     if (Number(s.fees_micro) < 0) issues.push(`${s.wallet}: negative fees`);
     const r = pos.find((p) => p.wallet === s.wallet)?.r ?? 0;
     if (Number(s.reserved_micro) !== Number(r)) issues.push(`${s.wallet}: reserved differs from its open positions`);
-  }
-  // Every bot's reserved total equals the cost basis of its own open positions (migration 0007; none before).
-  try {
-    const bots = (await db.prepare(
-      `SELECT b.bot_id, b.reserved_micro, COALESCE((SELECT SUM(p.reserved_micro) FROM paper_positions p WHERE p.bot_id = b.bot_id AND p.status = 'OPEN'), 0) AS r FROM bots b`
-    ).all<{ bot_id: string; reserved_micro: number; r: number }>()).results;
-    for (const b of bots) if (Number(b.reserved_micro) !== Number(b.r)) issues.push(`${b.bot_id}: reserved differs from its open positions`);
-  } catch (e) {
-    if (!/no such table: bots/i.test(String(e instanceof Error ? e.message : e))) throw e;
   }
   const total = sums.reduce((a, s) => a + Number(s.available_micro) + Number(s.reserved_micro), 0);
   const ident = sums.reduce((a, s) => a + Number(s.net_funding_micro) + Number(s.realized_pnl_micro) - Number(s.fees_micro), 0);

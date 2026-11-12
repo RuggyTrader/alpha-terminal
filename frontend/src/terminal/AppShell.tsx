@@ -1,3 +1,4 @@
+import { AssistantDrawer } from "./components/Assistant";
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Icon, Mark, type IconName } from "../components/icons";
@@ -170,6 +171,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
         <footer className="foot">PAPER account · dry run only · no broker orders are submitted</footer>
       </div>
+      <AssistantDrawer />
       <BottomNav />
     </div>
   );

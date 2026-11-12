@@ -1,3 +1,4 @@
+import { handleBotLedger, handleBotOrder } from "./bot_ledger";
 import { handleNotificationsApi, processEvents } from "./events";
 import { handleEngineMirror } from "./mirror";
 import {
@@ -1430,6 +1431,13 @@ export default {
     }
 
     // Strategy Mirror: hypothetical trades of the original strategy (margin 0), stored apart from the funded ledger.
+    // Fleet bots: their own wallets, LONG/SHORT, Ndax-equivalent fees, profit sweep to MAIN (bot_ledger.ts).
+    if (url.pathname === "/webhook/bot-order" && request.method === "POST") {
+      return handleBotOrder(request, env);
+    }
+    if (url.pathname === "/webhook/bot-ledger" && request.method === "POST") {
+      return handleBotLedger(request, env);
+    }
     if (url.pathname === "/webhook/engine-mirror" && request.method === "POST") {
       return afterwards(await handleEngineMirror(request, env));
     }

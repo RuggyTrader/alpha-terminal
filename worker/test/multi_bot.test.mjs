@@ -1,11 +1,9 @@
-// Independent bots in the ALPHA PAPER ledger (migration 0007, docs/MULTI-BOT-ARCHITECTURE.md), against the real Worker
-// on `wrangler dev --local` with a fresh D1. Permanent integration test (mandatory for every new bot).
-//   * two bots hold SEPARATE positions in the same symbol; one bot's exit never touches the other's position
-//   * shared capital: the second bot cannot spend dollars the first one already reserved (atomic, nothing committed)
-//   * per-bot allocation cap (CHECK bot_allocation_cap); paused entries keep exits working
-//   * owner validation (unknown, PROPOSED, wrong market/timeframe); the pre-fleet engine (no bot_id) maps to ALPHA-02
-//   * per-bot ledger view and status keys; reconciliation; the read-only fleet API
-// Isolated: port 8831, own persist dir, Kraken quotes from a local stub.
+// The bot fleet's funded PAPER ledger (migration 0007, worker/src/bot_ledger.ts) against the real Worker on
+// `wrangler dev --local` with a fresh D1. Permanent integration test (mandatory for every bot):
+//   own wallets + equal-split allocation, LONG and fully collateralised SHORT, Ndax-equivalent 0.20% fee per fill,
+//   positive net profit swept to MAIN atomically, losses stay with the bot, recorded shortfall, idempotency,
+//   paused entries with exits, per-bot dollar-risk settings, the legacy bot unchanged, reconciliation, fleet API.
+// Isolated: port 8831, own persist dir, Kraken quotes from a local stub (TEST prices, not market data).
 //   node --test test/multi_bot.test.mjs
 
 import { execFileSync, spawn } from "node:child_process";
@@ -19,8 +17,8 @@ import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
 
-const PRICE = 80; // TEST quote for SOLUSD (the stub serves it; not market data)
-const KRAKEN = await startKrakenStub({ sol: PRICE });
+const KRAKEN = await startKrakenStub({ sol: 80 });
+KRAKEN.set("XBTUSD", 100000);
 const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const WIN = process.platform === "win32";
 const secret = () => randomBytes(24).toString("base64url");
@@ -44,29 +42,22 @@ function sql(q, ...args) {
   }
 }
 let n = 0;
-const signal = (o) => fetch(`${base}/webhook/dry-run`, {
+const TF = { "ALPHA-01": "1", "ALPHA-02": "5", "ALPHA-03": "1", "ALPHA-04": "5" };
+const SYM = { "ALPHA-01": "SOLUSD", "ALPHA-02": "SOLUSD", "ALPHA-03": "BTCUSD", "ALPHA-04": "BTCUSD" };
+const order = (bot, action, o = {}) => fetch(`${base}/webhook/bot-order`, {
   method: "POST", headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ secret: WEBHOOK_SECRET, id: o.id ?? `TEST-${++n}-${randomBytes(4).toString("hex")}`, symbol: "SOLUSD", strategy: "OTE Pro Strat (engine)",
-    timestamp: new Date().toISOString(), liquidity: "TAKER", ...o }),
-}).then(async (r) => ({ status: r.status, ...(await r.json()) }));
-const ledgerView = (o) => fetch(`${base}/webhook/engine-ledger`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: WEBHOOK_SECRET, symbol: "SOLUSD", alert_ids: [], ...o }) }).then((r) => r.json());
-const status = (o) => fetch(`${base}/webhook/engine-status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: WEBHOOK_SECRET, status: { engine: "alpha-engine", symbol: "SOLUSD", ...o } }) }).then(async (r) => ({ status: r.status, ...(await r.json()) }));
+  body: JSON.stringify({ secret: WEBHOOK_SECRET, bot_id: bot, order_id: o.order_id ?? `ENG-${bot}-${SYM[bot]}-${TF[bot]}-T${++n}-${action}`, action, symbol: SYM[bot], timeframe: TF[bot], stop: 1, tp: 2, ...o }),
+}).then(async (r) => ({ http: r.status, ...(await r.json()) }));
+const act = (kind, body) => fetch(`${base}/api/paper/${kind}`, { method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie }, body: JSON.stringify({ request_id: secret(), ...body, passphrase: DASHBOARD_PASSPHRASE }) }).then((r) => r.json());
 const dash = (path) => fetch(`${base}${path}`, { headers: { Cookie: cookie } }).then((r) => r.json());
-const act = (kind, body) => fetch(`${base}/api/paper/${kind}`, { method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie }, body: JSON.stringify({ ...body, passphrase: DASHBOARD_PASSPHRASE, request_id: secret() }) }).then((r) => r.json());
-const open = () => sql(`SELECT bot_id, qty, reserved_micro, open_alert_id FROM paper_positions WHERE status = 'OPEN' ORDER BY bot_id`);
-const wallet = () => sql(`SELECT available_micro, reserved_micro FROM portfolio_wallets WHERE wallet = 'SOLUSD'`)[0];
-const botReserved = (id) => sql(`SELECT reserved_micro FROM bots WHERE bot_id = ?`, id)[0].reserved_micro;
+const W = (w) => sql(`SELECT available_micro a, reserved_micro r, realized_pnl_micro p, fees_micro f, net_funding_micro n, shortfall_micro s FROM portfolio_wallets WHERE wallet = ?`, w)[0];
 
 before(async () => {
-  persist = mkdtempSync(join(tmpdir(), "alpha-bots-"));
+  persist = mkdtempSync(join(tmpdir(), "alpha-fleet-ledger-"));
   temps.push(persist);
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
-  // Stage M2 (two bots on one market): the staged 0008, applied explicitly as its own step.
-  wrangler(["d1", "execute", "alpha-terminal-db", "--local", "--persist-to", persist, "--file", join("migrations-staged", "0008_bots_multi_position.sql"), "--yes"]);
-  // TEST registry rows (the migration registers only ALPHA-02): ALPHA-01 SOLUSD 1m ACTIVE here, ALPHA-03 PROPOSED.
-  const now = new Date().toISOString();
-  sql(`INSERT INTO bots (bot_id, name, symbol, timeframe_min, profile, wallet, status, legacy_default, priority, created_at, updated_at)
-       VALUES ('ALPHA-01', 'ALPHA 01', 'SOLUSD', 1, 'test-1m', 'SOLUSD', 'ACTIVE', 0, 2, ?, ?), ('ALPHA-03', 'ALPHA 03', 'BTCUSD', 1, NULL, 'BTCUSD', 'PROPOSED', 0, 3, ?, ?)`, now, now, now, now);
+  // TEST activation of the PROPOSED bots (production activates them one approval at a time).
+  sql(`UPDATE bots SET status = 'ACTIVE' WHERE bot_id IN ('ALPHA-01', 'ALPHA-03', 'ALPHA-04')`);
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
@@ -75,7 +66,6 @@ before(async () => {
   const lr = await fetch(`${base}/auth/login`, { method: "POST", headers: { "X-Alpha-Terminal": "1", "Content-Type": "application/json" }, body: JSON.stringify({ passphrase: DASHBOARD_PASSPHRASE }) });
   cookie = lr.headers.getSetCookie().map((c) => c.split(";")[0]).find((c) => c.startsWith("at_session="));
   await act("fund", { action: "deposit", amount_usd: 100 });
-  await act("transfer", { from: "MAIN", to: "SOLUSD", amount_usd: 100 });
 });
 after(async () => {
   try { if (WIN) execFileSync("taskkill", ["/PID", String(worker.pid), "/T", "/F"], { stdio: "ignore" }); else process.kill(-worker.pid); } catch { /* gone */ }
@@ -83,145 +73,149 @@ after(async () => {
   for (const t of temps) { try { rmSync(t, { recursive: true, force: true }); } catch { /* locked on Windows */ } }
 });
 
-describe("independent bots in one ledger (migration 0007)", () => {
-  it("schema 8 (0007 + 0008): ALPHA-02 is the SOLUSD legacy bot; one open position per (bot, symbol)", () => {
-    assert.equal(sql(`SELECT value FROM app_meta WHERE key = 'schema_version'`)[0].value, "8");
-    assert.deepEqual(sql(`SELECT bot_id, symbol, timeframe_min, status, legacy_default FROM bots WHERE bot_id = 'ALPHA-02'`),
-      [{ bot_id: "ALPHA-02", symbol: "SOLUSD", timeframe_min: 5, status: "ACTIVE", legacy_default: 1 }]);
-    const idx = sql(`SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'paper_positions'`).map((r) => r.name);
-    assert.ok(idx.includes("ux_paper_positions_open_owner") && !idx.includes("ux_paper_positions_open_symbol"));
+describe("bot fleet ledger (migration 0007)", () => {
+  it("schema 7: four bots, their own wallets; only ALPHA-02 is ACTIVE in the migration itself", () => {
+    assert.equal(sql(`SELECT value FROM app_meta WHERE key = 'schema_version'`)[0].value, "7");
+    assert.deepEqual(sql(`SELECT bot_id, group_id, symbol, timeframe_min, wallet, ledger_api FROM bots ORDER BY bot_id`).map(Object.values),
+      [["ALPHA-01", "SOLANA", "SOLUSD", 1, "ALPHA-01", "bot"], ["ALPHA-02", "SOLANA", "SOLUSD", 5, "SOLUSD", "legacy"], ["ALPHA-03", "BITCOIN", "BTCUSD", 1, "ALPHA-03", "bot"], ["ALPHA-04", "BITCOIN", "BTCUSD", 5, "ALPHA-04", "bot"]]);
+    for (const w of ["ALPHA-01", "ALPHA-03", "ALPHA-04"]) assert.equal(W(w).a, 0, "wallets start empty: no capital is created");
   });
 
-  it("owner validation: unknown, PROPOSED, wrong market or timeframe are refused before anything is filled", async () => {
-    for (const [o, code] of [[{ bot_id: "ALPHA-99", timeframe: "1" }, "UNKNOWN_BOT"], [{ bot_id: "ALPHA-03", symbol: "BTCUSD", timeframe: "1" }, "BOT_NOT_ACTIVE"],
-      [{ bot_id: "ALPHA-01", timeframe: "5" }, "BOT_TIMEFRAME_MISMATCH"], [{ bot_id: "nope", timeframe: "1" }, "INVALID_BOT_ID"]]) {
-      const r = await signal({ action: "BUY", qty: 0.1, ...o });
-      assert.equal(r.code, code, JSON.stringify(o));
-    }
-    assert.deepEqual(open(), []);
-    assert.equal(sql(`SELECT COUNT(*) n FROM paper_fills`)[0].n, 0);
+  it("allocation from MAIN splits equally between a group's ACTIVE bots, to the micro-dollar; preview first; idempotent", async () => {
+    const pv = await dash("/api/dashboard/allocation-preview?group=SOLANA&amount=20.01");
+    assert.deepEqual(pv.data.split.map((s) => [s.bot_id, s.amount_micro]), [["ALPHA-02", 10_005_000], ["ALPHA-01", 10_005_000]]);
+    const rid = secret();
+    const a = await act("allocate", { group: "SOLANA", amount_usd: 20, request_id: rid });
+    assert.deepEqual(a.split.map((s) => [s.bot_id, s.amount_usd]), [["ALPHA-02", 10], ["ALPHA-01", 10]]);
+    assert.equal((await act("allocate", { group: "SOLANA", amount_usd: 20, request_id: rid })).duplicate, true, "a repeated request moves nothing");
+    await act("allocate", { group: "BITCOIN", amount_usd: 20.01 });
+    assert.equal(W("ALPHA-03").a + W("ALPHA-04").a, 20_010_000, "the parts sum exactly");
+    assert.deepEqual([W("ALPHA-03").a, W("ALPHA-04").a], [10_005_000, 10_005_000]);
+    assert.equal(W("SOLUSD").a, 10_000_000, "the legacy SOL 5m wallet receives its equal half");
+    assert.equal(W("MAIN").a, 100e6 - 40.01e6);
+    assert.equal((await act("allocate", { group: "BITCOIN", amount_usd: 1000 })).code, "INSUFFICIENT_MAIN");
   });
 
-  it("two bots hold separate SOLUSD positions at the same time, each with its own reservation", async () => {
-    const a = await signal({ action: "BUY", qty: 0.5, bot_id: "ALPHA-01", timeframe: "1" });
-    const b = await signal({ action: "BUY", qty: 0.4, bot_id: "ALPHA-02", timeframe: "5" });
-    assert.equal(a.code, "DRY_RUN_ACCEPTED", JSON.stringify(a));
-    assert.equal(b.code, "DRY_RUN_ACCEPTED", JSON.stringify(b));
-    const pos = open();
-    assert.deepEqual(pos.map((p) => [p.bot_id, p.qty]), [["ALPHA-01", 0.5], ["ALPHA-02", 0.4]], "two positions, never merged");
-    assert.equal(botReserved("ALPHA-01"), 0.5 * PRICE * 1e6);
-    assert.equal(botReserved("ALPHA-02"), 0.4 * PRICE * 1e6);
-    assert.equal(wallet().reserved_micro, (0.5 + 0.4) * PRICE * 1e6);
-    assert.deepEqual(sql(`SELECT DISTINCT bot_id FROM paper_fills ORDER BY bot_id`).map((r) => r.bot_id), ["ALPHA-01", "ALPHA-02"]);
+  it("refuses what a bot may not do: PROPOSED/legacy/mismatch/precision/minimum/own capital", async () => {
+    assert.equal((await order("ALPHA-02", "OPEN_LONG", { qty: 0.1 })).code, "BOT_LEDGER_PATH", "the legacy bot keeps its legacy path");
+    assert.equal((await order("ALPHA-01", "OPEN_LONG", { qty: 0.1, timeframe: "5" })).code, "BOT_TIMEFRAME_MISMATCH");
+    assert.equal((await order("ALPHA-01", "OPEN_LONG", { qty: 0.1, symbol: "BTCUSD" })).code, "BOT_MARKET_MISMATCH");
+    assert.equal((await order("ALPHA-01", "OPEN_LONG", { qty: 0.123456789 })).code, "INVALID_QTY");
+    assert.equal((await order("ALPHA-01", "OPEN_LONG", { qty: 0.04 })).code, "BELOW_MIN_QTY");
+    assert.equal((await order("ALPHA-03", "OPEN_SHORT", { qty: 0.0001 })).code, "INSUFFICIENT_BOT_CAPITAL", "$10 + $0.02 fee > its own $10.005; never another bot's money");
+    assert.equal(sql(`SELECT COUNT(*) n FROM bot_positions`)[0].n, 0, "nothing committed");
   });
 
-  it("each bot's ledger view shows only its own position; the pre-fleet engine (no bot_id) sees ALPHA-02's", async () => {
-    const v1 = await ledgerView({ bot_id: "ALPHA-01" });
-    const v2 = await ledgerView({ bot_id: "ALPHA-02" });
-    const legacy = await ledgerView({});
-    assert.equal(v1.position.qty, 0.5);
-    assert.equal(v2.position.qty, 0.4);
-    assert.equal(legacy.position.qty, 0.4, "the running engine keeps finding its own position after migration 0007");
-    assert.equal(v1.balance.bot_reserved_usd, 40);
-    assert.equal(v1.balance.bot_available_usd, v1.balance.available_usd, "no cap: the shared wallet's available balance");
-  });
-
-  it("one bot's exit closes only its own trade; the other bot's position is untouched", async () => {
-    const before = open().find((p) => p.bot_id === "ALPHA-02");
-    const c = await signal({ action: "CLOSE", bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(c.code, "DRY_RUN_ACCEPTED", JSON.stringify(c));
-    assert.deepEqual(open(), [before], "ALPHA-02 keeps managing its position");
-    assert.equal(botReserved("ALPHA-01"), 0);
-    const t = sql(`SELECT bot_id, CAST(entry_qty AS REAL) AS entry_qty FROM trades`); // legacy column type is TEXT
-    assert.deepEqual(t, [{ bot_id: "ALPHA-01", entry_qty: 0.5 }]);
-    // A second exit for ALPHA-01 has nothing of its own to close: refused, never ALPHA-02's position.
-    const again = await signal({ action: "CLOSE", bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(again.code, "NO_POSITION");
-    assert.deepEqual(open(), [before]);
-  });
-
-  it("the pre-fleet engine's signals (no bot_id, its own ENG-SOLUSD-5 ids) are ALPHA-02's; other callers stay unowned", async () => {
-    // A TradingView-style alert with no bot_id is NOT ALPHA-02's, even on SOLUSD 5m: it has no position to close.
-    const tv = await signal({ id: `tv-${randomBytes(4).toString("hex")}`, action: "CLOSE", timeframe: "5" });
-    assert.equal(tv.code, "NO_POSITION");
-    assert.equal(sql(`SELECT bot_id FROM alerts WHERE alert_id = ?`, tv.alert_id)[0].bot_id, "");
-    const r = await signal({ id: `ENG-SOLUSD-5-${new Date().toISOString().slice(0, 19)}Z-CLOSE`, action: "CLOSE", timeframe: "5" });
+  it("LONG entry: own wallet pays qty × price + 0.20% fee; one authoritative fee record", async () => {
+    const r = await order("ALPHA-01", "OPEN_LONG", { qty: 0.1, order_id: "ENG-ALPHA-01-SOLUSD-1-L1-OPEN_LONG" });
     assert.equal(r.code, "DRY_RUN_ACCEPTED", JSON.stringify(r));
-    assert.deepEqual(open(), []);
-    assert.equal(botReserved("ALPHA-02"), 0);
-    assert.equal(sql(`SELECT bot_id FROM alerts WHERE alert_id = ?`, r.alert_id)[0].bot_id, "ALPHA-02");
+    assert.deepEqual([r.data.notional_usd, r.data.fee_usd], [8, 0.016]);
+    assert.deepEqual(W("ALPHA-01"), { a: 10e6 - 8e6 - 16_000, r: 8e6, p: 0, f: 16_000, n: 10e6, s: 0 });
+    const f = sql(`SELECT kind, side, qty, price, notional_micro, fee_rate_pct, fee_micro, fee_currency, fee_model FROM bot_fills WHERE fill_id = 'ENG-ALPHA-01-SOLUSD-1-L1-OPEN_LONG'`)[0];
+    assert.deepEqual(f, { kind: "ENTRY", side: "LONG", qty: 0.1, price: 80, notional_micro: 8e6, fee_rate_pct: 0.2, fee_micro: 16_000, fee_currency: "USD", fee_model: "ndax-flat-0.20-2026-11-12" });
   });
 
-  it("shared capital: a bot cannot spend dollars another bot already reserved (refused, nothing committed)", async () => {
-    // $100 in the shared SOLUSD wallet. ALPHA-02 reserves $91; ALPHA-01 asks for $10 (refused), then $9 (fits).
-    const big = await signal({ action: "BUY", qty: 91 / PRICE, bot_id: "ALPHA-02", timeframe: "5" });
-    assert.equal(big.code, "DRY_RUN_ACCEPTED", JSON.stringify(big));
-    assert.equal(wallet().available_micro, 9e6);
-    const fills = sql(`SELECT COUNT(*) n FROM paper_fills`)[0].n;
-    const refused = await signal({ action: "BUY", qty: 10 / PRICE, bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(refused.code, "INSUFFICIENT_PAPER_CAPITAL", JSON.stringify(refused));
-    assert.equal(sql(`SELECT COUNT(*) n FROM paper_fills`)[0].n, fills, "nothing committed");
-    assert.equal(wallet().available_micro, 9e6, "balance unchanged");
-    assert.equal(sql(`SELECT COUNT(*) n FROM paper_positions WHERE bot_id = 'ALPHA-01' AND status = 'OPEN'`)[0].n, 0);
-    const fits = await signal({ action: "BUY", qty: 9 / PRICE, bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(fits.code, "DRY_RUN_ACCEPTED", JSON.stringify(fits));
-    assert.equal(wallet().available_micro, 0, "both bots together hold exactly the wallet, never more");
-    assert.deepEqual(open().map((p) => [p.bot_id, p.reserved_micro]), [["ALPHA-01", 9e6], ["ALPHA-02", 91e6]]);
+  it("SHORT entry: fully collateralised from the bot's own wallet; opposing BTC positions coexist across bots", async () => {
+    const s = await order("ALPHA-03", "OPEN_SHORT", { qty: 0.00009, order_id: "ENG-ALPHA-03-BTCUSD-1-S1-OPEN_SHORT" });
+    assert.equal(s.code, "DRY_RUN_ACCEPTED", JSON.stringify(s));
+    const l = await order("ALPHA-04", "OPEN_LONG", { qty: 0.00009 });
+    assert.equal(l.code, "DRY_RUN_ACCEPTED");
+    assert.deepEqual(sql(`SELECT bot_id, side, qty, collateral_micro FROM bot_positions WHERE status = 'OPEN' ORDER BY bot_id`).map(Object.values),
+      [["ALPHA-01", "LONG", 0.1, 8e6], ["ALPHA-03", "SHORT", 0.00009, 9e6], ["ALPHA-04", "LONG", 0.00009, 9e6]]);
+    assert.equal(W("ALPHA-03").r, 9e6, "short collateral reserved; proceeds never spendable");
+    assert.equal((await order("ALPHA-03", "OPEN_LONG", { qty: 0.00001 })).code, "POSITION_ALREADY_OPEN", "pyramiding 0 per bot");
   });
 
-  it("allocation cap: a bot may hold at most its cap reserved (gate and CHECK constraint)", async () => {
-    assert.equal((await signal({ action: "CLOSE", bot_id: "ALPHA-02", timeframe: "5" })).code, "DRY_RUN_ACCEPTED");
-    assert.equal((await signal({ action: "CLOSE", bot_id: "ALPHA-01", timeframe: "1" })).code, "DRY_RUN_ACCEPTED");
-    sql(`UPDATE bots SET allocation_cap_micro = 5000000 WHERE bot_id = 'ALPHA-01'`);
-    const over = await signal({ action: "BUY", qty: 6 / PRICE, bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(over.code, "BOT_ALLOCATION_EXCEEDED", JSON.stringify(over));
-    const v = await ledgerView({ bot_id: "ALPHA-01" });
-    assert.equal(v.balance.bot_allocation_cap_usd, 5);
-    assert.equal(v.balance.bot_available_usd, 5, "sized from its cap, not the whole shared wallet");
-    const within = await signal({ action: "BUY", qty: 4 / PRICE, bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(within.code, "DRY_RUN_ACCEPTED", JSON.stringify(within));
-    // Even past the gate, the D1 CHECK refuses a reservation above the cap.
-    assert.throws(() => sql(`UPDATE bots SET reserved_micro = 6000000 WHERE bot_id = 'ALPHA-01'`), /bot_allocation_cap/);
+  it("the bot's ledger view shows only its own position and wallet", async () => {
+    const v = await fetch(`${base}/webhook/bot-ledger`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ secret: WEBHOOK_SECRET, bot_id: "ALPHA-03", symbol: "BTCUSD", alert_ids: ["ENG-ALPHA-03-BTCUSD-1-S1-OPEN_SHORT"] }) }).then((r) => r.json());
+    assert.equal(v.position.side, "short"); assert.equal(v.position.open_alert_id, "ENG-ALPHA-03-BTCUSD-1-S1-OPEN_SHORT");
+    assert.equal(v.alerts["ENG-ALPHA-03-BTCUSD-1-S1-OPEN_SHORT"].response_code, "DRY_RUN_ACCEPTED");
+    assert.equal(v.balance.wallet, "ALPHA-03"); assert.equal(v.balance.reserved_usd, 9);
   });
 
-  it("paused entries: new entries refused, the open position is still closed by its exit", async () => {
-    sql(`UPDATE bots SET entries_paused = 1 WHERE bot_id = 'ALPHA-01'`);
-    const buy = await signal({ action: "BUY", qty: 0.01, bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(buy.code, "BOT_ENTRIES_PAUSED");
-    const close = await signal({ action: "CLOSE", bot_id: "ALPHA-01", timeframe: "1" });
-    assert.equal(close.code, "DRY_RUN_ACCEPTED", JSON.stringify(close));
-    assert.deepEqual(open(), []);
-    sql(`UPDATE bots SET entries_paused = 0 WHERE bot_id = 'ALPHA-01'`);
+  it("profitable close: net (gross − entry fee − exit fee) is swept to MAIN in the same transaction; the bot keeps its balance", async () => {
+    const mainBefore = W("MAIN").a;
+    KRAKEN.set("SOLUSD", 81);
+    const c = await order("ALPHA-01", "CLOSE", { order_id: "ENG-ALPHA-01-SOLUSD-1-L1-CLOSE" });
+    assert.equal(c.code, "DRY_RUN_ACCEPTED", JSON.stringify(c));
+    // gross 0.1 × (81 − 80) = 0.10; fees 0.016 + 0.0162; net 0.0678
+    assert.deepEqual([c.data.gross_usd, c.data.fees_usd, c.data.net_usd, c.data.swept_to_main_usd], [0.1, 0.0322, 0.0678, 0.0678]);
+    assert.equal(W("ALPHA-01").a, 10e6, "no compounding: back to its pre-trade balance");
+    assert.equal(W("MAIN").a - mainBefore, 67_800);
+    assert.equal(sql(`SELECT COUNT(*) n FROM portfolio_entries WHERE group_key = 'SWEEP:ENG-ALPHA-01-SOLUSD-1-L1-OPEN_LONG'`)[0].n, 2, "matching debit and credit");
+    // a retried close (same id) is answered as a duplicate and changes nothing
+    const again = await order("ALPHA-01", "CLOSE", { order_id: "ENG-ALPHA-01-SOLUSD-1-L1-CLOSE" });
+    assert.equal(again.code, "DUPLICATE"); assert.equal(again.data.original_code, "DRY_RUN_ACCEPTED");
+    assert.equal(W("MAIN").a - mainBefore, 67_800, "never swept twice");
+    assert.equal((await order("ALPHA-01", "CLOSE")).code, "NO_POSITION", "a second exit has nothing of its own to close");
   });
 
-  it("per-bot engine status: a new bot never overwrites the legacy engine status; the legacy bot writes both", async () => {
-    assert.equal((await status({ bot_id: "ALPHA-01", timeframe: "1m", status_text: "Scanning" })).ok, true);
-    assert.equal((await status({ timeframe: "5m", status_text: "Waiting for a swing" })).ok, true); // pre-fleet engine
-    const keys = Object.fromEntries(sql(`SELECT key, value FROM app_meta WHERE key LIKE 'engine_status%'`).map((r) => [r.key, JSON.parse(r.value)]));
-    assert.equal(keys["engine_status:ALPHA-01"].status_text, "Scanning");
-    assert.equal(keys["engine_status:ALPHA-02"].status_text, "Waiting for a swing");
-    assert.equal(keys.engine_status.status_text, "Waiting for a swing", "the dashboard's single-engine status is still the 5m engine's");
-    assert.equal((await status({ bot_id: "ALPHA-01", timeframe: "5m" })).code, "BOT_TIMEFRAME_MISMATCH");
+  it("losing SHORT close: (entry − exit) × qty, fees, the loss stays with the bot; no sweep", async () => {
+    KRAKEN.set("XBTUSD", 101000);
+    const mainBefore = W("MAIN").a;
+    const c = await order("ALPHA-03", "CLOSE");
+    assert.equal(c.code, "DRY_RUN_ACCEPTED");
+    assert.equal(c.data.gross_usd, -0.09); assert.equal(c.data.swept_to_main_usd, 0);
+    assert.equal(W("MAIN").a, mainBefore, "MAIN never covers a loss");
+    assert.equal(W("ALPHA-03").a, 10_005_000 + Math.round(c.data.net_usd * 1e6));
+    assert.ok(sql(`SELECT * FROM bot_positions WHERE bot_id = 'ALPHA-04' AND status = 'OPEN'`).length === 1, "ALPHA-04's long untouched");
   });
 
-  it("reconciliation holds and the fleet API reports each bot separately (PAPER and hypothetical never mixed)", async () => {
+  it("paused entries: new entries refused, the open position is still closed", async () => {
+    assert.equal((await act("bot-entries", { bot_id: "ALPHA-04", paused: true })).entries_paused, true);
+    assert.equal((await order("ALPHA-04", "OPEN_SHORT", { qty: 0.00006 })).code, "BOT_ENTRIES_PAUSED");
+    KRAKEN.set("XBTUSD", 102000);
+    const c = await order("ALPHA-04", "CLOSE");
+    assert.equal(c.code, "DRY_RUN_ACCEPTED"); assert.ok(c.data.swept_to_main_usd > 0);
+    await act("bot-entries", { bot_id: "ALPHA-04", paused: false });
+  });
+
+  it("a short beyond its collateral and cash: recorded shortfall, entries paused, MAIN and other bots untouched", async () => {
+    KRAKEN.set("XBTUSD", 100000);
+    const s = await order("ALPHA-03", "OPEN_SHORT", { qty: 0.00009 });
+    assert.equal(s.code, "DRY_RUN_ACCEPTED", JSON.stringify(s));
+    const mainBefore = W("MAIN").a, otherBefore = W("ALPHA-04").a;
+    KRAKEN.set("XBTUSD", 250000);
+    const c = await order("ALPHA-03", "CLOSE");
+    assert.equal(c.code, "DRY_RUN_ACCEPTED");
+    assert.ok(c.data.shortfall_usd > 0);
+    assert.equal(W("ALPHA-03").a, 0); assert.ok(W("ALPHA-03").s > 0);
+    assert.equal(W("MAIN").a, mainBefore); assert.equal(W("ALPHA-04").a, otherBefore);
+    assert.equal(sql(`SELECT entries_paused FROM bots WHERE bot_id = 'ALPHA-03'`)[0].entries_paused, 1);
+    assert.equal((await order("ALPHA-03", "OPEN_LONG", { qty: 0.00006 })).code, "BOT_ENTRIES_PAUSED");
+    const t = sql(`SELECT net_pnl_micro, gross_pnl_micro, entry_fee_micro, exit_fee_micro, shortfall_micro FROM bot_positions WHERE close_order_id IS NOT NULL ORDER BY id DESC LIMIT 1`)[0];
+    assert.equal(t.net_pnl_micro, t.gross_pnl_micro - t.entry_fee_micro - t.exit_fee_micro, "the trade's full loss is reported");
+    KRAKEN.set("XBTUSD", 100000);
+  });
+
+  it("per-bot dollar risk: requested on the website, confirmed by that bot's engine, never another bot's", async () => {
+    const r = await act("bot-risk", { bot_id: "ALPHA-01", risk_usd: 2.5 });
+    assert.deepEqual([r.version, r.status], [1, "PENDING"]);
+    const hb = await fetch(`${base}/webhook/engine-status`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: WEBHOOK_SECRET, status: { engine: "alpha-engine", symbol: "SOLUSD", timeframe: "1m", bot_id: "ALPHA-01", status_text: "Scanning", bot_risk: null } }) }).then((x) => x.json());
+    assert.deepEqual(hb.settings, { bot_id: "ALPHA-01", version: 1, risk_usd: 2.5 });
+    await fetch(`${base}/webhook/engine-status`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: WEBHOOK_SECRET, status: { engine: "alpha-engine", symbol: "SOLUSD", timeframe: "1m", bot_id: "ALPHA-01", bot_risk: { version: 1, risk_usd: 2.5 } } }) });
+    assert.deepEqual(sql(`SELECT bot_id, risk_usd FROM bots ORDER BY bot_id`).map(Object.values), [["ALPHA-01", 2.5], ["ALPHA-02", 10], ["ALPHA-03", 10], ["ALPHA-04", 10]]);
+    assert.equal(sql(`SELECT status FROM bot_settings WHERE bot_id = 'ALPHA-01'`)[0].status, "APPLIED");
+    assert.equal((await act("bot-risk", { bot_id: "ALPHA-01", risk_usd: 0.001 })).code, "INVALID_RISK");
+  });
+
+  it("every wallet reconciles; the fleet API reports each bot's own gross, fees, net and sweeps, mirror separate", async () => {
     const d = await dash("/api/dashboard");
     const consistency = JSON.stringify(d).match(/"consistency":\{"ok":(true|false)/);
-    assert.ok(consistency && consistency[1] === "true", "ledger identities hold");
-    for (const b of sql(`SELECT b.bot_id, b.reserved_micro, COALESCE((SELECT SUM(reserved_micro) FROM paper_positions p WHERE p.bot_id = b.bot_id AND p.status = 'OPEN'), 0) r FROM bots b`)) {
-      assert.equal(b.reserved_micro, b.r, `${b.bot_id} reserved = its open positions`);
-    }
+    assert.ok(consistency && consistency[1] === "true", JSON.stringify(d).match(/"issues":\[[^\]]*\]/)?.[0]);
     const f = await dash("/api/dashboard/bots");
-    assert.equal(f.ok, true);
-    const byId = Object.fromEntries(f.data.bots.map((b) => [b.bot_id, b]));
-    assert.deepEqual(Object.keys(byId).sort(), ["ALPHA-01", "ALPHA-02", "ALPHA-03"]);
-    assert.equal(byId["ALPHA-01"].paper.trades, 3);
-    assert.equal(byId["ALPHA-02"].paper.trades, 2);
-    assert.equal(byId["ALPHA-03"].status, "PROPOSED");
-    assert.equal(byId["ALPHA-01"].engine.status_text, "Scanning");
-    const net = f.data.bots.reduce((s, b) => s + b.paper.realized_net_usd, 0);
-    const total = sql(`SELECT COALESCE(SUM(realized_pnl), 0) s FROM trades WHERE source = 'ALPHA_PAPER'`)[0].s;
-    assert.ok(Math.abs(net - total) < 1e-9, "per-bot P&L adds up to the account's");
-    for (const b of f.data.bots) for (const m of b.mirror) assert.equal(m.hypothetical, true);
+    const b = Object.fromEntries(f.data.bots.map((x) => [x.bot_id, x]));
+    assert.equal(b["ALPHA-01"].paper.trades, 1);
+    assert.ok(Math.abs(b["ALPHA-01"].paper.net_usd - 0.0678) < 1e-9);
+    assert.ok(Math.abs(b["ALPHA-01"].funding.profit_swept_to_main_usd - 0.0678) < 1e-9);
+    assert.equal(b["ALPHA-03"].paper.short_trades, 2);
+    assert.ok(b["ALPHA-03"].balances.shortfall_usd > 0);
+    assert.ok(Math.abs(b["ALPHA-01"].paper.gross_usd - b["ALPHA-01"].paper.fees_usd - b["ALPHA-01"].paper.net_usd) < 1e-9, "net = gross − fees");
+    assert.deepEqual(f.data.groups.map((g) => g.group_id), ["BITCOIN", "ETHEREUM", "SOLANA"]);
+    for (const x of f.data.bots) for (const m of x.mirror) assert.equal(m.hypothetical, true);
+    // money is conserved: every wallet's balance = its funding + what it paid out/received in trading − fees
+    for (const w of sql(`SELECT wallet, available_micro + reserved_micro AS book, net_funding_micro + realized_pnl_micro - fees_micro AS ident FROM portfolio_wallets`)) assert.equal(w.book, w.ident, w.wallet);
   });
 });
