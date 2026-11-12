@@ -115,12 +115,14 @@ Append exactly these lines and change nothing else; the diff against the backup 
 ```
 ENGINE_SIZING=percent
 ENGINE_RISK_PCT=1
-ENGINE_MAX_RISK_USD=setting
+ENGINE_MAX_RISK_USD=10
 ENGINE_MIRROR_EVENTS=on
 ```
 
-The first three are also the release defaults; writing them down makes the choice explicit, and lets the old release
-size affordably after a rollback. `ENGINE_MARKETS` stays absent, so BTCUSD and ETHUSD stay off.
+**Revised 2026-11-12 (N5 review):** `ENGINE_MAX_RISK_USD` is now the explicit number `10`, not `setting`; see
+section 10.1. The first two lines are also the release defaults; writing them down makes the choice explicit, and lets
+the old release size affordably after a rollback (section 10.2). `ENGINE_MARKETS` stays absent, so BTCUSD and ETHUSD
+stay off.
 
 ## 6. Order and controlled procedure (each stage a separate approval)
 
@@ -171,7 +173,7 @@ stays on.
 | Problem | Action | Evidence |
 |---|---|---|
 | Entry notifications | set `ENGINE_MIRROR_EVENTS=off`, restart the same release; state kept; pending ENTRY records are still delivered | D1 |
-| Engine release | `release.mjs rollback --root R` (→ `0db082fbd044`), restart. Keep `ENGINE_SIZING=percent`: the old release then still sizes affordably (percent, without the $10 cap or exposure inputs). It reads the new state, including pending ENTRY records | D2; old percent mode tested 2026-11-09 |
+| Engine release | `release.mjs rollback --root R` (→ `0db082fbd044`), restart. Keep `ENGINE_SIZING=percent` and `ENGINE_RISK_PCT=1`: the old release then still sizes affordably, but **without** the $10 cap or exposure inputs, so the fail-safe conditions of section 10.2 apply. It reads the new state, including pending ENTRY records | D2; old percent mode tested 2026-11-09 |
 | Funded sizing | not recommended (fixed recreates the refusals). If required: `ENGINE_SIZING=fixed` plus `ENGINE_SIZING_FIXED_REASON=<why>` | config gate |
 | Worker N5 | `versions deploy 63f960a4…@100%` | |
 
@@ -192,3 +194,75 @@ stays on.
   on.
 - **Recovery:** the engine caught up 5 candles and the mirror recorded the gap as catch-up. Nothing was lost.
 - **Recommendation:** use wired Ethernet if possible; nothing needs changing in Windows.
+
+## 10. Clarifications requested with the Stage N5 approval (2026-11-12)
+
+### 10.1 The maximum risk cannot follow the website's risk setting
+
+- **Finding:** `ENGINE_MAX_RISK_USD=setting` takes the cap from the strategy's risk setting
+  (`runner.mjs` `prepareSizing`). The engine syncs that setting from the website (`strategy_settings`). The Worker
+  accepts any value at or above its minimum and has no maximum (`portfolio.ts`). Raising the website setting to $50
+  would therefore have raised the funded cap to $50 with no engine change. That is the silent bypass the review
+  suspected.
+- **Change:** the proposed configuration now sets `ENGINE_MAX_RISK_USD=10`, a number (section 5).
+  `config.mjs` accepts it. Loading the `af924ff` configuration gives `mode percent`, `riskPct 1`, `maxRisk 10`, symbol
+  SOLUSD, no markets list.
+- **Effect:**
+  - The funded cap only changes by editing `engine.env` and restarting, which is an engine change needing approval.
+  - The website setting still sets the Strategy Mirror's fixed risk, as it has since Stage C. That is unchanged and
+    does not touch funded sizing.
+- **Verify after activation:** the heartbeat reports `max_risk_usd: 10`, and the dashboard shows
+  `1% OF EQUITY · MAX $10`.
+
+### 10.2 Rollback must not silently weaken the risk policy
+
+- **Old release `0db082fbd044` in percent mode:**
+  - It risks `ENGINE_RISK_PCT` % of the SOLUSD wallet, with no dollar cap, and ignores the exposure fields.
+  - Spend is capped at the wallet.
+  - The Worker still checks independently: buying power at the live price, the $5,000 order value limit, the $10,000
+    position and $25,000 total exposure limits, 5 open positions, and shorts disabled.
+- **Bound:** at 1% the old release risks at most 1% of the SOLUSD wallet. That is ≤ $10 while the wallet is ≤ $1,000.
+  Today it is $10, so at most $0.10.
+- **Fail-safe rules for an engine rollback:**
+  1. The rollback configuration keeps `ENGINE_SIZING=percent` and **`ENGINE_RISK_PCT=1`**. It never uses a higher
+     percentage or fixed sizing.
+  2. **No funded capital increase that would take the SOLUSD wallet above $1,000 while the old release runs.** Any
+     capital increase is approved only with release `af924ffa4703` or later active and verified.
+  3. If a rollback is ever needed while the wallet is above $1,000, **stop funded entries** until the cap is back. Use
+     the Worker's existing engine stop or kill switch, only when **no funded position is open**: the switch blocks
+     every new PAPER order, exits included. If a position is open, wait until it is flat, then stop.
+  4. Do **not** use `ENGINE_SYNC=off` as a brake: it also stops Strategy Mirror delivery (`runner.mjs`).
+- **Visible:** the old release reports `max_risk_usd` as absent. The N5 dashboard then shows `1% OF EQUITY` without
+  `MAX $10`, so a rollback is visible to the owner and never hidden.
+
+### 10.3 Capital allocation is not yet in the execution path
+
+- `allocateCapital()` (`engine/src/sizing.mjs`) is a tested helper. **The runner does not call it** (a source search of
+  `engine/src` for `allocateCapital` finds no caller).
+- Today this is safe because there is one funded market:
+  - `FUNDED_SYMBOLS = ["SOLUSD"]` and a single-symbol profile;
+  - SOLUSD sizes only from its own wallet;
+  - the Worker reserves the order cost in that wallet when it accepts an order, and refuses insufficient buying power.
+- **Not yet proven:** production-wide reservation across simultaneous funded markets.
+- **New gate:** `docs/MARKET-INTEGRATION-CHECKLIST.md` item 9. Before a second funded market:
+  - the allocation must be called in the order path;
+  - an end-to-end test of two simultaneous signals on the real Worker code must pass.
+
+### 10.4 The Strategy Mirror stays independent
+
+- The mirror builds its strategy with `sizing: { mode: "fixed" }` explicitly (`mirror.mjs`), at the risk setting.
+- In the production-copy rehearsal, the mirror state and its trades were **identical** under the running release and
+  under the proposed percent configuration.
+- `funded_sizing.test.mjs` checks, at every balance, that the mirror's quantities equal the fixed-$10 backtest exactly.
+- Mirror records (11 trades, seq 1–11) are not modified by N4. The new release only adds ENTRY records when
+  `ENGINE_MIRROR_EVENTS=on`.
+
+### 10.5 BTCUSD and ETHUSD stay inactive
+
+- Funded trading is off for both:
+  - `FUNDED_SYMBOLS = ["SOLUSD"]`;
+  - BTCUSD and ETHUSD have `fundedEligible: false`;
+  - the profile is `solusd-5m`;
+  - `ENGINE_MARKETS` is absent (the loaded configuration shows no markets list);
+  - the BTCUSD and ETHUSD wallets hold $0.
+- Multi-Crypto V2 remains a separate rollout.

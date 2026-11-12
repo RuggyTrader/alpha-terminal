@@ -38,8 +38,14 @@ owner approves.**
 8. **Risk limits and reconciliation**
    - Order, position and total exposure, open-position count and wallet reconciliation are tested.
    - Restart resumes without a warm-up or duplicates. Ledger checks are OK.
-9. **Activation gate**
-   - Only after 1–8 pass, set `fundedEligible: true` (with the owner's approval).
+9. **Capital allocation across funded markets** (required before a *second* funded market)
+   - `allocateCapital()` (`engine/src/sizing.mjs`) is a tested helper only; as of 2026-11-12 it is **not called in the
+     execution path**. There is one funded market (SOLUSD), sized from its own wallet.
+   - Before any second funded market: call it in the per-candle order path for every funded signal of that candle (or
+     prove that each market draws only on its own wallet, which the Worker reserves at order time), and add an
+     end-to-end test with two simultaneous signals on the real Worker code showing that capital is never promised twice.
+10. **Activation gate**
+   - Only after 1–9 pass, set `fundedEligible: true` (with the owner's approval).
    - The regression gate then requires every check to keep passing.
 
 The Strategy Mirror may observe a market earlier (mirror-only), because it trades nothing: the BTCUSD and ETHUSD
