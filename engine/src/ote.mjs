@@ -63,7 +63,8 @@ export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, 
     status: "", plan: null,
     // Position sizing (sizing.mjs). capital: available PAPER balance of the strategy, set by the runner (live, from the
     // ledger) or the backtest; only percent mode reads it. lastSizing: the latest sizing decision, for the dashboard.
-    sizing: { ...DEFAULT_SIZING, ...(sizing ?? {}) }, capital: null, lastSizing: null, lastSkipKey: null,
+    // sizing.symbol: the market whose instrument rules size its orders (src/instruments.mjs)
+    sizing: { ...DEFAULT_SIZING, symbol, ...(sizing ?? {}) }, capital: null, lastSizing: null, lastSkipKey: null,
   };
 }
 

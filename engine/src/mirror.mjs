@@ -35,7 +35,8 @@ export function mirrorTradeId(symbol, intervalMin, entryTimeMs, side) {
 
 function newStrategy(ctx) {
   // Fixed-risk sizing and the default emulator rule, whatever the funded track is configured with.
-  return createState({ symbol: ctx.symbol, timeframeMin: ctx.intervalMin, inputs: ctx.inputs, pivotTies: ctx.pivotTies });
+  // Explicitly fixed: the Strategy Mirror keeps the original strategy's risk, whatever the funded sizing is.
+  return createState({ symbol: ctx.symbol, timeframeMin: ctx.intervalMin, inputs: ctx.inputs, pivotTies: ctx.pivotTies, sizing: { mode: "fixed" } });
 }
 
 /** A fresh mirror. `activatedAt` stays null until the first (warm-up) batch has been processed. */

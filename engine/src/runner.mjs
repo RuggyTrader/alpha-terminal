@@ -305,7 +305,10 @@ export class EngineRunner {
    */
   async prepareSizing() {
     const st = this.state.strategy;
-    st.sizing = { ...DEFAULT_SIZING, ...st.sizing, ...this.cfg.sizing };
+    const { maxRisk, fixedReason: _f, ...cfgSizing } = this.cfg.sizing ?? {};
+    st.sizing = { ...DEFAULT_SIZING, ...st.sizing, ...cfgSizing };
+    // Maximum risk per trade: the strategy's risk setting (the website's, confirmed back) unless configured otherwise.
+    st.sizing.maxRiskUSD = maxRisk === "off" ? null : typeof maxRisk === "number" ? maxRisk : st.inputs.riskUSD;
     // Execution rule for resting limit orders (config; 0 = the default emulator rule, unchanged).
     if (this.cfg.limitThroughTicks > 0) st.broker.opts = { ...(st.broker.opts ?? {}), limitThroughTicks: this.cfg.limitThroughTicks, tick: st.sym.mintick };
     else if (st.broker.opts?.limitThroughTicks) { const { limitThroughTicks: _l, tick: _t, ...rest } = st.broker.opts; st.broker.opts = rest; }
@@ -319,6 +322,10 @@ export class EngineRunner {
     }
     st.capital = this.balance && Number.isFinite(this.balance.available_usd) ? this.balance.available_usd : null;
     st.maxNotional = this.balance?.max_order_notional_usd ?? null;
+    // The Worker's other risk limits and the account's current exposure (Workers from the universal-sizing release on).
+    const b = this.balance ?? {};
+    st.sizing.limits = { maxOrderNotional: st.maxNotional, maxPositionExposure: b.max_position_exposure_usd ?? null, maxTotalExposure: b.max_total_exposure_usd ?? null, maxOpenPositions: b.max_open_positions ?? null };
+    st.sizing.exposure = { position: b.position_exposure_usd ?? 0, total: b.total_exposure_usd ?? 0, openPositions: b.open_positions ?? 0 };
   }
 
   /**
@@ -482,6 +489,8 @@ export class EngineRunner {
       balance: b && typeof b.available_usd === "number" ? {
         available_usd: b.available_usd, reserved_usd: Number(b.reserved_usd ?? 0), active: b.active === true,
         max_order_notional_usd: typeof b.max_order_notional_usd === "number" ? b.max_order_notional_usd : null,
+        ...Object.fromEntries(["max_position_exposure_usd", "max_total_exposure_usd", "max_open_positions", "position_exposure_usd", "total_exposure_usd", "open_positions"]
+          .map((k) => [k, typeof b[k] === "number" && Number.isFinite(b[k]) ? b[k] : null])),
       } : null,
     };
   }
@@ -723,7 +732,9 @@ export class EngineRunner {
     const r2 = (v) => (typeof v === "number" && Number.isFinite(v) ? Math.round(v * 100) / 100 : null);
     return {
       mode: z.mode, risk_pct: z.mode === "percent" ? z.riskPct : null, risk_usd_fixed: z.mode === "percent" ? null : st.inputs.riskUSD,
-      fee_pct: z.feePct, price_buffer_pct: z.priceBufferPct, min_qty: z.minQty, min_cost: z.minCost,
+      max_risk_usd: z.mode === "percent" ? r2(z.maxRiskUSD) : null, fixed_reason: z.mode === "percent" ? null : this.cfg.sizing?.fixedReason ?? null,
+      symbol: this.cfg.symbol, min_qty: z.instrument?.minQty ?? z.minQty, min_cost: z.instrument?.minNotional ?? z.minCost,
+      fee_pct: z.feePct, price_buffer_pct: z.priceBufferPct,
       capital_usd: z.mode === "percent" ? r2(st.capital) : null,
       last: d ? {
         status: d.ok ? "SIZED" : "SKIPPED", code: d.ok ? null : d.code, reason: d.ok ? null : d.reason,
@@ -731,6 +742,9 @@ export class EngineRunner {
         entry: r2(d.entry), stop: r2(d.stop), qty: typeof d.qty === "number" ? Number(d.qty.toFixed(8)) : null,
         risk_target_usd: r2(d.riskTarget), risk_actual_usd: r2(d.riskActual), notional_usd: r2(d.notional),
         required_capital_usd: r2(d.requiredCapital), capped: d.capped === true, capped_by: d.cappedBy ?? null, fee_estimate_usd: r2(d.feeEstimate), current: d.bar === st.bar,
+        risk_capped_by_max: d.riskCappedByMax === true, spend_limit_usd: r2(d.spendLimit), min_order_cost_usd: r2(d.minOrderCost),
+        checks: d.checks ? { min_qty: d.checks.minQty === true, min_cost: d.checks.minCost === true, buying_power: d.checks.buyingPower === true } : null,
+        outcome: d.ok ? d.outcome ?? null : null, explanation: typeof d.explanation === "string" ? d.explanation : null,
       } : null,
     };
   }

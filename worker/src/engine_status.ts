@@ -12,6 +12,9 @@ interface EngineStatusEnv {
   DB: D1Database;
   WEBHOOK_SECRET: string;
   MAX_ORDER_NOTIONAL?: string;
+  MAX_POSITION_EXPOSURE?: string;
+  MAX_TOTAL_EXPOSURE?: string;
+  MAX_OPEN_POSITIONS?: string;
 }
 
 const KEY = "engine_status";
@@ -64,14 +67,21 @@ function clean(s: Record<string, unknown>) {
     // Position sizing reported by the engine (display only; the Worker's own checks are unchanged).
     sizing: sz && (sz.mode === "fixed" || sz.mode === "percent") ? {
       mode: sz.mode, risk_pct: num(sz.risk_pct), risk_usd_fixed: num(sz.risk_usd_fixed), fee_pct: num(sz.fee_pct),
+      max_risk_usd: num(sz.max_risk_usd), fixed_reason: str(sz.fixed_reason, 160), symbol: str(sz.symbol, 16),
       price_buffer_pct: num(sz.price_buffer_pct), min_qty: num(sz.min_qty), min_cost: num(sz.min_cost), capital_usd: num(sz.capital_usd),
       last: szLast ? {
         status: szLast.status === "SIZED" || szLast.status === "SKIPPED" ? szLast.status : null,
         code: str(szLast.code, 40), reason: str(szLast.reason, 200), side: szLast.side === "LONG" || szLast.side === "SHORT" ? szLast.side : null,
         entry: num(szLast.entry), stop: num(szLast.stop), qty: num(szLast.qty), risk_target_usd: num(szLast.risk_target_usd),
         risk_actual_usd: num(szLast.risk_actual_usd), notional_usd: num(szLast.notional_usd), required_capital_usd: num(szLast.required_capital_usd),
-        capped: szLast.capped === true, capped_by: szLast.capped_by === "BALANCE" || szLast.capped_by === "ORDER_LIMIT" ? szLast.capped_by : null,
+        capped: szLast.capped === true, capped_by: ["BALANCE", "ORDER_LIMIT", "POSITION_LIMIT", "TOTAL_EXPOSURE"].includes(String(szLast.capped_by)) ? String(szLast.capped_by) : null,
         fee_estimate_usd: num(szLast.fee_estimate_usd), current: szLast.current === true,
+        risk_capped_by_max: szLast.risk_capped_by_max === true, spend_limit_usd: num(szLast.spend_limit_usd), min_order_cost_usd: num(szLast.min_order_cost_usd),
+        checks: szLast.checks && typeof szLast.checks === "object" ? {
+          min_qty: (szLast.checks as Record<string, unknown>).min_qty === true, min_cost: (szLast.checks as Record<string, unknown>).min_cost === true,
+          buying_power: (szLast.checks as Record<string, unknown>).buying_power === true } : null,
+        outcome: szLast.outcome === "FULL_RISK" || szLast.outcome === "REDUCED_TO_FIT" ? szLast.outcome : null,
+        explanation: str(szLast.explanation, 240),
       } : null,
     } : null,
   };
@@ -159,9 +169,19 @@ export async function handleEngineLedger(request: Request, env: EngineStatusEnv)
   const wallet = await env.DB.prepare(`SELECT available_micro, reserved_micro FROM portfolio_wallets WHERE wallet = ?`)
     .bind(symbol).first<{ available_micro: number; reserved_micro: number }>();
   const maxOrder = Number(env.MAX_ORDER_NOTIONAL);
+  const limit = (v: string | undefined) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? n : null; };
+  // Exposure for the shared sizing engine (cost basis of open ALPHA PAPER positions): this market's and the account's.
+  const exp = await env.DB.prepare(
+    `SELECT COALESCE(SUM(qty * avg_entry_price * multiplier), 0) AS total, COUNT(*) AS n,
+            COALESCE(SUM(CASE WHEN symbol = ? THEN qty * avg_entry_price * multiplier ELSE 0 END), 0) AS position
+     FROM paper_positions WHERE status = 'OPEN'`
+  ).bind(symbol).first<{ total: number; n: number; position: number }>();
   const balance = wallet ? {
     wallet: symbol, available_usd: Number(wallet.available_micro) / 1e6, reserved_usd: Number(wallet.reserved_micro) / 1e6,
     max_order_notional_usd: Number.isFinite(maxOrder) && maxOrder > 0 ? maxOrder : null,
+    max_position_exposure_usd: limit(env.MAX_POSITION_EXPOSURE), max_total_exposure_usd: limit(env.MAX_TOTAL_EXPOSURE),
+    max_open_positions: limit(env.MAX_OPEN_POSITIONS),
+    position_exposure_usd: Number(exp?.position ?? 0), total_exposure_usd: Number(exp?.total ?? 0), open_positions: Number(exp?.n ?? 0),
   } : null;
   return json({ ok: true, mode: "PAPER", symbol, position: position ?? null, alerts, balance, read_only: true });
 }

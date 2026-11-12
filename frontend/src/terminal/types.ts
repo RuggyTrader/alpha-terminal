@@ -221,6 +221,11 @@ export interface EngineSizing {
   mode: "fixed" | "percent";
   risk_pct: number | null;
   risk_usd_fixed: number | null;
+  /** Percent mode: the most one trade may risk (the risk setting, $10 by default). Newer engines only. */
+  max_risk_usd?: number | null;
+  /** Fixed mode on a funded engine: the recorded research reason. */
+  fixed_reason?: string | null;
+  symbol?: string | null;
   fee_pct: number | null;
   price_buffer_pct: number | null;
   min_qty: number | null;
@@ -240,9 +245,17 @@ export interface EngineSizing {
     notional_usd: number | null;
     required_capital_usd: number | null;
     capped: boolean;
-    capped_by: "BALANCE" | "ORDER_LIMIT" | null;
+    capped_by: "BALANCE" | "ORDER_LIMIT" | "POSITION_LIMIT" | "TOTAL_EXPOSURE" | null;
     fee_estimate_usd: number | null;
     current: boolean;
+    /** Newer engines only (universal sizing). */
+    risk_capped_by_max?: boolean;
+    spend_limit_usd?: number | null;
+    min_order_cost_usd?: number | null;
+    checks?: { min_qty: boolean; min_cost: boolean; buying_power: boolean } | null;
+    outcome?: "FULL_RISK" | "REDUCED_TO_FIT" | null;
+    /** The engine's authoritative plain-language explanation (src/sizing.mjs OUTCOMES). */
+    explanation?: string | null;
   } | null;
 }
 

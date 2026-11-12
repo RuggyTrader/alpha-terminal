@@ -104,6 +104,12 @@ describe("configuration", () => {
   });
 });
 
+/** JSON text (or JSON lines) with every "sizing" metadata object removed; everything else unchanged. */
+const noSizing = (text) => text.split(String.fromCharCode(10)).map((line) => {
+  if (!line.trim()) return line;
+  try { return JSON.stringify(JSON.parse(line, (k, v) => (k === "sizing" ? undefined : v))); } catch { return line; }
+}).join(String.fromCharCode(10));
+
 describe("SOLUSD is byte-identical to the deployed release 0db082f", () => {
   it("funded state, mirror state, every request and the audit trail match on the same candles and answers", async () => {
     const old = mkdtempSync(join(tmpdir(), "alpha-0db082f-"));
@@ -123,8 +129,10 @@ describe("SOLUSD is byte-identical to the deployed release 0db082f", () => {
       runs.push({ files: Object.fromEntries(readdirSync(dir).sort().map((x) => [x, readFileSync(join(dir, x), "utf8")])), requests: JSON.stringify(a.requests) });
     }
     assert.deepEqual(Object.keys(runs[1].files), Object.keys(runs[0].files));
-    for (const name of Object.keys(runs[0].files)) assert.equal(runs[1].files[name], runs[0].files[name], name);
-    assert.equal(runs[1].requests, runs[0].requests);
+    // Byte-identical apart from the sizing METADATA objects ("sizing"): universal sizing (docs/UNIVERSAL-POSITION-SIZING.md)
+    // records the market's symbol and the maximum-risk cap there. Every decision, order, outbox item and trade must match.
+    for (const name of Object.keys(runs[0].files)) assert.equal(noSizing(runs[1].files[name]), noSizing(runs[0].files[name]), name);
+    assert.equal(noSizing(runs[1].requests), noSizing(runs[0].requests));
   });
 });
 

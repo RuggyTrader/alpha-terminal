@@ -4,10 +4,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { DEFAULT_INPUTS } from "./ote.mjs";
+import { FUNDED_SYMBOLS, fundedStatus, getInstrument } from "./instruments.mjs";
 
-// Validated for the engine so far. Other supported crypto only after their own validation; futures and gold
-// stay disabled until a truthful data feed exists.
-export const ENGINE_SYMBOLS = Object.freeze(["SOLUSD"]);
+// Funded markets come ONLY from the instrument registry (src/instruments.mjs): verified specs + owner approval.
+// Futures, gold and stocks are not listed there and stay unavailable until their rules and a data feed are verified.
+export const ENGINE_SYMBOLS = FUNDED_SYMBOLS;
 // Strategy Mirror only (ENGINE_FUNDED=off): hypothetical trades, never a funded signal, transfer or broker order.
 // Pair mapping and completed 5m OHLC verified against Kraken (AssetPairs XXBTZUSD tick 0.1, XETHZUSD tick 0.01).
 export const MIRROR_ONLY_SYMBOLS = Object.freeze(["BTCUSD", "ETHUSD"]);
@@ -45,7 +46,7 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   if (!["on", "off"].includes(fundedSetting)) throw new Error("ENGINE_FUNDED must be on or off");
   const funded = fundedSetting === "on";
   const symbol = get("ENGINE_SYMBOL", "SOLUSD");
-  if (funded && !ENGINE_SYMBOLS.includes(symbol)) throw new Error(`${symbol} is not enabled for the engine (enabled: ${ENGINE_SYMBOLS.join(", ")})`);
+  if (funded && !ENGINE_SYMBOLS.includes(symbol)) throw new Error(`${symbol} is not enabled for the engine (enabled: ${ENGINE_SYMBOLS.join(", ")}): ${fundedStatus(symbol).reason}`);
   if (!funded && !MIRROR_ONLY_SYMBOLS.includes(symbol)) throw new Error(`${symbol} is not enabled as a mirror-only market (enabled: ${MIRROR_ONLY_SYMBOLS.join(", ")})`);
   const intervalMin = Number(get("ENGINE_INTERVAL_MIN", "5"));
   if (![1, 5, 15, 30, 60].includes(intervalMin)) throw new Error(`unsupported ENGINE_INTERVAL_MIN ${intervalMin}`);
@@ -65,10 +66,19 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   const webhookSecret = get("ALPHA_WEBHOOK_SECRET", "");
   if (sync && (!apiBase || !webhookSecret)) throw new Error("ENGINE_SYNC=on needs ALPHA_API_BASE and ALPHA_WEBHOOK_SECRET");
 
-  // Position sizing (src/sizing.mjs). "fixed" (default) keeps the risk-per-trade-in-USD model unchanged. "percent" is the
-  // small-account mode: ENGINE_RISK_PCT of the strategy's available ALPHA PAPER balance, capped to that balance.
-  const mode = get("ENGINE_SIZING", "fixed");
+  // Position sizing (src/sizing.mjs, docs/UNIVERSAL-POSITION-SIZING.md). A funded engine that trades against the ALPHA
+  // PAPER ledger (sync on) sizes from its strategy wallet's available equity: "percent" is its default, and "fixed"
+  // (the Pine formula, risk in USD regardless of equity) is refused unless ENGINE_SIZING_FIXED_REASON records why
+  // (research or parity runs only). Without a ledger (sync off) "fixed" stays the default for local research.
+  const mode = get("ENGINE_SIZING", funded && sync ? "percent" : "fixed");
   if (!["fixed", "percent"].includes(mode)) throw new Error(`ENGINE_SIZING must be fixed or percent, not ${mode}`);
+  const fixedReason = get("ENGINE_SIZING_FIXED_REASON", "").trim();
+  if (funded && sync && mode === "fixed" && !fixedReason) {
+    throw new Error("ENGINE_SIZING=fixed for a funded engine that trades against the PAPER ledger needs ENGINE_SIZING_FIXED_REASON (research only); funded sizing is percent of available equity (docs/UNIVERSAL-POSITION-SIZING.md)");
+  }
+  // Maximum risk per trade: "setting" (default) = the strategy's risk setting (the website's, $10 today); a number; or off.
+  const maxRiskRaw = get("ENGINE_MAX_RISK_USD", "setting");
+  if (maxRiskRaw !== "setting" && maxRiskRaw !== "off" && !(Number(maxRiskRaw) > 0)) throw new Error("ENGINE_MAX_RISK_USD must be setting, off or a positive number");
   const pct = (k, d, lo, hi) => {
     const v = Number(get(k, String(d)));
     if (!Number.isFinite(v) || v < lo || v > hi) throw new Error(`${k} must be between ${lo} and ${hi}`);
@@ -79,6 +89,9 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
     riskPct: pct("ENGINE_RISK_PCT", 1, 0.01, 10),
     feePct: pct("ENGINE_FEE_PCT", 0.4, 0, 2),
     priceBufferPct: pct("ENGINE_PRICE_BUFFER_PCT", 0.5, 0, 5),
+    maxRisk: maxRiskRaw === "setting" || maxRiskRaw === "off" ? maxRiskRaw : Number(maxRiskRaw),
+    fixedReason: mode === "fixed" ? fixedReason || null : null,
+    symbol, instrument: getInstrument(symbol),
   };
   // Without the website (sync off) percent mode needs a simulated balance to size from.
   const localCapital = get("ENGINE_PAPER_CAPITAL", "");

@@ -15,7 +15,7 @@ import { EngineRunner } from "../src/runner.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CANDLES = JSON.parse(readFileSync(join(HERE, "fixtures", "SOLUSD-5m-kraken.json"), "utf8")).candles;
-const P = { sizing: { mode: "percent" }, entry: 86.78, stop: 86.08, side: 1 };
+const P = { sizing: { mode: "percent", symbol: "SOLUSD" }, entry: 86.78, stop: 86.08, side: 1 };
 
 describe("sizeOrder: percent (small-account) mode", () => {
   it("$10 / $50 / $100: 1% risk, capped to the balance after the price buffer and fee reserve, never above it", () => {
@@ -45,7 +45,7 @@ describe("sizeOrder: percent (small-account) mode", () => {
     assert.match(tiny.reason, /below the minimum order of 0\.05 SOL \(needs about \$4\.38/);
     assert.equal(sizeOrder({ ...P, capital: 5 }).ok, true, "$5 is enough for 0.05 SOL at $86.78");
     // 0.0892 units of a $5 asset: above the 0.05 minimum quantity, below the $0.50 minimum value.
-    const cheap = sizeOrder({ ...P, sizing: { mode: "percent", riskPct: 10 }, entry: 5, stop: 4.5, capital: 0.45 });
+    const cheap = sizeOrder({ ...P, sizing: { mode: "percent", symbol: "SOLUSD", riskPct: 10 }, entry: 5, stop: 4.5, capital: 0.45 });
     assert.deepEqual([cheap.code, cheap.qty >= 0.05], ["BELOW_MIN_COST", true]);
     assert.equal(sizeOrder({ ...P, side: -1, entry: 86, stop: 87, capital: 100 }).code, "SHORT_NOT_ALLOWED");
     assert.equal(sizeOrder({ ...P, capital: null }).code, "BALANCE_UNKNOWN");
@@ -53,8 +53,8 @@ describe("sizeOrder: percent (small-account) mode", () => {
     assert.equal(sizeOrder({ ...P, stop: 86.78, capital: 100 }).code, "INVALID_STOP");
   });
 
-  it("never above the Worker's order-value limit", () => {
-    const s = sizeOrder({ ...P, capital: 100000, maxNotional: 5000 });
+  it("never above the Worker's order-value limit (risk cap off, so only the order limit binds)", () => {
+    const s = sizeOrder({ ...P, sizing: { mode: "percent", symbol: "SOLUSD", maxRiskUSD: null }, capital: 100000, maxNotional: 5000 });
     assert.ok(s.notional <= 5000);
     assert.equal(s.cappedBy, "ORDER_LIMIT");
   });
@@ -67,7 +67,7 @@ describe("sizeOrder: percent (small-account) mode", () => {
 });
 
 describe("configuration", () => {
-  it("fixed is the default; percent mode and its parameters are validated", () => {
+  it("fixed stays the default without a ledger (local research); percent mode and its parameters are validated", () => {
     assert.equal(loadConfig({ ENGINE_ENV_FILE: "none" }).sizing.mode, "fixed");
     const c = loadConfig({ ENGINE_ENV_FILE: "none", ENGINE_SIZING: "percent", ENGINE_RISK_PCT: "1" });
     assert.deepEqual([c.sizing.mode, c.sizing.riskPct, c.sizing.feePct, c.sizing.priceBufferPct], ["percent", 1, 0.4, 0.5]);

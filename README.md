@@ -23,6 +23,15 @@ TradingView strategy alert
 
 ---
 
+## Permanent development rules
+
+- **Position sizing:** every funded PAPER strategy and market sizes orders from its wallet's available equity through
+  the shared sizing engine: 1% target, $10 maximum, fully paid, the instrument's own rules. See
+  [docs/UNIVERSAL-POSITION-SIZING.md](docs/UNIVERSAL-POSITION-SIZING.md). The regression gate is
+  `engine/test/sizing-acceptance.test.mjs`.
+- **New markets and strategies:** follow [docs/MARKET-INTEGRATION-CHECKLIST.md](docs/MARKET-INTEGRATION-CHECKLIST.md).
+  A market stays unavailable for funded execution until it passes.
+
 ## Contents
 1. [Prerequisites](#1-prerequisites) · 2. [Install](#2-cloning--installing) · 3. [Backend](#3-backend-setup) ·
 4. [Frontend](#4-frontend-setup) · 5. [Alpaca PAPER keys](#5-creating-alpaca-paper-keys) ·

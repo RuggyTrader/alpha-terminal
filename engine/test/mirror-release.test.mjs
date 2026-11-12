@@ -100,7 +100,9 @@ describe("Part 1: upgrade, mirror activation, restart, rollback and re-enable on
   const ctl = { dir: mkdtempSync(join(tmpdir(), "alpha-ctl-")), clock: { visible: 200 }, a: alpha() };
   const run = { dir: mkdtempSync(join(tmpdir(), "alpha-run-")), clock: { visible: 200 }, a: alpha() };
   let OldRunner, NewRunner, e;
-  const funded = (dir) => readFileSync(join(dir, "state-SOLUSD-5m.json"), "utf8");
+  // Compared without the sizing METADATA object ("sizing"), which universal sizing extends with the market's symbol and
+  // the maximum-risk cap (docs/UNIVERSAL-POSITION-SIZING.md); every decision, order, outbox item and trade must match.
+  const funded = (dir) => JSON.stringify(JSON.parse(readFileSync(join(dir, "state-SOLUSD-5m.json"), "utf8"), (k, v) => (k === "sizing" ? undefined : v)));
   const mirrorFile = (dir) => join(dir, "mirror-SOLUSD-5m.json");
   const M = () => JSON.parse(readFileSync(mirrorFile(run.dir), "utf8"));
 
