@@ -66,7 +66,7 @@ export function markets(d: DashboardData | null, now: number): MarketStatus[] {
   let crypto: HealthState;
   let detail: string;
   if (!d) { crypto = "N/A"; detail = "No dashboard data"; }
-  else if (!bot || bot.state === "NOT_RUNNING") { crypto = "STOPPED"; detail = "The Kraken engine has not reported"; }
+  else if (!bot || bot.state === "NOT_RUNNING") { crypto = "STOPPED"; detail = "The legacy ALPHA 02 engine (SOLUSD 5m) has not reported; fleet bots report on the Bots page"; }
   else if (bot.state === "OFFLINE") { crypto = "OFFLINE"; detail = "The Kraken engine stopped reporting"; }
   else if (bot.state === "STALE") { crypto = "STALE"; detail = "The engine's last report is late"; }
   else if (!candleFresh(d, now)) { crypto = "DEGRADED"; detail = "Engine online, but its last Kraken candle is old"; }

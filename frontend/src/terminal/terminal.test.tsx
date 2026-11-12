@@ -187,10 +187,12 @@ describe("Home", () => {
     expect(html).toContain("$100.00"); // avg entry
     expect(html).toContain("$110.00"); // current mark
     expect(html).toContain("Kraken · 5s ago");
-    expect(html).toContain("ALPHA PAPER performance");
-    expect(html).toContain("Simulated ledger · not broker equity");
-    expect(html).toContain("+$12.50"); // realized
-    expect(html).toContain("+$17.50"); // total
+    expect(html).toContain("Funded PAPER"); // Home keeps the summary (hero + selector); the full ALPHA PAPER performance section was a duplicate (UI duplicate audit)
+    // Realized / unrealized / total moved to the Performance page (one place; Home keeps the summary).
+    const perf = page("/performance", ok(d));
+    expect(perf).toContain("Simulated ledger · not broker equity");
+    expect(perf).toContain("+$12.50"); // realized
+    expect(perf).toContain("+$17.50"); // total
     expect(html).not.toContain("$2,222.22"); // broker equity is not mixed in
     expect(html).not.toContain("Alpaca PAPER account positions");
   });
@@ -666,7 +668,7 @@ describe("OTE engine card", () => {
   };
 
   it("shows the engine's own state, ONLINE from the Worker's verdict", () => {
-    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 42, status } })));
+    const html = page("/engine", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 42, status } })));
     expect(html).toContain("OTE engine");
     expect(html).toContain("SOLUSD · 5m · PAPER simulation");
     expect(html).toContain("ONLINE");
@@ -676,18 +678,18 @@ describe("OTE engine card", () => {
   });
 
   it("shows STALE / OFFLINE / NOT RUNNING truthfully, with the engine's last error", () => {
-    const stale = page("/", ok(dashboard({ bot: { state: "STALE", age_seconds: 900, status: { ...status, last_error: { at: null, where: "market-data", message: "Kraken HTTP 503" } } } })));
+    const stale = page("/engine", ok(dashboard({ bot: { state: "STALE", age_seconds: 900, status: { ...status, last_error: { at: null, where: "market-data", message: "Kraken HTTP 503" } } } })));
     expect(stale).toContain("STALE");
     expect(stale).toContain("15m ago");
     expect(stale).toContain("market-data: Kraken HTTP 503");
-    expect(page("/", ok(dashboard({ bot: { state: "OFFLINE", age_seconds: 7200, status } })))).toContain("OFFLINE");
-    const never = page("/", ok(dashboard({ bot: { state: "NOT_RUNNING", age_seconds: null, status: null } })));
+    expect(page("/engine", ok(dashboard({ bot: { state: "OFFLINE", age_seconds: 7200, status } })))).toContain("OFFLINE");
+    const never = page("/engine", ok(dashboard({ bot: { state: "NOT_RUNNING", age_seconds: null, status: null } })));
     expect(never).toContain("NOT RUNNING");
     expect(never).toContain("The engine has not reported yet.");
   });
 
   it("labels the engine's simulated position separately from the ALPHA PAPER ledger", () => {
-    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...status, position: { side: "LONG", qty: 12.5, entry: 93.87, stop: 93.05, tp2: 96.5, unrealized_at_last_close: -3.25 } } } })));
+    const html = page("/engine", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...status, position: { side: "LONG", qty: 12.5, entry: 93.87, stop: 93.05, tp2: 96.5, unrealized_at_last_close: -3.25 } } } })));
     expect(html).toContain("LONG");
     expect(html).toContain("$93.87");
     expect(html).toContain("at last close");
@@ -704,13 +706,13 @@ describe("OTE engine card: engine vs ALPHA PAPER ledger", () => {
   const pos = { side: "LONG", qty: 6.1, entry: 93.87, stop: 93.05, tp2: 96.5, unrealized_at_last_close: 1.2 };
 
   it("names the test profile and says when the engine position is also in the ledger", () => {
-    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base, position: { ...pos, ledger: { status: "MIRRORED", reason: null } } } } })));
+    const html = page("/engine", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base, position: { ...pos, ledger: { status: "MIRRORED", reason: null } } } } })));
     expect(html).toContain("paper-test profile ($5 risk)");
     expect(html).toContain("Also open in the ALPHA PAPER ledger (checked against the ledger).");
   });
 
   it("flags an engine-only position and the last refused signal with its reason", () => {
-    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: {
+    const html = page("/engine", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: {
       ...base, profile: "default", position: { ...pos, ledger: { status: "NOT_IN_LEDGER", reason: "BUY rejected: MAX_ORDER_NOTIONAL" } },
       last_rejection: { id: "x", action: "BUY", status: "rejected", code: "MAX_ORDER_NOTIONAL", reason: "Estimated notional $22760 is above the limit $5000" },
     } } })));
@@ -728,18 +730,18 @@ describe("OTE engine card: reconciliation", () => {
   const pos = { side: "LONG", qty: 6.1, entry: 93.87, stop: 93.05, tp2: 96.5, unrealized_at_last_close: 1.2 };
 
   it("says when the engine position does not match the ledger, or could not be verified", () => {
-    const diverged = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base,
+    const diverged = page("/engine", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base,
       position: { ...pos, ledger: { status: "DIVERGED", reason: "ledger qty 7.1 vs engine 6.1" } },
       ledger_check: { status: "DIVERGED", at: null, issues: ["ledger qty 7.1 vs engine 6.1"] } } } })));
     expect(diverged).toContain("Does not match the ALPHA PAPER ledger: ledger qty 7.1 vs engine 6.1.");
     expect(diverged).not.toContain("Also open in the ALPHA PAPER ledger");
-    const unverified = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base,
+    const unverified = page("/engine", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base,
       position: { ...pos, ledger: { status: "UNVERIFIED", reason: "ledger query failed: fetch failed" } } } } })));
     expect(unverified).toContain("Accepted, but not verified against the ledger: ledger query failed: fetch failed.");
   });
 
   it("warns when the ledger holds an engine position the engine does not", () => {
-    const html = page("/", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base, position: null,
+    const html = page("/engine", ok(dashboard({ bot: { state: "ONLINE", age_seconds: 5, status: { ...base, position: null,
       ledger_check: { status: "DIVERGED", at: null, issues: ["the ledger holds an engine-opened SOLUSD position (ENG-x, qty 3) that the engine does not hold"] } } } })));
     expect(html).toContain("Reconciliation warning: the ledger holds an engine-opened SOLUSD position");
   });

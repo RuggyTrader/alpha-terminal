@@ -1,5 +1,13 @@
 # Fleet backtest — 2026-11-12
 
+> **Corrections (later the same day; see `docs/INVESTIGATION-2026-11-12-DIRECTOR-REVIEW.md`):**
+> - "Some BTC profile fields are documented as unverified" was **wrong**. `btcusd-1m.env` has no unconfirmed trading field.
+> - Warm-up is not the parity cause: results converge after one day.
+> - The ALPHA-01 row "122 (65/56)" is a typo for **65/57**.
+> - The one `INSUFFICIENT_BOT_CAPITAL` refusal is explained and fixed: reduce-to-fit at the fill price.
+> - "The sum of wallets plus MAIN equals the funding" was **shorthand and wrong as written**. The sum equals funding + realized P&L − fees.
+> - All tables below are superseded by `docs/research/2026-11-12-tables.md` (converged warm-up, fixed ledger).
+
 These are research results, not live trades. Every figure is computed from Kraken candles saved in `engine/data/`, which match Kraken OHLC with 0 mismatches. The figures run through the engine's own `onBar` code path. Nothing is invented. The raw outputs are `engine/runs/fleet-parity-2026-11/fleet-backtest.json` and `engine/runs/alpha02-sol5m-150d.json`. The `runs/` folder is git-ignored, so reproduce them with the commands below.
 
 ```

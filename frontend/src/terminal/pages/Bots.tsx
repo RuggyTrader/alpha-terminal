@@ -3,15 +3,16 @@
 // actions (allocate from MAIN, dollar risk, pause/resume NEW entries) need the passphrase and are recorded server-side.
 // There is no long-only/short-only selector: every bot always evaluates both directions.
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { newRequestId } from "../api";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp, tone } from "../fmt";
 import {
-  allocate, botPhase, botState, fetchBots, groupTotals, previewAllocation, setBotRisk, setEntriesPaused, STATE_TONE,
+  allocate, botPhase, botState, groupTotals, previewAllocation, setBotRisk, setEntriesPaused, STATE_TONE,
   type Bot, type Fleet,
 } from "../bots";
+import { invalidateFleet, useFleet } from "../fleetStore";
 
 const pct = (v: number | null) => (v === null ? NA : `${(v * 100).toFixed(0)}%`);
 const pf = (v: number | null) => (v === null ? NA : v.toFixed(2));
@@ -118,6 +119,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
       <div className="bot-actions">
         {canChart ? <Link className="btn" to={`/bots/${b.bot_id}/chart`}>View chart</Link> : null}
         <Link className="btn btn-ghost" to={`/trades?bot=${b.bot_id}`}>Trades</Link>
+        <Link className="btn btn-ghost" to={`/performance?bot=${b.bot_id}`}>Performance</Link>
         {b.status === "ACTIVE" ? <button className="btn btn-ghost" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "Close settings" : "Settings"}</button> : null}
       </div>
       {open ? (
@@ -179,21 +181,18 @@ function AllocationPanel({ fleet, onDone }: { fleet: Fleet; onDone: () => void }
 }
 
 export function BotsPage() {
-  const [fleet, setFleet] = useState<Fleet | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [now, setNow] = useState(() => Date.now());
-  const load = useCallback(() => fetchBots().then((f) => { setFleet(f); setError(null); setNow(Date.now()); }).catch((e) => setError(String(e?.message ?? e))), []);
-  useEffect(() => {
-    load();
-    const id = setInterval(() => { if (document.visibilityState === "visible") load(); }, 30_000);
-    return () => clearInterval(id);
-  }, [load]);
+  // The shared fleet snapshot (fleetStore.ts): one poller for every view; owner actions invalidate it.
+  const { fleet, error: fetchError, fetchedAt, stale } = useFleet();
+  const error = fleet ? null : fetchError;
+  const now = fetchedAt ?? Date.now();
+  const load = () => void invalidateFleet();
   const groups = fleet?.groups.filter((g) => fleet.bots.some((b) => b.group === g.group_id && b.status !== "DISABLED")) ?? [];
   return (
     <div className="page-narrow m-stagger bots-page">
       <SectionHeader title="Bots" sub={<>Independent strategy instances, one market and timeframe each. <Link className="link" to="/engine">Engine →</Link></>} />
       {error ? <EmptyState title="Bots unavailable" tone="bad">{error}</EmptyState> : null}
       {!fleet && !error ? <SkeletonCards count={2} /> : null}
+      {stale && fetchedAt ? <p className="sizing-note t-warn" role="status">STALE · showing the snapshot from {new Date(fetchedAt).toLocaleTimeString()} ({Math.round((Date.now() - fetchedAt) / 1000)} s old); the latest refresh failed: {fetchError}</p> : null}
       {fleet && !fleet.available ? <EmptyState title="No bot registry yet">The ledger has no bot registry (migration 0007 is not applied).</EmptyState> : null}
       {fleet?.available ? (
         <>

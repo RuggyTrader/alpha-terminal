@@ -59,6 +59,23 @@ These rules were updated 2026-11-12 for the multi-bot directive and replace the 
     - A failed refresh keeps the last snapshot, labelled with its age.
 17. **The ALPHA Assistant stays deterministic and read-only.** It has no language model, costs nothing and never acts. It answers only from records, with evidence, or says it does not know.
 
+## Strategy integrity (director review 2026-11-12)
+
+22. **Immutable reference profiles.**
+    - The four original profiles and their inputs hashes never change: `0932a1a0cfac03f9`, `c826d785d58a4a39`, `d828caa44611ad73`, `a6336dad6ffaed70`.
+    - The original settings are the sole authority for setup qualification.
+    - A valid setup is always recorded, even when funded execution is impossible.
+23. **Research variants are separate.**
+    - They live only in `engine/research/` with unique `RESEARCH-*` ids, labelled RESEARCH.
+    - They report in-sample vs out-of-sample and zero-cost vs cost-adjusted separately, and never replace or modify an original profile, the funded bots or the mirror.
+    - Never pick settings on the sample they are reported on.
+24. **Fees stay realistic.** Ndax 0.20% per fill is the official funded PAPER benchmark. Lower rates appear only as labelled research scenarios, never as an offer the owner has. Never claim Ndax short selling.
+25. **Trading functionality ≠ profitability.**
+    - A working engine and ledger are not evidence that a strategy makes money.
+    - Profit swept to MAIN is not fleet profit.
+    - No full funded fleet activation and no additional capital without separate approval (stages R1–R6 in `docs/MULTI-BOT-ARCHITECTURE.md`).
+26. **No dead links.** A filter, link or proof page counts as done only when a test opens it and checks that it shows the right records.
+
 ## Process
 
 18. **Owner approvals.** Each production migration, deployment, engine activation, configuration change and capital transfer needs its own owner approval. Real-money trading stays disabled (`ENABLE_TRADING=false`).

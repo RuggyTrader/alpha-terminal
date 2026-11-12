@@ -1,0 +1,56 @@
+{
+ "tool": "worker/tools/measure-dashboard.mjs",
+ "environment": "LOCAL wrangler dev (miniflare D1), not production",
+ "seeded": {
+  "closed_bot_trades": 180,
+  "n_requests_per_endpoint": 40
+ },
+ "generated_at": "2026-11-12T23:26:15.447Z",
+ "endpoints": {
+  "/api/dashboard": {
+   "median_ms": 45.9,
+   "p95_ms": 52.5,
+   "worst_ms": 55,
+   "d1_statements": 24,
+   "d1_rows_read": 1017,
+   "d1_rows_written": 0,
+   "d1_ms": 0.93
+  },
+  "/api/dashboard/bots": {
+   "median_ms": 52.8,
+   "p95_ms": 67.4,
+   "worst_ms": 72,
+   "d1_statements": 33,
+   "d1_rows_read": 379,
+   "d1_rows_written": 0,
+   "d1_ms": 0.82
+  },
+  "/api/dashboard/events?limit=30": {
+   "median_ms": 15.8,
+   "p95_ms": 29,
+   "worst_ms": 29.2,
+   "d1_statements": 6.025,
+   "d1_rows_read": 1085.2,
+   "d1_rows_written": 0,
+   "d1_ms": 0.5
+  },
+  "/api/dashboard/bot-trades?bot=ALPHA-01": {
+   "median_ms": 18,
+   "p95_ms": 32.3,
+   "worst_ms": 33.9,
+   "d1_statements": 6,
+   "d1_rows_read": 260,
+   "d1_rows_written": 0,
+   "d1_ms": 0.75
+  },
+  "/api/dashboard/performance": {
+   "median_ms": 15.4,
+   "p95_ms": 22.9,
+   "worst_ms": 23.7,
+   "d1_statements": 3,
+   "d1_rows_read": 1,
+   "d1_rows_written": 0,
+   "d1_ms": 0.05
+  }
+ }
+}

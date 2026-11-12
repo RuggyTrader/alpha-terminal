@@ -1,6 +1,7 @@
 import { handleCandles } from "./candles";
 import { allocationPreview } from "./bot_ledger";
 import { fleetSection } from "./bots";
+import { botTradeProof, botTrades } from "./bot_trades";
 import { activityFeed } from "./events";
 import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
@@ -180,6 +181,31 @@ async function getEngine(
 // BROKER SNAPSHOT
 // PAPER READ-ONLY
 // ============================================================
+
+// The Alpaca PAPER broker is OPTIONAL: the four internal Kraken PAPER bots never need it. The dashboard waits for it at
+// most BROKER_BUDGET_MS; past that it answers without it (the last good broker snapshot, labelled with its time, or
+// none), so a slow broker can no longer delay or time out the core dashboard. The broker call itself keeps running
+// (bounded by its own 3.5 s timeout) and refreshes the cached snapshot for the next request.
+export const BROKER_BUDGET_MS = 1500;
+let brokerCache: { at: number; snap: Awaited<ReturnType<typeof getBrokerSnapshot>> } | null = null;
+export async function brokerWithinBudget(env: DashboardEnv, budgetMs = BROKER_BUDGET_MS) {
+  const live = getBrokerSnapshot(env).then((snap) => {
+    if (snap.account) brokerCache = { at: Date.now(), snap };
+    return snap;
+  });
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const slow = new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), budgetMs); });
+  const first = await Promise.race([live, slow]);
+  if (timer !== undefined) clearTimeout(timer);
+  if (first) return first;
+  const msg = `Alpaca did not answer within ${(budgetMs / 1000).toFixed(1)} s`;
+  if (brokerCache && Date.now() - brokerCache.at < 10 * 60_000) {
+    const asOf = new Date(brokerCache.at).toISOString();
+    return { ...brokerCache.snap, stale_as_of: asOf, errors: [...brokerCache.snap.errors, { source: "broker", code: "BROKER_SLOW", message: `${msg}; showing the broker snapshot from ${asOf}` }] };
+  }
+  return { mode: "PAPER" as const, read_only: true, errors: [{ source: "broker", code: "BROKER_SLOW", message: `${msg}; broker data omitted (optional; internal PAPER bots unaffected)` }],
+    account: null, positions: [], clock: null } as unknown as Awaited<ReturnType<typeof getBrokerSnapshot>>;
+}
 
 async function getBrokerSnapshot(
   env: DashboardEnv
@@ -540,7 +566,7 @@ async function getSummary(
   ] = await Promise.all([
     getEngine(env),
 
-    getBrokerSnapshot(
+    brokerWithinBudget(
       env
     ),
 
@@ -1262,6 +1288,14 @@ export async function handleDashboardApi(
     // hypothetical Strategy Mirror results. Read-only.
     if (pathname === "/api/dashboard/bots") {
       return json({ ok: true, data: await fleetSection(env.DB) });
+    }
+    // Bot trades for the Trades / Performance filters (?bot=, ?signal=) and one bot trade's proof. Read-only.
+    if (pathname === "/api/dashboard/bot-trades") {
+      return json({ ok: true, data: await botTrades(env.DB, { bot: searchParams.get("bot"), signal: searchParams.get("signal"), limit: Number(searchParams.get("limit")) || 50 }) });
+    }
+    if (pathname === "/api/dashboard/bot-trade") {
+      const proof = await botTradeProof(env.DB, String(searchParams.get("id") ?? ""));
+      return proof ? json({ ok: true, data: proof }) : json({ ok: false, code: "NOT_FOUND", message: "no bot trade with that id" }, 404);
     }
     // Real Kraken OHLC for a bot chart (completed candles + the forming one, labelled). Read-only.
     if (pathname === "/api/dashboard/candles") {

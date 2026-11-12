@@ -1,5 +1,6 @@
 import { handleBotLedger, handleBotOrder } from "./bot_ledger";
 import { handleNotificationsApi, processEvents } from "./events";
+import { meterD1, meterHeader } from "./d1meter";
 import { handleEngineMirror } from "./mirror";
 import {
   createDryRunOrder,
@@ -547,7 +548,7 @@ async function handleEngineControl(
 // MAIN WORKER
 // ============================================================
 
-export default {
+const worker = {
   async fetch(
     request: Request,
     env: Env,
@@ -1151,8 +1152,6 @@ export default {
         );
 
       return json({
-        ok: true,
-
         mode:
           "PAPER",
 
@@ -1162,7 +1161,7 @@ export default {
         broker_request_sent:
           false,
 
-        ...result,
+        ...result, // carries ok (it always overrode a literal ok: true here)
       });
     }
 
@@ -2113,5 +2112,20 @@ export default {
       },
       404
     );
+  },
+};
+
+// Local resource audits only: with MEASURE_D1 = "1" (never set in production) every response carries an "x-d1" header
+// with the D1 statements and rows of that request (d1meter.ts). Otherwise this is the handler above, unchanged.
+export default {
+  ...worker,
+  async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
+    if ((env as unknown as { MEASURE_D1?: string }).MEASURE_D1 !== "1") return worker.fetch(request, env, ctx);
+    const t0 = Date.now();
+    const { db, meter } = meterD1(env.DB);
+    const res = await worker.fetch(request, { ...env, DB: db }, ctx);
+    const out = new Response(res.body, res);
+    out.headers.set("x-d1", meterHeader(meter, Date.now() - t0));
+    return out;
   },
 };

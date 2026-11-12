@@ -6,6 +6,7 @@ import { api, ApiError } from "../api/client";
 export interface NotifyPrefs {
   enabled: boolean;
   funded_entry: boolean; funded_close: boolean; mirror_entry: boolean; mirror_close: boolean;
+  bot_orders?: boolean; bot_stops?: boolean; // bot lifecycle (older Workers omit them)
   include_pnl: boolean; hide_amounts: boolean;
   include_catch_up: boolean; include_historical: boolean;
 }

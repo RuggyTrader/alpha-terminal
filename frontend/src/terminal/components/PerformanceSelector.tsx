@@ -9,7 +9,8 @@ import { Link } from "react-router-dom";
 import { NA, signedMoney, money } from "../fmt";
 import { computeMetrics } from "../performance";
 import { fetchMirrorOverview, type MirrorOverview } from "../mirror";
-import { fetchBots, type Fleet } from "../bots";
+import type { Fleet } from "../bots";
+import { useFleet } from "../fleetStore";
 import type { VerifiedState } from "../useVerified";
 
 export type PerfView = "funded" | "mirror" | "bot";
@@ -69,12 +70,13 @@ export function BotView({ fleet, botId }: { fleet: Fleet | null; botId: string }
 export function PerformanceSelector({ verified, now = Date.now() }: { verified: VerifiedState; now?: number }) {
   const [view, setView] = useState<PerfView>("funded");
   const [overview, setOverview] = useState<MirrorOverview | null>(null);
-  const [fleet, setFleet] = useState<Fleet | null>(null);
-  const [botId, setBotId] = useState("");
+  const shared = useFleet();
+  const fleet: Fleet | null = shared.fleet ?? (shared.error ? { available: false, groups: [], bots: [] } : null);
+  const [picked, setBotId] = useState("");
+  const botId = picked || (fleet?.bots.find((b) => b.status === "ACTIVE")?.bot_id ?? "");
   useEffect(() => {
     if (view === "mirror" && !overview) fetchMirrorOverview().then(setOverview).catch(() => setOverview({ label: "", disclosure: "", note: "", markets: [] }));
-    if (view === "bot" && !fleet) fetchBots().then((f) => { setFleet(f); setBotId((id) => id || (f.bots.find((b) => b.status === "ACTIVE")?.bot_id ?? "")); }).catch(() => setFleet({ available: false, groups: [], bots: [] }));
-  }, [view, overview, fleet]);
+  }, [view, overview]);
   return (
     <section className="card hp-card" aria-label="Performance">
       <div className="perf-tabs" role="tablist">

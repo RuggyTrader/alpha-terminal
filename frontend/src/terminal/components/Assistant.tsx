@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { answer, type Answer } from "../assistant";
-import { fetchBots, type Fleet } from "../bots";
+import { useFleet } from "../fleetStore";
 
 const SUGGESTED = ["What is SOL 1m doing right now?", "What is BTC 5m waiting for?", "Which bot is making the most money?", "How much did BTC 5m pay in fees?",
   "What is my MAIN balance?", "How much profit has been transferred to MAIN?", "Can my BTC bot afford its minimum order?", "Is my engine offline?"];
@@ -14,16 +14,14 @@ interface Msg { q: string; a: Answer }
 export function AssistantDrawer() {
   const [open, setOpen] = useState(false);
   const [full, setFull] = useState(false);
-  const [fleet, setFleet] = useState<Fleet | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  // The same shared snapshot as every other view (fleetStore.ts): the assistant reads exactly what the pages show.
+  const { fleet, error, refresh } = useFleet();
+  const err = fleet ? null : error;
   const [q, setQ] = useState("");
   const [ctx, setCtx] = useState<string>("");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    fetchBots().then((f) => { setFleet(f); setErr(null); }).catch((e) => setErr(String(e?.message ?? e)));
-  }, [open]);
+  useEffect(() => { if (open) refresh(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs]);
   const ask = (text: string) => {
     if (!text.trim()) return;

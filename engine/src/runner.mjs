@@ -647,7 +647,11 @@ export class EngineRunner {
       const code = body.code ?? `HTTP_${status}`;
       const delayed = item.delayedMin ? `delivered ${item.delayedMin} min after the engine's exit; the ledger closed at the live price` : null;
       if (status === 200 && code === "DRY_RUN_ACCEPTED") {
-        this.final(item, "accepted", code, delayed);
+        // Bot ledger: the quantity actually filled (it may be reduced to fit the bot's wallet at the live price).
+        if (this.cfg.ledgerApi === "bot" && Number.isFinite(Number(body.data?.qty)) && item.qty !== null && Number(body.data.qty) !== Number(item.qty)) {
+          item.filledQty = Number(body.data.qty);
+        }
+        this.final(item, "accepted", code, body.data?.reduced_to_fit ? `filled ${body.data.qty} of ${item.qty} requested: reduced to fit the bot's wallet at the fill price` : delayed);
       } else if (status === 200 && code === "DUPLICATE") {
         // Already processed earlier (e.g. crash before saving): adopt that earlier result.
         const orig = body.data ?? {};
@@ -690,7 +694,7 @@ export class EngineRunner {
       if (!lp) issues.push(`the ledger has no open ${this.cfg.symbol} position; the engine holds ${pos.side === 1 ? "LONG" : "SHORT"} ${fmtQty(pos.qty)} from ${entry.id}`);
       else {
         if (lp.open_alert_id !== entry.id) issues.push(`the ledger position was opened by ${lp.open_alert_id}, not ${entry.id}`);
-        if (Math.abs(Number(lp.qty) - Number(entry.qty)) > 1e-8) issues.push(`ledger qty ${lp.qty} vs engine ${entry.qty}`);
+        if (Math.abs(Number(lp.qty) - Number(entry.filledQty ?? entry.qty)) > 1e-8) issues.push(`ledger qty ${lp.qty} vs engine ${entry.filledQty ?? entry.qty}`);
         if (lp.status !== "OPEN") issues.push(`ledger position status ${lp.status}`);
         if ((pos.side === 1 ? "long" : "short") !== lp.side) issues.push(`ledger side ${lp.side} vs engine ${pos.side === 1 ? "long" : "short"}`);
       }

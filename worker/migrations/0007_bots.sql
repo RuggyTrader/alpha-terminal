@@ -1,5 +1,5 @@
 -- Independent bot fleet (docs/MULTI-BOT-ARCHITECTURE.md). NOT APPLIED to production: needs its own approval (stage M1).
--- ADDITIVE ONLY: new tables and new columns. No existing row's value, balance, quantity, price, P&L, fee or status
+-- ADDITIVE (new tables and columns), plus ONE lossless rebuild of the derived trade_events table (see below). No existing row's value, balance, quantity, price, P&L, fee or status
 -- changes; existing indexes and constraints stay, so the Worker running today (and a rollback to it) keeps working.
 --
 --   allocation_groups  SOLANA, BITCOIN (ETHEREUM inactive): money allocated to a group is split equally between its
@@ -162,8 +162,40 @@ CREATE INDEX IF NOT EXISTS idx_alerts_bot ON alerts(bot_id);
 
 -- Notifications per bot: which bot an event belongs to, and the recorded figures shown in it (entry/stop/target, or
 -- gross/fees/net/transferred to MAIN). The bot_fills cursor starts at its current end (empty): no backlog flood.
-ALTER TABLE trade_events ADD COLUMN bot_id TEXT;
-ALTER TABLE trade_events ADD COLUMN detail_json TEXT;
+--
+-- trade_events also gains bot lifecycle notifications (pending limit order, order cancelled, stop moved to break-even,
+-- trailing stop moved). SQLite cannot widen a CHECK in place, so the table is REBUILT with every row copied unchanged
+-- (same ids, same values; push_deliveries keeps pointing at the same ids). trade_events is derived (rebuilt by cursors
+-- from the authoritative ledger and mirror rows); no financial record lives in it. The wider CHECK is a superset, so the
+-- Worker running today keeps working against it.
+PRAGMA defer_foreign_keys = true;
+CREATE TABLE trade_events_v7 (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_key TEXT NOT NULL UNIQUE,
+  kind TEXT NOT NULL CHECK (kind IN ('FUNDED_ENTRY', 'FUNDED_ADD', 'FUNDED_REDUCE', 'FUNDED_CLOSE', 'MIRROR_ENTRY', 'MIRROR_CLOSE', 'TEST',
+                                     'ORDER_PENDING', 'ORDER_CANCELLED', 'STOP_TO_BREAK_EVEN', 'TRAILING_STOP_MOVED')),
+  source TEXT NOT NULL CHECK (source IN ('funded', 'mirror', 'system')),
+  symbol TEXT,
+  side TEXT,
+  qty REAL,
+  price REAL,
+  pnl REAL,
+  pnl_net REAL,
+  fees REAL,
+  classification TEXT NOT NULL DEFAULT 'live' CHECK (classification IN ('historical', 'catch_up', 'live')),
+  ref TEXT,
+  account_id TEXT,
+  url TEXT,
+  occurred_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  bot_id TEXT,
+  detail_json TEXT
+);
+INSERT INTO trade_events_v7 (id, event_key, kind, source, symbol, side, qty, price, pnl, pnl_net, fees, classification, ref, account_id, url, occurred_at, created_at)
+  SELECT id, event_key, kind, source, symbol, side, qty, price, pnl, pnl_net, fees, classification, ref, account_id, url, occurred_at, created_at FROM trade_events;
+DROP TABLE trade_events;
+ALTER TABLE trade_events_v7 RENAME TO trade_events;
+CREATE INDEX IF NOT EXISTS idx_trade_events_bot ON trade_events(bot_id, id);
 INSERT OR IGNORE INTO event_cursors (name, last_id) VALUES ('bot_fills', (SELECT COALESCE(MAX(id), 0) FROM bot_fills));
 
 INSERT INTO app_meta (key, value) VALUES ('schema_version', '7')

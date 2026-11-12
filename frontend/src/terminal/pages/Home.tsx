@@ -2,9 +2,7 @@ import { PerformanceSelector } from "../components/PerformanceSelector";
 import { Link } from "react-router-dom";
 import { AccountHero } from "../components/AccountHero";
 import { AlertCard } from "../components/AlertCard";
-import { AlphaPaperPerformance } from "../components/AlphaPaperPerformance";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
-import { EngineBotCard } from "../components/EngineBotCard";
 import { ActivityPanel, PipelinePanel } from "../components/HomePanels";
 import { BotPipelinePanel } from "../components/BotPipeline";
 import { PortfolioSummaryCard } from "../components/PaperPortfolio";
@@ -16,6 +14,7 @@ import { AnimatedList, Reveal } from "../motion";
 import { useActivity } from "../activity";
 import { useDash } from "../store";
 import { useVerified } from "../useVerified";
+import { useFundedVerified } from "../fundedTrades";
 
 /** Internal ALPHA PAPER ledger positions (simulated). The main positions list. */
 export function PositionsSection() {
@@ -64,7 +63,8 @@ export function BrokerPositionsSection() {
 
 export function HomePage() {
   const { state, reconnected } = useDash();
-  const verified = useVerified();
+  // One funded trade set for the hero and the Funded PAPER tab: the legacy ledger + the bot ledger, never twice.
+  const verified = useFundedVerified(useVerified());
   const d = state.data;
   const alerts = d?.recent.alerts ?? [];
   const total = d?.counts.alerts.total ?? 0;
@@ -76,17 +76,16 @@ export function HomePage() {
         <PerformanceSelector verified={verified} />
         <div className="hp-panels">
           <PipelinePanel state={state} mirror={activity.mirror} />
-          <BotPipelinePanel />
+
+          <BotPipelinePanel />
           <ActivityPanel activity={activity} />
         </div>
         <MarketsCard state={state} />
         {d?.portfolio ? <PortfolioSummaryCard portfolio={d.portfolio} /> : null}
-        {d?.paper ? <AlphaPaperPerformance paper={d.paper} /> : null}
         <PositionsSection />
         <BrokerPositionsSection />
       </div>
       <div className="col-side m-stagger">
-        {d?.bot ? <EngineBotCard bot={d.bot} /> : null}
         <Reveal>
           <SystemHealthCard state={state} />
         </Reveal>
@@ -101,7 +100,7 @@ export function HomePage() {
             ) : alerts.length === 0 ? (
               <EmptyState title="No signals yet">Signals received by the Worker will appear here.</EmptyState>
             ) : (
-              <AnimatedList items={alerts.slice(0, 5)} getKey={(a) => String(a.id)} render={(a) => <AlertCard a={a} />} />
+              <AnimatedList items={alerts.slice(0, 3)} getKey={(a) => String(a.id)} render={(a) => <AlertCard a={a} />} />
             )}
           </section>
         </Reveal>

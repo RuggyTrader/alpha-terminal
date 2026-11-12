@@ -49,13 +49,22 @@ describe("migrations from a fresh 0001", () => {
     pos.run("ETHUSD", "CLOSED", 0, now, now, "TV-1", now, "ETHUSD", 0);
     db.prepare("UPDATE portfolio_wallets SET available_micro = 90000000, net_funding_micro = 90000000 WHERE wallet = 'MAIN'").run();
     db.prepare("INSERT INTO mirror_accounts (account_id, symbol, timeframe, inputs_hash, created_at, updated_at) VALUES ('MIRROR-SOLUSD-5m-c826d785d58a4a39', 'SOLUSD', '5m', 'c8', ?, ?)").run(now, now);
-    const T = ["alerts", "orders", "paper_positions", "paper_fills", "trades", "mirror_accounts", "portfolio_entries", "mirror_trades", "trade_events"];
-    const dump = () => Object.fromEntries(T.map((t) => [t, db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all().map(({ bot_id: _b, ...r }) => r)]));
+    // events and their push deliveries (FK to trade_events.id) must survive the trade_events rebuild unchanged
+    const evIns = db.prepare("INSERT INTO trade_events (event_key, kind, source, symbol, classification, ref, url, occurred_at, created_at) VALUES (?, ?, ?, 'SOLUSD', 'live', ?, '/trades', ?, ?)");
+    evIns.run("FILL:1", "FUNDED_ENTRY", "funded", "1", now, now); evIns.run("MCLOSE:1", "MIRROR_CLOSE", "mirror", "MIR-SOLUSD-1", now, now);
+    db.prepare("INSERT INTO push_subscriptions (endpoint, p256dh, auth, prefs_json, created_at, updated_at) VALUES ('https://push.example/1', 'k', 'a', '{}', ?, ?)").run(now, now);
+    db.prepare("INSERT INTO push_deliveries (event_id, subscription_id, status, created_at) VALUES (2, 1, 'sent', ?)").run(now);
+    const T = ["alerts", "orders", "paper_positions", "paper_fills", "trades", "mirror_accounts", "portfolio_entries", "mirror_trades", "trade_events", "push_deliveries"];
+    const dump = () => Object.fromEntries(T.map((t) => [t, db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all().map(({ bot_id: _b, detail_json: _d, ...r }) => r)]));
     const wallets = () => db.prepare("SELECT wallet, available_micro, reserved_micro, realized_pnl_micro, net_funding_micro, fees_micro FROM portfolio_wallets WHERE wallet IN ('MAIN', 'SOLUSD', 'ETHUSD', 'BTCUSD') ORDER BY wallet").all().map((r) => ({ ...r }));
     const before = dump(), wBefore = wallets();
     db.exec(sql("0007_bots.sql"));
     assert.deepEqual(dump(), before, "no existing value changed");
     assert.deepEqual(wallets(), wBefore, "no balance changed");
+    assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(), [], "push deliveries still reference their events");
+    db.prepare("INSERT INTO trade_events (event_key, kind, source, classification, occurred_at, created_at, bot_id) VALUES ('BOTPEND:x', 'ORDER_PENDING', 'funded', 'live', ?, ?, 'ALPHA-01')").run(now, now);
+    assert.equal(db.prepare("SELECT MAX(id) m FROM trade_events").get().m, 3, "AUTOINCREMENT continues after the copied ids");
+    assert.throws(() => db.prepare("INSERT INTO trade_events (event_key, kind, source, classification, occurred_at, created_at) VALUES ('X', 'NOT_A_KIND', 'funded', 'live', ?, ?)").run(now, now), /CHECK/);
     assert.deepEqual(db.prepare("SELECT alert_id, bot_id FROM alerts ORDER BY id").all().map((r) => [r.alert_id, r.bot_id]),
       [["ENG-SOLUSD-5-2026-11-11T14:20:00Z-BUY", "ALPHA-02"], ["ENG-SOLUSD-5-2026-11-12T01:00:00Z-BUY", "ALPHA-02"], ["TV-1", ""]]);
     assert.deepEqual(db.prepare("SELECT symbol, bot_id FROM paper_positions ORDER BY id").all().map((r) => [r.symbol, r.bot_id]), [["SOLUSD", "ALPHA-02"], ["ETHUSD", ""]]);
@@ -80,7 +89,7 @@ describe("migrations from a fresh 0001", () => {
     assert.throws(() => bot.run("ALPHA-08", 15, "q", "ALPHA-01", 0, now, now), /UNIQUE/, "a wallet belongs to one bot");
     assert.throws(() => bot.run("ALPHA-09", 1, "solusd-1m", "W3", 0, now, now), /UNIQUE/, "the same profile twice on one market and timeframe");
     assert.throws(() => db.prepare("UPDATE bots SET risk_usd = 0 WHERE bot_id = 'ALPHA-01'").run(), /CHECK/);
-    db.exec(sql("0007_bots.sql").replace(/ALTER TABLE[^;]*;/g, "")); // re-running the idempotent parts is harmless
+    db.exec(sql("0007_bots.sql").replace(/PRAGMA defer_foreign_keys[\s\S]*?RENAME TO trade_events;/, "").replace(/ALTER TABLE[^;]*;/g, "")); // re-running the idempotent parts is harmless
     assert.equal(db.prepare("SELECT COUNT(*) n FROM bots").get().n, 4);
   });
 

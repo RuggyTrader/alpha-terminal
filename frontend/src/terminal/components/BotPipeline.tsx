@@ -1,10 +1,10 @@
 // Home: one live line per bot under the Pipeline, from each bot's OWN engine report and ledger rows (GET
 // /api/dashboard/bots). Several bots show at once; nothing rotates through inactive bots; a stale or offline bot stops
-// animating; a proposed bot is shown as not running. Polls only while the page is visible.
+// animating; a proposed bot is shown as not running. Reads the shared fleet snapshot (fleetStore.ts).
 
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { botPhase, botState, fetchBots, STATE_TONE, type Bot } from "../bots";
+import { botPhase, botState, STATE_TONE, type Bot } from "../bots";
+import { useFleet } from "../fleetStore";
 import { SectionHeader, StatusBadge } from "./ui";
 import { stamp } from "../fmt";
 import { COIN } from "../pages/Bots";
@@ -26,21 +26,10 @@ export function BotPipelineRow({ b, nowMs }: { b: Bot; nowMs: number }) {
 }
 
 export function BotPipelinePanel() {
-  const [bots, setBots] = useState<Bot[] | null>(null);
-  const [now, setNow] = useState(() => Date.now());
-  const [unavailable, setUnavailable] = useState(false);
-  useEffect(() => {
-    let live = true;
-    const load = () => {
-      if (document.visibilityState !== "visible") return;
-      fetchBots().then((f) => { if (!live) return; setUnavailable(!f.available); setBots(f.bots.filter((b) => b.status !== "DISABLED")); setNow(Date.now()); }).catch(() => { if (live) setUnavailable(true); });
-    };
-    load();
-    const id = setInterval(load, 20_000);
-    document.addEventListener("visibilitychange", load);
-    return () => { live = false; clearInterval(id); document.removeEventListener("visibilitychange", load); };
-  }, []);
-  if (unavailable || !bots || !bots.length) return null;
+  const { fleet, fetchedAt } = useFleet(); // shared snapshot: no second poller for the same data
+  const bots: Bot[] | null = fleet?.available ? fleet.bots.filter((b) => b.status !== "DISABLED") : null;
+  const now = fetchedAt ?? Date.now();
+  if (!bots || !bots.length) return null;
   return (
     <section className="card hp-card" aria-label="Bots pipeline">
       <SectionHeader title="Bots" sub="What each bot is doing · its own telemetry" right={<Link className="link" to="/bots">All bots</Link>} />

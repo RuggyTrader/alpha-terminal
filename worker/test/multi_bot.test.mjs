@@ -102,7 +102,9 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.equal((await order("ALPHA-01", "OPEN_LONG", { qty: 0.1, symbol: "BTCUSD" })).code, "BOT_MARKET_MISMATCH");
     assert.equal((await order("ALPHA-01", "OPEN_LONG", { qty: 0.123456789 })).code, "INVALID_QTY");
     assert.equal((await order("ALPHA-01", "OPEN_LONG", { qty: 0.04 })).code, "BELOW_MIN_QTY");
-    assert.equal((await order("ALPHA-03", "OPEN_SHORT", { qty: 0.0001 })).code, "INSUFFICIENT_BOT_CAPITAL", "$10 + $0.02 fee > its own $10.005; never another bot's money");
+    KRAKEN.set("XBTUSD", 200000); // TEST price: even the reduced size (10.005 / (200000 × 1.002) = 0.0000499) is below the 0.00006 minimum
+    assert.equal((await order("ALPHA-03", "OPEN_SHORT", { qty: 0.0001 })).code, "INSUFFICIENT_BOT_CAPITAL", "$20 + fee > its own $10.005 and no size it can afford meets the minimum; never another bot's money");
+    KRAKEN.set("XBTUSD", 100000);
     assert.equal(sql(`SELECT COUNT(*) n FROM bot_positions`)[0].n, 0, "nothing committed");
   });
 
@@ -217,5 +219,68 @@ describe("bot fleet ledger (migration 0007)", () => {
     for (const x of f.data.bots) for (const m of x.mirror) assert.equal(m.hypothetical, true);
     // money is conserved: every wallet's balance = its funding + what it paid out/received in trading − fees
     for (const w of sql(`SELECT wallet, available_micro + reserved_micro AS book, net_funding_micro + realized_pnl_micro - fees_micro AS ident FROM portfolio_wallets`)) assert.equal(w.book, w.ident, w.wallet);
+  });
+
+  it("regression (ALPHA-01 2026-11-09 11:17): a fill beyond the sizing headroom is REDUCED to fit the bot's own wallet, never refused or raised", async () => {
+    if (sql(`SELECT COUNT(*) n FROM bot_positions WHERE bot_id = 'ALPHA-04' AND status = 'OPEN'`)[0].n) assert.equal((await order("ALPHA-04", "CLOSE")).code, "DRY_RUN_ACCEPTED");
+    const avail = W("ALPHA-04").a;
+    const requested = Number((Math.ceil((avail / 1e6 / 100000) * 1e8) / 1e8 + 0.00001).toFixed(8)); // more than the wallet can pay at 100000
+    const r = await order("ALPHA-04", "OPEN_SHORT", { qty: requested, order_id: "ENG-ALPHA-04-BTCUSD-5-FIT-OPEN_SHORT" });
+    assert.equal(r.code, "DRY_RUN_ACCEPTED", JSON.stringify(r));
+    assert.equal(r.data.reduced_to_fit, true);
+    assert.equal(r.data.requested_qty, requested);
+    const expect = Math.floor((avail / 1e6 / (100000 * 1.002)) * 1e8) / 1e8;
+    assert.equal(r.data.qty, expect, "floored to the venue step, never above what the wallet pays");
+    const pos = sql(`SELECT qty, collateral_micro, entry_fee_micro FROM bot_positions WHERE trade_id = 'ENG-ALPHA-04-BTCUSD-5-FIT-OPEN_SHORT'`)[0];
+    assert.equal(pos.qty, expect);
+    assert.ok(pos.collateral_micro + pos.entry_fee_micro <= avail, "the bot's own wallet pays collateral + fee");
+    assert.equal(sql(`SELECT requested_qty FROM bot_orders WHERE order_id = 'ENG-ALPHA-04-BTCUSD-5-FIT-OPEN_SHORT'`)[0].requested_qty, requested, "the request is kept as sent");
+    assert.equal(sql(`SELECT qty FROM bot_fills WHERE fill_id = 'ENG-ALPHA-04-BTCUSD-5-FIT-OPEN_SHORT'`)[0].qty, expect);
+    for (const w of sql(`SELECT wallet, available_micro + reserved_micro AS book, net_funding_micro + realized_pnl_micro - fees_micro AS ident FROM portfolio_wallets`)) assert.equal(w.book, w.ident, w.wallet);
+  });
+
+  it("bot lifecycle notifications come from the bot's own engine reports: pending order, cancel, break-even, trailing; never twice", async () => {
+    const report = (st, extra = {}) => fetch(`${base}/webhook/engine-status`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: WEBHOOK_SECRET, status: { engine: "alpha-engine", symbol: "BTCUSD", timeframe: "1m", bot_id: "ALPHA-03", last_candle_time: extra.t ?? "2026-11-12T10:00:00Z", strategy_state: st, ...extra } }) }).then((x) => x.json());
+    const S = (o = {}) => ({ direction: "LONG", leg_start: 99000, leg_end: 101000, setup_bars: 2, max_age_bars: 50, pending_order: null, current_stop: null, break_even_done: false, trailing: false, ...o });
+    const pend = { side: "LONG", qty: 0.00009, limit: 99590, stop: 98900, tp: 101500 };
+    const ev = () => sql(`SELECT kind, side, price, bot_id, url FROM trade_events WHERE bot_id = 'ALPHA-03' AND kind IN ('ORDER_PENDING', 'ORDER_CANCELLED', 'STOP_TO_BREAK_EVEN', 'TRAILING_STOP_MOVED') ORDER BY id`).map(Object.values);
+    assert.equal((await report(S())).ok, true);
+    await report(S({ pending_order: pend }));
+    await report(S({ pending_order: pend }), { t: "2026-11-12T10:01:00Z" }); // the same order reported again: no second event
+    await report(S(), { t: "2026-11-12T10:02:00Z" }); // gone without a fill
+    await report(S({ pending_order: pend }), { t: "2026-11-12T10:03:00Z" }); // the same setup again: the key already exists, still one event
+    const pos = { side: "LONG", qty: 0.00009, entry: 99590, stop: 98900, tp2: 101500 };
+    await report(S({ current_stop: 98900 }), { t: "2026-11-12T10:04:00Z", position: pos });
+    await report(S({ current_stop: 99590, break_even_done: true }), { t: "2026-11-12T10:05:00Z", position: pos });
+    await report(S({ current_stop: 99800, break_even_done: true, trailing: true }), { t: "2026-11-12T10:06:00Z", position: pos });
+    await report(S({ current_stop: 99800, break_even_done: true, trailing: true }), { t: "2026-11-12T10:07:00Z", position: pos }); // unchanged: nothing
+    await report(S({ current_stop: 100100, break_even_done: true, trailing: true }), { t: "2026-11-12T10:08:00Z", position: pos });
+    const u = "/bots/ALPHA-03/chart";
+    assert.deepEqual(ev(), [["ORDER_PENDING", "LONG", 99590, "ALPHA-03", u], ["ORDER_CANCELLED", "LONG", 99590, "ALPHA-03", u], ["STOP_TO_BREAK_EVEN", "LONG", 99590, "ALPHA-03", u],
+      ["TRAILING_STOP_MOVED", "LONG", 99800, "ALPHA-03", u], ["TRAILING_STOP_MOVED", "LONG", 100100, "ALPHA-03", u]]);
+    const feed = await dash("/api/dashboard/events?limit=50");
+    const titles = JSON.stringify(feed);
+    assert.ok(/ALPHA 03 \| BTCUSD 1m/.test(titles) && /limit order pending/.test(titles) && /stop moved to break-even/.test(titles) && /trailing stop moved/.test(titles), titles.slice(0, 400));
+  });
+
+  it("Trades filters and bot trade proof: ?bot= and ?signal= return exactly that bot's / signal's records; the proof's arithmetic checks pass", async () => {
+    const all = await dash("/api/dashboard/bot-trades?bot=ALPHA-01");
+    assert.ok(all.data.trades.length >= 1 && all.data.trades.every((t) => t.bot_id === "ALPHA-01"), JSON.stringify(all.data.trades));
+    assert.ok(all.data.orders.every((o) => o.bot_id === "ALPHA-01"));
+    const id = "ENG-ALPHA-01-SOLUSD-1-L1-OPEN_LONG";
+    const one = await dash(`/api/dashboard/bot-trades?signal=${encodeURIComponent(id)}`);
+    assert.deepEqual(one.data.trades.map((t) => [t.trade_id, t.proof_url]), [[id, `/bots/trade/${id}`]]);
+    assert.deepEqual(one.data.orders.map((o) => o.order_id).sort(), sql(`SELECT order_id FROM bot_orders WHERE order_id = ? OR trade_id = ?`, id, id).map((r) => r.order_id).sort());
+    const other = await dash("/api/dashboard/bot-trades?bot=ALPHA-04");
+    assert.ok(other.data.trades.every((t) => t.bot_id === "ALPHA-04") && !other.data.trades.some((t) => t.trade_id === id), "never another bot's trades");
+    const proof = await dash(`/api/dashboard/bot-trade?id=${encodeURIComponent(id)}`);
+    assert.equal(proof.ok, true);
+    assert.equal(proof.data.all_checks_ok, true, JSON.stringify(proof.data.checks));
+    assert.ok(proof.data.checks.length >= 6);
+    assert.deepEqual(proof.data.fills.map((f) => f.kind), ["ENTRY", "EXIT"]);
+    assert.ok(!JSON.stringify(proof.data).includes(WEBHOOK_SECRET), "no secret in the proof");
+    assert.equal((await fetch(`${base}/api/dashboard/bot-trade?id=nope`, { headers: { Cookie: cookie } })).status, 404);
+    assert.equal((await fetch(`${base}/api/dashboard/bot-trades?bot=ALPHA-01`)).status, 401, "session required");
   });
 });

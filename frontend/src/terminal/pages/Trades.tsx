@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { BotChips, BotTradesView } from "../components/BotTradesView";
+import { tradeFilter } from "../botTrades";
 import { AlertCard } from "../components/AlertCard";
 import { OrderIntentCard } from "../components/OrderIntentCard";
 import { RiskDecisionCard } from "../components/RiskDecisionCard";
@@ -19,6 +21,9 @@ const TABS: { id: TradesTab; label: string }[] = [
 
 export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }) {
   const { state } = useDash();
+  const [params] = useSearchParams();
+  const filter = tradeFilter(params);
+  const filtered = filter.bot !== null || filter.signal !== null;
   const [tab, setTab] = useState<TradesTab>(initialTab);
   const d = state.data;
   const c = d?.counts;
@@ -28,6 +33,9 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
   return (
     <div className="page-narrow">
       <h1 className="page-title">Trades</h1>
+      <BotChips base="/trades" active={filter.bot} />
+      {filtered ? <BotTradesView filter={filter} /> : null}
+      {filtered ? null : <>
       <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
         <span className="seg-pill" aria-hidden />
         {TABS.map((t) => (
@@ -82,6 +90,7 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
             : <AnimatedList items={d.recent.trades} getKey={(t) => String(t.id)} render={(t) => <TradeCard t={t} />} />}
         </section>
       ) : null}
+      </>}
     </div>
   );
 }

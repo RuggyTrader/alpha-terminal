@@ -51,7 +51,7 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
     const S = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs,
       sizing: { mode: "dollar", riskUSD: b.riskUSD, feePct, priceBufferPct, simulatedShort: true, symbol: b.symbol, instrument, limits } });
     const M = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs }); // reference: fixed $10, TradingView semantics
-    return { b, S, M, step: b.intervalMin * 60_000, refused: {}, skipped: {}, mirrorClosed: 0, mirror: [] };
+    return { b, S, M, step: b.intervalMin * 60_000, refused: {}, refusals: [], lastOrder: null, skipped: {}, mirrorClosed: 0, mirror: [] };
   });
   const timeline = [];
   for (const r of run) for (const k of r.b.candles) timeline.push({ close: k.t + r.step, r, k });
@@ -64,9 +64,18 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
     S.sizing.exposure = { position: 0, total: fromMicro(ledger.totalReservedMicro()), openPositions: ledger.positions.size };
     for (const e of onBar(S, k)) {
       if (e.type === "ORDER_SKIPPED" && live) r.skipped[e.code] = (r.skipped[e.code] ?? 0) + 1;
+      if (e.type === "ORDER_PLACED") r.lastOrder = { ...e, capital: S.capital, sizing: S.lastSizing ?? null };
       if (e.type === "ENTRY_FILL") {
         const side = e.side === 1 ? "LONG" : "SHORT";
-        const code = live ? ledger.open(b.id, side, e.qty, k.c, { openTime: k.t, symbol: b.symbol, riskUSD: b.riskUSD }) : "WARMUP";
+        const code = live ? ledger.open(b.id, side, e.qty, k.c, { openTime: k.t, symbol: b.symbol, riskUSD: b.riskUSD, instrument: getInstrument(b.symbol) }) : "WARMUP";
+        if (code && live) {
+          // Full evidence for every refusal: the planned order (sizing at placement) against the ledger's fill.
+          const w = ledger.wallet[b.id], o = r.lastOrder, notional = e.qty * k.c * (1 + (side === "LONG" ? 1 : -1) * slippagePct / 100);
+          r.refusals.push({ time: new Date(k.t).toISOString(), bot_id: b.id, signal_id: `ENG-${b.id}-${b.symbol}-${b.intervalMin}-${o?.bar ?? "?"}-${side === "LONG" ? "BUY" : "SELL"}`, direction: side,
+            planned_limit: o?.limit ?? null, stop: o?.stop ?? null, qty: e.qty, fill_price: k.c, candle: { o: k.o, h: k.h, l: k.l, c: k.c },
+            fill_vs_limit_pct: o?.limit ? ((k.c - o.limit) / o.limit) * 100 : null, capital_at_placement: o?.capital ?? null,
+            available: fromMicro(w.available), reserved: fromMicro(w.reserved), required_collateral: notional, entry_fee: notional * feePct / 100, code });
+        }
         if (code) { if (S.broker.pos) abandonPosition(S); if (live) r.refused[code] = (r.refused[code] ?? 0) + 1; }
       }
       if (e.type === "EXIT_FILL" && ledger.positions.has(b.id)) ledger.close(b.id, k.c, { closeTime: k.t, exitKind: e.kind });
@@ -97,7 +106,7 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
         swept_to_main: T.reduce((s, t) => s + fromMicro(t.sweep), 0), shortfall: T.reduce((s, t) => s + fromMicro(t.shortfall), 0),
         median_qty: T.length ? [...T.map((t) => t.qty)].sort((a, c) => a - c)[Math.floor(T.length / 2)] : null,
         median_notional: T.length ? [...T.map((t) => fromMicro(t.collateral))].sort((a, c) => a - c)[Math.floor(T.length / 2)] : null,
-        refused: r.refused, skipped: r.skipped, wallet_end: ledger.available(r.b.id), open_at_end: ledger.positions.has(r.b.id) },
+        refused: r.refused, refusals: r.refusals, reduced_to_fit: ledger.reductions.filter((x) => x.botId === r.b.id).length, skipped: r.skipped, wallet_end: ledger.available(r.b.id), open_at_end: ledger.positions.has(r.b.id) },
       mirror_reference: { ...stats(r.mirror.map((m) => m.gross)), long_trades: r.mirror.filter((m) => m.side === "LONG").length, short_trades: r.mirror.filter((m) => m.side === "SHORT").length,
         modelled_net_after_fees: r.mirror.reduce((s, m) => s + m.modelledNet, 0) },
     }];

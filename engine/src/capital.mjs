@@ -37,6 +37,7 @@ export class FleetLedgerSim {
     this.trades = [];           // closed trades (authoritative results)
     this.fills = [];            // every fill with its fee record
     this.sweeps = [];           // profit transfers to MAIN
+    this.reductions = [];       // entries whose quantity was reduced to fit the wallet at the fill price
     this.allocations = [];
     this.paused = new Set();
     this.settled = new Set();   // settlement keys (idempotency)
@@ -67,15 +68,27 @@ export class FleetLedgerSim {
     if (this.paused.has(botId)) return "BOT_ENTRIES_PAUSED";
     if (this.positions.has(botId)) return "POSITION_ALREADY_OPEN";
     const px = refPrice * (1 + (side === "LONG" ? 1 : -1) * this.slippagePct / 100);
-    const notional = toMicro(qty * px);
-    const fee = Math.round(notional * this.feePct / 100);
+    const requestedQty = qty;
+    let notional = toMicro(qty * px);
+    let fee = Math.round(notional * this.feePct / 100);
+    // Same rule as the Worker (bot_ledger.ts): the fill price can exceed the sizing headroom, so the quantity is
+    // REDUCED (never raised) to what this bot's own wallet can pay, floored to the venue step; refused only below the minimum.
+    const spec = meta.instrument ?? null;
+    if (spec && notional + fee > w.available) {
+      const d = spec.qtyDecimals ?? 8;
+      const fit = Math.floor((w.available / 1e6 / (px * (1 + this.feePct / 100))) * 10 ** d) / 10 ** d;
+      const fitN = toMicro(fit * px), fitFee = Math.round(fitN * this.feePct / 100);
+      if (fit >= (spec.minQty ?? 0) && fitN >= toMicro(spec.minNotional ?? 0) && fitN + fitFee <= w.available) { qty = fit; notional = fitN; fee = fitFee; }
+    }
     const L = this.limits;
     if (L.maxOrderNotional && notional > toMicro(L.maxOrderNotional)) return "MAX_ORDER_NOTIONAL";
     if (L.maxOpenPositions && this.positions.size >= L.maxOpenPositions) return "MAX_OPEN_POSITIONS";
     if (L.maxTotalExposure && this.totalReservedMicro() + notional > toMicro(L.maxTotalExposure)) return "MAX_TOTAL_EXPOSURE";
     if (notional + fee > w.available) return "INSUFFICIENT_BOT_CAPITAL";
     w.available -= notional + fee; w.reserved += notional; w.fees += fee;
-    this.positions.set(botId, { botId, side, qty, entry: px, collateral: notional, entryFee: fee, ...meta });
+    const { instrument: _spec, ...rest } = meta;
+    this.positions.set(botId, { botId, side, qty, requestedQty, reduced: qty !== requestedQty, entry: px, collateral: notional, entryFee: fee, ...rest });
+    if (qty !== requestedQty) this.reductions.push({ botId, side, requestedQty, qty, price: px, openTime: meta.openTime ?? null });
     this.fills.push({ botId, kind: "ENTRY", side, qty, price: px, notional, fee });
     this.peakConcurrent = Math.max(this.peakConcurrent, this.positions.size);
     return null;

@@ -1,0 +1,147 @@
+{
+ "label": "LOCAL TEST screenshots: local Worker, fresh D1, TEST orders, recorded Kraken candles (real timestamps) via a local stub. NOT production data.",
+ "viewport": "402 px",
+ "generated_at": "2026-11-12T23:40:58.513Z",
+ "screenshots": [
+  {
+   "file": "LOCAL-TEST-home-light.png",
+   "path": "/",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 3532
+  },
+  {
+   "file": "LOCAL-TEST-bots-light.png",
+   "path": "/bots",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 2768
+  },
+  {
+   "file": "LOCAL-TEST-bot-chart-ALPHA-01-light.png",
+   "path": "/bots/ALPHA-01/chart",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 1246
+  },
+  {
+   "file": "LOCAL-TEST-trades-bot-ALPHA-01-light.png",
+   "path": "/trades?bot=ALPHA-01",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 1521
+  },
+  {
+   "file": "LOCAL-TEST-trades-signal-light.png",
+   "path": "/trades?signal=<first ALPHA-01 trade>",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 874
+  },
+  {
+   "file": "LOCAL-TEST-performance-bot-ALPHA-01-light.png",
+   "path": "/performance?bot=ALPHA-01",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 1053
+  },
+  {
+   "file": "LOCAL-TEST-bot-trade-proof-light.png",
+   "path": "/bots/trade/<first ALPHA-01 trade>",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 2272
+  },
+  {
+   "file": "LOCAL-TEST-activity-light.png",
+   "path": "/activity",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 874
+  },
+  {
+   "file": "LOCAL-TEST-settings-notifications-light.png",
+   "path": "/settings",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 3444
+  },
+  {
+   "file": "LOCAL-TEST-assistant-light.png",
+   "path": "/",
+   "theme": "light",
+   "horizontal_overflow": false,
+   "page_height": 3532
+  },
+  {
+   "file": "LOCAL-TEST-home-dark.png",
+   "path": "/",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 3532
+  },
+  {
+   "file": "LOCAL-TEST-bots-dark.png",
+   "path": "/bots",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 2768
+  },
+  {
+   "file": "LOCAL-TEST-bot-chart-ALPHA-01-dark.png",
+   "path": "/bots/ALPHA-01/chart",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 1246
+  },
+  {
+   "file": "LOCAL-TEST-trades-bot-ALPHA-01-dark.png",
+   "path": "/trades?bot=ALPHA-01",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 1521
+  },
+  {
+   "file": "LOCAL-TEST-trades-signal-dark.png",
+   "path": "/trades?signal=<first ALPHA-01 trade>",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 874
+  },
+  {
+   "file": "LOCAL-TEST-performance-bot-ALPHA-01-dark.png",
+   "path": "/performance?bot=ALPHA-01",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 1053
+  },
+  {
+   "file": "LOCAL-TEST-bot-trade-proof-dark.png",
+   "path": "/bots/trade/<first ALPHA-01 trade>",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 2272
+  },
+  {
+   "file": "LOCAL-TEST-activity-dark.png",
+   "path": "/activity",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 874
+  },
+  {
+   "file": "LOCAL-TEST-settings-notifications-dark.png",
+   "path": "/settings",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 3444
+  },
+  {
+   "file": "LOCAL-TEST-assistant-dark.png",
+   "path": "/",
+   "theme": "dark",
+   "horizontal_overflow": false,
+   "page_height": 3532
+  }
+ ]
+}

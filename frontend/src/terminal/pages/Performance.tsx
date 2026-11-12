@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { BotChips, BotPerformanceView } from "../components/BotTradesView";
+import { tradeFilter } from "../botTrades";
+import { AlphaPaperPerformance } from "../components/AlphaPaperPerformance";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { costMoney, NA, money, pct, signedMoney, tone, when } from "../fmt";
 import type { VerifiedTrade } from "../types";
@@ -106,6 +109,8 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
   const m = v.data ? computeMetrics(v.data.trades, range, now, funded) : null;
   const idx = RANGES.indexOf(range);
   const engineSim = d?.bot?.status?.trades ?? null;
+  const [params] = useSearchParams();
+  const botFilter = tradeFilter(params).bot;
 
   return (
     <div className="page-narrow m-stagger">
@@ -114,6 +119,9 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
         <h1 className="page-title">Verified performance</h1>
         <p className="page-sub">Closed ALPHA PAPER ledger trades only · simulated, not broker money</p>
       </div>
+      <BotChips base="/performance" active={botFilter} />
+      {botFilter ? <BotPerformanceView bot={botFilter} /> : <>
+      {d?.paper ? <AlphaPaperPerformance paper={d.paper} /> : null}
 
       <div className="seg" role="tablist" style={{ ["--i" as string]: idx, ["--n" as string]: RANGES.length }}>
         <span className="seg-pill" aria-hidden />
@@ -178,6 +186,7 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
             </section>
           </>
         )}
+      </>}
     </div>
   );
 }

@@ -60,6 +60,13 @@ const limit = (v: string | undefined) => { const n = Number(v); return Number.is
 const feeMicro = (notionalMicro: number) => Math.round((notionalMicro * FEE_MODEL.ratePct) / 100);
 const ORDER_ID_RE = /^[\x21-\x7E]{8,160}$/;
 
+/** Before migration 0007 (production schema 6) there is no bot ledger: every bot route answers a clear 409, never a 5xx. */
+async function botLedgerInstalled(db: D1Database): Promise<boolean> {
+  const r = await db.prepare(`SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'table' AND name IN ('bots', 'bot_positions', 'bot_orders', 'bot_fills')`).first<{ n: number }>().catch(() => null);
+  return Number(r?.n ?? 0) === 4;
+}
+const NOT_INSTALLED = () => json({ ok: false, code: "BOT_LEDGER_NOT_INSTALLED", message: "The bot ledger (migration 0007) is not applied; no funded bot trading is possible." }, 409);
+
 async function readJson(request: Request): Promise<Record<string, unknown> | null> {
   const text = await request.text();
   if (text.length > 16_384) return null;
@@ -99,6 +106,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   if (!body) return json({ ok: false, code: "INVALID_JSON" }, 400);
   if (typeof body.secret !== "string" || !(await secureEqual(body.secret, env.WEBHOOK_SECRET))) return json({ ok: false, code: "UNAUTHORIZED" }, 401);
   const db = env.DB;
+  if (!(await botLedgerInstalled(db))) return NOT_INSTALLED();
   const orderId = typeof body.order_id === "string" ? body.order_id : "";
   const botId = typeof body.bot_id === "string" ? body.bot_id : "";
   const action = String(body.action ?? "");
@@ -146,9 +154,11 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     return reject(db, { ...ctx, code: "INVALID_QTY", message: `quantity must be positive with at most ${venue.decimals} decimals` }, 400);
   }
   if (qtyIn < venue.minQty) return reject(db, { ...ctx, code: "BELOW_MIN_QTY", message: `${qtyIn} is below the ${symbol} minimum of ${venue.minQty}` });
-  const notional = toMicro(qtyIn * px);
+  const requestedQty = qtyIn;
+  let qty = qtyIn;
+  let notional = toMicro(qty * px);
   if (notional < toMicro(venue.minNotional)) return reject(db, { ...ctx, code: "BELOW_MIN_COST", message: `order value $${fromMicro(notional)} is below the $${venue.minNotional} minimum` });
-  const fee = feeMicro(notional);
+  let fee = feeMicro(notional);
   const maxOrder = limit(env.MAX_ORDER_NOTIONAL);
   if (maxOrder !== null && notional > toMicro(maxOrder)) return reject(db, { ...ctx, code: "MAX_ORDER_NOTIONAL", message: `order value $${fromMicro(notional)} exceeds the $${maxOrder} limit` });
   const acct = await accountExposure(db);
@@ -157,25 +167,37 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   if (maxTotal !== null && acct.reservedMicro + notional > toMicro(maxTotal)) return reject(db, { ...ctx, code: "MAX_TOTAL_EXPOSURE", message: `account exposure would exceed $${maxTotal}` });
   const w = await db.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number }>();
   if (!w) return reject(db, { ...ctx, code: "NO_WALLET", message: `${botId} has no wallet` });
+  let reducedNote: string | null = null;
+  if (notional + fee > Number(w.available_micro)) {
+    // The engine sized at its planned price; the ledger fills at the live reference price. When the market has moved
+    // beyond the sizing headroom, the quantity is REDUCED (never raised) to what this bot's own wallet can pay, floored
+    // to the venue's step. Refused only if even the reduced size is below the venue minimum.
+    const fit = Math.floor((Number(w.available_micro) / 1e6 / (px * (1 + FEE_MODEL.ratePct / 100))) * 10 ** venue.decimals) / 10 ** venue.decimals;
+    const fitNotional = toMicro(fit * px);
+    if (fit >= venue.minQty && fitNotional >= toMicro(venue.minNotional) && fitNotional + feeMicro(fitNotional) <= Number(w.available_micro)) {
+      reducedNote = `quantity reduced from ${requestedQty} to ${fit} to fit ${botId}'s available $${fromMicro(Number(w.available_micro))} at the fill price ${px}`;
+      qty = fit; notional = fitNotional; fee = feeMicro(fitNotional);
+    }
+  }
   if (notional + fee > Number(w.available_micro)) {
     return reject(db, { ...ctx, code: "INSUFFICIENT_BOT_CAPITAL", message: `${botId} has $${fromMicro(w.available_micro)} available; this ${action === "OPEN_LONG" ? "LONG costs" : "SHORT needs collateral of"} $${fromMicro(notional)} + fee $${fromMicro(fee)}. Another bot's capital is never used.` });
   }
   const side = action === "OPEN_LONG" ? "LONG" : "SHORT";
   const tradeId = orderId;
   const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
-  const note = `${side} ${qtyIn} @ ${px}: ${side === "LONG" ? "purchase cost reserved" : "short collateral posted (simulated, fully collateralised)"}`;
+  const note = `${side} ${qty} @ ${px}: ${side === "LONG" ? "purchase cost reserved" : "short collateral posted (simulated, fully collateralised)"}${reducedNote ? `; ${reducedNote}` : ""}`;
   try {
     await db.batch([
       db.prepare(`INSERT INTO bot_orders (order_id, bot_id, action, symbol, requested_qty, status, code, message, trade_id, received_at, payload_json)
-                  VALUES (?, ?, ?, ?, ?, 'ACCEPTED', 'DRY_RUN_ACCEPTED', ?, ?, ?, ?)`).bind(orderId, botId, action, symbol, qtyIn, note, tradeId, now, payload.slice(0, 4000)),
+                  VALUES (?, ?, ?, ?, ?, 'ACCEPTED', 'DRY_RUN_ACCEPTED', ?, ?, ?, ?)`).bind(orderId, botId, action, symbol, requestedQty, note, tradeId, now, payload.slice(0, 4000)),
       db.prepare(`INSERT INTO bot_positions (trade_id, bot_id, symbol, side, status, qty, entry_price, entry_fee_micro, collateral_micro, stop, tp, risk_usd,
                     profile, inputs_hash, fee_model, opened_at, mark_price, mark_at)
                   VALUES (?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .bind(tradeId, botId, symbol, side, qtyIn, px, fee, notional, num(body.stop), num(body.tp), num(body.risk_usd), bot.profile,
+        .bind(tradeId, botId, symbol, side, qty, px, fee, notional, num(body.stop), num(body.tp), num(body.risk_usd), bot.profile,
           typeof body.config_hash === "string" ? body.config_hash.slice(0, 32) : bot.inputs_hash, FEE_MODEL.id, now, px, price.at),
       db.prepare(`INSERT INTO bot_fills (fill_id, bot_id, trade_id, kind, side, qty, price, notional_micro, fee_rate_pct, fee_micro, fee_currency, fee_model, price_source, price_at, filled_at)
                   VALUES (?, ?, ?, 'ENTRY', ?, ?, ?, ?, ?, ?, 'USD', ?, ?, ?, ?)`)
-        .bind(orderId, botId, tradeId, side, qtyIn, px, notional, FEE_MODEL.ratePct, fee, FEE_MODEL.id, price.source, price.at, now),
+        .bind(orderId, botId, tradeId, side, qty, px, notional, FEE_MODEL.ratePct, fee, FEE_MODEL.id, price.source, price.at, now),
       // CHECK (available_micro >= 0) fails the whole transaction if the bot's own wallet cannot pay.
       db.prepare(`UPDATE portfolio_wallets SET available_micro = available_micro - ?, reserved_micro = reserved_micro + ?, fees_micro = fees_micro + ?, updated_at = ? WHERE wallet = ?`)
         .bind(notional + fee, notional, fee, now, bot.wallet),
@@ -191,7 +213,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     return json({ ok: false, status: "error", code: "LEDGER_ERROR", message: `nothing was committed: ${msg.slice(0, 200)}` }, 500);
   }
   return json({ ok: true, status: "dry_run", code: "DRY_RUN_ACCEPTED", mode: "PAPER", broker_request_sent: false,
-    data: { trade_id: tradeId, bot_id: botId, side, qty: qtyIn, price: px, price_source: price.source, notional_usd: fromMicro(notional), fee_usd: fromMicro(fee), fee_model: FEE_MODEL.id } });
+    data: { trade_id: tradeId, bot_id: botId, side, qty, requested_qty: requestedQty, reduced_to_fit: reducedNote !== null, price: px, price_source: price.source, notional_usd: fromMicro(notional), fee_usd: fromMicro(fee), fee_model: FEE_MODEL.id } });
 }
 
 async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
@@ -271,6 +293,7 @@ export async function handleBotLedger(request: Request, env: BotLedgerEnv): Prom
   const body = await readJson(request);
   if (!body) return json({ ok: false, code: "INVALID_JSON" }, 400);
   if (typeof body.secret !== "string" || !(await secureEqual(body.secret, env.WEBHOOK_SECRET))) return json({ ok: false, code: "UNAUTHORIZED" }, 401);
+  if (!(await botLedgerInstalled(env.DB))) return NOT_INSTALLED();
   const botId = typeof body.bot_id === "string" ? body.bot_id : "";
   const bot = BOT_ID_RE.test(botId) ? await env.DB.prepare(`SELECT * FROM bots WHERE bot_id = ?`).bind(botId).first<BotRow>() : null;
   if (!bot) return json({ ok: false, code: "UNKNOWN_BOT" }, 400);
@@ -314,6 +337,7 @@ async function groupBots(db: D1Database, group: string) {
 
 /** Preview (read-only): how an allocation to a group would split. */
 export async function allocationPreview(db: D1Database, group: string, amountUsd: number) {
+  if (!(await botLedgerInstalled(db))) return { group, amount_usd: amountUsd, available: false, main_available_usd: null, affordable: false, split: [] };
   const bots = await groupBots(db, group);
   const main = await db.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = 'MAIN'`).first<{ available_micro: number }>();
   const amount = toMicro(amountUsd);
@@ -324,6 +348,7 @@ export async function allocationPreview(db: D1Database, group: string, amountUsd
 /** Owner actions; the caller (portfolio.ts handlePaperApi) has already checked the session, origin and passphrase. */
 export async function handleBotOwnerAction(env: BotLedgerEnv, pathname: string, body: Record<string, unknown>): Promise<Response> {
   const db = env.DB;
+  if (!(await botLedgerInstalled(db))) return NOT_INSTALLED();
   const requestId = typeof body.request_id === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(body.request_id) ? body.request_id : null;
   if (!requestId) return json({ ok: false, code: "INVALID_REQUEST", message: "request_id is required" }, 400);
   const now = new Date().toISOString();

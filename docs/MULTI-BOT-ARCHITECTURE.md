@@ -87,7 +87,18 @@ SOL 5m keeps TP2 `+0.25`. Profiles mirror the owner's TradingView inputs, and un
 - `frontend/src/terminal/bots.test.tsx`: 13 tests.
 - Plus the full suites (see the release notes).
 
-## 8. Staged rollout (each stage needs its own owner approval)
+## 8. Staged rollout — REVISED 2026-11-12 by the technical director (supersedes the table below)
+
+| Stage | Content | Production change |
+|---|---|---|
+| R1 | Complete the release candidate; fix known errors; full tests | none |
+| R2 | External parity (needs TradingView List of Trades + Properties) and research | none |
+| R3 | Read-only infrastructure release: dashboard reliability, selector, sync, UI cleanup, bot views, charts, assistant, compatible notifications. **No new funded trading.** Must work on schema 6 with the current engine. | Worker deploy (approval) |
+| R4 | Migration rehearsal on a private copy (production export only with approval) | none |
+| R5 | All four exact profiles as hypothetical Strategy Mirrors (no wallet money) | engine release (approval) |
+| R6 | Selective small funded PAPER experiments, one bot at a time, labelled experiments | per-bot approval |
+
+### Superseded original plan (each stage needs its own owner approval)
 
 | Stage | Change | Verification |
 |---|---|---|

@@ -69,7 +69,11 @@ export function PortfolioSummaryCard({ portfolio }: { portfolio: PaperPortfolio 
           <div className="pf-figs">
             <div><span>Book balance</span><b>{money(t.book_balance_usd)}</b></div>
             <div><span>Unallocated</span><b>{money(t.unallocated_usd)}</b></div>
-            <div><span>Realized P&amp;L</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
+            {t.fees_usd !== undefined ? (
+              // Same net as the hero and the Funded PAPER tab: gross realized minus recorded fees.
+              <div><span>Realized net P&amp;L</span><b className={`t-${tone(t.net_realized_pnl_usd ?? t.realized_pnl_usd - t.fees_usd)}`}>{signedMoney(t.net_realized_pnl_usd ?? t.realized_pnl_usd - t.fees_usd)}</b>
+                <i className="pm-n">gross {signedMoney(t.realized_pnl_usd)} · fees {money(t.fees_usd)}</i></div>
+            ) : <div><span>Realized P&amp;L</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>}
           </div>
         </div>
       )}

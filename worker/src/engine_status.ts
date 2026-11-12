@@ -9,6 +9,13 @@ import { botSettingsExchange } from "./bot_ledger";
 import { secureEqual } from "./trade_core";
 import { getInstrument } from "./instruments";
 import { engineSettingsExchange } from "./portfolio";
+import { lifecycleEvents, recordLifecycle } from "./events";
+
+/** The bot's previous report (for lifecycle changes), read before the new one replaces it. */
+async function previousReport(db: D1Database, botId: string): Promise<Record<string, unknown> | null> {
+  const row = await db.prepare(`SELECT value FROM app_meta WHERE key = ?`).bind(`engine_status:${botId}`).first<{ value: string }>().catch(() => null);
+  try { return row ? JSON.parse(row.value) : null; } catch { return null; }
+}
 
 interface EngineStatusEnv {
   DB: D1Database;
@@ -116,18 +123,27 @@ export async function handleEngineStatus(request: Request, env: EngineStatusEnv)
     if (fleet && fleet.ledger_api === "bot") {
       if (fleet.symbol !== status.symbol || `${fleet.timeframe_min}m` !== status.timeframe) return json({ ok: false, code: "BOT_MISMATCH", message: `${fleet.bot_id} is ${fleet.symbol} ${fleet.timeframe_min}m` }, 400);
       const rec = { ...status, bot_id: fleet.bot_id, received_at: new Date().toISOString() };
+      const prev = await previousReport(env.DB, fleet.bot_id);
       await env.DB.prepare(`INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`).bind(`engine_status:${fleet.bot_id}`, JSON.stringify(rec)).run();
       const settings = await botSettingsExchange(env.DB, fleet, raw.bot_risk);
+      const tf = `${fleet.timeframe_min}m`;
+      await recordLifecycle(env.DB, { bot_id: fleet.bot_id, name: fleet.name, symbol: fleet.symbol, timeframe: tf }, lifecycleEvents(prev, rec as unknown as Record<string, unknown>, { bot_id: fleet.bot_id, name: fleet.name, timeframe: tf }));
       return json({ ok: true, mode: "PAPER", broker_request_sent: false, settings });
     }
   }
   const who = await resolveOwner(env.DB, { bot_id: raw.bot_id, timeframe: raw.timeframe }, status.symbol);
   if (!who.ok) return json({ ok: false, code: who.code, message: who.message }, 400);
   const record = { ...status, bot_id: who.owner || null, received_at: new Date().toISOString() };
+  const prevLegacy = who.bot ? await previousReport(env.DB, who.bot.bot_id) : null;
   for (const key of who.bot ? statusKeys(who.bot) : [KEY]) {
     await env.DB.prepare(
       `INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`
     ).bind(key, JSON.stringify(record)).run();
+  }
+  if (who.bot) {
+    const tf = `${who.bot.timeframe_min}m`;
+    await recordLifecycle(env.DB, { bot_id: who.bot.bot_id, name: who.bot.name, symbol: who.bot.symbol, timeframe: tf },
+      lifecycleEvents(prevLegacy, record as unknown as Record<string, unknown>, { bot_id: who.bot.bot_id, name: who.bot.name, timeframe: tf }));
   }
   // Risk setting handshake: only engines that opted in (remote_settings) confirm and receive website settings.
   const settings = status.remote_settings

@@ -48,10 +48,12 @@ export interface Prefs {
   funded_entry: boolean; funded_close: boolean; mirror_entry: boolean; mirror_close: boolean;
   include_pnl: boolean; hide_amounts: boolean;
   include_catch_up: boolean; include_historical: boolean;
+  bot_orders: boolean;  // a bot's limit order pending / cancelled (from its own engine reports)
+  bot_stops: boolean;   // a bot's stop moved to break-even / trailing stop moved
   muted_bots?: string[];
 }
 export const DEFAULT_PREFS: Prefs = {
-  enabled: true, funded_entry: true, funded_close: true, mirror_entry: true, mirror_close: true, muted_bots: [],
+  enabled: true, funded_entry: true, funded_close: true, mirror_entry: true, mirror_close: true, bot_orders: true, bot_stops: true, muted_bots: [],
   include_pnl: true, hide_amounts: false,
   // Only genuine live events by default: no flood from warm-up replays or catch-up after the PC was off.
   include_catch_up: false, include_historical: false,
@@ -76,6 +78,8 @@ export function wants(p: Prefs, e: { kind: string; classification: string; ref?:
   if (e.kind === "FUNDED_CLOSE" || e.kind === "FUNDED_REDUCE") return p.funded_close;
   if (e.kind === "MIRROR_ENTRY") return p.mirror_entry;
   if (e.kind === "MIRROR_CLOSE") return p.mirror_close;
+  if (e.kind === "ORDER_PENDING" || e.kind === "ORDER_CANCELLED") return p.bot_orders;
+  if (e.kind === "STOP_TO_BREAK_EVEN" || e.kind === "TRAILING_STOP_MOVED") return p.bot_stops;
   return false;
 }
 
@@ -111,6 +115,20 @@ export function message(e: EventRow, p: Prefs): { title: string; body: string; u
         n(e.pnl) !== null ? `Net ${usd(e.pnl!)}` : null, n(d.swept) !== null ? `Transferred to MAIN $${n(d.swept)!.toFixed(2)}` : null].filter(Boolean) : [];
       return { ...base, title: head, body: `PAPER ${String(e.side)} closed${parts.length ? ` · ${parts.join(" · ")}` : ""}` };
     }
+    if (e.kind === "ORDER_PENDING") {
+      const parts = amounts ? [e.price !== null ? `Limit $${px(e.price)}` : null, e.qty !== null ? `Qty ${qty(e.qty)}` : null,
+        n(d.stop) !== null ? `Stop $${px(n(d.stop)!)}` : null, n(d.tp) !== null ? `Target $${px(n(d.tp)!)}` : null].filter(Boolean) : [];
+      return { ...base, title: head, body: `${String(e.side)} limit order pending${parts.length ? ` · ${parts.join(" · ")}` : ""} · not filled yet` };
+    }
+    if (e.kind === "ORDER_CANCELLED") {
+      return { ...base, title: head, body: `${String(e.side)} pending order cancelled before a fill${amounts && e.price !== null ? ` · limit was $${px(e.price)}` : ""}${d.reason ? ` · ${String(d.reason)}` : ""}` };
+    }
+    if (e.kind === "STOP_TO_BREAK_EVEN") {
+      return { ...base, title: head, body: `${String(e.side)} stop moved to break-even${amounts && e.price !== null ? ` · stop $${px(e.price)}` : ""}` };
+    }
+    if (e.kind === "TRAILING_STOP_MOVED") {
+      return { ...base, title: head, body: `${String(e.side)} trailing stop moved${amounts && e.price !== null ? ` to $${px(e.price)}` : ""}${amounts && n(d.previous_stop) !== null ? ` (was $${px(n(d.previous_stop)!)})` : ""}` };
+    }
     if (e.kind === "MIRROR_ENTRY" || e.kind === "MIRROR_CLOSE") {
       const what = e.kind === "MIRROR_ENTRY" ? `${e.side} opened` : `closed${pnl && e.pnl !== null ? ` · ${usd(e.pnl)} hypothetical gross` : ""}`;
       return { ...base, title: head, body: `STRATEGY MIRROR (hypothetical) ${what}${label} · not an order` };
@@ -131,6 +149,65 @@ export function message(e: EventRow, p: Prefs): { title: string; body: string; u
         body: `${pnl && e.pnl_net !== null ? `Modelled net ${usd(e.pnl_net)} (estimated costs) · ` : ""}Hypothetical, not executable performance` };
     default:
       return { ...base, title: "ALPHA TERMINAL · test notification", body: "Notifications work on this device. Delivery depends on device settings and the push service." };
+  }
+}
+
+// ------------------------------------------------------------------ bot lifecycle (from a bot's own engine reports)
+
+export interface LifecycleEvent { key: string; kind: "ORDER_PENDING" | "ORDER_CANCELLED" | "STOP_TO_BREAK_EVEN" | "TRAILING_STOP_MOVED"; side: string; qty: number | null;
+  price: number | null; occurred_at: string; detail: Obj }
+const numOr = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+/**
+ * The lifecycle changes between a bot's previous and current engine report: a new pending limit order, a pending order
+ * that disappeared without a fill, the stop moved to break-even, the trailing stop moved. Only what the engine recorded
+ * in its structured strategy_state; nothing is inferred from text. Keys are deterministic, so a repeated report never
+ * creates a second event.
+ */
+export function lifecycleEvents(prev: Obj | null, next: Obj, bot: { bot_id: string; name: string; timeframe: string }): LifecycleEvent[] {
+  const st = (next.strategy_state && typeof next.strategy_state === "object" ? next.strategy_state : null) as Obj | null;
+  const ps = (prev?.strategy_state && typeof prev.strategy_state === "object" ? prev.strategy_state : null) as Obj | null;
+  if (!st) return [];
+  const at = typeof next.last_candle_time === "string" ? next.last_candle_time : new Date().toISOString();
+  const pos = (next.position && typeof next.position === "object" ? next.position : null) as Obj | null;
+  const out: LifecycleEvent[] = [];
+  const base = { bot_name: bot.name, timeframe: bot.timeframe };
+  const po = (st.pending_order && typeof st.pending_order === "object" ? st.pending_order : null) as Obj | null;
+  const ppo = (ps?.pending_order && typeof ps.pending_order === "object" ? ps.pending_order : null) as Obj | null;
+  const orderKey = (o: Obj, s: Obj | null) => `${bot.bot_id}:${String(o.side)}:${numOr(s?.leg_start)}:${numOr(s?.leg_end)}:${numOr(o.limit)}:${numOr(o.stop)}`;
+  if (po && (!ppo || orderKey(po, st) !== orderKey(ppo, ps))) {
+    out.push({ key: `BOTPEND:${orderKey(po, st)}`, kind: "ORDER_PENDING", side: String(po.side), qty: numOr(po.qty), price: numOr(po.limit), occurred_at: at,
+      detail: { ...base, stop: numOr(po.stop), tp: numOr(po.tp) } });
+  }
+  if (ppo && (!po || orderKey(po, st) !== orderKey(ppo, ps)) && !pos) {
+    out.push({ key: `BOTCANCEL:${orderKey(ppo, ps)}`, kind: "ORDER_CANCELLED", side: String(ppo.side), qty: numOr(ppo.qty), price: numOr(ppo.limit), occurred_at: at,
+      detail: { ...base, stop: numOr(ppo.stop), tp: numOr(ppo.tp), reason: po ? "replaced by a new setup" : "setup expired or invalidated (engine record)" } });
+  }
+  if (pos && pos.side) {
+    const tradeKey = `${bot.bot_id}:${String(pos.side)}:${numOr(pos.entry)}`;
+    const stop = numOr(st.current_stop);
+    if (st.break_even_done === true && ps?.break_even_done !== true) {
+      out.push({ key: `BOTBE:${tradeKey}`, kind: "STOP_TO_BREAK_EVEN", side: String(pos.side), qty: numOr(pos.qty), price: stop, occurred_at: at, detail: { ...base, entry: numOr(pos.entry) } });
+    }
+    if (st.trailing === true && stop !== null && stop !== numOr(ps?.current_stop)) {
+      out.push({ key: `BOTTRAIL:${tradeKey}:${stop}`, kind: "TRAILING_STOP_MOVED", side: String(pos.side), qty: numOr(pos.qty), price: stop, occurred_at: at,
+        detail: { ...base, entry: numOr(pos.entry), previous_stop: numOr(ps?.current_stop) } });
+    }
+  }
+  return out;
+}
+
+/** Records lifecycle events (INSERT OR IGNORE by key). Before the schema allows these kinds it records nothing. */
+export async function recordLifecycle(db: D1Database, bot: { bot_id: string; name: string; symbol: string; timeframe: string }, events: LifecycleEvent[], now = new Date().toISOString()): Promise<number> {
+  if (!events.length || !(await ready(db))) return 0;
+  try {
+    await db.batch(events.map((e) => db.prepare(
+      `INSERT OR IGNORE INTO trade_events (event_key, kind, source, symbol, side, qty, price, pnl, pnl_net, fees, classification, ref, account_id, url, occurred_at, created_at, bot_id, detail_json)
+       VALUES (?, ?, 'funded', ?, ?, ?, ?, NULL, NULL, NULL, 'live', NULL, NULL, ?, ?, ?, ?, ?)`).bind(
+      e.key, e.kind, bot.symbol, e.side, e.qty, e.price, `/bots/${encodeURIComponent(bot.bot_id)}/chart`, e.occurred_at, now, bot.bot_id, JSON.stringify(e.detail))));
+    return events.length;
+  } catch {
+    return 0; // schema before migration 0007 (kind CHECK / columns): lifecycle notifications are simply not recorded yet
   }
 }
 
@@ -204,7 +281,7 @@ export async function syncTradeEvents(db: D1Database, now = new Date().toISOStri
         `BOTFILL:${f.id}`, exit ? "FUNDED_CLOSE" : "FUNDED_ENTRY", String(f.symbol), String(f.side), Number(f.qty), Number(f.price),
         exit && f.net_pnl_micro !== null ? Number(f.net_pnl_micro) / 1e6 : null, exit && f.net_pnl_micro !== null ? Number(f.net_pnl_micro) / 1e6 : null,
         exit ? (Number(f.entry_fee_micro ?? 0) + Number(f.exit_fee_micro ?? 0)) / 1e6 : Number(f.fee_micro) / 1e6,
-        String(f.trade_id), `/bots?bot=${encodeURIComponent(String(f.bot_id))}`, String(f.filled_at), now, String(f.bot_id), JSON.stringify(detail)));
+        String(f.trade_id), `/bots/trade/${encodeURIComponent(String(f.trade_id))}`, String(f.filled_at), now, String(f.bot_id), JSON.stringify(detail)));
     }
     if (botFills.length) cursor("bot_fills", Number(botFills[botFills.length - 1].id));
     // Mirror events of a fleet bot carry the bot label too (the account's bot, migration 0007).

@@ -12,6 +12,8 @@ const TYPE_ROWS: { k: keyof NotifyPrefs; t: string; s: string }[] = [
   { k: "funded_close", t: "ALPHA PAPER exits", s: "Closed PAPER trades, P&L from the ledger after fees" },
   { k: "mirror_entry", t: "Strategy Mirror entries", s: "Hypothetical fills of the original strategy" },
   { k: "mirror_close", t: "Strategy Mirror exits", s: "Hypothetical gross result, plus modelled net" },
+  { k: "bot_orders", t: "Bot pending orders", s: "A bot placed a limit order, or it was cancelled before a fill" },
+  { k: "bot_stops", t: "Bot stop changes", s: "Stop moved to break-even, trailing stop moved" },
 ];
 const DETAIL_ROWS: { k: keyof NotifyPrefs; t: string; s: string }[] = [
   { k: "include_pnl", t: "Include P&L", s: "Show the result in exit notifications" },
@@ -23,7 +25,7 @@ const DETAIL_ROWS: { k: keyof NotifyPrefs; t: string; s: string }[] = [
 function Switch({ k, t, s, prefs, onChange, disabled }: { k: keyof NotifyPrefs; t: string; s: string; prefs: NotifyPrefs; onChange: (k: keyof NotifyPrefs, v: boolean) => void; disabled?: boolean }) {
   return (
     <label className="remember nt-row">
-      <input type="checkbox" checked={prefs[k]} disabled={disabled} onChange={(e) => onChange(k, e.target.checked)} />
+      <input type="checkbox" checked={prefs[k] ?? true} disabled={disabled} onChange={(e) => onChange(k, e.target.checked)} />
       <span className="remember-switch" aria-hidden />
       <span className="remember-text">
         <b>{t}</b>

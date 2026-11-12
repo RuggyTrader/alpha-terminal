@@ -96,7 +96,7 @@ function validateAccount(a: unknown): Account | string {
   }
   if (isObj(a.last_error)) health.last_error = { at: isoOrNull(a.last_error.at), where: str(a.last_error.where, 40), message: str(String(a.last_error.message ?? ""), 240) };
   return {
-    account_id: id, symbol, timeframe, tfMs: Number(m[1]) * 60_000, profile: str(a.profile, 40), strategy: str(a.strategy, 64),
+    account_id: id, symbol, timeframe: m[0], tfMs: Number(m[1]) * 60_000, profile: str(a.profile, 40), strategy: str(a.strategy, 64),
     inputs_hash: inputs, engine_version: str(a.engine_version, 20), engine_release: str(a.engine_release, 40), engine_commit: str(a.engine_commit, 40),
     created_at: isoOrNull(a.created_at), activated_at: isoOrNull(a.activated_at), last_candle_time: isoOrNull(a.last_candle_time),
     last_candle_close: fin(a.last_candle_close) ? a.last_candle_close : null, candles_processed: fin(a.candles_processed) ? a.candles_processed : null,

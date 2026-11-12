@@ -1,0 +1,16 @@
+{
+  "_label": "RESEARCH ONLY. These variants never replace, edit or run as the four original profiles (engine/profiles/*.env, hashes unchanged). None may become an active bot without the owner's approval. Each variant = an original profile + listed overrides, or a post-hoc filter (marked APPROXIMATION: dropping a trade after the fact ignores the setups the strategy could have taken instead).",
+  "base_profiles": ["solusd-5m", "solusd-1m", "btcusd-1m", "btcusd-5m"],
+  "variants": [
+    { "id": "RESEARCH-ORIG", "kind": "original", "note": "the original profile, unchanged (control)" },
+    { "id": "RESEARCH-TF15", "kind": "timeframe", "timeframe_min": 15, "note": "same inputs on 15m candles (higher timeframe: wider stops, larger moves per trade)" },
+    { "id": "RESEARCH-TF30", "kind": "timeframe", "timeframe_min": 30, "note": "same inputs on 30m candles" },
+    { "id": "RESEARCH-NOBE", "kind": "overrides", "overrides": { "useBE": false }, "note": "no break-even move (fewer premature exits)" },
+    { "id": "RESEARCH-NOTRAIL", "kind": "overrides", "overrides": { "useTrail": false }, "note": "no trailing stop" },
+    { "id": "RESEARCH-NOBE-NOTRAIL", "kind": "overrides", "overrides": { "useBE": false, "useTrail": false }, "note": "fixed stop and target only (lowest turnover per setup)" },
+    { "id": "RESEARCH-LATEBE", "kind": "overrides", "overrides": { "beFrac": 0.6 }, "note": "break-even later (60% of the way to target)" },
+    { "id": "RESEARCH-MINTP-0.6", "kind": "posthoc_min_tp_pct", "min_tp_pct": 0.6, "note": "APPROXIMATION: keep trades whose planned target is at least 0.6% away (= 1.5x the 0.40% round-trip cost)" },
+    { "id": "RESEARCH-MINTP-1.0", "kind": "posthoc_min_tp_pct", "min_tp_pct": 1.0, "note": "APPROXIMATION: planned target at least 1.0% away (2.5x round-trip cost)" },
+    { "id": "RESEARCH-MINSTOP-0.5", "kind": "posthoc_min_stop_pct", "min_stop_pct": 0.5, "note": "APPROXIMATION: planned stop at least 0.5% away (fee <= 0.8R at 0.40% round trip)" }
+  ]
+}

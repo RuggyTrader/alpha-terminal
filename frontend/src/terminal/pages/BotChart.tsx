@@ -9,7 +9,8 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { EmptyState, SectionHeader, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp } from "../fmt";
-import { botState, fetchBots, STATE_TONE, type Bot } from "../bots";
+import { botState, STATE_TONE, type Bot } from "../bots";
+import { useFleet } from "../fleetStore";
 
 interface Candle { t: number; o: number; h: number; l: number; c: number; v: number }
 interface Candles { source: string; symbol: string; pair: string; timeframe_min: number; fetched_at: string; candles: Candle[]; forming: Candle | null }
@@ -40,7 +41,10 @@ export function chartFigures(lv: NonNullable<ReturnType<typeof botLevels>>, mark
 
 export function BotChartPage() {
   const { id = "" } = useParams();
-  const [bot, setBot] = useState<Bot | null>(null);
+  // The bot's levels come from the shared fleet snapshot (the same record Bots and Home show: current stop and target).
+  const { fleet } = useFleet();
+  const bot = fleet?.bots.find((x) => x.bot_id === id) ?? null;
+  const sym = bot?.symbol ?? null, tf = bot?.timeframe ?? null;
   const [data, setData] = useState<Candles | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
@@ -53,13 +57,9 @@ export function BotChartPage() {
     let live = true;
     const load = async () => {
       if (document.visibilityState !== "visible") return;
+      if (!sym || !tf) return;
       try {
-        const fleet = await fetchBots();
-        const b = fleet.bots.find((x) => x.bot_id === id) ?? null;
-        if (!live) return;
-        setBot(b);
-        if (!b) { setErr(`${id} is not a registered bot`); return; }
-        const env = await api.get<{ ok: boolean; data?: Candles; code?: string; message?: string }>(`/api/dashboard/candles?symbol=${b.symbol}&tf=${b.timeframe.replace(/\D/g, "")}`);
+        const env = await api.get<{ ok: boolean; data?: Candles; code?: string; message?: string }>(`/api/dashboard/candles?symbol=${sym}&tf=${tf.replace(/\D/g, "")}`);
         if (!live) return;
         if (env?.ok && env.data) { setData(env.data); setErr(null); setRefreshedAt(Date.now()); } else setErr(env?.code ?? "Market data unavailable");
       } catch (e) { if (live) setErr(String((e as Error).message)); }
@@ -68,7 +68,8 @@ export function BotChartPage() {
     const id2 = setInterval(load, 15_000);
     document.addEventListener("visibilitychange", load);
     return () => { live = false; clearInterval(id2); document.removeEventListener("visibilitychange", load); };
-  }, [id]);
+  }, [sym, tf]);
+  useEffect(() => { if (fleet && !bot) setErr(`${id} is not a registered bot`); }, [fleet, bot, id]);
 
   useEffect(() => {
     if (!box.current || chart.current) return;

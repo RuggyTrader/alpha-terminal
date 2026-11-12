@@ -84,7 +84,7 @@ export function buildPipeline({ feed, mirror = null, now }: PipelineInput): Stag
 function market(d: DashboardData, mirror: MirrorOverview | null, now: number): Stage {
   const bot = d.bot;
   const st = bot?.status ?? null;
-  if (!bot || bot.state === "NOT_RUNNING") return stage("market", "Offline", "The OTE engine has never reported to this Worker.");
+  if (!bot || bot.state === "NOT_RUNNING") return stage("market", "Offline", "The legacy ALPHA 02 engine (SOLUSD 5m) has not reported to this Worker; each fleet bot's own state is under Bots.");
   if (bot.state === "OFFLINE") return stage("market", "Offline", `Engine heartbeat lost${bot.age_seconds !== null ? ` ${ago(bot.age_seconds * 1000)}` : ""}.`);
   if (bot.state === "STALE") return stage("market", "Stale", `Engine heartbeat is late${bot.age_seconds !== null ? ` (${ago(bot.age_seconds * 1000)})` : ""}.`);
   const tf = tfMinutes(st?.timeframe);

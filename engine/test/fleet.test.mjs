@@ -299,3 +299,70 @@ describe("combined funded backtest (real candles, own wallets, sweeps, no lookah
     });
   }
 });
+
+describe("regression: ALPHA-01 2026-11-09 11:17 SHORT (limit 86.14, filled at the close 86.75, +0.71% beyond the 0.5% sizing headroom)", () => {
+  const bots = [{ id: "ALPHA-01", group: "SOLANA", priority: 1 }];
+  const sol = getInstrument("SOLUSD");
+  it("the quantity is reduced to fit the bot's own wallet at the fill price, floored to the step; the wallet still reconciles", () => {
+    const L = new FleetLedgerSim({ bots, main: 0 });
+    L.wallet["ALPHA-01"].available = 7_072_010; L.wallet["ALPHA-01"].funding = 7_072_010;
+    assert.equal(L.open("ALPHA-01", "SHORT", 0.08152467, 86.75, { openTime: 1, instrument: sol }), null);
+    const p = L.positions.get("ALPHA-01");
+    assert.ok(p.qty < 0.08152467 && p.reduced === true && p.requestedQty === 0.08152467);
+    assert.equal(p.qty, Math.floor((7.07201 / (86.75 * 1.002)) * 1e8) / 1e8);
+    assert.ok(p.collateral + p.entryFee <= 7_072_010);
+    assert.ok(L.reconciles());
+  });
+  it("refused only when even the reduced size is below the venue minimum", () => {
+    const L = new FleetLedgerSim({ bots, main: 0 });
+    L.wallet["ALPHA-01"].available = 3_000_000; L.wallet["ALPHA-01"].funding = 3_000_000; // $3 buys < 0.05 SOL at 86.75
+    assert.equal(L.open("ALPHA-01", "SHORT", 0.08, 86.75, { openTime: 1, instrument: sol }), "INSUFFICIENT_BOT_CAPITAL");
+    assert.equal(L.positions.size, 0);
+  });
+  it("the real Kraken candles around the event (fixture, 12 h warm-up): no refusal at $10 or $1,000, one reduced entry, reconciles", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const sol1 = JSON.parse(readFileSync(join(here, "fixtures", "SOLUSD-1m-2026-11-08T12_2026-11-09T12.json"), "utf8")).candles;
+    for (const per of [10, 1000]) {
+      const r = runFleetBacktest({ bots: [{ id: "ALPHA-01", group: "SOLANA", symbol: "SOLUSD", intervalMin: 1, priority: 1, candles: sol1, inputs: profileInputs(join(here, ".."), "solusd-1m"), riskUSD: 10 }],
+        main: per, allocations: [{ group: "SOLANA", amountUsd: per }], fromMs: Date.parse("2026-11-09T00:00:00Z") });
+      const f = r.per_bot["ALPHA-01"].funded;
+      assert.deepEqual(f.refused, {}); assert.equal(f.reduced_to_fit, 1); assert.ok(r.combined.reconciles);
+    }
+  });
+});
+
+describe("financial reconciliation identities (MAIN, every bot, every group, combined)", () => {
+  it("internal transfers never change combined equity; it moves only by trading P&L and fees; MAIN receipts do not imply a profitable fleet", () => {
+    const bots = [{ id: "ALPHA-01", group: "SOLANA", priority: 1 }, { id: "ALPHA-02", group: "SOLANA", priority: 2 }, { id: "ALPHA-03", group: "BITCOIN", priority: 3 }, { id: "ALPHA-04", group: "BITCOIN", priority: 4 }];
+    const L = new FleetLedgerSim({ bots, main: 100 });
+    const sum = (f) => Object.values(L.wallet).reduce((s, w) => s + f(w), 0);
+    const book = () => sum((w) => w.available + w.reserved);
+    assert.equal(book(), toMicro(100));
+    L.allocate("SOLANA", 40); L.allocate("BITCOIN", 40);
+    assert.equal(book(), toMicro(100), "allocation is internal: combined equity unchanged");
+    assert.equal(sum((w) => w.funding), toMicro(100), "Σ net funding of all wallets = external deposits − withdrawals");
+    // a winning LONG (swept to MAIN), a losing SHORT, a losing LONG, and a SHORT loss beyond its collateral and cash
+    L.open("ALPHA-01", "LONG", 0.2, 80); L.close("ALPHA-01", 82);
+    L.open("ALPHA-02", "SHORT", 0.2, 80); L.close("ALPHA-02", 81);
+    L.open("ALPHA-03", "LONG", 0.0001, 100000); L.close("ALPHA-03", 99000);
+    L.open("ALPHA-04", "SHORT", 0.00019, 100000); L.close("ALPHA-04", 220000);
+    const T = L.trades;
+    const gross = T.reduce((s, t) => s + t.gross, 0), fees = T.reduce((s, t) => s + t.entryFee + t.exitFee, 0), shortfall = T.reduce((s, t) => s + t.shortfall, 0);
+    const swept = L.sweeps.reduce((s, x) => s + x.amountMicro, 0);
+    assert.ok(shortfall > 0 && swept > 0 && gross - fees < 0, "scenario: profit swept to MAIN while the fleet as a whole lost money");
+    // per wallet: available + reserved = net funding + realized (what the wallet paid/received) − fees
+    assert.ok(L.reconciles());
+    // combined: book = external funding + Σ gross − Σ fees + Σ shortfall (the unpaid part of a loss is a recorded liability)
+    assert.equal(book(), toMicro(100) + gross - fees + shortfall);
+    // equity net of liabilities = external funding + Σ gross − Σ fees: exactly the trading result, transfers excluded
+    assert.equal(book() - sum((w) => w.shortfall), toMicro(100) + gross - fees);
+    // MAIN = its own funding (initial − allocations + sweeps received); its receipts are not the fleet's result
+    assert.equal(L.wallet.MAIN.available, toMicro(100) - toMicro(80) + swept);
+    assert.ok(fromMicro(swept) > 0 && fromMicro(gross - fees) < 0);
+    // per group: Σ of its bots' book = Σ its bots' funding + their realized − their fees
+    for (const g of ["SOLANA", "BITCOIN"]) {
+      const ws = bots.filter((b) => b.group === g).map((b) => L.wallet[b.id]);
+      assert.equal(ws.reduce((s, w) => s + w.available + w.reserved, 0), ws.reduce((s, w) => s + w.funding + w.realized - w.fees, 0), g);
+    }
+  });
+});
