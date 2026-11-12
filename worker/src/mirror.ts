@@ -15,6 +15,7 @@
 // * Costs are a labelled COMPARISON (worker/src/costs.ts profiles, maker/taker inferred from order types); they are
 //   never charged to any balance and never change the gross (TradingView, 0% commission) baseline.
 
+import { BOT_ID_RE } from "./bots";
 import { COST_PROFILES, execute, type CostProfile } from "./costs";
 import { getInstrument, referencePrice } from "./instruments";
 import { secureEqual } from "./trade_core";
@@ -263,6 +264,18 @@ export async function handleEngineMirror(request: Request, env: MirrorEnv): Prom
   ).bind(acc.account_id, acc.symbol, acc.timeframe, acc.profile, acc.strategy, acc.inputs_hash, acc.engine_version, acc.engine_release, acc.engine_commit,
     now, acc.created_at, acc.activated_at, now, now, acc.last_candle_time, acc.last_candle_close, acc.candles_processed, acc.risk_usd,
     acc.last_seq, acc.open_position ? JSON.stringify(acc.open_position) : null, JSON.stringify(acc.health)).run();
+  // The bot this mirror belongs to (migration 0007): set once, only for a registered bot of the same market and timeframe.
+  const rawBot = (body.account as Record<string, unknown> | undefined)?.bot_id;
+  if (typeof rawBot === "string" && BOT_ID_RE.test(rawBot)) {
+    try {
+      await db.prepare(
+        `UPDATE mirror_accounts SET bot_id = ? WHERE account_id = ? AND bot_id IS NULL
+           AND EXISTS (SELECT 1 FROM bots b WHERE b.bot_id = ? AND b.symbol = ? AND (b.timeframe_min || 'm') = ?)`
+      ).bind(rawBot, acc.account_id, rawBot, acc.symbol, acc.timeframe).run();
+    } catch (e) {
+      if (!/no such (table|column)/i.test(String(e instanceof Error ? e.message : e))) throw e;
+    }
+  }
   const profile = COST_PROFILES[prior?.cost_profile ?? "ndax"] ?? COST_PROFILES.ndax;
 
   // Bounded work per request (Workers Free: 50 D1 queries per invocation, a db.batch counts as one): every item is

@@ -1,3 +1,4 @@
+import { fleetSection } from "./bots";
 import { activityFeed } from "./events";
 import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
@@ -1254,6 +1255,11 @@ export async function handleDashboardApi(
     // Strategy Mirror (hypothetical, margin 0): summary by category, trade list, and one trade's proof.
     if (pathname === "/api/dashboard/mirror") {
       return json({ ok: true, data: await mirrorDashboard(env.DB, searchParams) });
+    }
+    // The bot fleet (bots.ts): every registered bot with its own ledger figures, engine report and, separately, its
+    // hypothetical Strategy Mirror results. Read-only.
+    if (pathname === "/api/dashboard/bots") {
+      return json({ ok: true, data: await fleetSection(env.DB) });
     }
     // Recent genuine activity (trade events, funded signals, engine heartbeat, observation gaps); bounded.
     if (pathname === "/api/dashboard/events") {

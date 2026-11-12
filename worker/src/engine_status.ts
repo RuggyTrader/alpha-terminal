@@ -4,6 +4,7 @@
 // The dashboard derives ONLINE / STALE / OFFLINE from the heartbeat's age on the server, so a stopped engine
 // can never look alive.
 
+import { botAvailableMicro, resolveOwner, statusKeys } from "./bots";
 import { secureEqual } from "./trade_core";
 import { getInstrument } from "./instruments";
 import { engineSettingsExchange } from "./portfolio";
@@ -18,6 +19,7 @@ interface EngineStatusEnv {
 }
 
 const KEY = "engine_status";
+// Per-bot status keys (bots.ts statusKeys): engine_status:<bot id>; the legacy bot also keeps KEY.
 const MAX_BYTES = 8192;
 
 const json = (data: unknown, status = 200) => Response.json(data, { status });
@@ -44,6 +46,7 @@ function clean(s: Record<string, unknown>) {
   return {
     engine: str(s.engine, 40), version: str(s.version, 20), mode: "PAPER",
     symbol: str(s.symbol, 16), timeframe: str(s.timeframe, 8), strategy: str(s.strategy, 64),
+    bot_name: str(s.bot_name, 40),
     started_at: isoOrNull(s.started_at), warmed_up_at: isoOrNull(s.warmed_up_at), last_poll_at: isoOrNull(s.last_poll_at),
     last_candle_time: isoOrNull(s.last_candle_time), last_candle_close: num(s.last_candle_close),
     candles_processed: num(s.candles_processed), status_text: str(s.status_text, 80), sync: s.sync === true,
@@ -103,10 +106,15 @@ export async function handleEngineStatus(request: Request, env: EngineStatusEnv)
   if (!status || !status.symbol || !getInstrument(status.symbol)) {
     return json({ ok: false, code: "INVALID_STATUS", message: "status.symbol must be a supported instrument" }, 400);
   }
-  const record = { ...status, received_at: new Date().toISOString() };
-  await env.DB.prepare(
-    `INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`
-  ).bind(KEY, JSON.stringify(record)).run();
+  const raw = body.status as Record<string, unknown>;
+  const who = await resolveOwner(env.DB, { bot_id: raw.bot_id, timeframe: raw.timeframe }, status.symbol);
+  if (!who.ok) return json({ ok: false, code: who.code, message: who.message }, 400);
+  const record = { ...status, bot_id: who.owner || null, received_at: new Date().toISOString() };
+  for (const key of who.bot ? statusKeys(who.bot) : [KEY]) {
+    await env.DB.prepare(
+      `INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+    ).bind(key, JSON.stringify(record)).run();
+  }
   // Risk setting handshake: only engines that opted in (remote_settings) confirm and receive website settings.
   const settings = status.remote_settings
     ? await engineSettingsExchange(env.DB, status.symbol, (body.status as Record<string, unknown>).settings)
@@ -154,10 +162,19 @@ export async function handleEngineLedger(request: Request, env: EngineStatusEnv)
   if (ids.length > 50 || !ids.every((x) => typeof x === "string" && /^[\x21-\x7E]{1,128}$/.test(x))) {
     return json({ ok: false, code: "INVALID_ALERT_IDS" }, 400);
   }
-  const position = await env.DB.prepare(
-    `SELECT symbol, side, status, qty, avg_entry_price, open_alert_id, last_order_id, opened_at
-     FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`
-  ).bind(symbol).first();
+  // The requesting bot's own position (bots.ts); a pre-fleet engine (no bot_id) maps to its market's legacy bot.
+  const who = await resolveOwner(env.DB, { bot_id: body.bot_id, timeframe: body.timeframe }, symbol);
+  if (!who.ok) return json({ ok: false, code: who.code, message: who.message }, 400);
+  const cols = `symbol, side, status, qty, avg_entry_price, open_alert_id, last_order_id, opened_at`;
+  let position: Record<string, unknown> | null;
+  try {
+    position = await env.DB.prepare(`SELECT ${cols} FROM paper_positions WHERE bot_id = ? AND symbol = ? AND status = 'OPEN'`)
+      .bind(who.owner, symbol).first();
+  } catch (e) {
+    // Before migration 0007 there is no owner column: one position per symbol, as always.
+    if (!/no such column: bot_id/i.test(String(e instanceof Error ? e.message : e))) throw e;
+    position = await env.DB.prepare(`SELECT ${cols} FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`).bind(symbol).first();
+  }
   const alerts: Record<string, { status: string; response_code: string | null; rejection_reason: string | null }> = {};
   if (ids.length) {
     const rows = await env.DB.prepare(
@@ -182,6 +199,13 @@ export async function handleEngineLedger(request: Request, env: EngineStatusEnv)
     max_position_exposure_usd: limit(env.MAX_POSITION_EXPOSURE), max_total_exposure_usd: limit(env.MAX_TOTAL_EXPOSURE),
     max_open_positions: limit(env.MAX_OPEN_POSITIONS),
     position_exposure_usd: Number(exp?.position ?? 0), total_exposure_usd: Number(exp?.total ?? 0), open_positions: Number(exp?.n ?? 0),
+    // The bot's own share (migration 0007): what it may still reserve, given its allocation cap.
+    ...(who.bot ? {
+      bot_id: who.bot.bot_id,
+      bot_reserved_usd: who.bot.reserved_micro / 1e6,
+      bot_allocation_cap_usd: who.bot.allocation_cap_micro === null ? null : who.bot.allocation_cap_micro / 1e6,
+      bot_available_usd: botAvailableMicro(who.bot, Number(wallet.available_micro)) / 1e6,
+    } : {}),
   } : null;
   return json({ ok: true, mode: "PAPER", symbol, position: position ?? null, alerts, balance, read_only: true });
 }

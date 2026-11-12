@@ -31,6 +31,10 @@ TradingView strategy alert
   `engine/test/sizing-acceptance.test.mjs`.
 - **New markets and strategies:** follow [docs/MARKET-INTEGRATION-CHECKLIST.md](docs/MARKET-INTEGRATION-CHECKLIST.md).
   A market stays unavailable for funded execution until it passes.
+- **Independent bots:** every market, timeframe or strategy runs as its own identifiable bot (`engine/src/bots.mjs`),
+  with its own state, positions and records, sharing only the central capital protection. See
+  [docs/MULTI-BOT-ARCHITECTURE.md](docs/MULTI-BOT-ARCHITECTURE.md); mandatory tests `engine/test/fleet.test.mjs` and
+  `worker/test/multi_bot.test.mjs`.
 
 ## Contents
 1. [Prerequisites](#1-prerequisites) · 2. [Install](#2-cloning--installing) · 3. [Backend](#3-backend-setup) ·

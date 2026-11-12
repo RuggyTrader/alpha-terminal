@@ -1476,6 +1476,8 @@ export async function runRiskEvaluation(
     positionSource?:
       | "alpaca"
       | "ledger";
+    // Owner of the signal (bots.ts): its OWN position is this owner's; "" = no bot (pre-0007 behaviour).
+    owner?: string | null;
   } = {}
 ): Promise<
   | {
@@ -1541,7 +1543,8 @@ export async function runRiskEvaluation(
       const snapshot =
         await ledgerRiskSnapshot(
           env,
-          intent.symbol
+          intent.symbol,
+          opts.owner ?? ""
         );
 
       account =

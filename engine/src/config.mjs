@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { DEFAULT_INPUTS } from "./ote.mjs";
 import { FUNDED_SYMBOLS, fundedStatus, getInstrument } from "./instruments.mjs";
+import { BOTS, botIdPrefix, botTag, selectBots } from "./bots.mjs";
 
 // Funded markets come ONLY from the instrument registry (src/instruments.mjs): verified specs + owner approval.
 // Futures, gold and stocks are not listed there and stay unavailable until their rules and a data feed are verified.
@@ -149,6 +150,34 @@ export function marketList(env = process.env, baseDir = process.cwd()) {
 
 export function loadMarketConfigs(env = process.env, baseDir = process.cwd()) {
   return marketList(env, baseDir).map((symbol) => loadConfig({ ...env, ENGINE_SYMBOL: symbol, ENGINE_FUNDED: "off" }, baseDir));
+}
+
+/**
+ * Fleet bots (ENGINE_BOTS=ALPHA-01,ALPHA-02), or [] when not set. docs/MULTI-BOT-ARCHITECTURE.md.
+ * The bot registry (src/bots.mjs) is the source of each bot's market, timeframe, profile, risk policy and wallet: the
+ * environment supplies only the shared settings (sync target, secret, data folder, poll interval). A bot's risk policy
+ * can never be loosened by the environment: ENGINE_RISK_PCT / ENGINE_MAX_RISK_USD are taken from the registry.
+ * Production runs ACTIVE bots only; PROPOSED bots need allowProposed (research, backtests, tests).
+ */
+export function botList(env = process.env, baseDir = process.cwd()) {
+  const fileEnv = loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env"));
+  const raw = (env.ENGINE_BOTS ?? fileEnv.ENGINE_BOTS ?? "").trim();
+  if (!raw) return [];
+  if ((env.ENGINE_MARKETS ?? fileEnv.ENGINE_MARKETS ?? "").trim()) throw new Error("ENGINE_BOTS and ENGINE_MARKETS cannot both be set");
+  return raw.split(",").map((x) => x.trim()).filter(Boolean);
+}
+
+export function loadBotConfigs(ids, env = process.env, baseDir = process.cwd(), { list = BOTS, allowProposed = false } = {}) {
+  return selectBots(ids, { list, allowProposed }).map((bot) => {
+    if (!bot.profile) throw new Error(`${bot.id}: no strategy profile; the owner's inputs for ${bot.symbol} ${bot.intervalMin}m are required`);
+    const cfg = loadConfig({
+      ...env, ENGINE_SYMBOL: bot.symbol, ENGINE_INTERVAL_MIN: String(bot.intervalMin), ENGINE_PROFILE: bot.profile,
+      ENGINE_FUNDED: bot.funded ? "on" : "off", ENGINE_RISK_PCT: String(bot.riskPct), ENGINE_MAX_RISK_USD: String(bot.maxRiskUSD),
+      // the single-engine settings that would mix bots are not inherited
+      ENGINE_MARKETS: "", ENGINE_BOTS: "",
+    }, baseDir);
+    return { bot, cfg: { ...cfg, botId: bot.id, botName: bot.name, fileTag: botTag(bot), idPrefix: botIdPrefix(bot), priority: bot.priority, wallet: bot.wallet } };
+  });
 }
 
 /** Config safe to print (no secret). */

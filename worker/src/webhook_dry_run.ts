@@ -1,4 +1,5 @@
 import { portfolioGate } from "./portfolio";
+import { resolveOwner } from "./bots";
 import { costProfile, execute, minimumOrderProblem } from "./costs";
 import { getInstrument } from "./instruments";
 import {
@@ -486,6 +487,26 @@ export async function handleDryRunWebhook(
     )
     .run();
 
+  // ==========================================================
+  // OWNER (bots.ts, migration 0007): which bot's position this signal may open
+  // or close. A registered bot can only ever reach its own position; a paused
+  // bot gets no new entries but its exits are still processed.
+  // ==========================================================
+  const ownerResult = await resolveOwner(env.DB, body, validation.symbol, { alertId });
+  const paused = ownerResult.ok && ownerResult.bot?.entries_paused === 1 && validation.action === "buy";
+  if (!ownerResult.ok || paused) {
+    const code = ownerResult.ok ? "BOT_ENTRIES_PAUSED" : ownerResult.code;
+    const message = ownerResult.ok
+      ? `${ownerResult.owner}: new entries are paused; its open positions are still managed`
+      : ownerResult.message;
+    await env.DB.prepare(
+      `UPDATE alerts SET status = 'rejected', processed_at = ?, response_code = ?, http_status = 422, rejection_reason = ? WHERE alert_id = ?`
+    ).bind(now, code, message, alertId).run();
+    return json({ ok: false, status: "rejected", code, message, alert_id: alertId, mode: "PAPER", execution: "DRY_RUN_ONLY", broker_request_sent: false }, 422);
+  }
+  const owner = ownerResult.owner;
+  if (owner) await env.DB.prepare(`UPDATE alerts SET bot_id = ? WHERE alert_id = ?`).bind(owner, alertId).run();
+
   await logActivity(env, {
     category: "alert",
     level: "info",
@@ -518,6 +539,7 @@ export async function handleDryRunWebhook(
       {
         positionSource:
           "ledger",
+        owner,
       }
     );
 
@@ -771,6 +793,7 @@ export async function handleDryRunWebhook(
           qty: riskResult.risk.finalQty,
           price: entryPrice,
           feeMicro: entryFeeMicro,
+          owner,
         })
       : null);
 
@@ -873,6 +896,7 @@ export async function handleDryRunWebhook(
       validation.liquidity,
     costProfile:
       profile ?? undefined,
+    owner,
   };
 
   const ledger =

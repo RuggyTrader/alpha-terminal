@@ -69,17 +69,23 @@ export const MIRROR_HEARTBEAT_MS = 15 * 60_000;
 const KRAKEN_OHLC_WINDOW = 720;
 
 export class EngineRunner {
-  constructor(cfg, { fetchCandles = fetchCompletedCandles, http = fetch, now = () => Date.now(), log = console.log } = {}) {
+  constructor(cfg, { fetchCandles = fetchCompletedCandles, http = fetch, now = () => Date.now(), log = console.log, capitalBook = null } = {}) {
     this.cfg = cfg;
+    // Fleet bots (src/bots.mjs): cfg.botId identifies the bot in every signal, ledger query and status report; new bots
+    // carry it in file names and signal ids too (cfg.fileTag / cfg.idPrefix). Without a bot id: the single engine as before.
+    this.tag = cfg.fileTag ?? `${cfg.symbol}-${cfg.intervalMin}m`;
+    this.idPrefix = cfg.idPrefix ?? `ENG-${cfg.symbol}-${cfg.intervalMin}`;
+    // Shared capital protection between bots on the same wallet (src/capital.mjs); null for a single engine.
+    this.capitalBook = capitalBook;
     this.fetchCandles = fetchCandles;
     this.http = http;
     this.now = now;
     this.log = log;
     this.step = cfg.intervalMin * 60_000;
-    this.file = join(cfg.dataDir, `state-${cfg.symbol}-${cfg.intervalMin}m.json`);
+    this.file = join(cfg.dataDir, `state-${this.tag}.json`);
     // Append-only audit trail (one JSON object per line): every processed candle with the strategy's decisions,
     // every signal result, ledger-check changes, errors and resets. Never rewritten; safe to read while running.
-    this.auditFile = cfg.audit === false ? null : join(cfg.dataDir, `audit-${cfg.symbol}-${cfg.intervalMin}m.jsonl`);
+    this.auditFile = cfg.audit === false ? null : join(cfg.dataDir, `audit-${this.tag}.jsonl`);
     mkdirSync(cfg.dataDir, { recursive: true });
     this.state = this.load();
     // State saved by an older engine may still hold the position of an entry the ledger already refused or that
@@ -87,7 +93,7 @@ export class EngineRunner {
     const open = this.state?.openEntryId ? this.state.outbox.find((x) => x.id === this.state.openEntryId) : null;
     if (open && open.kind === "ENTRY" && (open.status === "rejected" || open.status === "skipped") && this.dropRefusedEntry(open)) this.save();
     // Track B, the Strategy Mirror: its own file, its own state. Nothing the funded track does can change it.
-    this.mirrorFile = join(cfg.dataDir, `mirror-${cfg.symbol}-${cfg.intervalMin}m.json`);
+    this.mirrorFile = join(cfg.dataDir, `mirror-${this.tag}.json`);
     this.mirror = cfg.mirror ? this.loadMirror() : null;
   }
 
@@ -162,7 +168,7 @@ export class EngineRunner {
   mirrorAccount() {
     const M = this.mirror;
     return {
-      account_id: M.accountId, symbol: M.symbol, timeframe: `${M.intervalMin}m`, profile: this.cfg.profile ?? "default",
+      account_id: M.accountId, symbol: M.symbol, timeframe: `${M.intervalMin}m`, profile: this.cfg.profile ?? "default", ...this.botFields(),
       strategy: STRATEGY_NAME, inputs_hash: M.inputsHash, engine_version: ENGINE_VERSION,
       engine_release: RELEASE.release, engine_commit: RELEASE.commit,
       created_at: M.createdAt, activated_at: M.activatedAt, last_candle_time: M.lastCandle?.t ?? null,
@@ -320,7 +326,11 @@ export class EngineRunner {
     if (this.balance === undefined) {
       try { this.balance = (await this.ledger([])).balance; } catch { this.balance = null; }
     }
-    st.capital = this.balance && Number.isFinite(this.balance.available_usd) ? this.balance.available_usd : null;
+    // A fleet bot sizes from what the ledger leaves for IT (its allocation cap, Workers with migration 0007), minus the
+    // other bots' resting entries on the same wallet (capital book). A single engine: the wallet's available balance.
+    const raw = this.balance && Number.isFinite(this.balance.bot_available_usd) ? this.balance.bot_available_usd
+      : this.balance && Number.isFinite(this.balance.available_usd) ? this.balance.available_usd : null;
+    st.capital = this.capitalBook && this.cfg.botId ? this.capitalBook.capitalFor(this.cfg.botId, raw) : raw;
     st.maxNotional = this.balance?.max_order_notional_usd ?? null;
     // The Worker's other risk limits and the account's current exposure (Workers from the universal-sizing release on).
     const b = this.balance ?? {};
@@ -396,7 +406,7 @@ export class EngineRunner {
       const open = S.openEntryId ? outbox.find((x) => x.id === S.openEntryId) : null;
       if (open && (open.status === "accepted" || open.status === "pending")) {
         outbox.push({
-          id: `ENG-${this.cfg.symbol}-${this.cfg.intervalMin}-${iso(nowMs - (nowMs % this.step))}-RESYNC-CLOSE`, action: "CLOSE", kind: "EXIT",
+          id: `${this.idPrefix}-${iso(nowMs - (nowMs % this.step))}-RESYNC-CLOSE`, action: "CLOSE", kind: "EXIT",
           entryId: open.id, qty: null, enginePrice: null, exitKind: "RECONCILE_AFTER_DATA_GAP",
           barTime: iso(nowMs - (nowMs % this.step)), barClose: iso(nowMs), createdAt: iso(nowMs), status: "pending", code: null, reason: null, attempts: 0,
         });
@@ -425,7 +435,7 @@ export class EngineRunner {
         if (e.type !== "ENTRY_FILL" && e.type !== "EXIT_FILL") continue;
         const isExit = e.type === "EXIT_FILL";
         const action = isExit ? "CLOSE" : e.side === 1 ? "BUY" : "SELL";
-        const id = `ENG-${this.cfg.symbol}-${this.cfg.intervalMin}-${iso(k.t)}-${action}`;
+        const id = `${this.idPrefix}-${iso(k.t)}-${action}`;
         const entryId = isExit ? S.openEntryId : null;
         if (isExit) S.openEntryId = null; else S.openEntryId = id;
         if (S.outbox.some((x) => x.id === id)) continue;
@@ -474,11 +484,16 @@ export class EngineRunner {
     });
   }
 
+  /** The bot identity sent with every request of a fleet bot ({} for the single engine: payloads unchanged). */
+  botFields() {
+    return this.cfg.botId ? { bot_id: this.cfg.botId, ...(this.cfg.botName ? { bot_name: this.cfg.botName } : {}) } : {};
+  }
+
   /** Read-only view of the ALPHA PAPER ledger: the open position for this symbol and the outcome of given signals. */
   async ledger(alertIds = []) {
     const r = await this.http(`${this.cfg.apiBase}/webhook/engine-ledger`, {
       method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(15_000),
-      body: JSON.stringify({ secret: this.cfg.webhookSecret, symbol: this.cfg.symbol, alert_ids: alertIds }),
+      body: JSON.stringify({ secret: this.cfg.webhookSecret, symbol: this.cfg.symbol, alert_ids: alertIds, ...this.botFields() }),
     });
     const body = await r.json().catch(() => ({}));
     if (r.status !== 200 || body.ok !== true) throw new Error(`ledger query ${body.code ?? `HTTP ${r.status}`}`);
@@ -489,7 +504,8 @@ export class EngineRunner {
       balance: b && typeof b.available_usd === "number" ? {
         available_usd: b.available_usd, reserved_usd: Number(b.reserved_usd ?? 0), active: b.active === true,
         max_order_notional_usd: typeof b.max_order_notional_usd === "number" ? b.max_order_notional_usd : null,
-        ...Object.fromEntries(["max_position_exposure_usd", "max_total_exposure_usd", "max_open_positions", "position_exposure_usd", "total_exposure_usd", "open_positions"]
+        ...Object.fromEntries(["max_position_exposure_usd", "max_total_exposure_usd", "max_open_positions", "position_exposure_usd", "total_exposure_usd", "open_positions",
+          "bot_available_usd", "bot_reserved_usd", "bot_allocation_cap_usd"]
           .map((k) => [k, typeof b[k] === "number" && Number.isFinite(b[k]) ? b[k] : null])),
       } : null,
     };
@@ -588,7 +604,7 @@ export class EngineRunner {
           body: JSON.stringify({
             secret: this.cfg.webhookSecret, id: item.id, symbol: this.cfg.symbol, timeframe: String(this.cfg.intervalMin),
             action: item.action, strategy: STRATEGY_NAME, ...(item.qty === null ? {} : { qty: Number(item.qty) }), timestamp: item.barClose,
-            liquidity: this.liquidityFor(item),
+            liquidity: this.liquidityFor(item), ...this.botFields(),
           }),
         });
         status = r.status;
@@ -649,7 +665,7 @@ export class EngineRunner {
         if (lp.status !== "OPEN") issues.push(`ledger position status ${lp.status}`);
         if ((pos.side === 1 ? "long" : "short") !== lp.side) issues.push(`ledger side ${lp.side} vs engine ${pos.side === 1 ? "long" : "short"}`);
       }
-    } else if (lp && String(lp.open_alert_id).startsWith(`ENG-${this.cfg.symbol}-`)) {
+    } else if (lp && String(lp.open_alert_id).startsWith(`${this.idPrefix}-`)) {
       issues.push(`the ledger holds an engine-opened ${this.cfg.symbol} position (${lp.open_alert_id}, qty ${lp.qty}) that the engine does not hold`);
     }
     S.ledgerCheck = {
@@ -687,7 +703,7 @@ export class EngineRunner {
     const lastClose = S.lastCandle?.close ?? null;
     const sum = summarize(st);
     return {
-      engine: "alpha-engine", version: ENGINE_VERSION, mode: "PAPER", symbol: this.cfg.symbol, timeframe: `${this.cfg.intervalMin}m`,
+      engine: "alpha-engine", version: ENGINE_VERSION, mode: "PAPER", symbol: this.cfg.symbol, timeframe: `${this.cfg.intervalMin}m`, ...this.botFields(),
       strategy: STRATEGY_NAME, started_at: S.startedAt, warmed_up_at: S.warmedUpAt, last_poll_at: S.lastPollAt,
       last_candle_time: S.lastCandle?.t ?? null, last_candle_close: lastClose, candles_processed: S.candlesProcessed,
       status_text: st.status, sync: this.cfg.sync,

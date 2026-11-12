@@ -13,6 +13,7 @@
 // Before any deposit every balance is $0, so every exposure-increasing BUY is rejected: unfunded balances
 // cannot spend money that does not exist. "Active" (first deposit) only changes what the dashboard shows.
 
+import { getBot } from "./bots";
 import { authorizePaperAction } from "./auth_session";
 import { getInstrument } from "./instruments";
 import { secureEqual } from "./trade_core";
@@ -70,13 +71,17 @@ export interface PortfolioRejection {
  */
 export async function portfolioGate(
   db: D1Database,
-  f: { symbol: string; side: "buy" | "sell"; qty: number; price: number; feeMicro?: number }
+  f: { symbol: string; side: "buy" | "sell"; qty: number; price: number; feeMicro?: number; owner?: string | null }
 ): Promise<PortfolioRejection | null> {
   if (f.side !== "buy") return null;
   if (!isStrategyWallet(f.symbol)) {
     return { code: "NOT_IN_PAPER_PORTFOLIO", message: `${f.symbol} has no PAPER strategy balance; only crypto strategies trade from the PAPER portfolio` };
   }
-  const pos = await db.prepare(`SELECT wallet FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`).bind(f.symbol).first<{ wallet: string | null }>();
+  const owner = f.owner ?? null; // null: schema without ownership (pre-0007)
+  const pos = await (owner === null
+    ? db.prepare(`SELECT wallet FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`).bind(f.symbol)
+    : db.prepare(`SELECT wallet FROM paper_positions WHERE bot_id = ? AND symbol = ? AND status = 'OPEN'`).bind(owner, f.symbol)
+  ).first<{ wallet: string | null }>();
   if (pos && pos.wallet === null) {
     return { code: "POSITION_NOT_IN_PAPER_PORTFOLIO", message: `the open ${f.symbol} PAPER position predates the portfolio; close it before adding` };
   }
@@ -86,6 +91,16 @@ export async function portfolioGate(
   const need = value + fee;
   const w = await wallet(db, f.symbol);
   const have = w?.available_micro ?? 0;
+  // A bot with an allocation cap may hold at most its cap reserved (bots.ts; the batch's CHECK enforces it again).
+  if (owner) {
+    const bot = await getBot(db, owner);
+    if (bot && bot.allocation_cap_micro !== null && bot.reserved_micro + value > bot.allocation_cap_micro) {
+      return {
+        code: "BOT_ALLOCATION_EXCEEDED",
+        message: `${owner} may hold $${fromMicro(bot.allocation_cap_micro).toFixed(2)} reserved and already holds $${fromMicro(bot.reserved_micro).toFixed(2)}; this BUY needs $${fromMicro(value).toFixed(2)}. Nothing was filled.`,
+      };
+    }
+  }
   if (need > have) {
     return {
       code: "INSUFFICIENT_PAPER_CAPITAL",
@@ -97,7 +112,7 @@ export async function portfolioGate(
 
 /** A simulated execution fee: debits the strategy balance and is recorded as its own FEE entry (once per fill). */
 function feeStatements(db: D1Database, walletName: string, f: { feeMicro: number; alertId: string; clientOrderId: string; note: string },
-  positionFk: number | null, positionLookup: { symbol: string } | null, now: string): D1PreparedStatement[] {
+  positionFk: number | null, positionLookup: { symbol: string; owner: string | null } | null, now: string): D1PreparedStatement[] {
   const fee = Math.max(0, Math.round(f.feeMicro));
   if (fee === 0) return [];
   return [
@@ -107,8 +122,8 @@ function feeStatements(db: D1Database, walletName: string, f: { feeMicro: number
     positionLookup
       ? db.prepare(
         `INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, ref, position_fk, note)
-         VALUES (?, ?, ?, 'FEE', ?, ?, 0, ?, (SELECT id FROM paper_positions WHERE symbol = ? AND status = 'OPEN' AND last_order_id = ?), ?)`
-      ).bind(`FEE:${f.clientOrderId}`, f.clientOrderId, now, walletName, -fee, f.alertId, positionLookup.symbol, f.clientOrderId, f.note)
+         VALUES (?, ?, ?, 'FEE', ?, ?, 0, ?, (SELECT id FROM paper_positions WHERE ${positionLookup.owner === null ? "" : "bot_id = ? AND "}symbol = ? AND status = 'OPEN' AND last_order_id = ?), ?)`
+      ).bind(`FEE:${f.clientOrderId}`, f.clientOrderId, now, walletName, -fee, f.alertId, ...(positionLookup.owner === null ? [] : [positionLookup.owner]), positionLookup.symbol, f.clientOrderId, f.note)
       : db.prepare(
         `INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, ref, position_fk, note)
          VALUES (?, ?, ?, 'FEE', ?, ?, 0, ?, ?, ?)`
@@ -119,10 +134,13 @@ function feeStatements(db: D1Database, walletName: string, f: { feeMicro: number
 /** Statements appended to the BUY fill batch (after the position upsert). */
 export async function buyStatements(
   db: D1Database,
-  f: { symbol: string; qty: number; price: number; alertId: string; clientOrderId: string; feeMicro?: number; feeNote?: string },
+  f: { symbol: string; qty: number; price: number; alertId: string; clientOrderId: string; feeMicro?: number; feeNote?: string; owner?: string | null },
   now: string
 ): Promise<D1PreparedStatement[]> {
   if (!isStrategyWallet(f.symbol)) return [];
+  const owner = f.owner ?? null; // null: schema without ownership (pre-0007)
+  const byOwner = owner === null ? "" : "bot_id = ? AND ";
+  const ownerBind = owner === null ? [] : [owner];
   const mult = getInstrument(f.symbol)?.multiplier ?? 1;
   const need = toMicro(f.qty * f.price * mult);
   return [
@@ -131,20 +149,22 @@ export async function buyStatements(
       .bind(need, need, now, f.symbol),
     db.prepare(
       `INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, ref, position_fk, note)
-       VALUES (?, ?, ?, 'RESERVE', ?, ?, ?, ?, (SELECT id FROM paper_positions WHERE symbol = ? AND status = 'OPEN' AND last_order_id = ?), ?)`
-    ).bind(`RESERVE:${f.clientOrderId}`, f.clientOrderId, now, f.symbol, -need, need, f.alertId, f.symbol, f.clientOrderId,
-      `BUY ${f.qty} @ ${f.price}: position value reserved`),
-    db.prepare(`UPDATE paper_positions SET wallet = ?, reserved_micro = reserved_micro + ? WHERE symbol = ? AND status = 'OPEN' AND last_order_id = ?`)
-      .bind(f.symbol, need, f.symbol, f.clientOrderId),
+       VALUES (?, ?, ?, 'RESERVE', ?, ?, ?, ?, (SELECT id FROM paper_positions WHERE ${byOwner}symbol = ? AND status = 'OPEN' AND last_order_id = ?), ?)`
+    ).bind(`RESERVE:${f.clientOrderId}`, f.clientOrderId, now, f.symbol, -need, need, f.alertId, ...ownerBind, f.symbol, f.clientOrderId,
+      `BUY ${f.qty} @ ${f.price}: position value reserved${owner ? ` (${owner})` : ""}`),
+    db.prepare(`UPDATE paper_positions SET wallet = ?, reserved_micro = reserved_micro + ? WHERE ${byOwner}symbol = ? AND status = 'OPEN' AND last_order_id = ?`)
+      .bind(f.symbol, need, ...ownerBind, f.symbol, f.clientOrderId),
+    // The bot's own reserved total; CHECK bot_allocation_cap fails the whole batch above its cap.
+    ...(owner ? [db.prepare(`UPDATE bots SET reserved_micro = reserved_micro + ?, updated_at = ? WHERE bot_id = ?`).bind(need, now, owner)] : []),
     ...feeStatements(db, f.symbol, { feeMicro: f.feeMicro ?? 0, alertId: f.alertId, clientOrderId: f.clientOrderId, note: f.feeNote ?? "simulated execution fee" },
-      null, { symbol: f.symbol }, now),
+      null, { symbol: f.symbol, owner }, now),
   ];
 }
 
 /** Statements appended to a SELL/CLOSE fill batch (after the guarded position update). */
 export function sellStatements(
   db: D1Database,
-  pos: { id: number; qty: number; avg_entry_price: number; multiplier: number; wallet?: string | null; reserved_micro?: number },
+  pos: { id: number; qty: number; avg_entry_price: number; multiplier: number; wallet?: string | null; reserved_micro?: number; bot_id?: string },
   f: { qty: number; price: number; alertId: string; clientOrderId: string; closes: boolean; feeMicro?: number; feeNote?: string },
   now: string
 ): D1PreparedStatement[] {
@@ -167,6 +187,7 @@ export function sellStatements(
     ).bind(`PNL:${f.clientOrderId}`, f.clientOrderId, now, pos.wallet, pnl, f.alertId, pos.id, `realized PAPER P&L`),
     db.prepare(`UPDATE paper_positions SET reserved_micro = reserved_micro - ? WHERE id = ? AND last_order_id = ?`)
       .bind(release, pos.id, f.clientOrderId),
+    ...(pos.bot_id ? [db.prepare(`UPDATE bots SET reserved_micro = reserved_micro - ?, updated_at = ? WHERE bot_id = ?`).bind(release, now, pos.bot_id)] : []),
     // The exit fee comes out of the proceeds just credited (proceeds >= fee, so the balance cannot go negative).
     ...feeStatements(db, pos.wallet, { feeMicro: f.feeMicro ?? 0, alertId: f.alertId, clientOrderId: f.clientOrderId, note: f.feeNote ?? "simulated execution fee" },
       pos.id, null, now),
@@ -477,6 +498,15 @@ async function consistency(db: D1Database) {
     if (Number(s.fees_micro) < 0) issues.push(`${s.wallet}: negative fees`);
     const r = pos.find((p) => p.wallet === s.wallet)?.r ?? 0;
     if (Number(s.reserved_micro) !== Number(r)) issues.push(`${s.wallet}: reserved differs from its open positions`);
+  }
+  // Every bot's reserved total equals the cost basis of its own open positions (migration 0007; none before).
+  try {
+    const bots = (await db.prepare(
+      `SELECT b.bot_id, b.reserved_micro, COALESCE((SELECT SUM(p.reserved_micro) FROM paper_positions p WHERE p.bot_id = b.bot_id AND p.status = 'OPEN'), 0) AS r FROM bots b`
+    ).all<{ bot_id: string; reserved_micro: number; r: number }>()).results;
+    for (const b of bots) if (Number(b.reserved_micro) !== Number(b.r)) issues.push(`${b.bot_id}: reserved differs from its open positions`);
+  } catch (e) {
+    if (!/no such table: bots/i.test(String(e instanceof Error ? e.message : e))) throw e;
   }
   const total = sums.reduce((a, s) => a + Number(s.available_micro) + Number(s.reserved_micro), 0);
   const ident = sums.reduce((a, s) => a + Number(s.net_funding_micro) + Number(s.realized_pnl_micro) - Number(s.fees_micro), 0);

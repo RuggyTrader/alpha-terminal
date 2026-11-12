@@ -38,9 +38,16 @@ owner approves.**
 8. **Risk limits and reconciliation**
    - Order, position and total exposure, open-position count and wallet reconciliation are tested.
    - Restart resumes without a warm-up or duplicates. Ledger checks are OK.
+0. **A bot of its own** (docs/MULTI-BOT-ARCHITECTURE.md)
+   - Register it in `engine/src/bots.mjs` (ALPHA-NN, market, timeframe, profile, wallet, priority, risk policy) as
+     PROPOSED, and in the ledger's `bots` table only when approved.
+   - Its own strategy settings from the owner (never another timeframe's), its own state files, signal ids and mirror
+     account. `engine/test/fleet.test.mjs` and `worker/test/multi_bot.test.mjs` must pass.
 9. **Capital allocation across funded markets** (required before a *second* funded market)
-   - `allocateCapital()` (`engine/src/sizing.mjs`) is a tested helper only; as of 2026-11-12 it is **not called in the
-     execution path**. There is one funded market (SOLUSD), sized from its own wallet.
+   - `allocateCapital()` (`engine/src/sizing.mjs`) is a tested helper only. The fleet (development, 2026-11-12) adds the
+     execution-path protection instead: the capital book (`engine/src/capital.mjs`) earmarks other bots' resting entries
+     on a shared wallet, bots are processed in a fixed allocation order, and the ledger's CHECK constraints (wallet,
+     per-bot cap) refuse any fill that would overspend. Not deployed yet.
    - Before any second funded market: call it in the per-candle order path for every funded signal of that candle (or
      prove that each market draws only on its own wallet, which the Worker reserves at order time), and add an
      end-to-end test with two simultaneous signals on the real Worker code showing that capital is never promised twice.

@@ -173,8 +173,8 @@ after(async () => {
 describe("Ndax profile (0.20% / 0.20%, 0.10% taker slippage, $5 minimum)", () => {
   let buyBody;
 
-  it("migration 0004 is applied (development schema 6) and the dashboard reports the profile with its Ndax caveat", async () => {
-    assert.equal(d1(`SELECT value FROM app_meta WHERE key = 'schema_version'`)[0].value, "6");
+  it("migration 0004 is applied (development schema 7) and the dashboard reports the profile with its Ndax caveat", async () => {
+    assert.equal(d1(`SELECT value FROM app_meta WHERE key = 'schema_version'`)[0].value, "7");
     assert.ok(d1(`PRAGMA table_info(paper_fills)`).some((c) => c.name === "fee_micro"), "0004 cost columns");
     const c = (await dashboard()).portfolio.costs;
     assert.deepEqual([c.profile, c.maker_pct, c.taker_pct, c.taker_slippage_pct, c.min_notional_usd], ["ndax", 0.2, 0.2, 0.1, 5]);

@@ -10,13 +10,86 @@ import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "migrations");
-const sql = (name) => readFileSync(join(DIR, name), "utf8");
+const sql = (name) => readFileSync(join(name.startsWith("0008") ? join(DIR, "..", "migrations-staged") : DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 to 0006", () => {
+  it("are exactly 0001 to 0007; 0008 is staged separately so a plain `migrations apply` can never apply it", () => {
     assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
-      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql"]);
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql"]);
+    assert.deepEqual(readdirSync(join(DIR, "..", "migrations-staged")).sort(), ["0008_bots_multi_position.sql"]);
+  });
+
+  it("0007 keeps the old one-per-symbol index (today's Worker and a rollback keep working); 0008 removes it", () => {
+    const db = new DatabaseSync(":memory:");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql"]) db.exec(sql(f));
+    const idx = () => db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'paper_positions'").all().map((r) => r.name);
+    assert.ok(idx().includes("ux_paper_positions_open_symbol") && idx().includes("ux_paper_positions_open_owner"));
+    // The PRE-FLEET Worker's upsert (ON CONFLICT(symbol)) still works on schema 7; its rows default to owner ''.
+    const now = "2026-11-12T00:00:00Z";
+    const oldUpsert = db.prepare(`INSERT INTO paper_positions (symbol, side, status, qty, avg_entry_price, multiplier, opened_at, entry_qty_total, entry_value_total,
+      open_alert_id, open_order_id, last_order_id, updated_at) VALUES ('SOLUSD', 'long', 'OPEN', 1, 80, 1, ?, 1, 80, 'a', 'a', 'a', ?)
+      ON CONFLICT(symbol) WHERE status = 'OPEN' DO UPDATE SET qty = qty + excluded.qty`);
+    oldUpsert.run(now, now); oldUpsert.run(now, now);
+    assert.deepEqual(db.prepare("SELECT qty, bot_id FROM paper_positions").all().map((r) => ({ ...r })), [{ qty: 2, bot_id: "" }]);
+    // The fleet Worker's upsert (ON CONFLICT(bot_id, symbol)) works on schema 7 as well.
+    const newUpsert = db.prepare(`INSERT INTO paper_positions (symbol, side, status, qty, avg_entry_price, multiplier, opened_at, entry_qty_total, entry_value_total,
+      open_alert_id, open_order_id, last_order_id, updated_at, bot_id) VALUES ('ETHUSD', 'long', 'OPEN', 1, 80, 1, ?, 1, 80, 'b', 'b', 'b', ?, 'ALPHA-02')
+      ON CONFLICT(bot_id, symbol) WHERE status = 'OPEN' DO UPDATE SET qty = qty + excluded.qty`);
+    newUpsert.run(now, now); newUpsert.run(now, now);
+    assert.equal(db.prepare("SELECT qty FROM paper_positions WHERE symbol = 'ETHUSD'").get().qty, 2);
+    db.exec(sql("0008_bots_multi_position.sql"));
+    assert.ok(!idx().includes("ux_paper_positions_open_symbol") && idx().includes("ux_paper_positions_open_owner"));
+    assert.equal(db.prepare(`SELECT value FROM app_meta WHERE key = 'schema_version'`).get().value, "8");
+    assert.throws(() => oldUpsert.run(now, now), /ON CONFLICT clause does not match/, "why a pre-fleet Worker must not be redeployed after 0008");
+  });
+
+  it("0007 (bots) adds ownership only: every value unchanged, the engine's rows become ALPHA-02's, others stay unowned", () => {
+    const db = new DatabaseSync(":memory:");
+    db.exec("PRAGMA foreign_keys = OFF");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql"]) db.exec(sql(f));
+    const now = "2026-11-12T00:00:00Z";
+    // Production-shaped rows: the 5m engine's alerts (one refused, one that opened a still-open position), a TradingView
+    // alert with its own closed position in another symbol, and the SOLUSD 5m mirror account.
+    const alert = db.prepare("INSERT INTO alerts (alert_id, received_at, symbol, action, status) VALUES (?, ?, ?, ?, ?)");
+    alert.run("ENG-SOLUSD-5-2026-11-11T14:20:00Z-BUY", now, "SOLUSD", "buy", "rejected");
+    alert.run("ENG-SOLUSD-5-2026-11-12T01:00:00Z-BUY", now, "SOLUSD", "buy", "dry_run");
+    alert.run("TV-1", now, "ETHUSD", "buy", "dry_run");
+    const pos = db.prepare(`INSERT INTO paper_positions (symbol, status, qty, avg_entry_price, multiplier, opened_at, closed_at, entry_qty_total, entry_value_total,
+      open_alert_id, open_order_id, last_order_id, updated_at, wallet, reserved_micro) VALUES (?, ?, ?, 80, 1, ?, ?, 1, 80, ?, 'o', 'o', ?, ?, ?)`);
+    pos.run("SOLUSD", "OPEN", 0.1, now, null, "ENG-SOLUSD-5-2026-11-12T01:00:00Z-BUY", now, "SOLUSD", 8000000);
+    pos.run("ETHUSD", "CLOSED", 0, now, now, "TV-1", now, "ETHUSD", 0);
+    db.prepare("INSERT INTO mirror_accounts (account_id, symbol, timeframe, inputs_hash, created_at, updated_at) VALUES ('MIRROR-SOLUSD-5m-c826d785d58a4a39', 'SOLUSD', '5m', 'c8', ?, ?)").run(now, now);
+    const tablesWithRows = ["alerts", "orders", "paper_positions", "paper_fills", "trades", "mirror_accounts", "portfolio_wallets", "portfolio_entries", "mirror_trades", "trade_events"];
+    const dump = () => Object.fromEntries(tablesWithRows.map((t) => [t, db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all().map((r) => ({ ...r }))]));
+    const before = dump();
+    db.exec(sql("0007_bots.sql"));
+    const after = dump();
+    for (const t of tablesWithRows) {
+      const strip = (rows) => rows.map(({ bot_id: _b, ...r }) => r);
+      assert.deepEqual(strip(after[t]), strip(before[t]), `${t}: no value changed`);
+    }
+    assert.deepEqual(after.alerts.map((r) => [r.alert_id, r.bot_id]), [["ENG-SOLUSD-5-2026-11-11T14:20:00Z-BUY", "ALPHA-02"], ["ENG-SOLUSD-5-2026-11-12T01:00:00Z-BUY", "ALPHA-02"], ["TV-1", ""]]);
+    assert.deepEqual(after.paper_positions.map((r) => [r.symbol, r.bot_id]), [["SOLUSD", "ALPHA-02"], ["ETHUSD", ""]]);
+    assert.equal(after.mirror_accounts[0].bot_id, "ALPHA-02");
+    assert.equal(db.prepare("SELECT reserved_micro FROM bots WHERE bot_id = 'ALPHA-02'").get().reserved_micro, 8000000, "the bot's reservation = its open position");
+    assert.equal(db.prepare(`SELECT value FROM app_meta WHERE key = 'schema_version'`).get().value, "7");
+    db.exec(sql("0008_bots_multi_position.sql"));
+    // One open position per (owner, symbol): another bot may open SOLUSD; the same owner may not open a second one.
+    const open = db.prepare(`INSERT INTO paper_positions (symbol, status, qty, avg_entry_price, multiplier, opened_at, entry_qty_total, entry_value_total,
+      open_alert_id, open_order_id, last_order_id, updated_at, bot_id) VALUES ('SOLUSD', 'OPEN', 1, 80, 1, ?, 1, 80, 'x', 'x', 'x', ?, ?)`);
+    open.run(now, now, "ALPHA-01");
+    assert.throws(() => open.run(now, now, "ALPHA-02"), /UNIQUE/);
+    open.run(now, now, "");
+    assert.throws(() => open.run(now, now, ""), /UNIQUE/, "unowned callers keep the one-per-symbol rule");
+    // bots constraints
+    assert.throws(() => db.prepare("UPDATE bots SET allocation_cap_micro = 1000000 WHERE bot_id = 'ALPHA-02'").run(), /bot_allocation_cap/);
+    assert.throws(() => db.prepare("UPDATE bots SET reserved_micro = -1 WHERE bot_id = 'ALPHA-02'").run(), /bot_reserved_nonnegative/);
+    const bot = db.prepare(`INSERT INTO bots (bot_id, name, symbol, timeframe_min, profile, wallet, status, legacy_default, created_at, updated_at) VALUES (?, 'x', ?, ?, ?, 'SOLUSD', 'PROPOSED', ?, ?, ?)`);
+    assert.throws(() => bot.run("BOT-1", "SOLUSD", 1, "p", 0, now, now), /CHECK/, "bot ids look like ALPHA-NN");
+    assert.throws(() => bot.run("ALPHA-07", "SOLUSD", 1, "p", 1, now, now), /UNIQUE/, "one legacy bot per market");
+    assert.throws(() => bot.run("ALPHA-08", "SOLUSD", 5, "solusd-5m", 0, now, now), /UNIQUE/, "the same profile twice on one market and timeframe");
+    bot.run("ALPHA-01", "SOLUSD", 1, null, 0, now, now);
   });
 
   it("0006 (events and push) only adds tables; existing rows unchanged; cursors start at the current end (no backlog)", () => {

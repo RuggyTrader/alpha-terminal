@@ -60,6 +60,8 @@ export interface PositionRow {
   // PAPER portfolio (migration 0003): funding balance and reserved cost basis; null wallet = not in the portfolio.
   wallet?: string | null;
   reserved_micro?: number;
+  /** Owner (migration 0007): a bot id, or "" for no bot. Absent before 0007. */
+  bot_id?: string;
 }
 
 const round = (n: number, dp = 2) => Math.round(n * 10 ** dp) / 10 ** dp;
@@ -126,7 +128,7 @@ export async function logActivity(env: LedgerEnv, e: ActivityInput): Promise<voi
 // ============================================================
 
 /** Ledger positions in the shape the risk engine reads (qty, qty_available, market_value). */
-export async function ledgerRiskSnapshot(env: LedgerEnv, symbol: string) {
+export async function ledgerRiskSnapshot(env: LedgerEnv, symbol: string, owner = "") {
   const rows = (
     await env.DB.prepare(`SELECT * FROM paper_positions WHERE status = 'OPEN'`).all<PositionRow>()
   ).results;
@@ -137,7 +139,9 @@ export async function ledgerRiskSnapshot(env: LedgerEnv, symbol: string) {
     // Valued at the last truthful mark (the fill price at worst), never an estimate.
     market_value: p.qty * (p.mark_price ?? p.avg_entry_price) * p.multiplier,
   });
-  const own = rows.find((p) => p.symbol === symbol);
+  // The signal's OWN position: this owner's in this symbol (another bot's position in the same symbol is not its own;
+  // it still counts in the account-wide positions and exposure below).
+  const own = rows.find((p) => p.symbol === symbol && (p.bot_id ?? "") === owner);
   return { position: own ? shape(own) : null, positions: rows.map(shape), account: await ledgerAccount(env, symbol, rows) };
 }
 
@@ -184,6 +188,8 @@ async function ledgerAccount(env: LedgerEnv, symbol: string, open: PositionRow[]
 // ============================================================
 
 export interface DryRunCommit {
+  /** Owner of the position (bots.ts): a bot id, "" (no bot), or null/absent = schema without ownership (pre-0007 SQL). */
+  owner?: string | null;
   alertId: string;
   alertFk: number | null;
   clientOrderId: string;
@@ -220,11 +226,13 @@ const FILL_FROM_POSITION = `
   INSERT INTO paper_fills
     (order_fk, client_order_id, alert_id, risk_decision_fk, position_fk, symbol, side, kind, qty, price,
      price_source, price_at, realized_pnl, position_qty_after, avg_entry_after, filled_at,
-     reference_price, liquidity, fee_micro, slippage_micro, cost_profile)
+     reference_price, liquidity, fee_micro, slippage_micro, cost_profile%OWNCOL%)
   SELECT (SELECT id FROM orders WHERE client_order_id = ?), ?, ?, ?, p.id, p.symbol, ?, %KIND%, ?, ?, ?, ?,
-     %REALIZED%, p.qty, p.avg_entry_price, ?, ?, ?, ?, ?, ?
+     %REALIZED%, p.qty, p.avg_entry_price, ?, ?, ?, ?, ?, ?%OWNVAL%
   FROM (SELECT 1) AS one
   LEFT JOIN paper_positions p ON %WHERE% AND p.last_order_id = ?`;
+/** The fill insert, with the owner column on schema 7+ (bots.ts) and without it before. */
+const fillSql = (own: boolean) => FILL_FROM_POSITION.replace("%OWNCOL%", own ? ", bot_id" : "").replace("%OWNVAL%", own ? ", p.bot_id" : "");
 
 /**
  * Commits one approved DRY-RUN signal as ONE D1 batch (a single transaction):
@@ -243,6 +251,8 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
   const now = new Date().toISOString();
   // Execution: the reference price (market observation) adjusted by the cost profile; fee in micro-USD.
   const profile = f.costProfile ?? COST_PROFILES.none;
+  const owner = f.owner ?? null;
+  const own = owner !== null; // schema 7+: ownership columns and the (bot_id, symbol) upsert
   const liquidity: Liquidity = f.liquidity ?? "TAKER";
   const ref = f.price;
   const statements: D1PreparedStatement[] = [
@@ -250,9 +260,9 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     env.DB.prepare(
       `INSERT INTO orders
         (alert_fk, source, client_order_id, symbol, side, qty, order_type, time_in_force, status,
-         market_open_at_submit, submitted_at, filled_qty, updated_at, error_detail)
-       VALUES (?, 'dry_run', ?, ?, ?, ?, ?, ?, 'submitting', NULL, ?, '0', ?, 'DRY RUN: no broker request sent')`
-    ).bind(f.alertFk, f.clientOrderId, f.symbol, f.side, String(f.qty), f.orderType, f.timeInForce, now, now),
+         market_open_at_submit, submitted_at, filled_qty, updated_at, error_detail${own ? ", bot_id" : ""})
+       VALUES (?, 'dry_run', ?, ?, ?, ?, ?, ?, 'submitting', NULL, ?, '0', ?, 'DRY RUN: no broker request sent'${own ? ", ?" : ""})`
+    ).bind(f.alertFk, f.clientOrderId, f.symbol, f.side, String(f.qty), f.orderType, f.timeInForce, now, now, ...(own ? [owner] : [])),
     env.DB.prepare(
       `UPDATE orders SET status = 'dry_run_accepted', updated_at = ?,
          error_detail = 'DRY RUN: committed together with its ALPHA PAPER fill; no broker request sent'
@@ -271,9 +281,9 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
         `INSERT INTO paper_positions
           (symbol, side, status, qty, avg_entry_price, multiplier, strategy, opened_at,
            entry_qty_total, entry_value_total, mark_price, mark_at, mark_source,
-           open_alert_id, open_order_id, last_order_id, updated_at, fees_micro, slippage_micro)
-         VALUES (?, 'long', 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(symbol) WHERE status = 'OPEN' DO UPDATE SET
+           open_alert_id, open_order_id, last_order_id, updated_at, fees_micro, slippage_micro${own ? ", bot_id" : ""})
+         VALUES (?, 'long', 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${own ? ", ?" : ""})
+         ON CONFLICT(${own ? "bot_id, symbol" : "symbol"}) WHERE status = 'OPEN' DO UPDATE SET
            avg_entry_price = (avg_entry_price * qty + excluded.avg_entry_price * excluded.qty) / (qty + excluded.qty),
            qty = qty + excluded.qty,
            entry_qty_total = entry_qty_total + excluded.entry_qty_total,
@@ -291,34 +301,35 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
       ).bind(
         f.symbol, f.qty, ex.price, instrument.multiplier, f.strategy, now,
         f.qty, f.qty * ex.price, ref, f.priceAt, f.priceSource,
-        f.alertId, f.clientOrderId, f.clientOrderId, now, ex.feeMicro, ex.slippageMicro
+        f.alertId, f.clientOrderId, f.clientOrderId, now, ex.feeMicro, ex.slippageMicro, ...(own ? [owner] : [])
       )
     );
     // 3. The fill (execution price, with the reference price and its costs).
     statements.push(
       env.DB.prepare(
-        FILL_FROM_POSITION.replace("%KIND%", "CASE WHEN p.open_order_id = ? THEN 'OPEN' ELSE 'ADD' END")
+        fillSql(own).replace("%KIND%", "CASE WHEN p.open_order_id = ? THEN 'OPEN' ELSE 'ADD' END")
           .replace("%REALIZED%", "0")
-          .replace("%WHERE%", "p.symbol = ? AND p.status = 'OPEN'")
+          .replace("%WHERE%", own ? "p.bot_id = ? AND p.symbol = ? AND p.status = 'OPEN'" : "p.symbol = ? AND p.status = 'OPEN'")
       ).bind(
         f.clientOrderId, f.clientOrderId, f.alertId, f.riskDecisionId, "buy", f.clientOrderId,
         f.qty, ex.price, f.priceSource, f.priceAt, now,
         ref, ex.liquidity, ex.feeMicro, ex.slippageMicro, ex.profile,
-        f.symbol, f.clientOrderId
+        ...(own ? [owner] : []), f.symbol, f.clientOrderId
       )
     );
     // 4. PAPER portfolio: reserve the position value and pay the fee from its strategy balance (fails the batch
     //    if short of funds).
     statements.push(...(await buyStatements(env.DB, {
-      ...f, price: ex.price, feeMicro: ex.feeMicro,
+      ...f, owner, price: ex.price, feeMicro: ex.feeMicro,
       feeNote: `${ex.liquidity} fee ${profile.name}: BUY ${f.qty} @ ${ex.price}`,
     }, now)));
   } else {
     // SELL reduces, CLOSE empties. Never below zero, never a short.
     const pos = await env.DB.prepare(
-      `SELECT * FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`
-    ).bind(f.symbol).first<PositionRow>();
-    if (!pos) return { ok: false, code: "NO_POSITION", message: `no open ${LEDGER_LABEL} position in ${f.symbol}`, committed: false };
+      own ? `SELECT * FROM paper_positions WHERE bot_id = ? AND symbol = ? AND status = 'OPEN'` : `SELECT * FROM paper_positions WHERE symbol = ? AND status = 'OPEN'`
+    ).bind(...(own ? [owner, f.symbol] : [f.symbol])).first<PositionRow>();
+    // Only the owner's own position: an exit can never close another bot's trade.
+    if (!pos) return { ok: false, code: "NO_POSITION", message: `no open ${LEDGER_LABEL} position in ${f.symbol}${owner ? ` for ${owner}` : ""}`, committed: false };
     const q = f.action === "close" ? pos.qty : f.qty;
     if (q > pos.qty + QTY_EPSILON) {
       return { ok: false, code: "SELL_EXCEEDS_POSITION", message: `SELL ${q} is greater than the ${LEDGER_LABEL} position ${pos.qty}`, committed: false };
@@ -365,7 +376,7 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     // 3. The fill.
     statements.push(
       env.DB.prepare(
-        FILL_FROM_POSITION.replace("%KIND%", "CASE WHEN p.status = 'CLOSED' THEN 'CLOSE' ELSE 'REDUCE' END")
+        fillSql(own).replace("%KIND%", "CASE WHEN p.status = 'CLOSED' THEN 'CLOSE' ELSE 'REDUCE' END")
           .replace("%REALIZED%", "(? - p.avg_entry_price) * ? * p.multiplier")
           .replace("%WHERE%", "p.id = ?")
       ).bind(
@@ -390,7 +401,7 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
              entry_qty, entry_avg_price, exit_qty, exit_avg_price, open_qty, closed_cost_basis,
              realized_pnl, return_pct, opened_at, closed_at, leg_order_ids_json,
              source, position_fk, close_alert_id, price_sources,
-             gross_pnl, fees_usd, slippage_usd, cost_profile)
+             gross_pnl, fees_usd, slippage_usd, cost_profile${own ? ", bot_id" : ""})
            SELECT p.symbol, 'LONG', 'CLOSED', p.strategy, p.open_alert_id, p.open_order_id, p.close_order_id,
              round(p.entry_qty_total, 8), round(p.entry_value_total / p.entry_qty_total, 8),
              round(p.exit_qty_total, 8), round(p.exit_value_total / p.exit_qty_total, 8), '0',
@@ -403,7 +414,7 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
              'ALPHA_PAPER', p.id, p.close_alert_id,
              (SELECT group_concat(DISTINCT price_source) FROM paper_fills WHERE position_fk = p.id),
              round(p.realized_pnl + p.slippage_micro / 1000000.0, 8), round(p.fees_micro / 1000000.0, 8),
-             round(p.slippage_micro / 1000000.0, 8), ?
+             round(p.slippage_micro / 1000000.0, 8), ?${own ? ", p.bot_id" : ""}
            FROM (SELECT 1) AS one
            LEFT JOIN paper_positions p ON p.id = ? AND p.last_order_id = ? AND p.status = 'CLOSED'`
         ).bind(profile.id, pos.id, f.clientOrderId)
@@ -430,6 +441,9 @@ export async function commitDryRun(env: LedgerEnv, f: DryRunCommit): Promise<Com
     const leftover = await env.DB.prepare(`SELECT id FROM orders WHERE client_order_id = ?`).bind(f.clientOrderId).first();
     if (leftover) {
       return { ok: false, code: "LEDGER_INCONSISTENT", message: `order intent exists after a failed ledger batch: ${msg.slice(0, 200)}`, committed: true };
+    }
+    if (/CHECK constraint failed/i.test(msg) && /bot_allocation_cap/i.test(msg)) {
+      return { ok: false, code: "BOT_ALLOCATION_EXCEEDED", message: `${owner}'s allocation cap cannot cover this fill; nothing was committed`, committed: false };
     }
     if (/CHECK constraint failed/i.test(msg) && /available_micro|reserved_micro/i.test(msg)) {
       return { ok: false, code: "INSUFFICIENT_PAPER_CAPITAL", message: `the ${f.symbol} PAPER balance cannot cover this fill; nothing was committed`, committed: false };

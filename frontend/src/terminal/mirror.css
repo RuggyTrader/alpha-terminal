@@ -38,3 +38,12 @@
 .mirror-market .mm-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; font-size: 12px; align-items: baseline; }
 .mirror-market .mm-row i { font-style: normal; color: var(--on-dark-2); }
 .mirror-market .mm-row b { white-space: nowrap; }
+
+/* Bots page (pages/Bots.tsx) */
+.bot-card { display: flex; flex-direction: column; gap: 8px; }
+.bot-h { display: flex; align-items: center; gap: 10px; }
+.bot-h > div { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.bot-ic { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: var(--surface-2); color: var(--amber-strong); font-weight: 800; }
+.bot-sub { font-size: 12px; color: var(--muted); }
+.bot-mirror { border: 1px solid rgba(255, 178, 87, 0.45); border-radius: var(--r-md); padding: 8px 10px; }
+.bot-mirror b { font-size: 12px; color: var(--amber-strong); }

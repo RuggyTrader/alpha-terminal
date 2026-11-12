@@ -114,7 +114,8 @@ export function EnginePage({ now = Date.now() }: { now?: number }) {
           <Cmd label="Stop" cmd="windows-task.ps1 stop">Stops the engine until the next sign-in.</Cmd>
           <Cmd label="Resume" cmd="Start-ScheduledTask 'ALPHA TERMINAL Engine'">Starts it again without signing out.</Cmd>
           <div className="ctl-foot">
-            Risk per trade is set on the website: <Link className="link" to="/portfolio/SOLUSD">SOL strategy →</Link>
+            Risk per trade is set on the website: <Link className="link" to="/portfolio/SOLUSD">SOL strategy →</Link>{" "}
+            · <Link className="link" to="/bots">Bots →</Link>
           </div>
         </div>
       </section>
