@@ -253,7 +253,8 @@ anywhere leaves a working system.
      stored with `wrangler versions secret bulk`, so production stayed on `4d3ddcb6`. Stage N3's deploy keeps them.
    - The private key was never printed, logged, written to disk or committed.
    - Rollback: never deploy `3cbfa292`, or set the three secrets to null; the current Worker never reads them.
-3. **Stage N3: Worker deployment** (this commit; includes the frontend, `sw.js` and icons).
+3. **Stage N3: Worker deployment** (this commit; includes the frontend, `sw.js` and icons). **EXECUTED 2026-11-12
+   00:18:05 UTC**: version `63f960a4`; record: `DEPLOYMENT-2026-11-12-NOTIFICATIONS-STAGE-N3.md`.
    - Pre-checks: `npm test` in worker, engine and frontend; `wrangler deploy --dry-run` (bundle 235 KiB).
    - The same Worker works on schema 5 and on schema 6.
    - Rollback: `wrangler rollback 4d3ddcb6-08a3-472d-8f99-81ff8b317ae2` (schema 6 is compatible with it). Devices that
