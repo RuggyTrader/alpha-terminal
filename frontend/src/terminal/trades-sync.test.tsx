@@ -16,7 +16,7 @@ vi.mock("./botTrades", async (orig) => {
 });
 
 const { createBotTradesStore, ledgerSignature, BOT_TRADES_LIMIT } = await vi.importActual<typeof import("./botTrades")>("./botTrades");
-const { allBotRecords } = await import("./components/AllBotTrades");
+const { allBotRecords, refusalText } = await import("./components/AllBotTrades");
 const { BotPerformanceView } = await import("./components/BotTradesView");
 const { fromBotTrade } = await import("./tradeStory");
 
@@ -92,7 +92,7 @@ describe("A: one all-bot view, every bot, each trade once", () => {
     row({ trade_id: "B4", bot_id: "ALPHA-04", symbol: "BTCUSD", side: "SHORT", status: "OPEN", net_usd: null, closed_at: null, exit_price: null }),
     row({ trade_id: "ENG-SOLUSD-5-OLD-BUY", legacy_id: 7, ledger: "legacy", bot_id: "ALPHA-02", proof_url: "/trades/7" }),
   ], {
-    orders: [{ order_id: "O1", bot_id: "ALPHA-03", action: "OPEN_SHORT", symbol: "BTCUSD", requested_qty: 1, status: "REJECTED", code: "INSUFFICIENT_BOT_CAPITAL", message: null, trade_id: null, received_at: "2026-11-13T01:00:00Z" },
+    orders: [{ order_id: "O1", bot_id: "ALPHA-03", action: "OPEN_SHORT", symbol: "BTCUSD", requested_qty: 1, status: "REJECTED", code: "INSUFFICIENT_BOT_CAPITAL", message: "ALPHA-03 has $99.65 available; this LONG costs $4084.2 + fee $8.17.", trade_id: null, received_at: "2026-11-13T01:00:00Z" },
       { order_id: "O2", bot_id: "ALPHA-01", action: "OPEN_LONG", symbol: "SOLUSD", requested_qty: 1, status: "ACCEPTED", code: "DRY_RUN_ACCEPTED", message: null, trade_id: "B1", received_at: "2026-11-13T00:00:00Z" }],
   });
   it("includes bot-ledger AND legacy trades without needing a bot filter", () => {
@@ -102,9 +102,15 @@ describe("A: one all-bot view, every bot, each trade once", () => {
     expect(r.legacyOpen.map((x) => x.bot.bot_id)).toEqual(["ALPHA-02"]);
     expect(r.pending.map((p) => p.bot.bot_id)).toEqual(["ALPHA-01"]);
     expect(r.rejected.map((x) => x.code)).toEqual(["INSUFFICIENT_BOT_CAPITAL"]);
-    expect(r.rejected[0].text).toMatch(/cannot pay/);
+    expect(r.rejected[0].text).toMatch(/^Not enough capital in this bot's wallet/);
     const keys = [...r.completed, ...r.open].map((v) => v.key);
     expect(new Set(keys).size).toBe(keys.length);
+  });
+  it("a refusal shows a plain headline AND the ledger's recorded figures (never 'unknown')", () => {
+    const r = allBotRecords(fleet, data, { market: null, timeframe: null, side: null });
+    expect(r.rejected[0].text).toContain("$99.65 available");
+    expect(r.rejected[0].text).not.toContain("unknown");
+    expect(refusalText("BELOW_MIN_QTY", null)).toMatch(/minimum order/);
   });
   it("filters by market, timeframe and direction", () => {
     expect(allBotRecords(fleet, data, { market: "BTCUSD", timeframe: null, side: null }).completed.map((v) => v.tradeId)).toEqual(["B3"]);

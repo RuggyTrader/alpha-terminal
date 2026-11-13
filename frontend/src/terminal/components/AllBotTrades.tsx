@@ -26,6 +26,22 @@ export interface RejectedRow { key: string; botId: string | null; symbol: string
 
 const sideOfAction = (a: string): "LONG" | "SHORT" | null => (/SHORT/i.test(a) ? "SHORT" : /LONG|BUY/i.test(a) ? "LONG" : null);
 
+/** A short plain-language headline for a refusal code; the ledger's own recorded message carries the exact figures. */
+const HEADLINE: Record<string, string> = {
+  INSUFFICIENT_BOT_CAPITAL: "Not enough capital in this bot's wallet",
+  BELOW_MIN_QTY: "Below Kraken's minimum order size",
+  BELOW_MIN_COST: "Below Kraken's minimum order value",
+  BOT_ENTRIES_PAUSED: "Entries paused by the owner",
+  STALE_PRICE: "Market price too old to size the order",
+  NO_CAPITAL: "No PAPER capital allocated to this bot",
+  SIGNAL_EXPIRED: "Signal arrived too late",
+};
+export function refusalText(code: string, message: string | null): string {
+  const head = HEADLINE[code];
+  if (head && message) return `${head}: ${message}`;
+  return message ?? humanReason(code) ?? code;
+}
+
 /** Every record of every bot, split by stage and filtered. Pure: the same input always gives the same lists. */
 export function allBotRecords(fleet: Fleet | null, data: BotTrades | null, f: AllFilter) {
   const bots = fleet?.available ? fleet.bots : [];
@@ -53,7 +69,7 @@ export function allBotRecords(fleet: Fleet | null, data: BotTrades | null, f: Al
   const completed = views.filter((v) => v.status === "CLOSED");
 
   const rejectedOrders: RejectedRow[] = (data?.available ? data.orders : []).filter((o: BotOrderRow) => o.status !== "ACCEPTED")
-    .map((o) => ({ key: `o-${o.order_id}`, botId: o.bot_id, symbol: o.symbol, side: sideOfAction(o.action), code: o.code, text: humanReason(o.code) ?? o.message ?? o.code, at: o.received_at, ref: o.order_id }));
+    .map((o) => ({ key: `o-${o.order_id}`, botId: o.bot_id, symbol: o.symbol, side: sideOfAction(o.action), code: o.code, text: refusalText(o.code, o.message), at: o.received_at, ref: o.order_id }));
   const rejectedSignals: RejectedRow[] = (data?.available ? data.signals : []).filter((s: SignalRow) => s.status === "rejected" || s.status === "error")
     .map((s) => ({ key: `s-${s.id}`, botId: s.bot_id || null, symbol: s.symbol, side: sideOfAction(s.action), code: s.rejection_reason ?? s.response_code ?? s.status.toUpperCase(),
       text: humanReason(s.rejection_reason) ?? s.rejection_reason ?? s.status, at: s.received_at, ref: s.alert_id }));
@@ -66,11 +82,18 @@ const TABS: { id: AllTab; label: string }[] = [
   { id: "pending", label: "Pending" }, { id: "open", label: "Open" }, { id: "completed", label: "Completed" }, { id: "rejected", label: "Rejected" },
 ];
 
-function Chips<T extends string>({ label, value, options, onChange }: { label: string; value: T | null; options: { v: T; label: string }[]; onChange: (v: T | null) => void }) {
+/** One compact row of toggle chips: tapping the active chip clears that filter (no separate "All" chips). */
+function FilterRow({ f, setF, markets, tfs }: { f: AllFilter; setF: (f: AllFilter) => void; markets: { v: string; label: string }[]; tfs: { v: string; label: string }[] }) {
+  const chip = (on: boolean, label: string, onClick: () => void, key: string) => (
+    <button key={key} type="button" className={`chip ${on ? "on" : ""}`} aria-pressed={on} onClick={onClick}>{label}</button>
+  );
+  const any = f.market || f.timeframe || f.side;
   return (
-    <div className="bot-chips" role="group" aria-label={label}>
-      <button type="button" className={`chip ${value === null ? "on" : ""}`} aria-pressed={value === null} onClick={() => onChange(null)}>All {label.toLowerCase()}</button>
-      {options.map((o) => <button key={o.v} type="button" className={`chip ${value === o.v ? "on" : ""}`} aria-pressed={value === o.v} onClick={() => onChange(o.v)}>{o.label}</button>)}
+    <div className="bot-chips" role="group" aria-label="Filter trades">
+      {markets.map((m) => chip(f.market === m.v, m.label, () => setF({ ...f, market: f.market === m.v ? null : m.v }), `m-${m.v}`))}
+      {tfs.map((t) => chip(f.timeframe === t.v, t.label, () => setF({ ...f, timeframe: f.timeframe === t.v ? null : t.v }), `t-${t.v}`))}
+      {(["LONG", "SHORT"] as const).map((d) => chip(f.side === d, d === "LONG" ? "Long" : "Short", () => setF({ ...f, side: f.side === d ? null : d }), `d-${d}`))}
+      {any ? chip(false, "Clear", () => setF({ market: null, timeframe: null, side: null }), "clear") : null}
     </div>
   );
 }
@@ -82,7 +105,7 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
   const [f, setF] = useState<AllFilter>({ market: null, timeframe: null, side: null });
   const bots = fleet?.available ? fleet.bots : [];
   const markets = [...new Set(bots.map((b) => b.symbol))].map((m) => ({ v: m, label: m.replace(/USD$/, "") }));
-  const tfs = [...new Set(bots.map((b) => b.timeframe))].map((t) => ({ v: t, label: t }));
+  const tfs = [...new Set(bots.map((b) => b.timeframe))].sort((a, b) => parseInt(a) - parseInt(b)).map((t) => ({ v: t, label: t }));
   const r = allBotRecords(fleet, snap.data, f);
   const count: Record<AllTab, number> = { pending: r.pending.length, open: r.open.length + r.legacyOpen.length, completed: r.completed.length, rejected: r.rejected.length };
   const idx = TABS.findIndex((t) => t.id === tab);
@@ -91,9 +114,7 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
   return (
     <section aria-label="All bots" className="m-fade">
       <SectionHeader title="All bots" sub="Funded PAPER records of every bot · Strategy Mirror (hypothetical) is on Performance" right={<StatusBadge tone="ok">FUNDED PAPER</StatusBadge>} />
-      <Chips label="Markets" value={f.market} options={markets} onChange={(market) => setF({ ...f, market })} />
-      <Chips label="Timeframes" value={f.timeframe} options={tfs} onChange={(timeframe) => setF({ ...f, timeframe })} />
-      <Chips label="Directions" value={f.side} options={[{ v: "LONG" as const, label: "Long" }, { v: "SHORT" as const, label: "Short" }]} onChange={(side) => setF({ ...f, side })} />
+      <FilterRow f={f} setF={setF} markets={markets} tfs={tfs} />
       <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
         <span className="seg-pill" aria-hidden />
         {TABS.map((t) => (

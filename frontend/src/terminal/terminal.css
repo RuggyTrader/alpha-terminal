@@ -68,7 +68,7 @@ h1, h2, h3, p { margin: 0; }
 .shell { min-height: 100dvh; }
 .shell-in {
   max-width: 1280px; margin: 0 auto;
-  padding: calc(var(--safe-top) + 8px) 14px calc(var(--nav-h) + var(--safe-bottom) + 28px);
+  padding: calc(var(--safe-top) + 8px) 14px calc(var(--nav-h) + var(--safe-bottom) + 84px); /* clears the floating α button (bottom 84px + 48px) */
 }
 .foot { margin-top: 24px; text-align: center; font-size: 11.5px; color: var(--muted); }
 

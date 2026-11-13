@@ -105,7 +105,8 @@ export function BotChartPage() {
 function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy" | "bot"; tradeRef: string | null }) {
   const [trade, setTrade] = useState<TradeView | null>(null);
   const [full, setFull] = useState(false);
-  const [fit, setFit] = useState(false);
+  // Levels are fitted by default: a pending order's target or stop must never be off-screen when the chart opens.
+  const [fit, setFit] = useState(true);
   // The bot's levels come from the shared fleet snapshot (the same record Bots and Home show: current stop and target).
   const { fleet } = useFleet();
   const bot = fleet?.bots.find((x) => x.bot_id === id) ?? null;
