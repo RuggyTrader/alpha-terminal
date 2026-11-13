@@ -66,7 +66,7 @@ export function answer(question: string, fleet: Fleet | null, nowMs: number, con
     const byPf = /factor|pf/.test(s);
     ranked.sort((a, b) => byPf ? (b.paper.profit_factor ?? -1) - (a.paper.profit_factor ?? -1) : b.paper.net_usd - a.paper.net_usd);
     const top = ranked[0];
-    return { text: byPf ? `${top.name} has the best profit factor (${top.paper.profit_factor?.toFixed(2) ?? "n/a"}) over ${top.paper.trades} trades.` : `${top.name} has the highest net funded PAPER result: ${sgn(top.paper.net_usd)} after ${usd(top.paper.fees_usd)} of fees over ${top.paper.trades} trades.`,
+    return { text: byPf ? `${top.name} has the best profit factor (${top.paper.profit_factor?.toFixed(2) ?? "n/a"}) over ${top.paper.trades} trade${top.paper.trades === 1 ? "" : "s"}.` : `${top.name} has the highest net funded PAPER result: ${sgn(top.paper.net_usd)} after ${usd(top.paper.fees_usd)} of fees over ${top.paper.trades} trade${top.paper.trades === 1 ? "" : "s"}.`,
       evidence: ranked.map((b) => ({ label: b.bot_id, value: `net ${sgn(b.paper.net_usd)} · gross ${sgn(b.paper.gross_usd)} · fees ${usd(b.paper.fees_usd)} · PF ${b.paper.profit_factor?.toFixed(2) ?? "n/a"} · ${b.paper.trades} trades` })), known: true };
   }
 

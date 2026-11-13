@@ -63,7 +63,7 @@ const visible = () => typeof document === "undefined" || document.visibilityStat
  * Polls the events (and, less often, the mirror overview) while mounted and the page is visible.
  * `reconnected` (from the dashboard store) adds a timestamped "Worker reconnected" item seen by this device.
  */
-export function useActivity(reconnected: boolean, offline: boolean): ActivityState {
+export function useActivity(reconnected: boolean, offline: boolean, limit = ACTIVITY_LIMIT): ActivityState {
   const [state, setState] = useState<ActivityState>({ items: null, error: null, mirror: null, at: null });
   const local = useRef<ActivityItem[]>([]);
   const server = useRef<ActivityItem[]>([]);
@@ -94,8 +94,8 @@ export function useActivity(reconnected: boolean, offline: boolean): ActivitySta
       window.clearTimeout(timer);
       if (visible()) {
         try {
-          server.current = await fetchActivity();
-          if (alive) setState((s) => ({ ...s, items: mergeActivity(server.current, local.current), error: null, at: Date.now() }));
+          server.current = await fetchActivity(limit);
+          if (alive) setState((s) => ({ ...s, items: mergeActivity(server.current, local.current, limit), error: null, at: Date.now() }));
         } catch (e) {
           if (alive) setState((s) => ({ ...s, error: e instanceof Error ? e.message : "Events unavailable" }));
         }

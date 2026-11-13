@@ -76,7 +76,8 @@
 .asst-fab { position: fixed; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)); width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--orange); color: #fff; font-size: 22px; font-weight: 800; z-index: 40; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
 .asst { position: fixed; left: 8px; right: 8px; bottom: calc(80px + env(safe-area-inset-bottom)); max-height: 70vh; background: var(--surface); border-radius: var(--r-md); box-shadow: 0 10px 30px rgba(0,0,0,.3); z-index: 50; display: flex; flex-direction: column; padding: 10px; gap: 8px; }
 .asst.is-full { top: calc(8px + env(safe-area-inset-top)); max-height: none; }
-.asst-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .asst-sub { font-size: 11px; color: var(--muted); flex: 1; }
+.asst-h { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; } .asst-h b { flex: 1; } .asst-sub { font-size: 11px; color: var(--muted); order: 9; flex-basis: 100%; }
+.asst-h .link, .asst-trade .link { background: none; border: 0; padding: 6px 2px; min-height: 32px; font: inherit; font-size: 13px; font-weight: 700; color: var(--orange); cursor: pointer; }
 .asst-body { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px; }
 .asst-sugg { display: flex; flex-direction: column; gap: 6px; } .asst-sugg .btn { height: auto; min-height: 36px; text-align: left; font-size: 13px; }
 .asst-q { margin: 0; font-weight: 700; font-size: 13px; } .asst-a { margin: 2px 0 0; font-size: 13px; overflow-wrap: anywhere; } .asst-ev { font-size: 12px; color: var(--muted); }

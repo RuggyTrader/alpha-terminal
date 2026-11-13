@@ -357,8 +357,11 @@ describe("Engine", () => {
 });
 
 describe("Activity", () => {
-  it("shows an empty state instead of generated log lines", () => {
-    expect(page("/activity", ok(dashboard()))).toContain("No recorded activity yet.");
+  it("shows a loading state, never generated log lines, before the Worker's events arrive", () => {
+    const html = page("/activity", ok(dashboard()));
+    expect(html).toContain("Recorded events");
+    expect(html).not.toContain("ac-item"); // no event row exists until the Worker returns one
+    expect(html).not.toContain("Legacy engine log"); // no legacy rows → no legacy section
   });
 
   it("renders persisted events with severity", () => {

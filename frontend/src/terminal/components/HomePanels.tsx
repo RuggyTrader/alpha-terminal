@@ -53,7 +53,7 @@ export function PipelinePanel({ state, mirror }: { state: FeedState; mirror: Act
   );
 }
 
-function ActivityRowView({ e }: { e: ActivityItem }) {
+export function ActivityRowView({ e }: { e: ActivityItem }) {
   const inner = (
     <>
       <div className="ac-meta">
