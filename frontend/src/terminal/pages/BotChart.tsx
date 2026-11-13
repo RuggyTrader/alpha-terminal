@@ -51,6 +51,14 @@ export function chartMarkersInCandles<T extends { time: number }>(markers: T[], 
   const times = new Set(candles.map((c) => c.t));
   return markers.filter((m) => times.has(m.time));
 }
+/** A trade opened from a link must belong to THIS chart's bot, market and timeframe; never draw a BTC trade on a SOL chart. */
+export function tradeMatchesChart(t: Pick<TradeView, "botId" | "symbol" | "timeframe">, botId: string, symbol: string | null, timeframe: string | null): boolean {
+  const norm = (x: string | null) => String(x ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^XBT/, "BTC").replace(/^KRAKEN/, "");
+  if (t.botId !== null && t.botId !== botId) return false;
+  if (!symbol || norm(t.symbol) !== norm(symbol)) return false;
+  if (t.timeframe !== null && timeframe !== null && t.timeframe !== timeframe) return false;
+  return true;
+}
 export function chartDataMatches(data: Pick<Candles, "symbol" | "timeframe_min">, symbol: string, timeframe: string): boolean {
   return data.symbol === symbol && data.timeframe_min === Number(timeframe.replace(/\D/g, ""));
 }
@@ -103,9 +111,13 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
           status: pr.position.status, qty: pr.position.qty, entry_price: pr.position.entry_price, exit_price: pr.position.exit_price, opened_at: pr.position.opened_at, closed_at: pr.position.closed_at,
           gross_usd: pr.position.gross_usd, fees_usd: (pr.position.entry_fee_usd ?? 0) + (pr.position.exit_fee_usd ?? 0), net_usd: pr.position.net_usd, swept_usd: pr.position.swept_usd,
           stop: pr.position.stop, tp: pr.position.tp, proof_url: `/bots/trade/${encodeURIComponent(pr.position.trade_id)}`, story: pr.story ?? null }) : null))
-      .then((v) => { if (live) setTrade(v); }).catch((e) => { if (live) setErr(String((e as Error).message)); });
+      .then((v) => {
+        if (!live) return;
+        if (v && !tradeMatchesChart(v, id, sym, tf)) { setTrade(null); setErr(`Trade ${tradeRef} belongs to ${v.botId ?? v.symbol}${v.timeframe ? ` ${v.timeframe}` : ""}, not ${id}${sym ? ` (${sym} ${tf})` : ""}. It is not drawn on this chart.`); return; }
+        setTrade(v);
+      }).catch((e) => { if (live) setErr(String((e as Error).message)); });
     return () => { live = false; };
-  }, [tradeRef, ledger]);
+  }, [tradeRef, ledger, id, sym, tf]);
   const [data, setData] = useState<Candles | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [marketError, setMarketError] = useState<string | null>(null);
@@ -218,6 +230,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
         last refresh {refreshedAt ? stamp(new Date(refreshedAt).toISOString()) : NA} · <StatusBadge tone={fresh === "FRESH" ? "ok" : fresh === "STALE" ? "warn" : "bad"}>{fresh}</StatusBadge>
 
       </p>
+      {lv && fresh !== "FRESH" ? <p className="sizing-note t-warn">Market data is {fresh}: current price, distance to limit and unrealized P&amp;L are hidden until a fresh refresh succeeds.</p> : null}
       {bot && lv && f ? (
         <section className="card">
           <SectionHeader title={lv.kind === "pending" ? "Pending limit order" : `Open PAPER ${lv.side}`} sub={`${bot.bot_id} · ${bot.profile} · config ${bot.inputs_hash}`} />
@@ -245,7 +258,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
           <p className="sizing-note"><b>Why it entered:</b> {explainEntry(trade) ?? "not recorded for this trade."}</p>
           {trade.status === "CLOSED" ? <p className="sizing-note"><b>Why it exited:</b> {explainExit(trade) ?? "not recorded for this trade."}</p> : null}
           {data && data.candles.length && trade.openedAt && Date.parse(trade.openedAt) / 1000 < data.candles[0].t
-            ? <p className="sizing-note t-warn">This trade is older than the candles Kraken serves for this timeframe (its latest 720), so its fill markers are not drawn. The levels are still drawn.</p> : null}
+            ? <p className="sizing-note t-warn">This trade is older than the {data.candles.length} most recent completed candles this chart receives from Kraken, so its fill markers are not drawn (no archived candles are available here). The levels are still drawn.</p> : null}
           {data && data.candles.length && trade.openedAt && Date.parse(trade.openedAt) / 1000 > data.candles[data.candles.length - 1].t + data.timeframe_min * 60
             ? <p className="sizing-note t-warn">This trade is newer than the latest candle received, so its fill markers are not drawn yet. The levels are drawn.</p> : null}
         </section>

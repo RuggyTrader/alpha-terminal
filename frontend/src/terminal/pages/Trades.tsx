@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BotChips, BotTradesView } from "../components/BotTradesView";
+import { AllBotTrades } from "../components/AllBotTrades";
+import { useFleet } from "../fleetStore";
 import { tradeFilter } from "../botTrades";
 import { AlertCard } from "../components/AlertCard";
 import { OrderIntentCard } from "../components/OrderIntentCard";
@@ -24,21 +26,28 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
   const [params] = useSearchParams();
   const filter = tradeFilter(params);
   const filtered = filter.bot !== null || filter.signal !== null;
-  const [tab, setTab] = useState<TradesTab>(initialTab);
+  const { fleet } = useFleet();
+  // With a bot registry, ONE all-bot view (every bot, legacy ALPHA-02 included, each trade once) replaces the legacy
+  // History tab; the legacy signal / risk / intent records stay available below it. Without it (schema 6), unchanged.
+  const unified = !!fleet?.available;
+  const tabs = unified ? TABS.filter((t) => t.id !== "history") : TABS;
+  const [tab, setTab] = useState<TradesTab>(unified && initialTab === "history" ? "alerts" : initialTab);
   const d = state.data;
   const c = d?.counts;
   const loading = state.status === "loading" && !d;
-  const idx = TABS.findIndex((t) => t.id === tab);
+  const idx = tabs.findIndex((t) => t.id === tab);
 
   return (
     <div className="page-narrow">
       <h1 className="page-title">Trades</h1>
       <BotChips base="/trades" active={filter.bot} />
       {filtered ? <BotTradesView filter={filter} /> : null}
+      {!filtered && unified ? <AllBotTrades initial={initialTab === "orders" ? "pending" : "completed"} /> : null}
       {filtered ? null : <>
+      {unified ? <SectionHeader title="Engine records" sub="Signals received, risk decisions and order intents (legacy engine path)" /> : null}
       <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
         <span className="seg-pill" aria-hidden />
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button key={t.id} type="button" role="tab" className={`m-press${tab === t.id ? " on" : ""}`} aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
             {t.label}
           </button>
@@ -78,7 +87,7 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
         </section>
       ) : null}
 
-      {tab === "history" ? (
+      {tab === "history" && !unified ? (
         <section aria-label="Trade history" className="m-fade">
           <SectionHeader
             title="Trade history"

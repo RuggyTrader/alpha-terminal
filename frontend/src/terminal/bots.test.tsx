@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { botPhase, botState, groupTotals, pipelineLine, type Bot } from "./bots";
 import { BotCard } from "./pages/Bots";
-import { botLevels, candleBucket, chartDataMatches, chartFigures, chartMarkersInCandles } from "./pages/BotChart";
+import { botLevels, candleBucket, chartDataMatches, chartFigures, chartMarkersInCandles, tradeMatchesChart } from "./pages/BotChart";
 import { answer, findBot, UNKNOWN } from "./assistant";
 import { BotView, FundedView, MirrorView } from "./components/PerformanceSelector";
 import type { VerifiedState } from "./useVerified";
@@ -130,5 +130,15 @@ describe("chart context guards", () => {
     expect(candleBucket("2026-11-12T01:03:12Z", 5)).toBe(ts);
     expect(candleBucket("invalid", 5)).toBeNull();
     expect(chartMarkersInCandles([{ time: ts }, { time: ts + 300 }, { time: ts + 600 }], [{ t: ts }, { t: ts + 600 }])).toEqual([{ time: ts }, { time: ts + 600 }]);
+  });
+});
+
+describe("chart trade ownership", () => {
+  it("never draws another bot's or market's trade on this chart", () => {
+    expect(tradeMatchesChart({ botId: "ALPHA-02", symbol: "SOLUSD", timeframe: "5m" }, "ALPHA-02", "SOLUSD", "5m")).toBe(true);
+    expect(tradeMatchesChart({ botId: "ALPHA-03", symbol: "BTCUSD", timeframe: "1m" }, "ALPHA-01", "SOLUSD", "1m")).toBe(false);
+    expect(tradeMatchesChart({ botId: null, symbol: "BTCUSD", timeframe: null }, "ALPHA-02", "SOLUSD", "5m")).toBe(false);
+    expect(tradeMatchesChart({ botId: null, symbol: "SOLUSD", timeframe: "1m" }, "ALPHA-02", "SOLUSD", "5m")).toBe(false);
+    expect(tradeMatchesChart({ botId: null, symbol: "SOL/USD", timeframe: "5m" }, "ALPHA-02", "SOLUSD", "5m")).toBe(true);
   });
 });

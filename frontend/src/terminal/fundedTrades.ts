@@ -4,7 +4,7 @@
 // Every figure is a ledger net (after its recorded fees). Strategy Mirror trades are never included.
 
 import { useEffect, useState } from "react";
-import { fetchBotTrades, type BotTradeRow } from "./botTrades";
+import { fetchBotTrades, ledgerSignature, type BotTradeRow } from "./botTrades";
 import { useFleet } from "./fleetStore";
 import type { VerifiedTrade } from "./types";
 import type { VerifiedState } from "./useVerified";
@@ -24,16 +24,18 @@ export function mergeFunded(verified: VerifiedState, botRows: BotTradeRow[] | nu
     verification: `${verified.data.verification} Includes ${extra.length} closed bot-ledger trade(s) (each bot's own wallet, net of its recorded fees).` } };
 }
 
-/** Re-reads the bot trades whenever the shared fleet snapshot changes (so a close shows on Home with the fleet). */
+/** Re-reads the bot trades whenever the shared fleet snapshot shows a ledger change (so a close shows on Home with the fleet). */
 export function useFundedVerified(verified: VerifiedState): VerifiedState {
-  const { fleet, fetchedAt } = useFleet();
+  const { fleet } = useFleet();
   const [rows, setRows] = useState<BotTradeRow[] | null>(null);
   const botLedger = !!fleet?.bots.some((b) => b.ledger_api === "bot");
+  // Refetch only when a bot's trades actually changed (not on every 20 s fleet poll: this read is the full history).
+  const sig = ledgerSignature(fleet ?? null);
   useEffect(() => {
     if (!botLedger) { setRows([]); return; }
     let live = true;
     fetchBotTrades({ limit: 5000 }).then((d) => { if (live) setRows(d.available ? d.trades : []); }).catch(() => { if (live) setRows([]); });
     return () => { live = false; };
-  }, [botLedger, fetchedAt]);
+  }, [botLedger, sig]);
   return mergeFunded(verified, rows);
 }

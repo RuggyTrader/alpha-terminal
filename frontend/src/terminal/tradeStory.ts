@@ -52,12 +52,15 @@ export const BOT_TIMEFRAME: Record<string, string> = { "ALPHA-01": "1m", "ALPHA-
 
 export function fromBotTrade(r: BotTradeRow & { story?: TradeStory | null }): TradeView {
   const tf = BOT_TIMEFRAME[r.bot_id]?.replace("m", "") ?? null;
-  return { key: `${r.ledger}-${r.trade_id}`, ledger: r.ledger, tradeId: r.trade_id, botId: r.bot_id, botLabel: label(r.bot_id), symbol: r.symbol,
+  // A legacy (ALPHA-02) row is identified by its trades.id everywhere else (dashboard list, proof page, chart): use the
+  // same id so the same trade never appears twice and its chart link resolves.
+  const id = r.ledger === "legacy" && r.legacy_id !== undefined && r.legacy_id !== null ? String(r.legacy_id) : r.trade_id;
+  return { key: `${r.ledger}-${id}`, ledger: r.ledger, tradeId: id, botId: r.bot_id, botLabel: label(r.bot_id), symbol: r.symbol,
     timeframe: tf ? `${tf}m` : null, side: r.side === "SHORT" ? "SHORT" : "LONG", status: r.status === "OPEN" ? "OPEN" : "CLOSED", qty: r.qty, entry: r.entry_price, exit: r.exit_price,
     gross: r.gross_usd, fees: r.fees_usd, net: r.net_usd, returnPct: r.net_usd !== null && r.entry_price ? (r.net_usd / (r.qty * r.entry_price)) * 100 : null,
     openedAt: r.opened_at, closedAt: r.closed_at, costProfile: r.ledger === "bot" ? "ndax-flat-0.20" : null, swept: r.swept_usd, story: r.story ?? null, proofUrl: r.proof_url,
     slippage: null, source: r.status === "CLOSED" ? "VERIFIED PAPER" : "ALPHA PAPER",
-    chartUrl: `/bots/${r.bot_id}/chart?ledger=${r.ledger}&trade=${encodeURIComponent(r.trade_id)}` };
+    chartUrl: `/bots/${r.bot_id}/chart?ledger=${r.ledger}&trade=${encodeURIComponent(id)}` };
 }
 
 /** Why the bot entered — every clause is a recorded field. Null when no plan was recorded. */
