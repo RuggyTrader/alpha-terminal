@@ -22,10 +22,10 @@ export function FundedView({ verified, now }: { verified: VerifiedState; now: nu
   if (!m) return <p className="sizing-note">Loading funded PAPER results…</p>;
   return (
     <div className="sizing-grid" aria-label="Funded PAPER performance">
-      <div><span>Net P&amp;L (closed trades)</span><b>{signedMoney(m.totalPnl)}</b></div>
-      <div><span>Closed trades</span><b>{m.trades}</b></div>
-      <div><span>Win rate</span><b>{rate(m.winRate)}</b></div>
-      <div><span>Profit factor</span><b>{m.profitFactor === null ? NA : m.profitFactor.toFixed(2)}</b></div>
+      {/* Net P&L, closed trades, win rate and profit factor are in the hero above (same scope): not repeated here. */}
+      <div><span>Wins · losses</span><b>{m.trades ? `${m.wins} · ${m.losses}` : NA}</b></div>
+      <div><span>Average per trade (net)</span><b>{m.expectancy === null ? NA : signedMoney(m.expectancy)}</b></div>
+      <div><span>Max drawdown (closed)</span><b>{m.maxDrawdown === null ? NA : money(m.maxDrawdown)}</b></div>
       {m.trades === 0 ? <p className="sizing-note">No funded PAPER trade has closed yet. Strategy Mirror trades are hypothetical and are not counted here.</p> : null}
     </div>
   );

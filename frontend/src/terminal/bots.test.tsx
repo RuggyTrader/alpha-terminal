@@ -5,6 +5,7 @@ import { botPhase, botState, groupTotals, pipelineLine, type Bot } from "./bots"
 import { BotCard } from "./pages/Bots";
 import { botLevels, candleBucket, chartDataMatches, chartFigures, chartMarkersInCandles, tradeMatchesChart } from "./pages/BotChart";
 import { answer, findBot, UNKNOWN } from "./assistant";
+import { isFleetQuestion } from "./tradeAssistant";
 import { BotView, FundedView, MirrorView } from "./components/PerformanceSelector";
 import type { VerifiedState } from "./useVerified";
 
@@ -75,6 +76,36 @@ describe("chart helpers use recorded levels only", () => {
     expect(f.estNet).toBeCloseTo(2 - 0.4 - 99 * 2 * 0.002);
     expect(f.atTarget).toBeCloseTo(8);
     expect(chartFigures(lv, null).gross).toBeNull();
+    // position value, fees and net at target, and the result at the stop after both fees
+    expect(f.notional).toBeCloseTo(200);
+    expect(f.feesAtTarget).toBeCloseTo(0.4 + 96 * 2 * 0.002);
+    expect(f.netAtTarget).toBeCloseTo(8 - 0.4 - 96 * 2 * 0.002);
+    expect(f.lossAtStop).toBeCloseTo(-4 - 0.4 - 102 * 2 * 0.002);
+  });
+  it("a pending order estimates its entry fee and shows the distance to the limit in % of the mark", () => {
+    const b = bot({ engine: { strategy_state: { pending_order: { side: "LONG", qty: 0.5, limit: 77.58, stop: 77.33, tp: 78.56 } } } as unknown as Bot["engine"] });
+    const f = chartFigures(botLevels(b)!, 77.86);
+    expect(f.toLimit).toBeCloseTo(-0.28);
+    expect(f.toLimitPct).toBeCloseTo((-0.28 / 77.86) * 100);
+    expect(f.feesAtTarget).toBeCloseTo(77.58 * 0.5 * 0.002 + 78.56 * 0.5 * 0.002);
+    expect(f.lossAtStop).toBeLessThan(-(77.58 - 77.33) * 0.5); // fees make the stop loss larger than the price distance
+    expect(chartFigures(botLevels(b)!, null).toLimit).toBeNull(); // no fresh mark → no distance
+  });
+  it("a break-even stop is not 'no risk': both fees are still lost", () => {
+    const b = bot({ open_positions: [{ trade_id: "T1", symbol: "SOLUSD", side: "LONG", qty: 0.5, entry_price: 77.58, stop: 77.58, tp: 78.56, collateral_usd: 38.79, entry_fee_usd: 0.07758, opened_at: "", mark_price: null, mark_at: null }] });
+    expect(chartFigures(botLevels(b)!, 77.9).lossAtStop).toBeCloseTo(-0.07758 - 77.58 * 0.5 * 0.002);
+  });
+});
+
+describe("Ask ALPHA with a trade attached", () => {
+  it("fleet-wide questions go to the general assistant; trade questions stay with the trade", () => {
+    expect(isFleetQuestion("Which bot is performing best?")).toBe(true);
+    expect(isFleetQuestion("How much profit was transferred to MAIN?")).toBe(true);
+    expect(isFleetQuestion("Why does Strategy Mirror differ from funded PAPER?")).toBe(true);
+    expect(isFleetQuestion("Why is the dashboard stale?")).toBe(true);
+    expect(isFleetQuestion("Why did it exit?")).toBe(false);
+    expect(isFleetQuestion("What was the point of this trade?")).toBe(false);
+    expect(isFleetQuestion("Why was the position so small?")).toBe(false);
   });
 });
 
@@ -105,7 +136,10 @@ describe("Home performance selector keeps datasets apart", () => {
     const v = { status: "ok", data: { trades: [] }, error: null } as unknown as VerifiedState;
     const out = r(<FundedView verified={v} now={NOW} />);
     expect(out).toContain("No funded PAPER trade has closed yet");
-    expect(out).toContain("<b>0</b>");
+    // the hero above already shows net P&L, closed trades, win rate and profit factor for this scope: not repeated
+    expect(out).not.toContain("Closed trades");
+    expect(out).not.toContain("Profit factor");
+    expect(out).toContain("Max drawdown (closed)");
   });
   it("mirror view is labelled hypothetical", () => {
     expect(r(<MirrorView overview={{ label: "", disclosure: "", note: "", markets: [] }} />)).toContain("Hypothetical");

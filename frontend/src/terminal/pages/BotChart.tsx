@@ -83,7 +83,16 @@ export function chartFigures(lv: NonNullable<ReturnType<typeof botLevels>>, mark
   const estNet = gross !== null && lv.entryFee !== null ? gross - lv.entryFee - mark! * lv.qty * FEE : null;
   const toLimit = lv.kind === "pending" && mark !== null && lv.entry !== null ? lv.entry - mark : null;
   const atTarget = lv.entry !== null && lv.tp !== null ? (lv.tp - lv.entry) * lv.qty * dir : null;
-  return { stopRisk, rr, gross, estNet, toLimit, atTarget };
+  // Estimates at the Ndax-equivalent 0.20% per fill (recorded fees replace them once filled): the entry fee (recorded
+  // when the position exists) plus the exit fee at the level in question.
+  const notional = lv.entry !== null ? lv.entry * lv.qty : null;
+  const entryFee = lv.entryFee ?? (notional !== null ? notional * FEE : null);
+  const feesAtTarget = entryFee !== null && lv.tp !== null ? entryFee + lv.tp * lv.qty * FEE : null;
+  const netAtTarget = atTarget !== null && feesAtTarget !== null ? atTarget - feesAtTarget : null;
+  const lossAtStop = stopRisk !== null && entryFee !== null && lv.stop !== null && lv.entry !== null
+    ? (lv.stop - lv.entry) * lv.qty * dir - entryFee - lv.stop * lv.qty * FEE : null;
+  const toLimitPct = toLimit !== null && mark ? (toLimit / mark) * 100 : null;
+  return { stopRisk, rr, gross, estNet, toLimit, toLimitPct, atTarget, notional, feesAtTarget, netAtTarget, lossAtStop };
 }
 
 export function BotChartPage() {
@@ -208,7 +217,8 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
   const now = Date.now();
   const lastClose = data && data.candles.length ? data.candles[data.candles.length - 1].c : null;
   const ageSec = data ? Math.round((now - Date.parse(data.fetched_at)) / 1000) : null;
-  const fresh = !marketError && ageSec !== null && ageSec >= 0 && ageSec < 90 ? "FRESH" : ageSec !== null && ageSec >= 0 && ageSec < 600 ? "STALE" : "OFFLINE";
+  const fresh = !data && !marketError ? "LOADING"
+    : !marketError && ageSec !== null && ageSec >= 0 && ageSec < 90 ? "FRESH" : ageSec !== null && ageSec >= 0 && ageSec < 600 ? "STALE" : "OFFLINE";
   const f = lv ? chartFigures(lv, fresh === "FRESH" ? lastClose : null) : null;
   return (
     <div className="page-narrow bots-page">
@@ -227,32 +237,36 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
       </div>
       <p className="sizing-note">
         Source: {data?.source ?? "Kraken"} ({data?.pair ?? NA}) · {data ? `${data.candles.length} completed ${data.timeframe_min}m candles` : NA} · forming candle shown faded ·
-        last refresh {refreshedAt ? stamp(new Date(refreshedAt).toISOString()) : NA} · <StatusBadge tone={fresh === "FRESH" ? "ok" : fresh === "STALE" ? "warn" : "bad"}>{fresh}</StatusBadge>
+        last refresh {refreshedAt ? stamp(new Date(refreshedAt).toISOString()) : NA} · <StatusBadge tone={fresh === "FRESH" ? "ok" : fresh === "STALE" ? "warn" : fresh === "LOADING" ? "muted" : "bad"}>{fresh}</StatusBadge>
 
       </p>
-      {lv && fresh !== "FRESH" ? <p className="sizing-note t-warn">Market data is {fresh}: current price, distance to limit and unrealized P&amp;L are hidden until a fresh refresh succeeds.</p> : null}
-      {bot && lv && f ? (
+      {lv && fresh !== "FRESH" && fresh !== "LOADING" ? <p className="sizing-note t-warn">Market data is {fresh}: current price, distance to limit and unrealized P&amp;L are hidden until a fresh refresh succeeds.</p> : null}
+      {bot && lv && f ? (() => { const st = bot.engine?.strategy_state ?? null; return (
         <section className="card">
           <SectionHeader title={lv.kind === "pending" ? "Pending limit order" : `Open PAPER ${lv.side}`} sub={`${bot.bot_id} · ${bot.profile} · config ${bot.inputs_hash}`} />
           <div className="sizing-grid">
             <div><span>{lv.kind === "pending" ? "Limit" : "Entry"}</span><b>{lv.entry ?? NA}</b></div>
-            <div><span>Stop (current)</span><b>{lv.stop ?? NA}</b></div>
+            <div><span>{lv.kind === "position" ? "Stop (current)" : "Stop"}</span><b>{lv.stop ?? NA}</b></div>
+            {lv.kind === "position" ? <div><span>Initial stop</span><b>{lv.initialStop ?? NA}</b></div> : null}
             <div><span>Target</span><b>{lv.tp ?? NA}</b></div>
+            {lv.kind === "position" ? <div><span>Stop management</span><b>{st?.trailing ? "Trailing" : st?.break_even_done || (lv.stop !== null && lv.stop === lv.entry) ? "Break-even" : "Initial stop"}</b></div> : null}
             <div><span>Quantity</span><b>{lv.qty}</b></div>
+            <div><span>Position value</span><b>{f.notional === null ? NA : money(f.notional)}</b></div>
             <div><span>Dollar-risk target</span><b>{money(lv.risk)}</b></div>
-            <div><span>Estimated stop risk</span><b>{f.stopRisk === null ? NA : money(f.stopRisk)}</b></div>
+            <div><span>Result at stop (est., after fees)</span><b>{f.lossAtStop === null ? NA : signedMoney(f.lossAtStop)}</b></div>
             <div><span>Reward : risk</span><b>{f.rr === null ? NA : f.rr.toFixed(2)}</b></div>
-            {lv.kind === "pending" ? <div><span>Distance to limit</span><b>{f.toLimit === null ? NA : f.toLimit.toFixed(2)}</b></div> : null}
+            {lv.kind === "pending" ? <div><span>Distance to limit</span><b>{f.toLimit === null ? NA : `${f.toLimit > 0 ? "+" : ""}${f.toLimit.toFixed(2)} (${f.toLimitPct!.toFixed(2)}%)`}</b></div> : null}
             {lv.kind === "position" ? <div><span>Gross unrealized (est., last close)</span><b>{f.gross === null ? NA : signedMoney(f.gross)}</b></div> : null}
             {lv.kind === "position" ? <div><span>Net unrealized (est. after fees)</span><b>{f.estNet === null ? NA : signedMoney(f.estNet)}</b></div> : null}
-            <div><span>At target (gross)</span><b>{f.atTarget === null ? NA : signedMoney(f.atTarget)}</b></div>
+            <div><span>At target: gross · fees</span><b>{f.atTarget === null ? NA : `${signedMoney(f.atTarget)} · ${f.feesAtTarget === null ? NA : money(f.feesAtTarget)}`}</b></div>
+            <div><span>At target: net (est.)</span><b>{f.netAtTarget === null ? NA : signedMoney(f.netAtTarget)}</b></div>
           </div>
           {lv.kind === "pending" && bot.engine?.strategy_state?.pending_order ? (() => { const po = bot.engine.strategy_state.pending_order;
             const conf = (po.confluence ?? []).map((t) => CONFLUENCE[t] ?? t);
             return <p className="sizing-note"><b>Why:</b> {po.side} OTE limit at the 70.5% retracement{po.ote_705 !== null && po.ote_705 !== undefined ? ` (${po.ote_705})` : ""} of the {po.side === "LONG" ? "bullish" : "bearish"} swing {bot.engine.strategy_state.leg_start} → {bot.engine.strategy_state.leg_end}{conf.length ? `, with ${conf.join(" and ")} confluence` : ""}{po.score !== null && po.score !== undefined ? ` (score ${po.score})` : ""}{po.placed_at ? `; placed ${stamp(po.placed_at)}` : ""}{bot.engine.strategy_state.setup_bars !== null && bot.engine.strategy_state.max_age_bars ? `; setup valid for ${Math.max(0, bot.engine.strategy_state.max_age_bars - bot.engine.strategy_state.setup_bars)} more candles` : ""}.</p>; })() : null}
-          <p className="sizing-note">{lv.tradeId ? `Trade ${lv.tradeId} · opened ${stamp(lv.openedAt!)} · ` : ""}Unrealized figures are estimates at the last completed candle, not realized profit. A stop does not guarantee the loss (gaps, fees).</p>
+          <p className="sizing-note">{lv.tradeId ? `Trade ${lv.tradeId} · opened ${stamp(lv.openedAt!)} · ` : ""}Fee estimates use the Ndax-equivalent 0.20% per fill. Unrealized figures are estimates at the last completed candle, not realized profit. A stop does not guarantee the loss (gaps, fees).</p>
         </section>
-      ) : trade ? (
+      ); })() : trade ? (
         <section className="card" aria-label="This trade">
           <SectionHeader title={`${trade.side} · ${trade.status === "CLOSED" ? "closed" : "open"} trade`} sub={<Link className="link" to={trade.proofUrl}>Full trade proof →</Link>} />
           <p className="sizing-note"><b>Why it entered:</b> {explainEntry(trade) ?? "not recorded for this trade."}</p>

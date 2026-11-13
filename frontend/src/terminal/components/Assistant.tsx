@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { answer, type Answer } from "../assistant";
 import { ASK_EVENT, type AskRequest } from "../askAlpha";
-import { answerTrade } from "../tradeAssistant";
+import { answerTrade, isFleetQuestion } from "../tradeAssistant";
 import type { TradeView } from "../tradeStory";
 import { useFleet } from "../fleetStore";
 
@@ -38,7 +38,7 @@ export function AssistantDrawer() {
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs]);
   const ask = (text: string) => {
     if (!text.trim()) return;
-    setMsgs((m) => [...m, { q: text, a: trade ? answerTrade(text, trade) : answer(text, fleet, Date.now(), ctx || null) }].slice(-30));
+    setMsgs((m) => [...m, { q: text, a: trade && !isFleetQuestion(text) ? answerTrade(text, trade) : answer(text, fleet, Date.now(), ctx || null) }].slice(-30));
     setQ("");
   };
   return (

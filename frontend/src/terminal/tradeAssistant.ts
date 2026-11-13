@@ -6,6 +6,12 @@ import { CONFLUENCE, explainEntry, explainExit, hypotheticalFees, planFigures, t
 
 const usdT = (x: number | null) => (x === null ? "unavailable" : `${x < 0 ? "−" : ""}$${Math.abs(x).toFixed(2)}`);
 
+/** Questions about the whole fleet or account are answered by the general assistant even while a trade is attached
+ *  ("Which bot is performing best?" must never be answered with this trade's story). */
+export function isFleetQuestion(question: string): boolean {
+  return /which bot|best|worst|all (the )?bots|every bot|\bfleet\b|compare|mirror|\bmain\b|stale|dashboard|in total|overall|total (profit|p&l|pnl)|each bot/i.test(question);
+}
+
 export function answerTrade(question: string, v: TradeView): Answer {
   const s = question.toLowerCase();
   const ev: Evidence[] = [
