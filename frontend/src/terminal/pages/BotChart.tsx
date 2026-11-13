@@ -5,12 +5,39 @@
 
 import { createChart, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { EmptyState, SectionHeader, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp } from "../fmt";
 import { botState, STATE_TONE, type Bot } from "../bots";
 import { useFleet } from "../fleetStore";
+import { fetchTradeProof } from "../api";
+import { fetchBotTradeProof } from "../botTrades";
+import { CONFLUENCE, explainEntry, explainExit, fromBotTrade, fromLegacyTrade, type TradeStory, type TradeView } from "../tradeStory";
+
+/** The four registered bots' markets (engine/src/bots.mjs). Used when the Worker has no bot registry yet (schema 6),
+ *  so a chart link always opens the right market and timeframe. */
+export const BOT_MARKETS: Record<string, { symbol: string; timeframe: string }> = {
+  "ALPHA-01": { symbol: "SOLUSD", timeframe: "1m" }, "ALPHA-02": { symbol: "SOLUSD", timeframe: "5m" },
+  "ALPHA-03": { symbol: "BTCUSD", timeframe: "1m" }, "ALPHA-04": { symbol: "BTCUSD", timeframe: "5m" },
+};
+
+/** Lines and markers for ONE completed or open trade, from its recorded story and ledger fills only. */
+export function tradeOverlay(v: TradeView, tfMin: number) {
+  const pl = v.story?.plan ?? null, ex = v.story?.exit ?? null;
+  const bucket = (iso: string | null) => (iso ? Math.floor(Date.parse(iso) / 1000 / (tfMin * 60)) * tfMin * 60 : null);
+  const lines: { price: number; title: string; color: string; dashed: boolean }[] = [];
+  const add = (price: number | null | undefined, title: string, color: string, dashed = false) => { if (price !== null && price !== undefined && Number.isFinite(price)) lines.push({ price, title, color, dashed }); };
+  add(pl?.planned_entry, "Planned entry", "#f08c00", true);
+  add(pl?.initial_stop, "Initial stop", "#d64545");
+  add(pl?.tp2, "Target", "#1f9d55");
+  for (const h of ex?.stop_history ?? []) add(h.stop, h.reason === "BREAK_EVEN" ? "Stop → break-even" : "Trailing stop", "rgba(214,69,69,0.55)", true);
+  const markers: { time: number; position: "belowBar" | "aboveBar"; color: string; shape: "arrowUp" | "arrowDown" | "circle"; text: string }[] = [];
+  const t0 = bucket(v.openedAt), t1 = v.status === "CLOSED" ? bucket(v.closedAt) : null;
+  if (t0 !== null) markers.push({ time: t0, position: v.side === "LONG" ? "belowBar" : "aboveBar", color: "#f08c00", shape: v.side === "LONG" ? "arrowUp" : "arrowDown", text: `${v.side} filled ${v.entry ?? ""}` });
+  if (t1 !== null) markers.push({ time: t1, position: v.side === "LONG" ? "aboveBar" : "belowBar", color: (v.net ?? 0) >= 0 ? "#1f9d55" : "#d64545", shape: "circle", text: `exit ${v.exit ?? ""}` });
+  return { lines, markers };
+}
 
 interface Candle { t: number; o: number; h: number; l: number; c: number; v: number }
 interface Candles { source: string; symbol: string; pair: string; timeframe_min: number; fetched_at: string; candles: Candle[]; forming: Candle | null }
@@ -41,10 +68,28 @@ export function chartFigures(lv: NonNullable<ReturnType<typeof botLevels>>, mark
 
 export function BotChartPage() {
   const { id = "" } = useParams();
+  const [params] = useSearchParams();
+  const tradeRef = params.get("trade"), ledger = params.get("ledger") === "legacy" ? "legacy" : "bot";
+  const [trade, setTrade] = useState<TradeView | null>(null);
+  const [full, setFull] = useState(false);
+  const [fit, setFit] = useState(false);
   // The bot's levels come from the shared fleet snapshot (the same record Bots and Home show: current stop and target).
   const { fleet } = useFleet();
   const bot = fleet?.bots.find((x) => x.bot_id === id) ?? null;
-  const sym = bot?.symbol ?? null, tf = bot?.timeframe ?? null;
+  const sym = bot?.symbol ?? BOT_MARKETS[id]?.symbol ?? null, tf = bot?.timeframe ?? BOT_MARKETS[id]?.timeframe ?? null;
+  // A specific trade (from a trade card, proof page or Activity link): its recorded levels and fills.
+  useEffect(() => {
+    if (!tradeRef) { setTrade(null); return; }
+    let live = true;
+    (ledger === "legacy"
+      ? fetchTradeProof(Number(tradeRef)).then((pr) => fromLegacyTrade({ ...pr.trade, story: (pr as { story?: TradeStory | null }).story ?? null }))
+      : fetchBotTradeProof(tradeRef).then((pr) => pr ? fromBotTrade({ trade_id: pr.position.trade_id, bot_id: pr.position.bot_id, ledger: "bot", symbol: String(pr.position.symbol), side: pr.position.side,
+          status: pr.position.status, qty: pr.position.qty, entry_price: pr.position.entry_price, exit_price: pr.position.exit_price, opened_at: pr.position.opened_at, closed_at: pr.position.closed_at,
+          gross_usd: pr.position.gross_usd, fees_usd: (pr.position.entry_fee_usd ?? 0) + (pr.position.exit_fee_usd ?? 0), net_usd: pr.position.net_usd, swept_usd: pr.position.swept_usd,
+          stop: pr.position.stop, tp: pr.position.tp, proof_url: `/bots/trade/${encodeURIComponent(pr.position.trade_id)}`, story: pr.story ?? null }) : null))
+      .then((v) => { if (live) setTrade(v); }).catch((e) => { if (live) setErr(String((e as Error).message)); });
+    return () => { live = false; };
+  }, [tradeRef, ledger]);
   const [data, setData] = useState<Candles | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
@@ -69,7 +114,7 @@ export function BotChartPage() {
     document.addEventListener("visibilitychange", load);
     return () => { live = false; clearInterval(id2); document.removeEventListener("visibilitychange", load); };
   }, [sym, tf]);
-  useEffect(() => { if (fleet && !bot) setErr(`${id} is not a registered bot`); }, [fleet, bot, id]);
+  useEffect(() => { if (fleet && !bot && !BOT_MARKETS[id]) setErr(`${id} is not a registered bot`); }, [fleet, bot, id]);
 
   useEffect(() => {
     if (!box.current || chart.current) return;
@@ -85,7 +130,23 @@ export function BotChartPage() {
     return () => { c.remove(); chart.current = null; series.current = null; forming.current = null; };
   }, []);
 
-  const lv = useMemo(() => (bot ? botLevels(bot) : null), [bot]);
+  const lv = useMemo(() => (bot && !tradeRef ? botLevels(bot) : null), [bot, tradeRef]);
+  const levels = useMemo(() => {
+    const ps: number[] = [];
+    if (trade && data) for (const l of tradeOverlay(trade, data.timeframe_min).lines) ps.push(l.price);
+    if (lv) for (const v of [lv.entry, lv.stop, lv.tp, lv.initialStop]) if (v !== null && v !== undefined && Number.isFinite(v)) ps.push(v);
+    return ps;
+  }, [trade, lv, data]);
+  // "Fit levels": the price scale includes the entry, stop and target, so none is off-screen.
+  useEffect(() => {
+    const s = series.current;
+    if (!s) return;
+    s.applyOptions({ autoscaleInfoProvider: (orig: () => { priceRange: { minValue: number; maxValue: number } } | null) => {
+      const r = orig();
+      if (!fit || !levels.length || !r) return r;
+      return { priceRange: { minValue: Math.min(r.priceRange.minValue, ...levels), maxValue: Math.max(r.priceRange.maxValue, ...levels) } };
+    } });
+  }, [fit, levels]);
   useEffect(() => {
     const s = series.current;
     if (!s || !data) return;
@@ -101,8 +162,15 @@ export function BotChartPage() {
       add(lv.tp, "#1f9d55", "Target");
       if (lv.openedAt) s.setMarkers([{ time: Math.floor(Date.parse(lv.openedAt) / 1000 / (data.timeframe_min * 60)) * data.timeframe_min * 60 as UTCTimestamp, position: lv.side === "LONG" ? "belowBar" : "aboveBar", color: "#f08c00", shape: lv.side === "LONG" ? "arrowUp" : "arrowDown", text: `${lv.side} entry` }]);
     }
+    if (trade) {
+      const o = tradeOverlay(trade, data.timeframe_min);
+      for (const l of o.lines) lines.push(s.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: l.dashed ? 2 : 0, axisLabelVisible: true, title: l.title }));
+      // Only markers inside the candles shown: a fill outside them would otherwise be drawn on the wrong candle.
+      const first = data.candles.length ? data.candles[0].t : Infinity, last = data.candles.length ? data.candles[data.candles.length - 1].t : -Infinity;
+      s.setMarkers(o.markers.filter((m) => m.time >= first && m.time <= last).map((m) => ({ ...m, time: m.time as UTCTimestamp })));
+    } else if (!lv) s.setMarkers([]);
     (s as unknown as { __lines?: unknown[] }).__lines = lines;
-  }, [data, lv]);
+  }, [data, lv, trade]);
 
   const now = Date.now();
   const lastClose = data && data.candles.length ? data.candles[data.candles.length - 1].c : null;
@@ -114,11 +182,19 @@ export function BotChartPage() {
       <SectionHeader title={bot ? `${bot.name} · ${bot.symbol} ${bot.timeframe}` : id} sub={<Link className="link" to="/bots">← Bots</Link>}
         right={bot ? <StatusBadge tone={STATE_TONE[botState(bot, now)]} dot>{botState(bot, now)}</StatusBadge> : null} />
       {err ? <EmptyState title="Chart unavailable" tone="bad">{err}</EmptyState> : null}
-      <div className="bot-chart" ref={box} aria-label="Price chart" />
+      <div className={`bot-chart-wrap ${full ? "is-full" : ""}`}>
+        {full ? <div className="chart-tools"><b>{sym} {tf}</b><button className="btn btn-ghost" type="button" onClick={() => setFull(false)}>Exit full screen</button></div> : null}
+        <div className="bot-chart" ref={box} aria-label="Price chart" />
+      </div>
+      <div className="chart-tools">
+        <button className="btn btn-ghost" type="button" onClick={() => chart.current?.timeScale().fitContent()}>Reset zoom</button>
+        <button className={`btn btn-ghost ${fit ? "is-on" : ""}`} type="button" aria-pressed={fit} onClick={() => setFit(!fit)}>{fit ? "Fit candles" : "Fit trade levels"}</button>
+        <button className="btn btn-ghost" type="button" onClick={() => setFull(true)}>Full screen</button>
+      </div>
       <p className="sizing-note">
         Source: {data?.source ?? "Kraken"} ({data?.pair ?? NA}) · {data ? `${data.candles.length} completed ${data.timeframe_min}m candles` : NA} · forming candle shown faded ·
         last refresh {refreshedAt ? stamp(new Date(refreshedAt).toISOString()) : NA} · <StatusBadge tone={fresh === "FRESH" ? "ok" : fresh === "STALE" ? "warn" : "bad"}>{fresh}</StatusBadge>
-        {" "}· <button className="link" onClick={() => chart.current?.timeScale().fitContent()}>Reset zoom</button>
+
       </p>
       {bot && lv && f ? (
         <section className="card">
@@ -136,9 +212,26 @@ export function BotChartPage() {
             {lv.kind === "position" ? <div><span>Net unrealized (est. after fees)</span><b>{f.estNet === null ? NA : signedMoney(f.estNet)}</b></div> : null}
             <div><span>At target (gross)</span><b>{f.atTarget === null ? NA : signedMoney(f.atTarget)}</b></div>
           </div>
+          {lv.kind === "pending" && bot.engine?.strategy_state?.pending_order ? (() => { const po = bot.engine.strategy_state.pending_order;
+            const conf = (po.confluence ?? []).map((t) => CONFLUENCE[t] ?? t);
+            return <p className="sizing-note"><b>Why:</b> {po.side} OTE limit at the 70.5% retracement{po.ote_705 !== null && po.ote_705 !== undefined ? ` (${po.ote_705})` : ""} of the {po.side === "LONG" ? "bullish" : "bearish"} swing {bot.engine.strategy_state.leg_start} → {bot.engine.strategy_state.leg_end}{conf.length ? `, with ${conf.join(" and ")} confluence` : ""}{po.score !== null && po.score !== undefined ? ` (score ${po.score})` : ""}{po.placed_at ? `; placed ${stamp(po.placed_at)}` : ""}{bot.engine.strategy_state.setup_bars !== null && bot.engine.strategy_state.max_age_bars ? `; setup valid for ${Math.max(0, bot.engine.strategy_state.max_age_bars - bot.engine.strategy_state.setup_bars)} more candles` : ""}.</p>; })() : null}
           <p className="sizing-note">{lv.tradeId ? `Trade ${lv.tradeId} · opened ${stamp(lv.openedAt!)} · ` : ""}Unrealized figures are estimates at the last completed candle, not realized profit. A stop does not guarantee the loss (gaps, fees).</p>
         </section>
-      ) : bot ? <p className="sizing-note">{bot.name} has no pending order or open position right now.</p> : null}
+      ) : trade ? (
+        <section className="card" aria-label="This trade">
+          <SectionHeader title={`${trade.side} · ${trade.status === "CLOSED" ? "closed" : "open"} trade`} sub={<Link className="link" to={trade.proofUrl}>Full trade proof →</Link>} />
+          <p className="sizing-note"><b>Why it entered:</b> {explainEntry(trade) ?? "not recorded for this trade."}</p>
+          {trade.status === "CLOSED" ? <p className="sizing-note"><b>Why it exited:</b> {explainExit(trade) ?? "not recorded for this trade."}</p> : null}
+          {data && data.candles.length && trade.openedAt && Date.parse(trade.openedAt) / 1000 < data.candles[0].t
+            ? <p className="sizing-note t-warn">This trade is older than the candles Kraken serves for this timeframe (its latest 720), so its fill markers are not drawn. The levels are still drawn.</p> : null}
+          {data && data.candles.length && trade.openedAt && Date.parse(trade.openedAt) / 1000 > data.candles[data.candles.length - 1].t + data.timeframe_min * 60
+            ? <p className="sizing-note t-warn">This trade is newer than the latest candle received, so its fill markers are not drawn yet. The levels are drawn.</p> : null}
+        </section>
+      ) : bot ? (
+        <p className="sizing-note">{bot.engine?.strategy_state?.direction
+          ? `Setup developing: ${bot.engine.strategy_state.direction} swing ${bot.engine.strategy_state.leg_start} → ${bot.engine.strategy_state.leg_end}; no order has been placed yet.`
+          : "Scanning — no valid setup yet."}</p>
+      ) : null}
       <p className="sizing-note">Charts by <a className="link" href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noreferrer">TradingView Lightweight Charts™</a></p>
     </div>
   );

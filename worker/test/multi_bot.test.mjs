@@ -283,4 +283,41 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.equal((await fetch(`${base}/api/dashboard/bot-trade?id=nope`, { headers: { Cookie: cookie } })).status, 404);
     assert.equal((await fetch(`${base}/api/dashboard/bot-trades?bot=ALPHA-01`)).status, 401, "session required");
   });
+
+  it("trade story: the plan sent with an entry and the reason sent with its exit are shown with the trade (bot ledger AND legacy ledger); missing ones are declared", async () => {
+    const plan = { v: 1, side: "LONG", setup_at: "2026-11-13T00:25:00.000Z", swing: { origin: 81.18, end: 81.72 }, ote_705: 81.3393, profile: "solusd-1m", inputs_hash: "0932a1a0cfac03f9",
+      rules: { entry_mode: "Limit @ 0.705", sl_mode: "Swing origin (1.0)", sl_buf_atr: 0.1, tp2_ext: -0.55, min_score: 1 }, order: { placed_at: "2026-11-13T00:25:00.000Z", type: "LIMIT", limit: 81.34, stop: 81.17, tp2: 82.02, qty: 0.1, score: 1 },
+      filled_at: "2026-11-13T00:35:00.000Z", strategy_entry: 81.34, initial_stop: 81.1669, tp2: 82.017, score: 1, confluence: ["OB", "<script>"], stop_history: [] };
+    const exit = { v: 1, kind: "SL", result: "SL", exit_r: -0.98, strategy_exit: 81.17, initial_stop: 81.1669, stop_at_exit: 81.1669, tp2: 82.017, stop_history: [] };
+    // bot ledger (ALPHA-01)
+    const open = await order("ALPHA-01", "OPEN_LONG", { qty: 0.05, order_id: "ENG-ALPHA-01-SOLUSD-1-STORY-OPEN_LONG", plan });
+    assert.equal(open.code, "DRY_RUN_ACCEPTED", JSON.stringify(open));
+    assert.equal((await order("ALPHA-01", "CLOSE", { order_id: "ENG-ALPHA-01-SOLUSD-1-STORY-CLOSE", exit })).code, "DRY_RUN_ACCEPTED");
+    const proof = await dash(`/api/dashboard/bot-trade?id=${encodeURIComponent("ENG-ALPHA-01-SOLUSD-1-STORY-OPEN_LONG")}`);
+    assert.equal(proof.data.story.plan.swing_origin, 81.18);
+    assert.equal(proof.data.story.plan.planned_entry, 81.34);
+    assert.deepEqual(proof.data.story.plan.confluence, ["OB"], "only known PD-array tags pass the whitelist");
+    assert.equal(proof.data.story.exit.result, "SL");
+    assert.deepEqual(proof.data.story.missing, []);
+    const list = await dash("/api/dashboard/bot-trades?bot=ALPHA-01");
+    const row = list.data.trades.find((t) => t.trade_id === "ENG-ALPHA-01-SOLUSD-1-STORY-OPEN_LONG");
+    assert.equal(row.story.plan.tp2, 82.017);
+    assert.equal(row.story.exit.kind, "SL");
+    const older = list.data.trades.find((t) => t.trade_id === "ENG-ALPHA-01-SOLUSD-1-L1-OPEN_LONG");
+    assert.equal(older.story.plan, null, "a trade recorded without a plan shows none");
+    assert.ok(older.story.missing.length >= 1, "and says what is missing");
+    // legacy ledger (ALPHA-02, /webhook/dry-run), as today's production engine path
+    const dry = (id, action, extra) => fetch(`${base}/webhook/dry-run`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: WEBHOOK_SECRET, id, symbol: "SOLUSD", timeframe: "5", action, strategy: "OTE Pro Strat (engine)", timestamp: new Date().toISOString(), ...extra }) }).then((r) => r.json());
+    const b = await dry("ENG-SOLUSD-5-2026-11-13T00:30:00Z-BUY", "BUY", { qty: 0.1, plan: { ...plan, profile: "solusd-5m" } });
+    assert.equal(b.code, "DRY_RUN_ACCEPTED", JSON.stringify(b));
+    assert.equal((await dry("ENG-SOLUSD-5-2026-11-13T00:35:00Z-CLOSE", "CLOSE", { exit })).code, "DRY_RUN_ACCEPTED");
+    const d = await dash("/api/dashboard");
+    const t = d.data.recent.trades.find((x) => x.open_alert_id === "ENG-SOLUSD-5-2026-11-13T00:30:00Z-BUY");
+    assert.equal(t.story.plan.profile, "solusd-5m");
+    assert.equal(t.story.exit.result, "SL");
+    const lp = await dash(`/api/dashboard/trade-proof?id=${t.id}`);
+    assert.equal(lp.data.story.plan.ote_705, 81.3393);
+    assert.ok(!JSON.stringify(lp).includes(WEBHOOK_SECRET), "the secret is never stored or shown");
+  });
 });

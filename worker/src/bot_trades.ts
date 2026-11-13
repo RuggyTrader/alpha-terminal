@@ -6,6 +6,8 @@
 //   legacy ALPHA-02  trades / paper_positions owned by bot_id (migration 0007)
 // The proof recomputes the trade's arithmetic from its own rows and says whether it matches; nothing is estimated.
 
+import { alertPayloads, botOrderPayloads, storyOf, type TradeStory } from "./trade_story";
+
 type Obj = Record<string, unknown>;
 const µ = (v: unknown) => (v === null || v === undefined ? null : Number(v) / 1e6);
 const ID_RE = /^[A-Za-z0-9:_.\-]{1,160}$/;
@@ -15,6 +17,7 @@ export interface BotTradeRow {
   trade_id: string; bot_id: string; ledger: "bot" | "legacy"; symbol: string; side: string; status: string; qty: number;
   entry_price: number; exit_price: number | null; opened_at: string; closed_at: string | null;
   gross_usd: number | null; fees_usd: number | null; net_usd: number | null; swept_usd: number | null; stop: number | null; tp: number | null; proof_url: string;
+  story?: TradeStory;
 }
 
 async function tableSet(db: D1Database): Promise<Set<string>> {
@@ -28,11 +31,13 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
   const signal = q.signal && ID_RE.test(q.signal) ? q.signal : null;
   const limit = Math.min(Math.max(Number(q.limit) || 50, 1), 5000);
   const trades: BotTradeRow[] = [];
+  const closeIds = new Map<string, string>(); // trade id -> closing order / alert id
   const where = (col: string) => (bot ? ` AND ${col} = ?` : "");
   const args = bot ? [bot] : [];
   const pos = (await db.prepare(`SELECT * FROM bot_positions WHERE 1 = 1${where("bot_id")}${signal ? " AND (trade_id = ? OR close_order_id = ?)" : ""} ORDER BY id DESC LIMIT ?`)
     .bind(...args, ...(signal ? [signal, signal] : []), limit).all<Obj>()).results;
   for (const p of pos) {
+    if (p.close_order_id) closeIds.set(String(p.trade_id), String(p.close_order_id));
     trades.push({ trade_id: String(p.trade_id), bot_id: String(p.bot_id), ledger: "bot", symbol: String(p.symbol), side: String(p.side), status: String(p.status), qty: Number(p.qty),
       entry_price: Number(p.entry_price), exit_price: p.exit_price === null ? null : Number(p.exit_price), opened_at: String(p.opened_at), closed_at: (p.closed_at as string) ?? null,
       gross_usd: µ(p.gross_pnl_micro), fees_usd: p.status === "CLOSED" ? (Number(p.entry_fee_micro) + Number(p.exit_fee_micro ?? 0)) / 1e6 : Number(p.entry_fee_micro) / 1e6,
@@ -43,15 +48,24 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
   const legacy = (await db.prepare(`SELECT bot_id FROM bots WHERE ledger_api = 'legacy'${where("bot_id")}`).bind(...args).all<{ bot_id: string }>()).results.map((r) => r.bot_id);
   for (const id of legacy) {
     const rows = (await db.prepare(`SELECT id, symbol, qty, entry_price, exit_price, opened_at, closed_at, COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees,
-        realized_pnl AS net, open_alert_id FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : ""} ORDER BY id DESC LIMIT ?`)
+        realized_pnl AS net, open_alert_id, close_alert_id FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : ""} ORDER BY id DESC LIMIT ?`)
       .bind(id, ...(signal ? [signal, signal] : []), limit).all<Obj>().catch(() => ({ results: [] as Obj[] }))).results;
     for (const r of rows) {
+      if (r.close_alert_id) closeIds.set(String(r.open_alert_id ?? r.id), String(r.close_alert_id));
       trades.push({ trade_id: String(r.open_alert_id ?? r.id), bot_id: id, ledger: "legacy", symbol: String(r.symbol), side: "LONG", status: "CLOSED", qty: Number(r.qty),
         entry_price: Number(r.entry_price), exit_price: r.exit_price === null ? null : Number(r.exit_price), opened_at: String(r.opened_at), closed_at: (r.closed_at as string) ?? null,
         gross_usd: Number(r.gross), fees_usd: Number(r.fees), net_usd: Number(r.net), swept_usd: null, stop: null, tp: null, proof_url: `/trades/${r.id}` });
     }
   }
   trades.sort((a, b) => (b.opened_at > a.opened_at ? 1 : b.opened_at < a.opened_at ? -1 : 0));
+  // Each trade's recorded story (entry plan + exit reason), from the stored order payloads: two queries per page.
+  const page = trades.slice(0, limit);
+  const botP = await botOrderPayloads(db, page.filter((t) => t.ledger === "bot").flatMap((t) => [t.trade_id, closeIds.get(t.trade_id) ?? null]));
+  const legP = await alertPayloads(db, page.filter((t) => t.ledger === "legacy").flatMap((t) => [t.trade_id, closeIds.get(t.trade_id) ?? null]));
+  for (const t of page) {
+    const m = t.ledger === "bot" ? botP : legP;
+    t.story = storyOf(m.get(t.trade_id), m.get(closeIds.get(t.trade_id) ?? ""), t.status === "CLOSED");
+  }
   const orders = (await db.prepare(`SELECT order_id, bot_id, action, symbol, requested_qty, status, code, message, trade_id, received_at FROM bot_orders
       WHERE 1 = 1${where("bot_id")}${signal ? " AND (order_id = ? OR trade_id = ?)" : ""} ORDER BY received_at DESC LIMIT ?`)
     .bind(...args, ...(signal ? [signal, signal] : []), limit).all<Obj>()).results;
@@ -60,7 +74,7 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
   const signals = hasBotCol ? (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason, bot_id FROM alerts
       WHERE 1 = 1${bot ? " AND bot_id = ?" : ""}${signal ? " AND alert_id = ?" : ""} ORDER BY id DESC LIMIT ?`)
     .bind(...args, ...(signal ? [signal] : []), limit).all<Obj>().catch(() => ({ results: [] as Obj[] }))).results : [];
-  return { available: true, filter: { bot, signal }, trades: trades.slice(0, limit), orders, signals };
+  return { available: true, filter: { bot, signal }, trades: page, orders, signals };
 }
 
 export async function botTradeProof(db: D1Database, tradeId: string) {
@@ -103,7 +117,9 @@ export async function botTradeProof(db: D1Database, tradeId: string) {
   }
   const sweepIn = entries.filter((e) => String(e.entry_key).endsWith(":IN")).reduce((s, e) => s + Number(e.available_change_micro), 0);
   if (p.status === "CLOSED") checks.push({ name: "MAIN received exactly the swept amount", ok: sweepIn === Number(p.swept_micro), detail: `${µ(sweepIn)}` });
+  const payloads = await botOrderPayloads(db, orderIds);
   return {
+    story: storyOf(payloads.get(String(p.trade_id)), p.close_order_id ? payloads.get(String(p.close_order_id)) : undefined, p.status === "CLOSED"),
     bot, position: { ...p, entry_fee_usd: µ(p.entry_fee_micro), exit_fee_usd: µ(p.exit_fee_micro), collateral_usd: µ(p.collateral_micro), gross_usd: µ(p.gross_pnl_micro),
       net_usd: µ(p.net_pnl_micro), swept_usd: µ(p.swept_micro), shortfall_usd: µ(p.shortfall_micro) },
     orders, fills, wallet_entries: entries, events, checks, all_checks_ok: checks.every((c) => c.ok),

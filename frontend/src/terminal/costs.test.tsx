@@ -105,18 +105,20 @@ describe("trade proof with simulated costs", () => {
 describe("trade card", () => {
   it("shows gross, slippage, fees and net for a costed trade", () => {
     const html = renderToStaticMarkup(<MemoryRouter><TradeCard t={tradeRow()} defaultOpen /></MemoryRouter>);
-    expect(html).toContain("Gross P&amp;L (before costs)");
+    expect(html).toContain("Gross P&amp;L");
     expect(html).toContain("+$1.00");
+    expect(html).toContain("Slippage");
     expect(html).toContain("−$0.0170");
     expect(html).toContain("−$0.0660");
-    expect(html).toContain("Net PAPER P&amp;L");
+    expect(html).toContain("Net P&amp;L");
     expect(html).toContain("+$0.92");
   });
 
   it("keeps the single realized row for trades closed before cost accounting", () => {
     const html = renderToStaticMarkup(<MemoryRouter><TradeCard t={tradeRow({ cost_profile: null, gross_pnl: null, fees_usd: null, slippage_usd: null })} defaultOpen /></MemoryRouter>);
-    expect(html).toContain("Realized PAPER P&amp;L");
-    expect(html).not.toContain("Simulated fees");
+    expect(html).toContain("Net P&amp;L");
+    expect(html).toContain("closed before cost accounting");
+    expect(html).not.toContain("Slippage");
   });
 });
 

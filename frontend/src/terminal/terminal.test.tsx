@@ -143,9 +143,12 @@ describe("Home", () => {
     // The optional Alpaca broker account is not the headline any more.
     expect(html).not.toContain("PAPER EQUITY");
     for (const v of ["$2,222.22", "$4,444.44", "$1,111.11", "$3,333.33"]) expect(html).not.toContain(v);
-    expect(html).toContain("Markets");
-    expect(html).toContain("STOCKS");
-    expect(html).toContain("NOT CONFIGURED");
+    // Market coverage moved to the Engine page (it repeated System health on Home; UI duplicate audit 2026-11-13).
+    expect(html).not.toContain(">Markets<");
+    const eng = page("/engine", ok(dashboard()));
+    expect(eng).toContain("Markets");
+    expect(eng).toContain("STOCKS");
+    expect(eng).toContain("NOT CONFIGURED");
     expect(html).toContain("System health");
     for (const label of ["Home", "Trades", "Engine", "Activity", "Settings"]) expect(html).toContain(`>${label}<`);
     expect(html).not.toMatch(/withdraw/i);
@@ -326,10 +329,10 @@ describe("Trades", () => {
       closed_at: "2026-10-31T15:00:00Z", source: "ALPHA_PAPER", open_alert_id: "a1", close_alert_id: "a4", open_order_id: "at-1",
       close_order_id: "at-4", price_sources: "kraken:SOLUSD",
     };
-    const html = renderToStaticMarkup(<MemoryRouter><TradeCard t={t} /></MemoryRouter>);
+    const html = renderToStaticMarkup(<MemoryRouter><TradeCard t={t} defaultOpen /></MemoryRouter>);
     expect(html).toContain("✓ VERIFIED PAPER");
     expect(html).toContain("+$45.00");
-    expect(html).toContain("+19.6%");
+    expect(html).toContain("+19.57%");
     expect(trades("history", ok(dashboard({ recent: { alerts: [], risk: [], orders: [], trades: [t], activity: [] } })))).toContain("SOLUSD");
   });
 });

@@ -2,6 +2,7 @@ import { handleCandles } from "./candles";
 import { allocationPreview } from "./bot_ledger";
 import { fleetSection } from "./bots";
 import { botTradeProof, botTrades } from "./bot_trades";
+import { alertPayloads, storyOf } from "./trade_story";
 import { activityFeed } from "./events";
 import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
@@ -997,6 +998,8 @@ async function getTrades(
       .bind(limit)
       .all();
 
+  // The recorded story (entry plan + exit reason) from the signals' stored payloads: one extra query for the page.
+  const payloads = await alertPayloads(env.DB, result.results.flatMap((r) => [r.open_alert_id as string, r.close_alert_id as string]));
   return result.results.map(
     (row) => ({
       ...row,
@@ -1006,6 +1009,8 @@ async function getTrades(
           row.leg_order_ids_json,
           []
         ),
+
+      story: storyOf(payloads.get(String(row.open_alert_id)), payloads.get(String(row.close_alert_id)), row.status === "CLOSED"),
     })
   );
 }
@@ -1089,6 +1094,8 @@ async function getTradeProof(env: DashboardEnv, id: number) {
       : trade.source === VERIFIED_SOURCE ? "ALPHA PAPER position still open: not counted until it is fully closed."
       : "Not an ALPHA PAPER ledger trade (no recorded fills): excluded from verified performance.",
     trade: { ...t, leg_order_ids: parseJson(leg_order_ids_json, []) },
+    story: await alertPayloads(env.DB, [trade.open_alert_id as string, trade.close_alert_id as string])
+      .then((m) => storyOf(m.get(String(trade.open_alert_id)), m.get(String(trade.close_alert_id)), trade.status === "CLOSED")),
     fills, alerts, risk_decisions: risk, orders,
   };
 }

@@ -5,29 +5,41 @@ import { AlertCard } from "../components/AlertCard";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
 import { ActivityPanel, PipelinePanel } from "../components/HomePanels";
 import { BotPipelinePanel } from "../components/BotPipeline";
-import { PortfolioSummaryCard } from "../components/PaperPortfolio";
 import { PositionCard } from "../components/PositionCard";
 import { SafetyCard } from "../components/SafetyCard";
-import { MarketsCard, SystemHealthCard } from "../components/SystemHealth";
+import { SystemHealthCard } from "../components/SystemHealth";
+import { useFleet } from "../fleetStore";
+import { TradeStoryCard } from "../components/TradeStoryCard";
+import { fromBotTrade } from "../tradeStory";
 import { EmptyState, SectionHeader, SkeletonCards } from "../components/ui";
 import { AnimatedList, Reveal } from "../motion";
 import { useActivity } from "../activity";
 import { useDash } from "../store";
 import { useVerified } from "../useVerified";
+import { useState } from "react";
+import type { HeroScope } from "../components/AccountHero";
+import { WalletOverview } from "../components/WalletOverview";
 import { useFundedVerified } from "../fundedTrades";
 
-/** Internal ALPHA PAPER ledger positions (simulated). The main positions list. */
+/** Every open ALPHA PAPER position: the legacy ledger's (simulated) AND each fleet bot's own (bot ledger), from the
+ *  same records as the Capital card's "reserved" figure, so the two can never disagree. */
 export function PositionsSection() {
   const { state } = useDash();
+  const { fleet } = useFleet();
   const d = state.data;
   const paper = d?.paper ?? null;
-  const rows = paper?.positions ?? [];
+  const legacyRows = paper?.positions ?? [];
+  const botRows = (fleet?.available ? fleet.bots : []).filter((b) => b.ledger_api === "bot").flatMap((b) => b.open_positions.map((op) => fromBotTrade({
+    trade_id: op.trade_id, bot_id: b.bot_id, ledger: "bot", symbol: op.symbol, side: op.side, status: "OPEN", qty: op.qty, entry_price: op.entry_price, exit_price: null,
+    opened_at: op.opened_at, closed_at: null, gross_usd: null, fees_usd: op.entry_fee_usd ?? null, net_usd: null, swept_usd: null, stop: op.stop, tp: op.tp,
+    proof_url: `/bots/trade/${encodeURIComponent(op.trade_id)}` })));
+  const rows = legacyRows;
   return (
     <section aria-label="Open positions">
       <SectionHeader
         title="Open positions"
         sub="ALPHA PAPER ledger · simulated, not broker positions"
-        right={paper ? <span className="count">{rows.length}</span> : null}
+        right={paper || botRows.length ? <span className="count">{rows.length + botRows.length}</span> : null}
       />
       {!d ? (
         state.status === "loading" ? <SkeletonCards count={1} tall /> : <EmptyState title="No data" />
@@ -37,7 +49,8 @@ export function PositionsSection() {
         <>
           {/* Stays mounted when empty so a closing position can fade out. */}
           <AnimatedList items={rows} getKey={(p) => String(p.id)} render={(p) => <AlphaPaperPositionCard p={p} />} />
-          {rows.length === 0 ? (
+          {botRows.length ? <div className="tcard-list">{botRows.map((v) => <TradeStoryCard key={v.key} v={v} />)}</div> : null}
+          {rows.length + botRows.length === 0 ? (
             <EmptyState title="No open ALPHA PAPER positions">An accepted dry-run BUY opens a simulated position here.</EmptyState>
           ) : null}
         </>
@@ -65,6 +78,8 @@ export function HomePage() {
   const { state, reconnected } = useDash();
   // One funded trade set for the hero and the Funded PAPER tab: the legacy ledger + the bot ledger, never twice.
   const verified = useFundedVerified(useVerified());
+  const [scope, setScope] = useState<HeroScope | null>(null); // the hero follows the selected performance scope
+  const fleetAvailable = !!useFleet().fleet?.available;
   const d = state.data;
   const alerts = d?.recent.alerts ?? [];
   const total = d?.counts.alerts.total ?? 0;
@@ -72,16 +87,16 @@ export function HomePage() {
   return (
     <div className="home-grid">
       <div className="col-main m-stagger">
-        <AccountHero state={state} verified={verified} reconnected={reconnected} />
-        <PerformanceSelector verified={verified} />
+        <AccountHero state={state} verified={verified} reconnected={reconnected} scope={scope} />
+        <PerformanceSelector verified={verified} onScope={setScope} />
+        {d?.portfolio ? <WalletOverview portfolio={d.portfolio} /> : null}
         <div className="hp-panels">
-          <PipelinePanel state={state} mirror={activity.mirror} />
-
+          {/* The legacy single-engine pipeline only where there is no bot registry (schema 6); otherwise every bot,
+              ALPHA-02 included, has its own live line in the Bots pipeline (no duplicate "offline" engine panel). */}
+          {fleetAvailable ? null : <PipelinePanel state={state} mirror={activity.mirror} />}
           <BotPipelinePanel />
           <ActivityPanel activity={activity} />
         </div>
-        <MarketsCard state={state} />
-        {d?.portfolio ? <PortfolioSummaryCard portfolio={d.portfolio} /> : null}
         <PositionsSection />
         <BrokerPositionsSection />
       </div>

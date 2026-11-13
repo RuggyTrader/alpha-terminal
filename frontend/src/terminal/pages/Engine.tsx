@@ -4,7 +4,7 @@ import { fetchBacktest } from "../api";
 import { engineTone } from "../classify";
 import { AlphaGlobe } from "../components/AlphaGlobe";
 import { EngineBotCard } from "../components/EngineBotCard";
-import { SystemHealthCard } from "../components/SystemHealth";
+import { MarketsCard, SystemHealthCard } from "../components/SystemHealth";
 import { MirrorLinkCard } from "./Mirror";
 import { EmptyState, SectionHeader, StatusBadge } from "../components/ui";
 import { candleAgeSeconds } from "../health";
@@ -151,6 +151,7 @@ export function EnginePage({ now = Date.now() }: { now?: number }) {
       </section>
 
       <SystemHealthCard state={state} now={now} />
+      <MarketsCard state={state} />
 
       <section aria-label="Risk protections">
         <SectionHeader title="Risk protections" sub="Enforced by the Worker on every signal" />

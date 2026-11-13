@@ -93,7 +93,7 @@ async function recordRejection(db: D1Database, o: { orderId: string; botId: stri
     await db.prepare(
       `INSERT INTO bot_orders (order_id, bot_id, action, symbol, requested_qty, status, code, message, received_at, payload_json)
        VALUES (?, ?, ?, ?, ?, 'REJECTED', ?, ?, ?, ?)`
-    ).bind(o.orderId, o.botId, o.action, o.symbol, o.qty, o.code, o.message.slice(0, 300), new Date().toISOString(), o.payload.slice(0, 4000)).run();
+    ).bind(o.orderId, o.botId, o.action, o.symbol, o.qty, o.code, o.message.slice(0, 300), new Date().toISOString(), (o.payload.length <= 16000 ? o.payload : null)).run();
   } catch { /* a concurrent duplicate already recorded it */ }
 }
 const reject = async (db: D1Database, o: Parameters<typeof recordRejection>[1], http = 422) => {
@@ -189,7 +189,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   try {
     await db.batch([
       db.prepare(`INSERT INTO bot_orders (order_id, bot_id, action, symbol, requested_qty, status, code, message, trade_id, received_at, payload_json)
-                  VALUES (?, ?, ?, ?, ?, 'ACCEPTED', 'DRY_RUN_ACCEPTED', ?, ?, ?, ?)`).bind(orderId, botId, action, symbol, requestedQty, note, tradeId, now, payload.slice(0, 4000)),
+                  VALUES (?, ?, ?, ?, ?, 'ACCEPTED', 'DRY_RUN_ACCEPTED', ?, ?, ?, ?)`).bind(orderId, botId, action, symbol, requestedQty, note, tradeId, now, payload.length <= 16000 ? payload : null),
       db.prepare(`INSERT INTO bot_positions (trade_id, bot_id, symbol, side, status, qty, entry_price, entry_fee_micro, collateral_micro, stop, tp, risk_usd,
                     profile, inputs_hash, fee_model, opened_at, mark_price, mark_at)
                   VALUES (?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -232,7 +232,7 @@ async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
   const stmts: D1PreparedStatement[] = [
     db.prepare(`INSERT INTO bot_orders (order_id, bot_id, action, symbol, requested_qty, status, code, message, trade_id, received_at, payload_json)
                 VALUES (?, ?, 'CLOSE', ?, ?, 'ACCEPTED', 'DRY_RUN_ACCEPTED', ?, ?, ?, ?)`)
-      .bind(c.orderId, c.botId, c.symbol, p.qty, `close ${p.side} ${p.qty} @ ${c.px}`, p.trade_id, c.now, c.payload.slice(0, 4000)),
+      .bind(c.orderId, c.botId, c.symbol, p.qty, `close ${p.side} ${p.qty} @ ${c.px}`, p.trade_id, c.now, (c.payload.length <= 16000 ? c.payload : null)),
     // The exit fill: fails (NOT NULL from the guarded row) unless this exact position is still OPEN.
     db.prepare(`INSERT INTO bot_fills (fill_id, bot_id, trade_id, kind, side, qty, price, notional_micro, fee_rate_pct, fee_micro, fee_currency, fee_model, price_source, price_at, filled_at)
                 SELECT ?, p.bot_id, p.trade_id, 'EXIT', p.side, p.qty, ?, ?, ?, ?, 'USD', ?, ?, ?, ?

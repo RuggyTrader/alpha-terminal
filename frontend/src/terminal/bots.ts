@@ -11,7 +11,8 @@ export interface StrategyState {
   leg_end: number | null;
   setup_bars: number | null;
   max_age_bars: number | null;
-  pending_order: { side: "LONG" | "SHORT"; qty: number; limit: number | null; stop: number | null; tp: number | null } | null;
+  pending_order: { side: "LONG" | "SHORT"; qty: number; limit: number | null; stop: number | null; tp: number | null;
+    score?: number | null; confluence?: string[]; placed_at?: string | null; ote_705?: number | null } | null;
   current_stop: number | null;
   break_even_done: boolean;
   trailing: boolean;

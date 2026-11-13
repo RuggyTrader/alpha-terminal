@@ -131,7 +131,9 @@ describe("PAPER portfolio pages", () => {
   });
 
   it("home shows the summary card, and an unfunded portfolio shows no invented numbers", () => {
-    expect(page("/", ok(data(portfolio())))).toContain("PAPER portfolio");
+    const home = page("/", ok(data(portfolio())));
+    expect(home).toContain("Capital"); // the Home capital overview (WalletOverview) replaced the summary card
+    expect(home).toContain("MAIN available");
     const empty = portfolio({ active: false, totals: { book_balance_usd: 0, unallocated_usd: 0, available_usd: 0, reserved_usd: 0, realized_pnl_usd: 0, net_funding_usd: 0, unrealized_pnl_usd: 0 } });
     expect(page("/", ok(data(empty)))).toContain("Not funded yet");
   });

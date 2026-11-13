@@ -7,6 +7,8 @@ import { Code, EmptyState, KV, SectionHeader, SkeletonCards, StatusBadge } from 
 import { costMoney, NA, num, percent, price, qty, signedMoney, stamp, text, tone, upper } from "../fmt";
 import type { ProofFill, TradeProof } from "../types";
 import { PAPER_FILL_DISCLOSURE } from "../disclosures";
+import { StorySummary } from "../components/TradeStoryCard";
+import { fromLegacyTrade, type TradeStory } from "../tradeStory";
 
 type Load = { status: "loading" } | { status: "ok"; proof: TradeProof } | { status: "error"; code: string; message: string };
 
@@ -42,8 +44,9 @@ export function pnlFromFills(fills: ProofFill[]): FillPnl | null {
   return { buys, sells, qtyIn, qtyOut, beforeFees: r(beforeFees), fees: r(fees), slippage: r(slippage), pnl: r(beforeFees - fees), gross: r(beforeFees + slippage), costed };
 }
 
-export function ProofView({ proof }: { proof: TradeProof }) {
+export function ProofView({ proof }: { proof: TradeProof & { story?: TradeStory | null } }) {
   const t = proof.trade;
+  const view = fromLegacyTrade({ ...t, story: proof.story ?? null });
   const calc = pnlFromFills(proof.fills);
   const recorded = num(t.realized_pnl);
   const closed = t.status === "CLOSED";
@@ -75,6 +78,7 @@ export function ProofView({ proof }: { proof: TradeProof }) {
         </div>
       </section>
 
+      <StorySummary v={view} />
       <section aria-label="P&L calculation">
         <SectionHeader title="P&L calculation" sub="Recomputed here from the recorded fills" />
         {calc === null ? (

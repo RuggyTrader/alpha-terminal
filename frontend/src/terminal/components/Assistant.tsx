@@ -4,6 +4,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { answer, type Answer } from "../assistant";
+import { ASK_EVENT, type AskRequest } from "../askAlpha";
+import { answerTrade } from "../tradeAssistant";
+import type { TradeView } from "../tradeStory";
 import { useFleet } from "../fleetStore";
 
 const SUGGESTED = ["What is SOL 1m doing right now?", "What is BTC 5m waiting for?", "Which bot is making the most money?", "How much did BTC 5m pay in fees?",
@@ -21,11 +24,21 @@ export function AssistantDrawer() {
   const [ctx, setCtx] = useState<string>("");
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const end = useRef<HTMLDivElement>(null);
+  const [trade, setTrade] = useState<TradeView | null>(null); // "Ask ALPHA about this trade": the exact trade in context
+  useEffect(() => {
+    const on = (e: Event) => {
+      const req = (e as CustomEvent<AskRequest>).detail;
+      setTrade(req.trade); setOpen(true);
+      if (req.question) { const q0 = req.question; setMsgs((m) => [...m, { q: q0, a: answerTrade(q0, req.trade) }].slice(-30)); }
+    };
+    window.addEventListener(ASK_EVENT, on);
+    return () => window.removeEventListener(ASK_EVENT, on);
+  }, []);
   useEffect(() => { if (open) refresh(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs]);
   const ask = (text: string) => {
     if (!text.trim()) return;
-    setMsgs((m) => [...m, { q: text, a: answer(text, fleet, Date.now(), ctx || null) }].slice(-30));
+    setMsgs((m) => [...m, { q: text, a: trade ? answerTrade(text, trade) : answer(text, fleet, Date.now(), ctx || null) }].slice(-30));
     setQ("");
   };
   return (
@@ -40,6 +53,7 @@ export function AssistantDrawer() {
             <button className="link" onClick={() => setMsgs([])}>Clear</button>
             <button className="link" aria-label="Close" onClick={() => setOpen(false)}>Close</button>
           </div>
+          {trade ? <p className="asst-trade">About this trade: <b>{trade.botLabel} · {trade.symbol} {trade.side}</b> ({trade.status.toLowerCase()}) <button className="link" type="button" onClick={() => setTrade(null)}>clear</button></p> : null}
           <select className="input asst-ctx" value={ctx} onChange={(e) => setCtx(e.target.value)} aria-label="Bot context">
             <option value="">Any bot</option>
             {(fleet?.bots ?? []).filter((b) => b.status !== "DISABLED").map((b) => <option key={b.bot_id} value={b.bot_id}>{b.name} · {b.symbol} {b.timeframe}</option>)}

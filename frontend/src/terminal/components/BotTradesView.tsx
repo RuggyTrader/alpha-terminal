@@ -7,6 +7,8 @@ import { fetchBotTrades, type BotTradeRow, type BotTrades } from "../botTrades";
 import { useFleet } from "../fleetStore";
 import { money, NA, signedMoney, stamp, tone } from "../fmt";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "./ui";
+import { TradeStoryCard } from "./TradeStoryCard";
+import { fromBotTrade } from "../tradeStory";
 
 /** Funded results of a set of closed bot trades (the ledger's own net figures; fees recorded per fill). */
 export function botTradeSummary(rows: BotTradeRow[]) {
@@ -71,9 +73,9 @@ export function BotTradesView({ filter }: { filter: { bot: string | null; signal
       ) : (
         <>
           {data.trades.length ? (
-            <div className="card list-card" aria-label="Trades">
+            <div className="tcard-list" aria-label="Trades">
               <SectionHeader title="Trades" right={<span className="count">{data.trades.length}</span>} />
-              {data.trades.map((t) => <TradeRowLink key={`${t.ledger}-${t.trade_id}`} t={t} />)}
+              {data.trades.map((t) => <TradeStoryCard key={`${t.ledger}-${t.trade_id}`} v={fromBotTrade(t)} defaultOpen={filter.signal !== null} />)}
             </div>
           ) : null}
           {data.orders.length ? (
@@ -132,7 +134,7 @@ export function BotPerformanceView({ bot }: { bot: string }) {
       </section>
       <section aria-label="Bot trades">
         <SectionHeader title="Trades" right={<span className="count">{data.trades.length}</span>} />
-        {data.trades.length ? <div className="card list-card">{data.trades.map((t) => <TradeRowLink key={`${t.ledger}-${t.trade_id}`} t={t} />)}</div>
+        {data.trades.length ? <div className="tcard-list">{data.trades.map((t) => <TradeStoryCard key={`${t.ledger}-${t.trade_id}`} v={fromBotTrade(t)} />)}</div>
           : <EmptyState title="NOT YET OBSERVED">{bot} has no recorded trade.</EmptyState>}
       </section>
     </>

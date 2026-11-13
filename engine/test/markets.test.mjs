@@ -106,9 +106,12 @@ describe("configuration", () => {
 
 /** JSON text (or JSON lines) with the reporting-only metadata objects ("sizing", and the fleet telemetry "strategy_state" /
  * "bot_risk") removed; every decision, request and record otherwise unchanged. */
+/** The recorded trade plan (src/tradeplan.mjs): S.plan, an entry's "plan", an exit's "exit" record (it has stop_history;
+ *  the broker's own "exit" order does not). Reporting metadata only. */
+const isPlanMeta = (k, v) => (k === "plan" && v && typeof v === "object") || (k === "exit" && v && typeof v === "object" && "stop_history" in v);
 const noSizing = (text) => text.split(String.fromCharCode(10)).map((line) => {
   if (!line.trim()) return line;
-  try { return JSON.stringify(JSON.parse(line, (k, v) => (k === "sizing" || k === "strategy_state" || k === "bot_risk" ? undefined : v))); } catch { return line; }
+  try { return JSON.stringify(JSON.parse(line, (k, v) => (k === "sizing" || k === "strategy_state" || k === "bot_risk" || isPlanMeta(k, v) ? undefined : v))); } catch { return line; }
 }).join(String.fromCharCode(10));
 
 describe("SOLUSD is byte-identical to the deployed release 0db082f", () => {

@@ -26,6 +26,7 @@
 //   reported as DIVERGED instead of being called mirrored. Nothing is auto-corrected.
 // * No broker is contacted anywhere in this engine. ALPHA TERMINAL stays PAPER / DRY RUN.
 
+import { exitRecord, newPlanState, updatePlan } from "./tradeplan.mjs";
 import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -451,6 +452,9 @@ export class EngineRunner {
       S.candlesProcessed += 1;
       S.lastCandle = { t: iso(k.t), close: k.c };
       const closeMs = k.t + this.step;
+      // The trade's recorded reasoning (src/tradeplan.mjs): updated from this candle's strategy events before any order.
+      S.plan ??= newPlanState();
+      updatePlan(S.plan, events, { at: iso(closeMs), profile: this.cfg.profile ?? "default", inputsHash: inputsHash(this.cfg), inputs: S.strategy.inputs });
       const late = nowMs - closeMs > this.cfg.lateBars * this.step;
       for (const e of events) {
         if (e.type !== "ENTRY_FILL" && e.type !== "EXIT_FILL") continue;
@@ -466,6 +470,8 @@ export class EngineRunner {
           id, action, kind: isExit ? "EXIT" : "ENTRY", entryId, qty: isExit ? null : fmtQty(e.qty), enginePrice: e.price,
           exitKind: e.kind ?? null, barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs),
           ...(botPath && !isExit ? { stop: S.strategy.curStop ?? S.strategy.planSL ?? null, tp: S.strategy.planTP2 ?? null, riskUSD: S.strategy.sizing?.riskUSD ?? null } : {}),
+          // Why: the entry carries its recorded plan; the exit carries the strategy's own exit reason and stop path.
+          ...(isExit ? { exit: exitRecord(S.plan, e) } : { plan: S.plan.active ? JSON.parse(JSON.stringify(S.plan.active)) : null }),
           // Exits are never dropped for lateness here: whether they go out depends on their entry (see flush).
           status: warmup ? "historical" : late && !isExit ? "skipped" : "pending",
           code: !warmup && late && !isExit ? "SIGNAL_EXPIRED" : null,
@@ -630,10 +636,12 @@ export class EngineRunner {
             timeframe: String(this.cfg.intervalMin), ...(item.qty === null ? {} : { qty: Number(item.qty) }), timestamp: item.barClose,
             liquidity: this.liquidityFor(item), stop: item.stop ?? null, tp: item.tp ?? null, risk_usd: item.riskUSD ?? null,
             profile: this.cfg.profile, config_hash: inputsHash(this.cfg), entry_order_id: item.entryId ?? null,
+            ...(item.plan ? { plan: item.plan } : {}), ...(item.exit ? { exit: item.exit } : {}),
           } : {
             secret: this.cfg.webhookSecret, id: item.id, symbol: this.cfg.symbol, timeframe: String(this.cfg.intervalMin),
             action: item.action, strategy: STRATEGY_NAME, ...(item.qty === null ? {} : { qty: Number(item.qty) }), timestamp: item.barClose,
             liquidity: this.liquidityFor(item), ...this.botFields(),
+            ...(item.plan ? { plan: item.plan } : {}), ...(item.exit ? { exit: item.exit } : {}),
           }),
         });
         status = r.status;
@@ -744,7 +752,11 @@ export class EngineRunner {
       strategy_state: {
         direction: st.dir === 1 ? "LONG" : st.dir === -1 ? "SHORT" : null, leg_start: st.dir ? st.legStart : null, leg_end: st.dir ? st.legEnd : null,
         setup_bars: st.dir && Number.isFinite(st.legEndBar) ? st.bar - st.legEndBar : null, max_age_bars: st.inputs.maxAge,
-        pending_order: st.broker.entry ? { side: st.broker.entry.side === 1 ? "LONG" : "SHORT", qty: st.broker.entry.qty, limit: st.broker.entry.limit, stop: st.planSL ?? null, tp: st.planTP2 ?? null } : null,
+        pending_order: st.broker.entry ? { side: st.broker.entry.side === 1 ? "LONG" : "SHORT", qty: st.broker.entry.qty, limit: st.broker.entry.limit, stop: st.planSL ?? null, tp: st.planTP2 ?? null,
+          score: st.planScore ?? null, confluence: typeof st.planTags === "string" && st.planTags.trim() ? st.planTags.trim().split(/\s+/) : [],
+          placed_at: S.plan?.pending?.order?.placed_at ?? null, ote_705: S.plan?.pending?.ote_705 ?? null } : null,
+        // The open trade's recorded plan (entry reason, initial stop, stop changes) for the chart and the assistant.
+        active_plan: st.broker.pos && S.plan?.active ? S.plan.active : null,
         current_stop: st.broker.pos ? st.curStop : null, break_even_done: !!st.beDone, trailing: !!st.trailOn,
       },
       bot_risk: S.botRisk ? { version: S.botRisk.version, risk_usd: S.botRisk.riskUSD } : null,

@@ -7,13 +7,19 @@ import { Link, useParams } from "react-router-dom";
 import { fetchBotTradeProof, type BotTradeProof } from "../botTrades";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp, tone } from "../fmt";
+import { StorySummary } from "../components/TradeStoryCard";
+import { fromBotTrade } from "../tradeStory";
 
 const v = (x: number | null | undefined) => (x === null || x === undefined ? NA : String(x));
 
 export function BotTradeProofView({ p }: { p: BotTradeProof }) {
   const pos = p.position;
+  const view = fromBotTrade({ trade_id: pos.trade_id, bot_id: pos.bot_id, ledger: "bot", symbol: String(pos.symbol), side: pos.side, status: pos.status, qty: pos.qty, entry_price: pos.entry_price,
+    exit_price: pos.exit_price, opened_at: pos.opened_at, closed_at: pos.closed_at, gross_usd: pos.gross_usd, fees_usd: (pos.entry_fee_usd ?? 0) + (pos.exit_fee_usd ?? 0), net_usd: pos.net_usd,
+    swept_usd: pos.swept_usd, stop: pos.stop, tp: pos.tp, proof_url: `/bots/trade/${encodeURIComponent(pos.trade_id)}`, story: p.story ?? null });
   return (
     <>
+      <StorySummary v={view} />
       <section className="card dark-card" aria-label="Trade">
         <SectionHeader title={`${p.bot?.name ?? pos.bot_id} · ${pos.side} ${pos.qty} ${String(pos.symbol)}`}
           sub={`${p.bot?.bot_id ?? pos.bot_id} · ${p.bot?.profile ?? ""} · config ${p.bot?.inputs_hash ?? NA}`}

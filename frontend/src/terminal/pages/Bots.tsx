@@ -13,6 +13,7 @@ import {
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
+import { humanReason } from "../tradeStory";
 
 const pct = (v: number | null) => (v === null ? NA : `${(v * 100).toFixed(0)}%`);
 const pf = (v: number | null) => (v === null ? NA : v.toFixed(2));
@@ -70,7 +71,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
       if (r.ok) { setPass(""); onChanged?.(); }
     } catch (err) { setMsg(String((err as Error).message)); }
   };
-  const canChart = b.status === "ACTIVE" && (b.open_positions.length > 0 || !!st?.pending_order);
+  const canChart = b.status !== "DISABLED"; // every bot: scanning, pending order, open position (real Kraken candles)
   return (
     <section className="card bot-card" aria-label={`${b.name} ${b.symbol} ${b.timeframe}`}>
       <div className="bot-h">
@@ -105,6 +106,9 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
           Open PAPER {p.side} {p.qty} @ {p.entry_price}{p.stop !== null ? ` · stop ${p.stop}` : ""}{p.tp !== null ? ` · target ${p.tp}` : ""} · {money(p.collateral_usd)} {p.side === "SHORT" ? "collateral (simulated short)" : "cost"} · {p.trade_id}
         </p>
       ))}
+      {last && last.code && humanReason(last.code, { available: b.balances.available_usd, cost: last.notional_usd ?? null, unit: b.symbol.replace("USD", "") }) ? (
+        <p className="sizing-note t-warn">{humanReason(last.code, { available: b.balances.available_usd, cost: last.notional_usd ?? null, unit: b.symbol.replace("USD", "") })}</p>
+      ) : null}
       {last && last.status ? (
         <p className="sizing-note">Last sizing: {last.status}{last.code ? ` (${last.code})` : ""}{last.qty ? ` · qty ${last.qty}` : ""}{last.risk_actual_usd !== null && last.risk_actual_usd !== undefined ? ` · stop risk ${money(last.risk_actual_usd)}` : ""}{last.notional_usd ? ` · notional ${money(last.notional_usd)}` : ""}{last.explanation ? ` · ${last.explanation}` : ""}</p>
       ) : null}

@@ -1,0 +1,224 @@
+{
+ "label": "DEMO / HISTORICAL REPLAY — local Worker, fresh D1, synthetic DEMO orders on recorded Kraken candles. NOT production; nothing was sent to production.",
+ "generated_at": "2026-11-13T03:26:52.474Z",
+ "viewport": "402 px",
+ "lifecycle": [
+  {
+   "step": 1,
+   "what": "pending LONG limit reported by ALPHA-01",
+   "limit": 82.93,
+   "stop": 82.67,
+   "tp2": 83.98
+  },
+  {
+   "step": 2,
+   "what": "entry filled",
+   "code": "DRY_RUN_ACCEPTED",
+   "price": 82.93,
+   "qty": 0.5,
+   "fee": 0.08293
+  },
+  {
+   "step": 3,
+   "what": "stop moved to break-even",
+   "stop": 82.93
+  },
+  {
+   "step": 4,
+   "what": "take profit, settled",
+   "code": "DRY_RUN_ACCEPTED",
+   "gross": 0.525,
+   "net": 0.35809,
+   "swept": 0.35809
+  },
+  {
+   "step": 5,
+   "what": "losing BTC SHORT (stop loss)",
+   "net": -0.385109,
+   "swept": 0
+  },
+  {
+   "step": 6,
+   "what": "unaffordable order",
+   "code": "INSUFFICIENT_BOT_CAPITAL",
+   "message": "ALPHA-03 has $99.614891 available; this LONG costs $4435.704 + fee $8.871408. Another bot's capital is never used."
+  }
+ ],
+ "screenshots": [
+  {
+   "file": "DEMO-01-bots-pending-order-light.png",
+   "path": "/bots",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-01-bots-pending-order-dark.png",
+   "path": "/bots",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-02-pending-order-chart-light.png",
+   "path": "/bots/ALPHA-01/chart",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-02-pending-order-chart-dark.png",
+   "path": "/bots/ALPHA-01/chart",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-03-open-long-chart-light.png",
+   "path": "/bots/ALPHA-01/chart",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-03-open-long-chart-dark.png",
+   "path": "/bots/ALPHA-01/chart",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-04-activity-lifecycle-light.png",
+   "path": "/activity",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-04-activity-lifecycle-dark.png",
+   "path": "/activity",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-05-completed-trade-card-light.png",
+   "path": "/trades?signal=DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-05-completed-trade-card-dark.png",
+   "path": "/trades?signal=DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-06-trade-proof-light.png",
+   "path": "/bots/trade/DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-06-trade-proof-dark.png",
+   "path": "/bots/trade/DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-07-completed-trade-chart-light.png",
+   "path": "/bots/ALPHA-01/chart?ledger=bot&trade=DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-07-completed-trade-chart-dark.png",
+   "path": "/bots/ALPHA-01/chart?ledger=bot&trade=DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-08-ask-alpha-about-trade-light.png",
+   "path": "/trades?signal=DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-08-ask-alpha-about-trade-dark.png",
+   "path": "/trades?signal=DEMO-ALPHA-01-SOLUSD-1-T1-OPEN_LONG",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-09-losing-short-card-light.png",
+   "path": "/trades?signal=DEMO-ALPHA-03-BTCUSD-1-T2-OPEN_SHORT",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-09-losing-short-card-dark.png",
+   "path": "/trades?signal=DEMO-ALPHA-03-BTCUSD-1-T2-OPEN_SHORT",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-10-open-short-chart-light.png",
+   "path": "/bots/ALPHA-04/chart",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-10-open-short-chart-dark.png",
+   "path": "/bots/ALPHA-04/chart",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-11-trades-filter-bot-light.png",
+   "path": "/trades?bot=ALPHA-03",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-11-trades-filter-bot-dark.png",
+   "path": "/trades?bot=ALPHA-03",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-12-home-funded-light.png",
+   "path": "/",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-12-home-funded-dark.png",
+   "path": "/",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-13-home-mirror-light.png",
+   "path": "/",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-13-home-mirror-dark.png",
+   "path": "/",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-14-home-by-bot-light.png",
+   "path": "/",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-14-home-by-bot-dark.png",
+   "path": "/",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-15-bots-groups-and-risk-editor-light.png",
+   "path": "/bots",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-15-bots-groups-and-risk-editor-dark.png",
+   "path": "/bots",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-16-performance-by-bot-light.png",
+   "path": "/performance?bot=ALPHA-01",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-16-performance-by-bot-dark.png",
+   "path": "/performance?bot=ALPHA-01",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-17-activity-light.png",
+   "path": "/activity",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-17-activity-dark.png",
+   "path": "/activity",
+   "horizontal_overflow": false
+  },
+  {
+   "file": "DEMO-18-stale-offline-dark.png",
+   "path": "/ (Worker stopped after load)",
+   "horizontal_overflow": false
+  }
+ ]
+}

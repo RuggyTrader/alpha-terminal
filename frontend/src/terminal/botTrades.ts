@@ -7,6 +7,7 @@ export interface BotTradeRow {
   trade_id: string; bot_id: string; ledger: "bot" | "legacy"; symbol: string; side: string; status: string; qty: number;
   entry_price: number; exit_price: number | null; opened_at: string; closed_at: string | null;
   gross_usd: number | null; fees_usd: number | null; net_usd: number | null; swept_usd: number | null; stop: number | null; tp: number | null; proof_url: string;
+  story?: import("./tradeStory").TradeStory | null;
 }
 export interface BotOrderRow { order_id: string; bot_id: string; action: string; symbol: string; requested_qty: number | null; status: string; code: string; message: string | null; trade_id: string | null; received_at: string }
 export interface SignalRow { id: number; alert_id: string; received_at: string; symbol: string; action: string; status: string; response_code: string | null; rejection_reason: string | null; bot_id: string | null }
@@ -43,6 +44,7 @@ export interface BotTradeProof {
   events: { kind: string; occurred_at: string; url: string | null }[];
   checks: ProofCheck[];
   all_checks_ok: boolean;
+  story?: import("./tradeStory").TradeStory | null;
   labels: { mode: string; fee_model: string; short_model: string | null };
 }
 

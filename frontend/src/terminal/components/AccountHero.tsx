@@ -46,7 +46,11 @@ function Strip({ k, v, t }: { k: string; v: string; t?: string }) {
 }
 
 /** Headline: verified PAPER results only (closed ALPHA PAPER ledger trades). */
-export function AccountHero({ state, verified, reconnected = false, now = Date.now() }: { state: FeedState; verified: VerifiedState; reconnected?: boolean; now?: number }) {
+/** A non-funded scope for the hero (Strategy Mirror or one bot), computed by the Home performance selector from the
+ *  SAME data it shows. When set, every hero figure belongs to that scope; funded figures are not shown beside it. */
+export interface HeroScope { label: string; value: number | null; strip: { k: string; v: string; t?: string }[]; note?: string | null; link: { to: string; text: string } }
+
+export function AccountHero({ state, verified, reconnected = false, now = Date.now(), scope = null }: { state: FeedState; verified: VerifiedState; reconnected?: boolean; now?: number; scope?: HeroScope | null }) {
   const d = state.data;
   const funded = d?.portfolio?.active ? d.portfolio.totals.net_funding_usd : null;
   const m = verified.data ? computeMetrics(verified.data.trades, "ALL", now, funded) : null;
@@ -66,8 +70,13 @@ export function AccountHero({ state, verified, reconnected = false, now = Date.n
       </div>
 
       <div className="hero-main">
-        <div className="hero-label">VERIFIED P&amp;L</div>
-        {loading ? (
+        <div className="hero-label">{scope ? scope.label : "FUNDED PAPER · VERIFIED P&L"}</div>
+        {scope ? (
+          <div className="hero-value-wrap">
+            <span className={`hero-value ${heroSize(scope.value === null ? NA : signedMoney(scope.value))} ${scope.value === null ? "na" : `t-hero-${tone(scope.value)}`}`}>{scope.value === null ? NA : signedMoney(scope.value)}</span>
+            {scope.note ? <div className="hero-note">{scope.note}</div> : null}
+          </div>
+        ) : loading ? (
           <div className="hero-skel" aria-label="Loading verified P&L" />
         ) : m ? (
           <div className={`hero-value-wrap ${flash}`}>
@@ -76,22 +85,26 @@ export function AccountHero({ state, verified, reconnected = false, now = Date.n
         ) : (
           <div className="hero-value hv-s na m-fade">{NA}</div>
         )}
+        {scope ? null : (<>
         <div className="hero-label hero-label-2">TOTAL RETURN</div>
         <div className="hero-pnl">
           {m && m.returnPct !== null ? <span className={`t-hero-${tone(m.returnPct)}`}>{pct(m.returnPct)}</span> : <span className="na">{NA}</span>}
           {m && m.returnPct === null && !loading ? <span className="hero-note">no PAPER capital funded</span> : null}
-        </div>
-        {!loading && !m ? (
+        </div></>)}
+        {!scope && !loading && !m ? (
           <div className="hero-err m-fade">{verified.status === "unsupported" ? "Verified history not provided by this backend yet" : verified.error ?? "Verified history unavailable"}</div>
         ) : null}
       </div>
 
       <div className="hero-strip">
-        <Strip k="RETURN" v={m && m.returnPct !== null ? pct(m.returnPct) : NA} t={m && m.returnPct !== null ? tone(m.returnPct) : undefined} />
-        <Strip k="CLOSED TRADES" v={m ? String(m.trades) : NA} />
-        <Strip k="WIN RATE" v={m && m.winRate !== null ? `${m.winRate.toFixed(1)}%` : NA} />
+        {scope ? scope.strip.map((x) => <Strip key={x.k} k={x.k} v={x.v} t={x.t} />) : (<>
+          {/* Return is shown once, above; the strip carries the other headline figures. */}
+          <Strip k="CLOSED TRADES" v={m ? String(m.trades) : NA} />
+          <Strip k="WIN RATE" v={m && m.winRate !== null ? `${m.winRate.toFixed(1)}%` : NA} />
+          <Strip k="PROFIT FACTOR" v={m && m.profitFactor !== null ? m.profitFactor.toFixed(2) : NA} />
+        </>)}
       </div>
-      <Link to="/performance" className="hero-link m-press">Verified performance →</Link>
+      <Link to={scope ? scope.link.to : "/performance"} className="hero-link m-press">{scope ? scope.link.text : "Verified performance →"}</Link>
     </section>
   );
 }

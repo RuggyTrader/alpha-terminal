@@ -12,6 +12,7 @@ import { fetchMirrorOverview, type MirrorOverview } from "../mirror";
 import type { Fleet } from "../bots";
 import { useFleet } from "../fleetStore";
 import type { VerifiedState } from "../useVerified";
+import type { HeroScope } from "./AccountHero";
 
 export type PerfView = "funded" | "mirror" | "bot";
 const rate = (v: number | null) => (v === null ? NA : `${v.toFixed(0)}%`);
@@ -67,8 +68,31 @@ export function BotView({ fleet, botId }: { fleet: Fleet | null; botId: string }
   );
 }
 
-export function PerformanceSelector({ verified, now = Date.now() }: { verified: VerifiedState; now?: number }) {
-  const [view, setView] = useState<PerfView>("funded");
+/** The hero's figures for a non-funded scope, from the same records the selector shows (never mixed with funded). */
+export function scopeHero(view: PerfView, overview: MirrorOverview | null, fleet: Fleet | null, botId: string): HeroScope | null {
+  if (view === "mirror") {
+    if (!overview) return { label: "STRATEGY MIRROR · HYPOTHETICAL GROSS", value: null, strip: [], note: "Loading…", link: { to: "/mirror", text: "Strategy Mirror →" } };
+    const all = overview.markets.flatMap((mk) => (["live", "catch_up"] as const).map((c) => mk.categories[c]));
+    const sum = (f: (t: (typeof all)[number]) => number) => all.reduce((s, t) => s + (t ? f(t) : 0), 0);
+    const trades = sum((t) => t.trades), wins = sum((t) => t.wins);
+    return { label: "STRATEGY MIRROR · HYPOTHETICAL GROSS", value: trades ? sum((t) => t.gross_pnl) : null,
+      strip: [{ k: "MODELLED NET", v: trades ? signedMoney(sum((t) => t.net_modelled_pnl)) : NA }, { k: "TRADES", v: String(trades) }, { k: "WIN RATE", v: trades ? `${((wins / trades) * 100).toFixed(1)}%` : NA }],
+      note: "Hypothetical: TradingView reference, $10 risk, unlimited buying power, no fees. Never added to funded PAPER.", link: { to: "/mirror", text: "Strategy Mirror →" } };
+  }
+  if (view === "bot") {
+    const b = fleet?.bots.find((x) => x.bot_id === botId) ?? null;
+    if (!b) return { label: "BY BOT", value: null, strip: [], note: fleet && !fleet.available ? "No bot registry on this backend yet." : "Choose a bot.", link: { to: "/bots", text: "Bots →" } };
+    return { label: `${b.name} · ${b.symbol} ${b.timeframe} · FUNDED NET P&L`, value: b.paper.trades ? b.paper.net_usd : null,
+      strip: [{ k: "CLOSED TRADES", v: String(b.paper.trades) }, { k: "WIN RATE", v: b.paper.win_rate === null ? NA : `${(b.paper.win_rate * 100).toFixed(1)}%` }, { k: "FEES", v: money(b.paper.fees_usd) }],
+      note: b.paper.trades ? null : "NOT YET OBSERVED: no closed trade for this bot.", link: { to: `/performance?bot=${b.bot_id}`, text: `${b.name} performance →` } };
+  }
+  return null;
+}
+
+export function PerformanceSelector({ verified, now = Date.now(), view: cView, onView, onScope }: { verified: VerifiedState; now?: number; view?: PerfView; onView?: (v: PerfView) => void; onScope?: (s: HeroScope | null) => void }) {
+  const [own, setOwn] = useState<PerfView>("funded");
+  const view = cView ?? own;
+  const setView = (v: PerfView) => { setOwn(v); onView?.(v); };
   const [overview, setOverview] = useState<MirrorOverview | null>(null);
   const shared = useFleet();
   const fleet: Fleet | null = shared.fleet ?? (shared.error ? { available: false, groups: [], bots: [] } : null);
@@ -77,6 +101,7 @@ export function PerformanceSelector({ verified, now = Date.now() }: { verified: 
   useEffect(() => {
     if (view === "mirror" && !overview) fetchMirrorOverview().then(setOverview).catch(() => setOverview({ label: "", disclosure: "", note: "", markets: [] }));
   }, [view, overview]);
+  useEffect(() => { onScope?.(scopeHero(view, overview, fleet, botId)); }, [view, overview, fleet, botId]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <section className="card hp-card" aria-label="Performance">
       <div className="perf-tabs" role="tablist">

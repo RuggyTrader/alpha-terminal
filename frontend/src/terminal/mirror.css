@@ -97,3 +97,40 @@
 .proof-amt > span { white-space: nowrap; }
 .proof-amt > .sub { font-size: 11px; font-weight: 600; opacity: 0.75; }
 .li .sb { flex-shrink: 0; white-space: nowrap; }
+
+
+/* Trade story cards (TradeStoryCard): the essentials first, details on demand. */
+.tcard-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.tcard .tc-head { display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; }
+.tc-coin { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; font-weight: 800; background: var(--seg-bg); color: var(--hero, #f26b1d); }
+.tc-main { flex: 1; min-width: 0; }
+.tc-l1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tc-l1 b { font-size: 16px; }
+.tc-bot { font-size: 12px; color: var(--muted); font-weight: 650; }
+.tc-side { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px; }
+.tc-side.is-long { background: rgba(31, 168, 99, 0.14); color: #1fa863; }
+.tc-side.is-short { background: rgba(224, 67, 67, 0.14); color: #e04343; }
+.tc-l2 { font-size: 13px; color: var(--ink-2); margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.tc-time { color: var(--muted); }
+.tc-pnl { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tc-pnl b { font-size: 16px; }
+.tc-pnl span { font-size: 12px; }
+.tc-sec { padding: 10px 0; border-top: 1px solid var(--line, rgba(127, 127, 127, 0.16)); }
+.tc-sec h4 { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tc-sec p { margin: 0; font-size: 14px; line-height: 1.45; }
+.tc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; }
+.tc-grid > div { display: flex; flex-direction: column; min-width: 0; }
+.tc-grid span { font-size: 11px; color: var(--muted); }
+.tc-grid b { font-size: 14px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tc-grid i { font-size: 11px; color: var(--muted); font-style: normal; }
+.tc-note { font-size: 12px !important; color: var(--muted); margin-top: 8px !important; }
+.tc-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--line, rgba(127, 127, 127, 0.16)); }
+.asst-trade { margin: 0 0 6px; font-size: 12px; color: var(--muted); }
+.chart-tools { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.bot-chart-wrap.is-full { position: fixed; inset: 0; z-index: 60; background: var(--bg); padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+.bot-chart-wrap.is-full .bot-chart { flex: 1; height: auto !important; }
+.wallet-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.wallet-grid > div { display: flex; flex-direction: column; }
+.wallet-grid span { font-size: 11px; color: var(--muted); }
+.wallet-grid b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.wallet-grid i { font-size: 11px; color: var(--muted); font-style: normal; }

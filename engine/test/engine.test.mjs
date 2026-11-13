@@ -268,6 +268,28 @@ describe("live runner: completed candles, outbox, restarts", () => {
     assert.equal(restarted.state.strategy.bar, firstFill);
   });
 
+  it("every entry signal carries its recorded plan and every exit its strategy reason (stored by the Worker in payload_json)", async () => {
+    const h = harness({ firstLive: firstFill });
+    const r = h.make();
+    await r.tick();
+    for (let b = fillBars[0]; b <= fillBars[1]; b++) { h.advance(); await r.tick(); } // candle by candle, through the exit bar
+    const orders = h.sent.filter((s) => s.url.endsWith("/dry-run")).map((s) => s.body);
+    assert.ok(orders.length >= 2, `entry and exit sent (${orders.length})`);
+    const [entry, exit] = orders;
+    assert.equal(entry.plan.side, entry.action === "BUY" ? "LONG" : "SHORT");
+    assert.ok(entry.plan.swing && Number.isFinite(entry.plan.swing.origin) && Number.isFinite(entry.plan.swing.end), "swing leg recorded");
+    assert.equal(entry.plan.order.type, "LIMIT");
+    assert.equal(entry.plan.order.limit, entry.plan.strategy_entry, "the limit the strategy placed is the price it filled at");
+    assert.ok(Math.abs(entry.plan.ote_705 - entry.plan.order.limit) < 0.011, "the limit is the 70.5% OTE level, tick-rounded");
+    assert.ok(Array.isArray(entry.plan.confluence) && entry.plan.confluence.length >= 1 && entry.plan.score >= 1, "the PD arrays that qualified");
+    assert.ok(Number.isFinite(entry.plan.initial_stop) && Number.isFinite(entry.plan.tp2));
+    assert.equal(entry.plan.inputs_hash.length, 16);
+    assert.equal(exit.action, "CLOSE");
+    assert.ok(["SL", "TP"].includes(exit.exit.kind) && typeof exit.exit.result === "string", JSON.stringify(exit.exit));
+    assert.equal(exit.exit.initial_stop, entry.plan.initial_stop);
+    assert.ok(!JSON.stringify(entry.plan).includes("secret"));
+  });
+
   it("ALPHA TERMINAL down (5xx): the signal stays pending and is delivered exactly once when it is back", async () => {
     let down = true;
     const calls = [];
