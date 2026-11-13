@@ -1,4 +1,10 @@
-# Director review follow-up — 2026-11-12 (development and research only; NOTHING deployed)
+# Director review follow-up — 2026-11-12
+
+> **SUPERSEDED IN PART (2026-11-13):** every research replay in this document used TP2 −0.27, because a loader defect silently dropped `STRAT_TP2_EXT`.
+> - Affected: §1 event details, §2 parity, and §4–§8 figures.
+> - Corrected results and the root cause: `docs/PARITY-2026-11-13.md` and `docs/research/2026-11-13-tables-corrected.md`.
+> - The conclusions on fees (every bot loses at 0.20%) and on reconciliation, sync and reliability still stand.
+ (development and research only; NOTHING deployed)
 
 **Status:**
 - No production migration, deployment, engine activation or capital transfer has happened.

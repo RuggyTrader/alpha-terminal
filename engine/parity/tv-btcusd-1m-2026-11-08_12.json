@@ -1,0 +1,477 @@
+{
+ "source": "Owner-supplied TradingView Strategy Tester 'List of trades' screenshots, transcribed by the owner (2026-11-12/13). External verification reference ONLY: never a source of signals.",
+ "reported_date_range": {
+  "from": "2026-11-08",
+  "to": "2026-11-12"
+ },
+ "properties": {
+  "initial_capital_usd": 100,
+  "default_order_size": "1 Quantity (the script sets its own qty from the $10 risk)",
+  "pyramiding": 0,
+  "bar_detalization": "Default, 4 ticks per bar",
+  "script_execution": "On bar close",
+  "commission_pct": 0,
+  "long_leverage": "Infinity",
+  "short_leverage": "Infinity",
+  "slippage_ticks": 0,
+  "limit_order_execution": "Requested price",
+  "order_execution_delay": "One tick"
+ },
+ "fees": "none (reference parity: zero commission, unlimited buying power)",
+ "precision": "prices as displayed; qty SOL 2 dp; BTC qty not usable (displayed to 2 dp), P&L to the cent; times to the minute",
+ "market": "KRAKEN:BTCUSD",
+ "timeframe": "1m",
+ "display_timezone": "UTC (working assumption; validated against Kraken candles by the parity tool)",
+ "profile": "btcusd-1m",
+ "inputs_hash": "d828caa44611ad73",
+ "headline": {
+  "net_profit": 77.38,
+  "profit_factor": 1.634,
+  "max_drawdown": 49.94,
+  "max_drawdown_pct": 34.79,
+  "profitable": "16 of 30 (53.33%)"
+ },
+ "closed_trade_reconciliation": {
+  "closed": 30,
+  "sum_pnl": 77.36,
+  "gross_win": 199.41,
+  "gross_loss": -122.05,
+  "wins": 16,
+  "losses": 13,
+  "breakeven": 1
+ },
+ "original_report_2026-11-01_12": {
+  "net_profit": 374.65,
+  "profit_factor": 1.945,
+  "max_drawdown": 67.21,
+  "max_drawdown_pct": 23.55
+ },
+ "trades": [
+  {
+   "id": 1,
+   "side": "SHORT",
+   "entry_time": "2026-11-09T01:51:00Z",
+   "exit_time": "2026-11-09T02:26:00Z",
+   "entry_price": 75172.0,
+   "exit_price": 75423.2,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 2990,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 2,
+   "side": "LONG",
+   "entry_time": "2026-11-09T03:15:00Z",
+   "exit_time": "2026-11-09T05:02:00Z",
+   "entry_price": 74870.9,
+   "exit_price": 74599.8,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 2760,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 3,
+   "side": "SHORT",
+   "entry_time": "2026-11-09T09:02:00Z",
+   "exit_time": "2026-11-09T09:37:00Z",
+   "entry_price": 74587.5,
+   "exit_price": 74257.5,
+   "qty": null,
+   "pnl": 7.83,
+   "approx_entry_notional": 1770,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 4,
+   "side": "SHORT",
+   "entry_time": "2026-11-09T11:17:00Z",
+   "exit_time": "2026-11-09T11:18:00Z",
+   "entry_price": 74430.1,
+   "exit_price": 74638.4,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 3570,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 5,
+   "side": "SHORT",
+   "entry_time": "2026-11-09T14:44:00Z",
+   "exit_time": "2026-11-09T14:47:00Z",
+   "entry_price": 74653.0,
+   "exit_price": 74630.7,
+   "qty": null,
+   "pnl": 1.84,
+   "approx_entry_notional": 6150,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 6,
+   "side": "SHORT",
+   "entry_time": "2026-11-09T19:38:00Z",
+   "exit_time": "2026-11-09T19:41:00Z",
+   "entry_price": 74807.5,
+   "exit_price": 75008.1,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 3730,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 7,
+   "side": "LONG",
+   "entry_time": "2026-11-09T20:31:00Z",
+   "exit_time": "2026-11-09T21:43:00Z",
+   "entry_price": 74684.4,
+   "exit_price": 74750.9,
+   "qty": null,
+   "pnl": 3.24,
+   "approx_entry_notional": 3630,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 8,
+   "side": "LONG",
+   "entry_time": "2026-11-10T00:51:00Z",
+   "exit_time": null,
+   "entry_price": 74911.4,
+   "exit_price": null,
+   "qty": null,
+   "pnl": 4.4,
+   "approx_entry_notional": 4230,
+   "missing": [
+    "exit_time",
+    "exit_price",
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 9,
+   "side": "SHORT",
+   "entry_time": "2026-11-10T07:32:00Z",
+   "exit_time": "2026-11-10T08:48:00Z",
+   "entry_price": 74766.6,
+   "exit_price": 74511.8,
+   "qty": null,
+   "pnl": 20.04,
+   "approx_entry_notional": 5880,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 10,
+   "side": "SHORT",
+   "entry_time": "2026-11-10T11:48:00Z",
+   "exit_time": "2026-11-10T12:49:00Z",
+   "entry_price": 74328.5,
+   "exit_price": 74203.9,
+   "qty": null,
+   "pnl": 9.13,
+   "approx_entry_notional": 5450,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 11,
+   "side": "SHORT",
+   "entry_time": "2026-11-10T15:20:00Z",
+   "exit_time": "2026-11-10T15:44:00Z",
+   "entry_price": 74429.1,
+   "exit_price": 72832.3,
+   "qty": null,
+   "pnl": 40.43,
+   "approx_entry_notional": 1880,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 12,
+   "side": "SHORT",
+   "entry_time": "2026-11-10T19:50:00Z",
+   "exit_time": "2026-11-10T20:15:00Z",
+   "entry_price": 73489.2,
+   "exit_price": 73489.2,
+   "qty": null,
+   "pnl": 0.0,
+   "approx_entry_notional": 6870,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 13,
+   "side": "SHORT",
+   "entry_time": "2026-11-10T23:37:00Z",
+   "exit_time": "2026-11-11T00:29:00Z",
+   "entry_price": 73657.3,
+   "exit_price": 73605.7,
+   "qty": null,
+   "pnl": 5.85,
+   "approx_entry_notional": 8360,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 14,
+   "side": "SHORT",
+   "entry_time": "2026-11-11T01:29:00Z",
+   "exit_time": "2026-11-11T01:32:00Z",
+   "entry_price": 73598.9,
+   "exit_price": 73748.8,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 4910,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 15,
+   "side": "LONG",
+   "entry_time": "2026-11-11T02:06:00Z",
+   "exit_time": "2026-11-11T02:21:00Z",
+   "entry_price": 73457.6,
+   "exit_price": 73252.6,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 3580,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 16,
+   "side": "SHORT",
+   "entry_time": "2026-11-11T03:09:00Z",
+   "exit_time": null,
+   "entry_price": 73685.3,
+   "exit_price": null,
+   "qty": null,
+   "pnl": -2.04,
+   "approx_entry_notional": 2970,
+   "missing": [
+    "exit_time",
+    "exit_price",
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 17,
+   "side": "LONG",
+   "entry_time": null,
+   "exit_time": "2026-11-11T06:44:00Z",
+   "entry_price": null,
+   "exit_price": 73567.1,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 8000,
+   "missing": [
+    "entry_time",
+    "entry_price",
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 18,
+   "side": "SHORT",
+   "entry_time": "2026-11-11T07:21:00Z",
+   "exit_time": "2026-11-11T07:22:00Z",
+   "entry_price": 73674.9,
+   "exit_price": 73782.4,
+   "qty": null,
+   "pnl": -10.01,
+   "approx_entry_notional": 6860,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 19,
+   "side": "LONG",
+   "entry_time": "2026-11-11T08:32:00Z",
+   "exit_time": "2026-11-11T11:05:00Z",
+   "entry_price": 73628.8,
+   "exit_price": 73897.9,
+   "qty": null,
+   "pnl": 13.5,
+   "approx_entry_notional": 3690,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 20,
+   "side": "SHORT",
+   "entry_time": "2026-11-11T12:17:00Z",
+   "exit_time": "2026-11-11T12:36:00Z",
+   "entry_price": 73988.8,
+   "exit_price": 73908.5,
+   "qty": null,
+   "pnl": 13.06,
+   "approx_entry_notional": 12040,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 21,
+   "side": "SHORT",
+   "entry_time": "2026-11-11T15:33:00Z",
+   "exit_time": "2026-11-11T15:35:00Z",
+   "entry_price": 73804.4,
+   "exit_price": 74028.6,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 3290,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 22,
+   "side": "SHORT",
+   "entry_time": "2026-11-11T20:02:00Z",
+   "exit_time": "2026-11-11T20:13:00Z",
+   "entry_price": 74437.7,
+   "exit_price": 74424.9,
+   "qty": null,
+   "pnl": 0.9,
+   "approx_entry_notional": 5240,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 23,
+   "side": "LONG",
+   "entry_time": "2026-11-11T21:42:00Z",
+   "exit_time": "2026-11-11T22:28:00Z",
+   "entry_price": 74390.9,
+   "exit_price": 74264.5,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 5890,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 24,
+   "side": "SHORT",
+   "entry_time": "2026-11-11T23:33:00Z",
+   "exit_time": "2026-11-11T23:55:00Z",
+   "entry_price": 73812.1,
+   "exit_price": 73999.6,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 3930,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 25,
+   "side": "LONG",
+   "entry_time": "2026-11-12T01:17:00Z",
+   "exit_time": "2026-11-12T02:39:00Z",
+   "entry_price": 73607.4,
+   "exit_price": 73745.7,
+   "qty": null,
+   "pnl": 6.18,
+   "approx_entry_notional": 3290,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 26,
+   "side": "SHORT",
+   "entry_time": "2026-11-12T04:51:00Z",
+   "exit_time": "2026-11-12T06:01:00Z",
+   "entry_price": 73698.9,
+   "exit_price": 73544.1,
+   "qty": null,
+   "pnl": 22.48,
+   "approx_entry_notional": 10700,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 27,
+   "side": "LONG",
+   "entry_time": "2026-11-12T06:42:00Z",
+   "exit_time": "2026-11-12T06:50:00Z",
+   "entry_price": 73505.9,
+   "exit_price": 73444.3,
+   "qty": null,
+   "pnl": -10.0,
+   "approx_entry_notional": 11930,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 28,
+   "side": "SHORT",
+   "entry_time": "2026-11-12T07:56:00Z",
+   "exit_time": "2026-11-12T08:49:00Z",
+   "entry_price": 73551.2,
+   "exit_price": 73475.3,
+   "qty": null,
+   "pnl": 7.98,
+   "approx_entry_notional": 7730,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 29,
+   "side": "SHORT",
+   "entry_time": "2026-11-12T10:24:00Z",
+   "exit_time": "2026-11-12T11:36:00Z",
+   "entry_price": 73468.5,
+   "exit_price": 72934.3,
+   "qty": null,
+   "pnl": 41.11,
+   "approx_entry_notional": 5650,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  },
+  {
+   "id": 30,
+   "side": "SHORT",
+   "entry_time": "2026-11-12T17:26:00Z",
+   "exit_time": "2026-11-12T18:13:00Z",
+   "entry_price": 71920.5,
+   "exit_price": 71888.8,
+   "qty": null,
+   "pnl": 1.44,
+   "approx_entry_notional": 3260,
+   "missing": [
+    "qty (displayed to 2 dp only; not usable)"
+   ]
+  }
+ ]
+}

@@ -29,7 +29,16 @@ export function loadEnvFile(path) {
   return out;
 }
 
-const INPUT_ENV = Object.fromEntries(Object.keys(DEFAULT_INPUTS).map((k) => [`STRAT_${k.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase()}`, k]));
+/** One parser for a STRAT_* value (the engine config and every research tool use it). */
+export function parseInputValue(envKey, input, v) {
+  const d = DEFAULT_INPUTS[input];
+  const out = typeof d === "boolean" ? v === "true" : typeof d === "number" ? Number(v) : v;
+  if (typeof d === "number" && !Number.isFinite(out)) throw new Error(`${envKey} must be a number`);
+  if (typeof d === "boolean" && v !== "true" && v !== "false") throw new Error(`${envKey} must be true or false`);
+  return out;
+}
+
+export const INPUT_ENV = Object.fromEntries(Object.keys(DEFAULT_INPUTS).map((k) => [`STRAT_${k.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toUpperCase()}`, k]));
 
 export function loadConfig(env = process.env, baseDir = process.cwd()) {
   const fileEnv = loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env"));
@@ -57,9 +66,7 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   for (const [envKey, input] of Object.entries(INPUT_ENV)) {
     const v = get(envKey, undefined);
     if (v === undefined) continue;
-    const d = DEFAULT_INPUTS[input];
-    inputs[input] = typeof d === "boolean" ? v === "true" : typeof d === "number" ? Number(v) : v;
-    if (typeof d === "number" && !Number.isFinite(inputs[input])) throw new Error(`${envKey} must be a number`);
+    inputs[input] = parseInputValue(envKey, input, v);
   }
 
   const sync = get("ENGINE_SYNC", "off") === "on";

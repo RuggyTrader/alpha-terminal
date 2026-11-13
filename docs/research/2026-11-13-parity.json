@@ -1,0 +1,465 @@
+{
+ "label": "Reference parity (zero commission, unlimited buying power), ORIGINAL profiles",
+ "history_starts": {
+  "original_report": "2026-11-02T00:00:00Z",
+  "current_report": "2026-11-09T00:00:00Z"
+ },
+ "bots": {
+  "SOLUSD": {
+   "tradingview": {
+    "original": {
+     "total": 382.5,
+     "pf": 2.033,
+     "dd": 61.8
+    },
+    "current": {
+     "total": 206.48,
+     "closed": 185.22,
+     "pf": 2.082,
+     "dd": 53.35
+    }
+   },
+   "experiment_A_original_window": {
+    "history_start": "2026-11-02T00:00Z",
+    "cutoff": "2026-11-12T05:00:00Z",
+    "closed": 103,
+    "wins": 47,
+    "losses": 39,
+    "closed_pnl": 382.51,
+    "profit_factor": 2.033,
+    "max_drawdown": 61.8,
+    "open": null,
+    "total_incl_open": 382.51
+   },
+   "experiment_B_current_window": {
+    "history_start": "2026-11-09T00:00Z",
+    "cutoff": "2026-11-12T23:57:00Z",
+    "closed": 42,
+    "wins": 21,
+    "losses": 18,
+    "closed_pnl": 185.26,
+    "profit_factor": 2.082,
+    "max_drawdown": 53.35,
+    "open": {
+     "side": "LONG",
+     "entry": 81.36,
+     "unrealized_at_cutoff": 19.81
+    },
+    "total_incl_open": 205.07
+   },
+   "experiment_C_long_history_report_9_to_12": {
+    "history_start": "2026-11-02T00:00Z",
+    "report_from": "2026-11-09T00:00Z",
+    "cutoff": "2026-11-12T23:57:00Z",
+    "closed": 41,
+    "wins": 21,
+    "losses": 18,
+    "closed_pnl": 185.26,
+    "profit_factor": 2.082,
+    "max_drawdown": 53.35,
+    "open": {
+     "side": "LONG",
+     "entry": 81.36,
+     "unrealized_at_cutoff": 19.81
+    },
+    "total_incl_open": 205.07
+   },
+   "experiment_D_short_history_report_9_to_12": {
+    "history_start": "2026-11-09T00:00Z",
+    "cutoff": "2026-11-12T23:57:00Z",
+    "closed": 42,
+    "wins": 21,
+    "losses": 18,
+    "closed_pnl": 185.26,
+    "profit_factor": 2.082,
+    "max_drawdown": 53.35,
+    "open": {
+     "side": "LONG",
+     "entry": 81.36,
+     "unrealized_at_cutoff": 19.81
+    },
+    "total_incl_open": 205.07
+   },
+   "long_history_to_current_cutoff": {
+    "closed": 109,
+    "wins": 51,
+    "losses": 41,
+    "closed_pnl": 390.53,
+    "profit_factor": 2,
+    "max_drawdown": 61.8,
+    "open": {
+     "side": "LONG",
+     "entry": 81.36,
+     "unrealized_at_cutoff": 19.81
+    },
+    "total_incl_open": 410.33
+   },
+   "defect_effect_tp2_minus_0_27": {
+    "original_window": {
+     "closed": 110,
+     "wins": 50,
+     "losses": 40,
+     "closed_pnl": 342.38,
+     "profit_factor": 1.965,
+     "max_drawdown": 49.51,
+     "open": null,
+     "total_incl_open": 342.38
+    },
+    "current_window": {
+     "closed": 44,
+     "wins": 22,
+     "losses": 18,
+     "closed_pnl": 183.13,
+     "profit_factor": 2.13,
+     "max_drawdown": 44.73,
+     "open": {
+      "side": "LONG",
+      "entry": 81.36,
+      "unrealized_at_cutoff": 19.81
+     },
+     "total_incl_open": 202.94
+    }
+   },
+   "decomposition": {
+    "tv_original_total": 382.5,
+    "tv_current_total": 206.48,
+    "engine_long_window_total": 382.51,
+    "engine_short_window_total": 205.07,
+    "omitted_days_2_to_8_nov_closed_pnl": 199.82,
+    "initial_state_effect_on_9_to_12": 0,
+    "later_end_cutoff_effect": 27.83,
+    "engine_defect_effect": "none in the engine's own config path; the research loader defect (TP2 -0.27) is shown separately above and is fixed",
+    "unexplained_original": -0.01,
+    "unexplained_current": 1.41,
+    "bridge": {
+     "original_engine_total": 382.51,
+     "minus_omitted_days_2_to_8_nov": -199.82,
+     "minus_open_trade_and_window_overlap": -5.45,
+     "plus_later_cutoff": 27.83,
+     "minus_initial_state": 0,
+     "equals_current_engine_total": 205.07
+    }
+   },
+   "daily_long_history": [
+    {
+     "day": "2026-11-02",
+     "trades": 14,
+     "pnl": -49.54,
+     "cumulative": -49.54
+    },
+    {
+     "day": "2026-11-03",
+     "trades": 13,
+     "pnl": 74.94,
+     "cumulative": 25.39
+    },
+    {
+     "day": "2026-11-04",
+     "trades": 6,
+     "pnl": 65.66,
+     "cumulative": 91.06
+    },
+    {
+     "day": "2026-11-05",
+     "trades": 5,
+     "pnl": -9.62,
+     "cumulative": 81.44
+    },
+    {
+     "day": "2026-11-06",
+     "trades": 11,
+     "pnl": 51,
+     "cumulative": 132.44
+    },
+    {
+     "day": "2026-11-07",
+     "trades": 7,
+     "pnl": 37.47,
+     "cumulative": 169.91
+    },
+    {
+     "day": "2026-11-08",
+     "trades": 11,
+     "pnl": 29.91,
+     "cumulative": 199.82
+    },
+    {
+     "day": "2026-11-09",
+     "trades": 11,
+     "pnl": 58.42,
+     "cumulative": 258.24
+    },
+    {
+     "day": "2026-11-10",
+     "trades": 8,
+     "pnl": 141.01,
+     "cumulative": 399.25
+    },
+    {
+     "day": "2026-11-11",
+     "trades": 14,
+     "pnl": 12.81,
+     "cumulative": 412.06
+    },
+    {
+     "day": "2026-11-12",
+     "trades": 9,
+     "pnl": -21.53,
+     "cumulative": 390.53
+    },
+    {
+     "day": "2026-11-13",
+     "trades": 1,
+     "pnl": 13.44,
+     "cumulative": 403.97
+    }
+   ],
+   "daily_short_history": [
+    {
+     "day": "2026-11-09",
+     "trades": 11,
+     "pnl": 52.98,
+     "cumulative": 52.98
+    },
+    {
+     "day": "2026-11-10",
+     "trades": 8,
+     "pnl": 141.01,
+     "cumulative": 193.99
+    },
+    {
+     "day": "2026-11-11",
+     "trades": 14,
+     "pnl": 12.81,
+     "cumulative": 206.8
+    },
+    {
+     "day": "2026-11-12",
+     "trades": 9,
+     "pnl": -21.53,
+     "cumulative": 185.26
+    },
+    {
+     "day": "2026-11-13",
+     "trades": 1,
+     "pnl": 13.44,
+     "cumulative": 198.7
+    }
+   ]
+  },
+  "BTCUSD": {
+   "tradingview": {
+    "original": {
+     "total": 374.65,
+     "pf": 1.945,
+     "dd": 67.21
+    },
+    "current": {
+     "total": 77.38,
+     "closed": 77.38,
+     "pf": 1.634,
+     "dd": 49.94
+    }
+   },
+   "experiment_A_original_window": {
+    "history_start": "2026-11-02T00:00Z",
+    "cutoff": "2026-11-12T05:14:00Z",
+    "closed": 89,
+    "wins": 44,
+    "losses": 40,
+    "closed_pnl": 339.39,
+    "profit_factor": 1.945,
+    "max_drawdown": 67.21,
+    "open": {
+     "side": "SHORT",
+     "entry": 73698.9,
+     "unrealized_at_cutoff": 35.28
+    },
+    "total_incl_open": 374.66
+   },
+   "experiment_B_current_window": {
+    "history_start": "2026-11-09T00:00Z",
+    "cutoff": "2026-11-12T23:59:00Z",
+    "closed": 30,
+    "wins": 16,
+    "losses": 13,
+    "closed_pnl": 77.38,
+    "profit_factor": 1.634,
+    "max_drawdown": 49.94,
+    "open": null,
+    "total_incl_open": 77.38
+   },
+   "experiment_C_long_history_report_9_to_12": {
+    "history_start": "2026-11-02T00:00Z",
+    "report_from": "2026-11-09T00:00Z",
+    "cutoff": "2026-11-12T23:59:00Z",
+    "closed": 31,
+    "wins": 17,
+    "losses": 13,
+    "closed_pnl": 86.51,
+    "profit_factor": 1.709,
+    "max_drawdown": 49.94,
+    "open": null,
+    "total_incl_open": 86.51
+   },
+   "experiment_D_short_history_report_9_to_12": {
+    "history_start": "2026-11-09T00:00Z",
+    "cutoff": "2026-11-12T23:59:00Z",
+    "closed": 30,
+    "wins": 16,
+    "losses": 13,
+    "closed_pnl": 77.38,
+    "profit_factor": 1.634,
+    "max_drawdown": 49.94,
+    "open": null,
+    "total_incl_open": 77.38
+   },
+   "long_history_to_current_cutoff": {
+    "closed": 94,
+    "wins": 48,
+    "losses": 41,
+    "closed_pnl": 402.39,
+    "profit_factor": 2.091,
+    "max_drawdown": 67.21,
+    "open": null,
+    "total_incl_open": 402.39
+   },
+   "defect_effect_tp2_minus_0_27": {
+    "original_window": {
+     "closed": 92,
+     "wins": 41,
+     "losses": 46,
+     "closed_pnl": 204.42,
+     "profit_factor": 1.53,
+     "max_drawdown": 89.4,
+     "open": null,
+     "total_incl_open": 204.42
+    },
+    "current_window": {
+     "closed": 32,
+     "wins": 13,
+     "losses": 15,
+     "closed_pnl": 36.33,
+     "profit_factor": 1.289,
+     "max_drawdown": 89.4,
+     "open": null,
+     "total_incl_open": 36.33
+    }
+   },
+   "decomposition": {
+    "tv_original_total": 374.65,
+    "tv_current_total": 77.38,
+    "engine_long_window_total": 374.66,
+    "engine_short_window_total": 77.38,
+    "omitted_days_2_to_8_nov_closed_pnl": 313.37,
+    "initial_state_effect_on_9_to_12": 9.13,
+    "later_end_cutoff_effect": 27.73,
+    "engine_defect_effect": "none in the engine's own config path; the research loader defect (TP2 -0.27) is shown separately above and is fixed",
+    "unexplained_original": -0.01,
+    "unexplained_current": 0,
+    "bridge": {
+     "original_engine_total": 374.66,
+     "minus_omitted_days_2_to_8_nov": -313.37,
+     "minus_open_trade_and_window_overlap": -2.51,
+     "plus_later_cutoff": 27.73,
+     "minus_initial_state": -9.13,
+     "equals_current_engine_total": 77.38
+    }
+   },
+   "daily_long_history": [
+    {
+     "day": "2026-11-02",
+     "trades": 13,
+     "pnl": 71.34,
+     "cumulative": 71.34
+    },
+    {
+     "day": "2026-11-03",
+     "trades": 7,
+     "pnl": 72.28,
+     "cumulative": 143.62
+    },
+    {
+     "day": "2026-11-04",
+     "trades": 8,
+     "pnl": 109.68,
+     "cumulative": 253.3
+    },
+    {
+     "day": "2026-11-05",
+     "trades": 6,
+     "pnl": -14.03,
+     "cumulative": 239.28
+    },
+    {
+     "day": "2026-11-06",
+     "trades": 9,
+     "pnl": 27.34,
+     "cumulative": 266.62
+    },
+    {
+     "day": "2026-11-07",
+     "trades": 8,
+     "pnl": 46.6,
+     "cumulative": 313.21
+    },
+    {
+     "day": "2026-11-08",
+     "trades": 11,
+     "pnl": 0.16,
+     "cumulative": 313.37
+    },
+    {
+     "day": "2026-11-09",
+     "trades": 9,
+     "pnl": -15.45,
+     "cumulative": 297.92
+    },
+    {
+     "day": "2026-11-10",
+     "trades": 5,
+     "pnl": 74,
+     "cumulative": 371.92
+    },
+    {
+     "day": "2026-11-11",
+     "trades": 12,
+     "pnl": -38.71,
+     "cumulative": 333.2
+    },
+    {
+     "day": "2026-11-12",
+     "trades": 6,
+     "pnl": 69.19,
+     "cumulative": 402.39
+    }
+   ],
+   "daily_short_history": [
+    {
+     "day": "2026-11-09",
+     "trades": 7,
+     "pnl": -27.1,
+     "cumulative": -27.1
+    },
+    {
+     "day": "2026-11-10",
+     "trades": 5,
+     "pnl": 74,
+     "cumulative": 46.91
+    },
+    {
+     "day": "2026-11-11",
+     "trades": 12,
+     "pnl": -38.71,
+     "cumulative": 8.19
+    },
+    {
+     "day": "2026-11-12",
+     "trades": 6,
+     "pnl": 69.19,
+     "cumulative": 77.38
+    }
+   ]
+  }
+ }
+}

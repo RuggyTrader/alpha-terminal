@@ -14,6 +14,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { FleetLedgerSim, fromMicro } from "../capital.mjs";
 import { getInstrument } from "../instruments.mjs";
+import { INPUT_ENV, parseInputValue } from "../config.mjs";
 import { abandonPosition, createState, onBar } from "../ote.mjs";
 
 /** N-minute candles from real 1m candles: open first, high max, low min, close last; empty periods stay empty. */
@@ -121,18 +122,22 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
   };
 }
 
-const PROFILE_KEYS = { STRAT_SWING_LEN: "swingLen", STRAT_MIN_LEG_ATR: "minLegATR", STRAT_MAX_AGE: "maxAge", STRAT_ENTRY_MODE: "entryMode", STRAT_SL_MODE: "slMode", STRAT_SL_BUF: "slBuf", STRAT_TP2_EXT: "tp2Ext",
-  STRAT_MIN_SCORE: "minScore", STRAT_USE_FVG: "useFVG", STRAT_FVG_MIN_ATR: "fvgMinATR", STRAT_USE_OB: "useOB", STRAT_DISP_ATR: "dispATR", STRAT_USE_RB: "useRB", STRAT_RB_WICK: "rbWick",
-  STRAT_RB_MIN_ATR: "rbMinATR", STRAT_RB_LOOK: "rbLook", STRAT_MAX_ZONES: "maxZones", STRAT_ALLOW_LONG: "allowLong", STRAT_ALLOW_SHORT: "allowShort", STRAT_RISK_USD: "riskUSD",
-  STRAT_USE_BE: "useBE", STRAT_BE_FRAC: "beFrac", STRAT_USE_TRAIL: "useTrail", STRAT_TRAIL_FRAC: "trailFrac", STRAT_TRAIL_LEN: "trailLen", STRAT_TRAIL_BUF: "trailBuf",
-  STRAT_USE_HOURS: "useHours", STRAT_WEEKEND_FLAT: "weekendFlat", STRAT_USE_SLEEP: "useSleep", STRAT_HOURS_TZ: "hoursTz" };
+/**
+ * A profile's strategy inputs, read with the ENGINE's own key mapping and value parser (src/config.mjs), so research
+ * and the live engine can never disagree. Every STRAT_* line must be a known input: an unknown or misspelled key is an
+ * error, never silently skipped. (Defect fixed 2026-11-13: the old local regex STRAT_[A-Z_]+ could not match
+ * STRAT_TP2_EXT, so every research run used the Pine default TP2 -0.27 instead of the profile's value.)
+ */
 export function profileInputs(dir, profile) {
   const out = {};
-  for (const line of readFileSync(join(dir, "profiles", `${profile}.env`), "utf8").split(/\r?\n/)) {
-    const m = /^(STRAT_[A-Z_]+)=(.*)$/.exec(line.trim());
-    if (!m || !PROFILE_KEYS[m[1]]) continue;
-    const v = m[2];
-    out[PROFILE_KEYS[m[1]]] = v === "true" ? true : v === "false" ? false : Number.isFinite(Number(v)) && v !== "" ? Number(v) : v;
+  for (const raw of readFileSync(join(dir, "profiles", `${profile}.env`), "utf8").split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) continue;
+    const m = /^(STRAT_[A-Z0-9_]+)=(.*)$/.exec(line);
+    if (!m) continue;
+    const input = INPUT_ENV[m[1]];
+    if (!input) throw new Error(`${profile}: unknown strategy input ${m[1]}`);
+    out[input] = parseInputValue(m[1], input, m[2]);
   }
   return out;
 }

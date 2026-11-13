@@ -2,7 +2,7 @@
 // in src/bots.mjs with its own exact profile, wallet, dollar risk, LONG/SHORT simulation and accounting; these tests
 // must keep passing for every bot.   node --test test/fleet.test.mjs
 
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, describe, it } from "node:test";
@@ -83,6 +83,17 @@ describe("exact strategy profiles (no cross-contamination)", () => {
   it("SOLUSD 5m keeps TP2 extension +0.25 and its production inputs hash c826d785d58a4a39; every bot has its own hash", () => {
     const h = Object.fromEntries(bots.map(({ bot, cfg }) => [bot.id, inputsHash(cfg)]));
     assert.deepEqual(h, { "ALPHA-01": "0932a1a0cfac03f9", "ALPHA-02": "c826d785d58a4a39", "ALPHA-03": "d828caa44611ad73", "ALPHA-04": "a6336dad6ffaed70" });
+  });
+  it("regression 2026-11-13: research tools read EXACTLY the engine's inputs for every bot (STRAT_TP2_EXT was silently dropped)", () => {
+    for (const { bot, cfg } of bots) {
+      const research = profileInputs(ENGINE, bot.profile);
+      assert.deepEqual(research, Object.fromEntries(Object.keys(research).map((k) => [k, cfg.inputs[k]])), bot.id);
+      assert.deepEqual(Object.keys(research).sort(), Object.keys(cfg.inputs).filter((k) => research[k] !== undefined || cfg.inputs[k] !== undefined).sort(), `${bot.id}: same keys`);
+      assert.equal(research.tp2Ext, MASTER[bot.id].tp2Ext, `${bot.id} TP2`);
+    }
+    const dir = tmp(); mkdirSync(join(dir, "profiles"), { recursive: true });
+    writeFileSync(join(dir, "profiles", "typo.env"), "STRAT_TP2_EXTT=-0.55");
+    assert.throws(() => profileInputs(dir, "typo"), /unknown strategy input STRAT_TP2_EXTT/, "an unknown key is an error, never skipped");
   });
   it("no global setting can override a bot's strategy: STRAT_* in the environment is ignored, in the shared env file refused", () => {
     const leaky = loadBotConfigs(ALL, env0({ STRAT_SWING_LEN: "99", STRAT_TP2_EXT: "3" }), ENGINE, { allowProposed: true });
@@ -300,7 +311,7 @@ describe("combined funded backtest (real candles, own wallets, sweeps, no lookah
   }
 });
 
-describe("regression: ALPHA-01 2026-11-09 11:17 SHORT (limit 86.14, filled at the close 86.75, +0.71% beyond the 0.5% sizing headroom)", () => {
+describe("reduce-to-fit at the fill price (synthetic numbers from the superseded 2026-11-09 11:17 replay) and the corrected real event", () => {
   const bots = [{ id: "ALPHA-01", group: "SOLANA", priority: 1 }];
   const sol = getInstrument("SOLUSD");
   it("the quantity is reduced to fit the bot's own wallet at the fill price, floored to the step; the wallet still reconciles", () => {
@@ -319,14 +330,18 @@ describe("regression: ALPHA-01 2026-11-09 11:17 SHORT (limit 86.14, filled at th
     assert.equal(L.open("ALPHA-01", "SHORT", 0.08, 86.75, { openTime: 1, instrument: sol }), "INSUFFICIENT_BOT_CAPITAL");
     assert.equal(L.positions.size, 0);
   });
-  it("the real Kraken candles around the event (fixture, 12 h warm-up): no refusal at $10 or $1,000, one reduced entry, reconciles", () => {
+  it("CORRECTED 2026-11-13 (real Kraken candles, the profile's TP2 -0.55): the 11:17 short is TradingView trade 6 exactly (86.52 -> 86.87, 28.92 SOL, -$10.12); funded: no refusal, nothing reduced, reconciles", () => {
+    // The earlier "limit 86.14 / refused" event came from a replay that silently used TP2 -0.27 (research loader defect,
+    // now fixed). With the real inputs there is no such order. Reduce-to-fit stays (tested above) for genuine gaps.
     const here = dirname(fileURLToPath(import.meta.url));
     const sol1 = JSON.parse(readFileSync(join(here, "fixtures", "SOLUSD-1m-2026-11-08T12_2026-11-09T12.json"), "utf8")).candles;
+    const inputs = profileInputs(join(here, ".."), "solusd-1m");
+    assert.equal(inputs.tp2Ext, -0.55);
     for (const per of [10, 1000]) {
-      const r = runFleetBacktest({ bots: [{ id: "ALPHA-01", group: "SOLANA", symbol: "SOLUSD", intervalMin: 1, priority: 1, candles: sol1, inputs: profileInputs(join(here, ".."), "solusd-1m"), riskUSD: 10 }],
+      const r = runFleetBacktest({ bots: [{ id: "ALPHA-01", group: "SOLANA", symbol: "SOLUSD", intervalMin: 1, priority: 1, candles: sol1, inputs, riskUSD: 10 }],
         main: per, allocations: [{ group: "SOLANA", amountUsd: per }], fromMs: Date.parse("2026-11-09T00:00:00Z") });
       const f = r.per_bot["ALPHA-01"].funded;
-      assert.deepEqual(f.refused, {}); assert.equal(f.reduced_to_fit, 1); assert.ok(r.combined.reconciles);
+      assert.deepEqual(f.refused, {}); assert.equal(f.reduced_to_fit, 0); assert.ok(r.combined.reconciles);
     }
   });
 });

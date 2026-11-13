@@ -1,0 +1,18 @@
+{
+  "profile": "solusd-1m",
+  "bot": "ALPHA-01",
+  "inputs_hash": "0932a1a0cfac03f9",
+  "hash_note": "Unchanged. This metadata record does not alter solusd-1m.env, so the configuration identity is preserved.",
+  "verified_inactive_inputs": [
+    {
+      "input": "sleepFlat",
+      "pine_label": "Also close open positions when the sleep window starts",
+      "owner_screenshot_value": false,
+      "engine_value": true,
+      "engine_value_source": "Pine default (the field was not visible in the first screenshots)",
+      "verified_at": "2026-11-13",
+      "effect": "none: useSleep = false, so sleepFlat is never evaluated (Pine: flattenNow = hoursBlocked or (sleepBlocked and sleepFlat)); confirmed by the parity gate, which reproduces all 43 TradingView trades with the current profile"
+    }
+  ],
+  "confirmed_active_inputs_2026-11-13": "all active inputs match the owner's fresh SOL 1m screenshots"
+}

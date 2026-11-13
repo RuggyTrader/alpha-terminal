@@ -76,6 +76,8 @@ These rules were updated 2026-11-12 for the multi-bot directive and replace the 
     - No full funded fleet activation and no additional capital without separate approval (stages R1–R6 in `docs/MULTI-BOT-ARCHITECTURE.md`).
 26. **No dead links.** A filter, link or proof page counts as done only when a test opens it and checks that it shows the right records.
 
+27. **One input loader.** Research tools read profiles only through the engine's own mapping (`config.mjs` `INPUT_ENV` / `parseInputValue`); unknown `STRAT_*` keys are errors. **Parity gate:** `engine/test/tv-parity.test.mjs` must reproduce every TradingView reference trade before any parity or profitability claim.
+
 ## Process
 
 18. **Owner approvals.** Each production migration, deployment, engine activation, configuration change and capital transfer needs its own owner approval. Real-money trading stays disabled (`ENABLE_TRADING=false`).
