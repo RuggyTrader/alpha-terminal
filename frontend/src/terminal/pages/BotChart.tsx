@@ -25,7 +25,7 @@ export const BOT_MARKETS: Record<string, { symbol: string; timeframe: string }> 
 /** Lines and markers for ONE completed or open trade, from its recorded story and ledger fills only. */
 export function tradeOverlay(v: TradeView, tfMin: number) {
   const pl = v.story?.plan ?? null, ex = v.story?.exit ?? null;
-  const bucket = (iso: string | null) => (iso ? Math.floor(Date.parse(iso) / 1000 / (tfMin * 60)) * tfMin * 60 : null);
+  const bucket = (iso: string | null) => candleBucket(iso, tfMin);
   const lines: { price: number; title: string; color: string; dashed: boolean }[] = [];
   const add = (price: number | null | undefined, title: string, color: string, dashed = false) => { if (price !== null && price !== undefined && Number.isFinite(price)) lines.push({ price, title, color, dashed }); };
   add(pl?.planned_entry, "Planned entry", "#f08c00", true);
@@ -42,6 +42,18 @@ export function tradeOverlay(v: TradeView, tfMin: number) {
 interface Candle { t: number; o: number; h: number; l: number; c: number; v: number }
 interface Candles { source: string; symbol: string; pair: string; timeframe_min: number; fetched_at: string; candles: Candle[]; forming: Candle | null }
 
+/** Do not place a fill on a nearby or missing candle. */
+export function candleBucket(iso: string | null, tfMin: number): number | null {
+  const ms = iso ? Date.parse(iso) : NaN;
+  return Number.isFinite(ms) && Number.isFinite(tfMin) && tfMin > 0 ? Math.floor(ms / 1000 / (tfMin * 60)) * tfMin * 60 : null;
+}
+export function chartMarkersInCandles<T extends { time: number }>(markers: T[], candles: Pick<Candle, "t">[]): T[] {
+  const times = new Set(candles.map((c) => c.t));
+  return markers.filter((m) => times.has(m.time));
+}
+export function chartDataMatches(data: Pick<Candles, "symbol" | "timeframe_min">, symbol: string, timeframe: string): boolean {
+  return data.symbol === symbol && data.timeframe_min === Number(timeframe.replace(/\D/g, ""));
+}
 const css = (name: string, fallback: string) => (typeof window === "undefined" ? fallback : getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback);
 const FEE = 0.002; // Ndax-equivalent 0.20% per fill (estimates only; recorded fees come from the ledger)
 
@@ -70,6 +82,10 @@ export function BotChartPage() {
   const { id = "" } = useParams();
   const [params] = useSearchParams();
   const tradeRef = params.get("trade"), ledger = params.get("ledger") === "legacy" ? "legacy" : "bot";
+  // A new route starts a fresh chart and cancels the previous route's asynchronous results.
+  return <BotChartContent key={JSON.stringify([id, ledger, tradeRef])} id={id} ledger={ledger} tradeRef={tradeRef} />;
+}
+function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy" | "bot"; tradeRef: string | null }) {
   const [trade, setTrade] = useState<TradeView | null>(null);
   const [full, setFull] = useState(false);
   const [fit, setFit] = useState(false);
@@ -92,6 +108,7 @@ export function BotChartPage() {
   }, [tradeRef, ledger]);
   const [data, setData] = useState<Candles | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [marketError, setMarketError] = useState<string | null>(null);
   const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const chart = useRef<IChartApi | null>(null);
@@ -100,14 +117,17 @@ export function BotChartPage() {
 
   useEffect(() => {
     let live = true;
+    let inFlight = false;
     const load = async () => {
-      if (document.visibilityState !== "visible") return;
-      if (!sym || !tf) return;
+      if (!live || inFlight || document.visibilityState !== "visible" || !sym || !tf) return;
+      inFlight = true;
       try {
         const env = await api.get<{ ok: boolean; data?: Candles; code?: string; message?: string }>(`/api/dashboard/candles?symbol=${sym}&tf=${tf.replace(/\D/g, "")}`);
         if (!live) return;
-        if (env?.ok && env.data) { setData(env.data); setErr(null); setRefreshedAt(Date.now()); } else setErr(env?.code ?? "Market data unavailable");
-      } catch (e) { if (live) setErr(String((e as Error).message)); }
+        if (env?.ok && env.data && chartDataMatches(env.data, sym, tf)) { setData(env.data); setMarketError(null); setRefreshedAt(Date.now()); }
+        else setMarketError(env?.code ?? "Market data unavailable or does not match this chart");
+      } catch (e) { if (live) setMarketError(String((e as Error).message)); }
+      finally { inFlight = false; }
     };
     load();
     const id2 = setInterval(load, 15_000);
@@ -154,20 +174,21 @@ export function BotChartPage() {
     forming.current?.setData(data.forming ? [{ time: data.forming.t as UTCTimestamp, open: data.forming.o, high: data.forming.h, low: data.forming.l, close: data.forming.c }] : []);
     for (const pl of (s as unknown as { __lines?: ReturnType<typeof s.createPriceLine>[] }).__lines ?? []) s.removePriceLine(pl);
     const lines: ReturnType<typeof s.createPriceLine>[] = [];
+    s.setMarkers([]); // A former open trade must not leave a marker on a pending order.
     if (lv) {
       const add = (price: number | null, color: string, title: string, style = 0) => { if (price !== null && Number.isFinite(price)) lines.push(s.createPriceLine({ price, color, lineWidth: 2, lineStyle: style, axisLabelVisible: true, title })); };
       add(lv.entry, "#f08c00", lv.kind === "pending" ? "Limit" : "Entry", lv.kind === "pending" ? 2 : 0);
       add(lv.stop, "#d64545", lv.kind === "position" && lv.stop !== lv.initialStop ? "Stop (moved)" : "Stop");
       if (lv.kind === "position" && lv.initialStop !== null && lv.initialStop !== lv.stop) add(lv.initialStop, "rgba(214,69,69,0.45)", "Initial stop", 2);
       add(lv.tp, "#1f9d55", "Target");
-      if (lv.openedAt) s.setMarkers([{ time: Math.floor(Date.parse(lv.openedAt) / 1000 / (data.timeframe_min * 60)) * data.timeframe_min * 60 as UTCTimestamp, position: lv.side === "LONG" ? "belowBar" : "aboveBar", color: "#f08c00", shape: lv.side === "LONG" ? "arrowUp" : "arrowDown", text: `${lv.side} entry` }]);
+      const entryBar = candleBucket(lv.openedAt, data.timeframe_min);
+      if (entryBar !== null && data.candles.some((c) => c.t === entryBar)) s.setMarkers([{ time: entryBar as UTCTimestamp, position: lv.side === "LONG" ? "belowBar" : "aboveBar", color: "#f08c00", shape: lv.side === "LONG" ? "arrowUp" : "arrowDown", text: `${lv.side} entry` }]);
     }
     if (trade) {
       const o = tradeOverlay(trade, data.timeframe_min);
       for (const l of o.lines) lines.push(s.createPriceLine({ price: l.price, color: l.color, lineWidth: 2, lineStyle: l.dashed ? 2 : 0, axisLabelVisible: true, title: l.title }));
       // Only markers inside the candles shown: a fill outside them would otherwise be drawn on the wrong candle.
-      const first = data.candles.length ? data.candles[0].t : Infinity, last = data.candles.length ? data.candles[data.candles.length - 1].t : -Infinity;
-      s.setMarkers(o.markers.filter((m) => m.time >= first && m.time <= last).map((m) => ({ ...m, time: m.time as UTCTimestamp })));
+      s.setMarkers(chartMarkersInCandles(o.markers, data.candles).map((m) => ({ ...m, time: m.time as UTCTimestamp })));
     } else if (!lv) s.setMarkers([]);
     (s as unknown as { __lines?: unknown[] }).__lines = lines;
   }, [data, lv, trade]);
@@ -175,13 +196,14 @@ export function BotChartPage() {
   const now = Date.now();
   const lastClose = data && data.candles.length ? data.candles[data.candles.length - 1].c : null;
   const ageSec = data ? Math.round((now - Date.parse(data.fetched_at)) / 1000) : null;
-  const fresh = ageSec !== null && ageSec < 90 ? "FRESH" : ageSec !== null && ageSec < 600 ? "STALE" : "OFFLINE";
-  const f = lv ? chartFigures(lv, lastClose) : null;
+  const fresh = !marketError && ageSec !== null && ageSec >= 0 && ageSec < 90 ? "FRESH" : ageSec !== null && ageSec >= 0 && ageSec < 600 ? "STALE" : "OFFLINE";
+  const f = lv ? chartFigures(lv, fresh === "FRESH" ? lastClose : null) : null;
   return (
     <div className="page-narrow bots-page">
       <SectionHeader title={bot ? `${bot.name} · ${bot.symbol} ${bot.timeframe}` : id} sub={<Link className="link" to="/bots">← Bots</Link>}
         right={bot ? <StatusBadge tone={STATE_TONE[botState(bot, now)]} dot>{botState(bot, now)}</StatusBadge> : null} />
-      {err ? <EmptyState title="Chart unavailable" tone="bad">{err}</EmptyState> : null}
+      {err ? <EmptyState title="Trade details unavailable" tone="bad">{err}</EmptyState> : null}
+      {marketError ? <EmptyState title={data ? "Market refresh failed — last snapshot" : "Chart unavailable"} tone="bad">{marketError}</EmptyState> : null}
       <div className={`bot-chart-wrap ${full ? "is-full" : ""}`}>
         {full ? <div className="chart-tools"><b>{sym} {tf}</b><button className="btn btn-ghost" type="button" onClick={() => setFull(false)}>Exit full screen</button></div> : null}
         <div className="bot-chart" ref={box} aria-label="Price chart" />

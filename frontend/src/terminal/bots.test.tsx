@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { botPhase, botState, groupTotals, pipelineLine, type Bot } from "./bots";
 import { BotCard } from "./pages/Bots";
-import { botLevels, chartFigures } from "./pages/BotChart";
+import { botLevels, candleBucket, chartDataMatches, chartFigures, chartMarkersInCandles } from "./pages/BotChart";
 import { answer, findBot, UNKNOWN } from "./assistant";
 import { BotView, FundedView, MirrorView } from "./components/PerformanceSelector";
 import type { VerifiedState } from "./useVerified";
@@ -115,5 +115,20 @@ describe("Home performance selector keeps datasets apart", () => {
     const out = r(<BotView fleet={fleet([b])} botId="ALPHA-02" />);
     expect(out).toContain("3 (1 L / 2 S)");
     expect(out).toContain("Mirror (hypothetical)");
+  });
+});
+
+
+describe("chart context guards", () => {
+  it("rejects candles from a different symbol or timeframe", () => {
+    expect(chartDataMatches({ symbol: "SOLUSD", timeframe_min: 5 }, "SOLUSD", "5m")).toBe(true);
+    expect(chartDataMatches({ symbol: "SOLUSD", timeframe_min: 5 }, "BTCUSD", "5m")).toBe(false);
+    expect(chartDataMatches({ symbol: "SOLUSD", timeframe_min: 5 }, "SOLUSD", "1m")).toBe(false);
+  });
+  it("uses exact candle buckets and never attaches fills to missing bars", () => {
+    const ts = Date.parse("2026-11-12T01:00:00Z") / 1000;
+    expect(candleBucket("2026-11-12T01:03:12Z", 5)).toBe(ts);
+    expect(candleBucket("invalid", 5)).toBeNull();
+    expect(chartMarkersInCandles([{ time: ts }, { time: ts + 300 }, { time: ts + 600 }], [{ t: ts }, { t: ts + 600 }])).toEqual([{ time: ts }, { time: ts + 600 }]);
   });
 });
