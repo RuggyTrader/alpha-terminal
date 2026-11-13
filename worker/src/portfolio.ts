@@ -36,6 +36,7 @@ export interface PortfolioEnv {
 }
 
 interface WalletRow {
+  shortfall_micro?: number; // migration 0007: unpaid liability, never spendable cash
   wallet: string;
   kind: "MAIN" | "STRATEGY";
   available_micro: number;
@@ -431,30 +432,48 @@ async function walletSummary(db: D1Database) {
   const rows = (await db.prepare(`SELECT * FROM portfolio_wallets`).all<WalletRow>()).results;
   const open = (await db.prepare(`SELECT wallet, qty, avg_entry_price, multiplier, mark_price FROM paper_positions WHERE status = 'OPEN' AND wallet IS NOT NULL`)
     .all<{ wallet: string; qty: number; avg_entry_price: number; multiplier: number; mark_price: number | null }>()).results;
+  // Both ledgers contribute to account equity. Short proceeds remain restricted; only the price move is UPL.
+  try {
+    const botOpen = (await db.prepare(`SELECT b.wallet, p.qty, p.entry_price AS avg_entry_price,
+      CASE WHEN p.side = 'SHORT' THEN -1 ELSE 1 END AS multiplier, p.mark_price
+      FROM bot_positions p JOIN bots b ON b.bot_id = p.bot_id WHERE p.status = 'OPEN'`)
+      .all<{ wallet: string; qty: number; avg_entry_price: number; multiplier: number; mark_price: number | null }>()).results;
+    open.push(...botOpen);
+  } catch (e) {
+    if (!/no such table: bots|no such table: bot_positions/i.test(String(e instanceof Error ? e.message : e))) throw e;
+  }
   const order = (w: string) => (WALLETS as readonly string[]).indexOf(w);
   const wallets = rows.sort((a, b) => order(a.wallet) - order(b.wallet)).map((w) => {
     const mine = open.filter((p) => p.wallet === w.wallet);
     const known = mine.every((p) => p.mark_price !== null);
     const upl = mine.reduce((s, p) => s + (p.mark_price === null ? 0 : (p.mark_price - p.avg_entry_price) * p.qty * p.multiplier), 0);
     const book = w.available_micro + w.reserved_micro;
+    const shortfall = Number(w.shortfall_micro ?? 0);
     return {
       wallet: w.wallet, kind: w.kind,
       available_usd: fromMicro(w.available_micro), reserved_usd: fromMicro(w.reserved_micro),
       realized_pnl_usd: fromMicro(w.realized_pnl_micro), net_funding_usd: fromMicro(w.net_funding_micro),
       fees_usd: fromMicro(Number(w.fees_micro ?? 0)), net_realized_pnl_usd: fromMicro(w.realized_pnl_micro - Number(w.fees_micro ?? 0)),
-      unrealized_pnl_usd: known ? Math.round(upl * 100) / 100 : null,
+      unrealized_pnl_usd: known ? fromMicro(toMicro(upl)) : null,
       book_balance_usd: fromMicro(book),
-      equity_usd: known ? Math.round((fromMicro(book) + upl) * 100) / 100 : null,
+      shortfall_usd: fromMicro(shortfall),
+      economic_net_realized_pnl_usd: fromMicro(w.realized_pnl_micro - Number(w.fees_micro ?? 0) - shortfall),
+      equity_usd: known ? fromMicro(book - shortfall + toMicro(upl)) : null,
       open_positions: mine.length, updated_at: w.updated_at,
     };
   });
   const sum = (k: "available_micro" | "reserved_micro" | "realized_pnl_micro" | "net_funding_micro" | "fees_micro") => rows.reduce((s, w) => s + Number(w[k] ?? 0), 0);
   const unrealizedKnown = wallets.every((w) => w.unrealized_pnl_usd !== null);
   const book = sum("available_micro") + sum("reserved_micro");
+  const shortfall = rows.reduce((s, w) => s + Number(w.shortfall_micro ?? 0), 0);
+  const uplMicro = unrealizedKnown ? wallets.reduce((s, w) => s + toMicro(w.unrealized_pnl_usd ?? 0), 0) : null;
   return {
     wallets,
     totals: {
       book_balance_usd: fromMicro(book),
+      shortfall_usd: fromMicro(shortfall),
+      economic_net_realized_pnl_usd: fromMicro(sum("realized_pnl_micro") - sum("fees_micro") - shortfall),
+      equity_usd: uplMicro === null ? null : fromMicro(book - shortfall + uplMicro),
       unallocated_usd: fromMicro(rows.find((w) => w.wallet === "MAIN")?.available_micro ?? 0),
       available_usd: fromMicro(sum("available_micro")),
       reserved_usd: fromMicro(sum("reserved_micro")),
@@ -462,7 +481,7 @@ async function walletSummary(db: D1Database) {
       fees_usd: fromMicro(sum("fees_micro")),
       net_realized_pnl_usd: fromMicro(sum("realized_pnl_micro") - sum("fees_micro")),
       net_funding_usd: fromMicro(sum("net_funding_micro")),
-      unrealized_pnl_usd: unrealizedKnown ? Math.round(wallets.reduce((s, w) => s + (w.unrealized_pnl_usd ?? 0), 0) * 100) / 100 : null,
+      unrealized_pnl_usd: uplMicro === null ? null : fromMicro(uplMicro),
     },
   };
 }

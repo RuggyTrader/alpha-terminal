@@ -1,0 +1,17 @@
+✔ a mismatched profile hash is refused before any fill; exit remains possible with an older hash (53.03463ms)
+✔ a shortfall cannot be bypassed by resuming or by allocating fresh cash (21.806992ms)
+✔ concurrent closes sweep once; interruption rolls back every financial row and retry settles once (18.545623ms)
+✔ combined equity includes bot LONG/SHORT marks and subtracts unpaid shortfall; schema 6 remains readable (25.487765ms)
+✔ lifetime aggregates exceed list caps, combine both funded ledgers and exclude mirror/sweeps (80.134841ms)
+✔ one bot cannot retrieve another bot order outcome through its ledger view (14.434973ms)
+✔ concurrent different-bot entries cannot exceed the account position or exposure limit (106.579392ms)
+✔ actual-reference stop risk reduces quantity and never exceeds the bot risk or request (37.627242ms)
+✔ settlement response and pause use the committed shortfall when an allocation races the close (15.889062ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 537.459355

@@ -1,4 +1,5 @@
 import { handleCandles } from "./candles";
+import { lifetimePerformance } from "./performance";
 import { allocationPreview } from "./bot_ledger";
 import { fleetSection } from "./bots";
 import { botTradeProof, botTrades } from "./bot_trades";
@@ -1024,7 +1025,7 @@ const VERIFIED_SOURCE = "ALPHA_PAPER";
 const MAX_PERFORMANCE_TRADES = 5000;
 
 async function getVerifiedPerformance(env: DashboardEnv) {
-  const [rows, excluded] = await Promise.all([
+  const [rows, excluded, lifetime] = await Promise.all([
     env.DB.prepare(
       `SELECT id, symbol, direction, strategy, realized_pnl, return_pct, closed_cost_basis, opened_at, closed_at, price_sources,
          gross_pnl, fees_usd, slippage_usd, cost_profile
@@ -1034,8 +1035,10 @@ async function getVerifiedPerformance(env: DashboardEnv) {
     env.DB.prepare(
       `SELECT COUNT(*) AS n FROM trades WHERE status = 'CLOSED' AND (source IS NULL OR source <> ?)`
     ).bind(VERIFIED_SOURCE).first<{ n: number }>(),
+    lifetimePerformance(env.DB),
   ]);
   return {
+    lifetime,
     verification: "Closed ALPHA PAPER ledger trades only: every fill at a recorded real reference price. Engine-internal simulations, backtests and trades from other sources are excluded.",
     trades: rows.results.map((r) => ({
       id: r.id, symbol: r.symbol, direction: r.direction, strategy: r.strategy,

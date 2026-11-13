@@ -46,7 +46,7 @@ const TF = { "ALPHA-01": "1", "ALPHA-02": "5", "ALPHA-03": "1", "ALPHA-04": "5" 
 const SYM = { "ALPHA-01": "SOLUSD", "ALPHA-02": "SOLUSD", "ALPHA-03": "BTCUSD", "ALPHA-04": "BTCUSD" };
 const order = (bot, action, o = {}) => fetch(`${base}/webhook/bot-order`, {
   method: "POST", headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ secret: WEBHOOK_SECRET, bot_id: bot, order_id: o.order_id ?? `ENG-${bot}-${SYM[bot]}-${TF[bot]}-T${++n}-${action}`, action, symbol: SYM[bot], timeframe: TF[bot], stop: 1, tp: 2, ...o }),
+  body: JSON.stringify({ secret: WEBHOOK_SECRET, bot_id: bot, order_id: o.order_id ?? `ENG-${bot}-${SYM[bot]}-${TF[bot]}-T${++n}-${action}`, action, symbol: SYM[bot], timeframe: TF[bot], stop: SYM[bot] === "SOLUSD" ? 79 : 99000, tp: 2, ...o }),
 }).then(async (r) => ({ http: r.status, ...(await r.json()) }));
 const act = (kind, body) => fetch(`${base}/api/paper/${kind}`, { method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie }, body: JSON.stringify({ request_id: secret(), ...body, passphrase: DASHBOARD_PASSPHRASE }) }).then((r) => r.json());
 const dash = (path) => fetch(`${base}${path}`, { headers: { Cookie: cookie } }).then((r) => r.json());
@@ -184,7 +184,7 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.equal(W("ALPHA-03").a, 0); assert.ok(W("ALPHA-03").s > 0);
     assert.equal(W("MAIN").a, mainBefore); assert.equal(W("ALPHA-04").a, otherBefore);
     assert.equal(sql(`SELECT entries_paused FROM bots WHERE bot_id = 'ALPHA-03'`)[0].entries_paused, 1);
-    assert.equal((await order("ALPHA-03", "OPEN_LONG", { qty: 0.00006 })).code, "BOT_ENTRIES_PAUSED");
+    assert.equal((await order("ALPHA-03", "OPEN_LONG", { qty: 0.00006 })).code, "BOT_SHORTFALL");
     const t = sql(`SELECT net_pnl_micro, gross_pnl_micro, entry_fee_micro, exit_fee_micro, shortfall_micro FROM bot_positions WHERE close_order_id IS NOT NULL ORDER BY id DESC LIMIT 1`)[0];
     assert.equal(t.net_pnl_micro, t.gross_pnl_micro - t.entry_fee_micro - t.exit_fee_micro, "the trade's full loss is reported");
     KRAKEN.set("XBTUSD", 100000);
@@ -217,6 +217,10 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.ok(Math.abs(b["ALPHA-01"].paper.gross_usd - b["ALPHA-01"].paper.fees_usd - b["ALPHA-01"].paper.net_usd) < 1e-9, "net = gross − fees");
     assert.deepEqual(f.data.groups.map((g) => g.group_id), ["BITCOIN", "ETHEREUM", "SOLANA"]);
     for (const x of f.data.bots) for (const m of x.mirror) assert.equal(m.hypothetical, true);
+    const lifetime = (await dash("/api/dashboard/performance")).data.lifetime;
+    const expected = sql(`SELECT (SELECT COUNT(*) FROM bot_positions WHERE status = 'CLOSED') + (SELECT COUNT(*) FROM trades WHERE source = 'ALPHA_PAPER' AND status = 'CLOSED' AND closed_at IS NOT NULL) n`)[0].n;
+    assert.equal(lifetime.closed_trades, expected, "lifetime API spans both funded ledgers");
+    assert.equal(lifetime.complete, true);
     // money is conserved: every wallet's balance = its funding + what it paid out/received in trading − fees
     for (const w of sql(`SELECT wallet, available_micro + reserved_micro AS book, net_funding_micro + realized_pnl_micro - fees_micro AS ident FROM portfolio_wallets`)) assert.equal(w.book, w.ident, w.wallet);
   });

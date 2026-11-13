@@ -509,7 +509,14 @@ export const unrealizedPnl = (p: Pick<PositionRow, "qty" | "avg_entry_price" | "
  */
 export async function refreshMarks(env: LedgerEnv): Promise<{ refreshed: boolean; positions: number }> {
   const open = (await env.DB.prepare(`SELECT * FROM paper_positions WHERE status = 'OPEN'`).all<PositionRow>()).results;
-  if (open.length === 0) return { refreshed: false, positions: 0 };
+  let botOpen: { id: number; symbol: string }[] = [];
+  try {
+    botOpen = (await env.DB.prepare(`SELECT id, symbol FROM bot_positions WHERE status = 'OPEN'`).all<{ id: number; symbol: string }>()).results;
+  } catch (e) {
+    if (!/no such table: bot_positions/i.test(String(e instanceof Error ? e.message : e))) throw e;
+  }
+  const positionCount = open.length + botOpen.length;
+  if (positionCount === 0) return { refreshed: false, positions: 0 };
 
   const interval = secondsEnv(env.PAPER_MARK_MIN_INTERVAL_SECONDS, 15);
   const nowMs = Date.now();
@@ -518,9 +525,9 @@ export async function refreshMarks(env: LedgerEnv): Promise<{ refreshed: boolean
     `INSERT INTO app_meta (key, value) VALUES ('paper_marks_refreshed_at', ?)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value WHERE app_meta.value <= ?`
   ).bind(now, new Date(nowMs - interval * 1000).toISOString()).run();
-  if (!claim.meta || claim.meta.changes === 0) return { refreshed: false, positions: open.length };
+  if (!claim.meta || claim.meta.changes === 0) return { refreshed: false, positions: positionCount };
 
-  const instruments = open.map((p) => getInstrument(p.symbol)).filter((i): i is Instrument => i !== null);
+  const instruments = [...new Set([...open, ...botOpen].map(p => p.symbol))].map(getInstrument).filter((i): i is Instrument => i !== null);
   const prices = await referencePrices(instruments, env);
   const statements: D1PreparedStatement[] = [];
 
@@ -568,8 +575,15 @@ export async function refreshMarks(env: LedgerEnv): Promise<{ refreshed: boolean
       }
     }
   }
-  await env.DB.batch(statements);
-  return { refreshed: true, positions: open.length };
+  for (const p of botOpen) {
+    const r = prices.get(p.symbol);
+    if (r && r.ok && r.price !== null) statements.push(env.DB.prepare(
+      `UPDATE bot_positions SET mark_price = ?, mark_at = ? WHERE id = ? AND status = 'OPEN'`
+    ).bind(r.price, r.at, p.id));
+    // Failure keeps the last recorded mark and timestamp; never invent a price or mark a failed refresh as fresh.
+  }
+  if (statements.length) await env.DB.batch(statements);
+  return { refreshed: true, positions: positionCount };
 }
 
 // ============================================================

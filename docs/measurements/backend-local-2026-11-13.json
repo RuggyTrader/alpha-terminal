@@ -1,0 +1,61 @@
+{
+ "tool": "worker/tools/measure-dashboard.mjs",
+ "environment": "LOCAL wrangler dev (miniflare D1), not production",
+ "seeded": {
+  "closed_bot_trades": 180,
+  "n_requests_per_endpoint": 20
+ },
+ "generated_at": "2026-11-13T23:43:57.330Z",
+ "endpoints": {
+  "/api/dashboard": {
+   "median_ms": 23.7,
+   "p95_ms": 140.6,
+   "worst_ms": 140.6,
+   "d1_statements": 26,
+   "d1_rows_read": 1019,
+   "d1_rows_written": 0,
+   "d1_ms": 1.1
+  },
+  "/api/dashboard/bots": {
+   "median_ms": 28.7,
+   "p95_ms": 37,
+   "worst_ms": 37,
+   "d1_statements": 33,
+   "d1_rows_read": 379,
+   "d1_rows_written": 0,
+   "d1_ms": 0.5
+  },
+  "/api/dashboard/events?limit=30": {
+   "median_ms": 9.1,
+   "p95_ms": 12.6,
+   "worst_ms": 12.6,
+   "d1_statements": 6.05,
+   "d1_rows_read": 1087.4,
+   "d1_rows_written": 0,
+   "d1_ms": 0.35
+  },
+  "/api/dashboard/bot-trades?bot=ALPHA-01": {
+   "median_ms": 13.4,
+   "p95_ms": 27.8,
+   "worst_ms": 27.8,
+   "d1_statements": 7,
+   "d1_rows_read": 460,
+   "d1_rows_written": 0,
+   "d1_ms": 1.25
+  },
+  "/api/dashboard/performance": {
+   "median_ms": 7.7,
+   "p95_ms": 10.4,
+   "worst_ms": 10.4,
+   "d1_statements": 5,
+   "d1_rows_read": 1,
+   "d1_rows_written": 0,
+   "d1_ms": 0.05
+  }
+ },
+ "limitations": [
+  "D1 rows_read, rows_written and d1_ms include all/run/batch result.meta only. first/raw statements have no metadata in the existing meter: these totals are lower bounds, not complete billing measurements.",
+  "Local wall-clock latency is not Cloudflare Worker CPU time or production latency. Concurrent local test activity can affect timings.",
+  "Twenty requests per endpoint; p95 is the maximum with this tool/size. Seed count is asserted from the local database."
+ ]
+}

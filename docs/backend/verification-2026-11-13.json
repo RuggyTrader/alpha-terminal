@@ -1,0 +1,45 @@
+{
+  "starting_commit": "22146648b662c4a13e58775fa9a19c043c8188c9",
+  "branch": "chatgpt/backend-engine",
+  "node": "v24.22.1",
+  "worker": {
+    "command": "cd worker && npm test",
+    "total": 299,
+    "passed": 299,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 534794.444601
+  },
+  "engine": {
+    "command": "cd engine && npm test",
+    "total": 258,
+    "passed": 251,
+    "failed": 0,
+    "skipped": 7,
+    "reason": "existing Windows-specific launcher/task checks"
+  },
+  "schema6": {
+    "passed": 11,
+    "failed": 0
+  },
+  "parity": {
+    "assertions": 4,
+    "sol_reference_trades": 43,
+    "btc_reference_trades": 30
+  },
+  "financial_regressions": {
+    "passed": 9,
+    "failed": 0
+  },
+  "worker_strict_typescript": "PASS",
+  "worker_dry_run_build": "PASS; no deployment",
+  "production_changes": false,
+  "untouched_final_research": "No statistically useful final test. New BTC hourly slice: 22 candles, zero completed trades.",
+  "evidence_sha256": {
+    "profile-hashes.json": "b4a8a93218db3e5d4296b4649e1b5b0f0ceea885dd8102742d3091c4ee4b9b2a",
+    "accounting.txt": "720fe656189233c1e7568fcc07d46944d6394e24d9761f6f1430e348bbb71f4f",
+    "worker-full.txt": "6f6bd39fd571fe94880ff8796887256e7bb25a5e359b60282e67a0e357a19b20",
+    "engine-full.txt": "a0a6bb7f042b874fedf9332fb68323882e3d199c9eb705589bc41bd0b9d9a8e8",
+    "schema6.json": "cfc491ab69855900ee552eed8d9f7c99e4ab02067030695160836245a8136e3f"
+  }
+}

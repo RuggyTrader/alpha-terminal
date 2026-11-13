@@ -148,6 +148,9 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   }
 
   // ---- OPEN_LONG / OPEN_SHORT
+  if (body.config_hash !== undefined && body.config_hash !== bot.inputs_hash) return reject(db, { ...ctx, code: "BOT_PROFILE_MISMATCH", message: `${botId}: supplied strategy hash does not match its registered profile` });
+  const debt = await db.prepare(`SELECT shortfall_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ shortfall_micro: number }>();
+  if (Number(debt?.shortfall_micro ?? 0) > 0) return reject(db, { ...ctx, code: "BOT_SHORTFALL", message: `${botId}: an unpaid shortfall blocks new entries; MAIN never covers it automatically` });
   if (bot.entries_paused) return reject(db, { ...ctx, code: "BOT_ENTRIES_PAUSED", message: `${botId}: new entries are paused; open positions are still managed` });
   if (open) return reject(db, { ...ctx, code: "POSITION_ALREADY_OPEN", message: `${botId} already holds ${open.side} ${open.qty} (${open.trade_id}); pyramiding is 0` });
   if (qtyIn === null || !(qtyIn > 0) || Number(qtyIn.toFixed(venue.decimals)) !== qtyIn) {
@@ -156,6 +159,14 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   if (qtyIn < venue.minQty) return reject(db, { ...ctx, code: "BELOW_MIN_QTY", message: `${qtyIn} is below the ${symbol} minimum of ${venue.minQty}` });
   const requestedQty = qtyIn;
   let qty = qtyIn;
+  const requestedRisk = typeof body.risk_usd === "number" && Number.isFinite(body.risk_usd) && body.risk_usd > 0 ? body.risk_usd : bot.risk_usd;
+  const riskCap = Math.min(bot.risk_usd, requestedRisk);
+  const stopDistance = typeof body.stop === "number" && Number.isFinite(body.stop) && body.stop > 0 ? Math.abs(px - body.stop) : null;
+  // Recheck planned stop risk at the actual fill reference, which can differ from the engine's sizing price.
+  // This is a quantity reduction only. Fees and a gap through the stop can still make realized losses larger.
+  if (stopDistance !== null && stopDistance > 0) qty = Math.min(qty, Math.floor(riskCap / stopDistance * 10 ** venue.decimals) / 10 ** venue.decimals);
+  const riskReduced = qty < requestedQty;
+  if (qty < venue.minQty) return reject(db, { ...ctx, code: "BELOW_MIN_QTY", message: `quantity within the approved $${riskCap} stop risk is below the ${symbol} minimum` });
   let notional = toMicro(qty * px);
   if (notional < toMicro(venue.minNotional)) return reject(db, { ...ctx, code: "BELOW_MIN_COST", message: `order value $${fromMicro(notional)} is below the $${venue.minNotional} minimum` });
   let fee = feeMicro(notional);
@@ -167,7 +178,8 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   if (maxTotal !== null && acct.reservedMicro + notional > toMicro(maxTotal)) return reject(db, { ...ctx, code: "MAX_TOTAL_EXPOSURE", message: `account exposure would exceed $${maxTotal}` });
   const w = await db.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number }>();
   if (!w) return reject(db, { ...ctx, code: "NO_WALLET", message: `${botId} has no wallet` });
-  let reducedNote: string | null = null;
+  let capitalReduced = false;
+  let reducedNote: string | null = riskReduced ? `quantity reduced from ${requestedQty} to ${qty} to keep planned stop risk within $${riskCap} at reference price ${px}` : null;
   if (notional + fee > Number(w.available_micro)) {
     // The engine sized at its planned price; the ledger fills at the live reference price. When the market has moved
     // beyond the sizing headroom, the quantity is REDUCED (never raised) to what this bot's own wallet can pay, floored
@@ -176,6 +188,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     const fitNotional = toMicro(fit * px);
     if (fit >= venue.minQty && fitNotional >= toMicro(venue.minNotional) && fitNotional + feeMicro(fitNotional) <= Number(w.available_micro)) {
       reducedNote = `quantity reduced from ${requestedQty} to ${fit} to fit ${botId}'s available $${fromMicro(Number(w.available_micro))} at the fill price ${px}`;
+      capitalReduced = true;
       qty = fit; notional = fitNotional; fee = feeMicro(fitNotional);
     }
   }
@@ -192,8 +205,16 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
                   VALUES (?, ?, ?, ?, ?, 'ACCEPTED', 'DRY_RUN_ACCEPTED', ?, ?, ?, ?)`).bind(orderId, botId, action, symbol, requestedQty, note, tradeId, now, payload.length <= 16000 ? payload : null),
       db.prepare(`INSERT INTO bot_positions (trade_id, bot_id, symbol, side, status, qty, entry_price, entry_fee_micro, collateral_micro, stop, tp, risk_usd,
                     profile, inputs_hash, fee_model, opened_at, mark_price, mark_at)
-                  VALUES (?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .bind(tradeId, botId, symbol, side, qty, px, fee, notional, num(body.stop), num(body.tp), num(body.risk_usd), bot.profile,
+                  VALUES (?, CASE WHEN
+                    (? IS NULL OR (SELECT COUNT(*) FROM bot_positions WHERE status = 'OPEN')
+                      + (SELECT COUNT(*) FROM paper_positions WHERE status = 'OPEN') < ?)
+                    AND (? IS NULL OR (SELECT COALESCE(SUM(collateral_micro), 0) FROM bot_positions WHERE status = 'OPEN')
+                      + (SELECT COALESCE(SUM(reserved_micro), 0) FROM paper_positions WHERE status = 'OPEN') + ? <= ?)
+                    AND EXISTS (SELECT 1 FROM bots b JOIN portfolio_wallets w ON w.wallet = b.wallet
+                      WHERE b.bot_id = ? AND b.entries_paused = 0 AND b.status = 'ACTIVE' AND w.shortfall_micro = 0)
+                    THEN ? ELSE NULL END, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .bind(tradeId, maxOpen, maxOpen, maxTotal, notional, maxTotal === null ? null : toMicro(maxTotal), botId, botId,
+          symbol, side, qty, px, fee, notional, num(body.stop), num(body.tp), riskCap, bot.profile,
           typeof body.config_hash === "string" ? body.config_hash.slice(0, 32) : bot.inputs_hash, FEE_MODEL.id, now, px, price.at),
       db.prepare(`INSERT INTO bot_fills (fill_id, bot_id, trade_id, kind, side, qty, price, notional_micro, fee_rate_pct, fee_micro, fee_currency, fee_model, price_source, price_at, filled_at)
                   VALUES (?, ?, ?, 'ENTRY', ?, ?, ?, ?, ?, ?, 'USD', ?, ?, ?, ?)`)
@@ -208,12 +229,12 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     ]);
   } catch (e) {
     const msg = String(e instanceof Error ? e.message : e);
-    if (/UNIQUE/i.test(msg)) return json({ ok: false, status: "error", code: "CONCURRENT_ORDER", message: "a concurrent order changed this bot; nothing was committed (retry)" }, 409);
+    if (/UNIQUE|NOT NULL/i.test(msg)) return json({ ok: false, status: "error", code: "CONCURRENT_ORDER", message: "the bot or account limits changed concurrently; nothing was committed (retry)" }, 409);
     if (/CHECK constraint failed/i.test(msg)) return reject(db, { ...ctx, code: "INSUFFICIENT_BOT_CAPITAL", message: `${botId}'s wallet cannot cover this order; nothing was committed` });
     return json({ ok: false, status: "error", code: "LEDGER_ERROR", message: `nothing was committed: ${msg.slice(0, 200)}` }, 500);
   }
   return json({ ok: true, status: "dry_run", code: "DRY_RUN_ACCEPTED", mode: "PAPER", broker_request_sent: false,
-    data: { trade_id: tradeId, bot_id: botId, side, qty, requested_qty: requestedQty, reduced_to_fit: reducedNote !== null, price: px, price_source: price.source, notional_usd: fromMicro(notional), fee_usd: fromMicro(fee), fee_model: FEE_MODEL.id } });
+    data: { trade_id: tradeId, bot_id: botId, side, qty, requested_qty: requestedQty, reduced_to_fit: capitalReduced, reduced_to_risk: riskReduced, risk_usd: riskCap, price: px, price_source: price.source, notional_usd: fromMicro(notional), fee_usd: fromMicro(fee), fee_model: FEE_MODEL.id } });
 }
 
 async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
@@ -226,8 +247,6 @@ async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
   const net = gross - p.entry_fee_micro - exitFee;
   const paid = entryNotional + gross - exitFee; // what flows back into the bot's available balance (may be < 0 for a short)
   const sweep = net > 0 ? net : 0;
-  const w = await db.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number }>();
-  const shortfallEstimate = Math.max(0, -(Number(w?.available_micro ?? 0) + paid));
   const settlement = `SWEEP:${p.trade_id}`;
   const stmts: D1PreparedStatement[] = [
     db.prepare(`INSERT INTO bot_orders (order_id, bot_id, action, symbol, requested_qty, status, code, message, trade_id, received_at, payload_json)
@@ -275,7 +294,9 @@ async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
                   VALUES (?, ?, ?, 'TRANSFER_IN', 'MAIN', ?, 0, ?, ?, ?)`).bind(`${settlement}:IN`, settlement, c.now, sweep, bot.wallet, p.trade_id, `net profit from ${c.botId} (${p.trade_id})`),
     );
   }
-  if (shortfallEstimate > 0) stmts.push(db.prepare(`UPDATE bots SET entries_paused = 1, updated_at = ? WHERE bot_id = ?`).bind(c.now, c.botId));
+  // Decide from the settled position in this transaction, never a stale pre-batch wallet read.
+  stmts.push(db.prepare(`UPDATE bots SET entries_paused = 1, updated_at = ? WHERE bot_id = ?
+    AND EXISTS (SELECT 1 FROM bot_positions WHERE id = ? AND shortfall_micro > 0)`).bind(c.now, c.botId, p.id));
   try {
     await db.batch(stmts);
   } catch (e) {
@@ -283,9 +304,10 @@ async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
     if (/UNIQUE|NOT NULL/i.test(msg)) return json({ ok: false, status: "error", code: "CONCURRENT_ORDER", message: "the position changed concurrently; nothing was committed (retry)" }, 409);
     return json({ ok: false, status: "error", code: "LEDGER_ERROR", message: `nothing was committed: ${msg.slice(0, 200)}` }, 500);
   }
+  const settled = await db.prepare(`SELECT shortfall_micro FROM bot_positions WHERE id = ?`).bind(p.id).first<{ shortfall_micro: number }>();
   return json({ ok: true, status: "dry_run", code: "DRY_RUN_ACCEPTED", mode: "PAPER", broker_request_sent: false,
     data: { trade_id: p.trade_id, bot_id: c.botId, side: p.side, qty: p.qty, entry_price: p.entry_price, exit_price: c.px, gross_usd: fromMicro(gross),
-      fees_usd: fromMicro(p.entry_fee_micro + exitFee), net_usd: fromMicro(net), swept_to_main_usd: fromMicro(sweep), shortfall_usd: fromMicro(shortfallEstimate) } });
+      fees_usd: fromMicro(p.entry_fee_micro + exitFee), net_usd: fromMicro(net), swept_to_main_usd: fromMicro(sweep), shortfall_usd: fromMicro(Number(settled?.shortfall_micro ?? 0)) } });
 }
 
 /** Read-only ledger view for one bot's engine (same shape as /webhook/engine-ledger). */
@@ -301,7 +323,7 @@ export async function handleBotLedger(request: Request, env: BotLedgerEnv): Prom
   const p = await env.DB.prepare(`SELECT * FROM bot_positions WHERE bot_id = ? AND status = 'OPEN'`).bind(botId).first<PositionRow>();
   const alerts: Record<string, { status: string; response_code: string; rejection_reason: string | null }> = {};
   if (ids.length) {
-    const rows = await env.DB.prepare(`SELECT order_id, status, code, message FROM bot_orders WHERE order_id IN (${ids.map(() => "?").join(",")})`).bind(...ids)
+    const rows = await env.DB.prepare(`SELECT order_id, status, code, message FROM bot_orders WHERE bot_id = ? AND order_id IN (${ids.map(() => "?").join(",")})`).bind(botId, ...ids)
       .all<{ order_id: string; status: string; code: string; message: string | null }>();
     for (const r of rows.results) alerts[r.order_id] = { status: r.status === "ACCEPTED" ? "dry_run" : "rejected", response_code: r.code, rejection_reason: r.status === "ACCEPTED" ? null : r.message };
   }
@@ -413,6 +435,10 @@ export async function handleBotOwnerAction(env: BotLedgerEnv, pathname: string, 
 
   if (pathname === "/api/paper/bot-entries") {
     if (typeof body.paused !== "boolean") return json({ ok: false, code: "INVALID_REQUEST", message: "paused must be true or false" }, 400);
+    if (!body.paused) {
+      const w = await db.prepare(`SELECT shortfall_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ shortfall_micro: number }>();
+      if (Number(w?.shortfall_micro ?? 0) > 0) return json({ ok: false, code: "BOT_SHORTFALL", message: "An unpaid shortfall blocks resuming entries; allocating cash does not discharge the liability." }, 422);
+    }
     await db.prepare(`UPDATE bots SET entries_paused = ?, updated_at = ? WHERE bot_id = ?`).bind(body.paused ? 1 : 0, now, botId).run();
     return json({ ok: true, bot_id: botId, entries_paused: body.paused, note: body.paused ? "new entries refused; open positions keep their exits" : "new entries allowed" });
   }
