@@ -53,18 +53,30 @@ export function storyOf(openPayloadJson: unknown, closePayloadJson: unknown, clo
   return { plan, exit, missing };
 }
 
-/** One query: payloads for many legacy alert ids. */
-export async function alertPayloads(db: D1Database, ids: (string | null | undefined)[]): Promise<Map<string, string>> {
-  const list = [...new Set(ids.filter((v): v is string => typeof v === "string" && v !== ""))].slice(0, 200);
+/** D1 allows 100 bound parameters per statement; lookups are split well below it. */
+export const D1_MAX_BOUND_PARAMS = 100;
+export const PAYLOAD_CHUNK = 90;
+
+/** Payloads for many ids: unique ids in chunks of PAYLOAD_CHUNK, sent as ONE batch (one round trip). Nothing is dropped. */
+async function payloadsByIds(db: D1Database, table: "alerts" | "bot_orders", col: "alert_id" | "order_id", ids: (string | null | undefined)[]): Promise<Map<string, string>> {
+  const list = [...new Set(ids.filter((v): v is string => typeof v === "string" && v !== ""))];
   if (!list.length) return new Map();
-  const rows = (await db.prepare(`SELECT alert_id, payload_json FROM alerts WHERE alert_id IN (${list.map(() => "?").join(",")})`).bind(...list).all<{ alert_id: string; payload_json: string | null }>()).results;
-  return new Map(rows.map((r) => [r.alert_id, r.payload_json ?? ""]));
+  const stmts = [];
+  for (let i = 0; i < list.length; i += PAYLOAD_CHUNK) {
+    const part = list.slice(i, i + PAYLOAD_CHUNK);
+    stmts.push(db.prepare(`SELECT ${col} AS id, payload_json FROM ${table} WHERE ${col} IN (${part.map(() => "?").join(",")})`).bind(...part));
+  }
+  const out = new Map<string, string>();
+  for (const r of await db.batch<{ id: string; payload_json: string | null }>(stmts)) for (const row of r.results) out.set(row.id, row.payload_json ?? "");
+  return out;
 }
 
-/** One query: payloads for many bot order ids. */
-export async function botOrderPayloads(db: D1Database, ids: (string | null | undefined)[]): Promise<Map<string, string>> {
-  const list = [...new Set(ids.filter((v): v is string => typeof v === "string" && v !== ""))].slice(0, 200);
-  if (!list.length) return new Map();
-  const rows = (await db.prepare(`SELECT order_id, payload_json FROM bot_orders WHERE order_id IN (${list.map(() => "?").join(",")})`).bind(...list).all<{ order_id: string; payload_json: string | null }>()).results;
-  return new Map(rows.map((r) => [r.order_id, r.payload_json ?? ""]));
+/** Payloads for many legacy alert ids (chunked; any number of ids). */
+export function alertPayloads(db: D1Database, ids: (string | null | undefined)[]): Promise<Map<string, string>> {
+  return payloadsByIds(db, "alerts", "alert_id", ids);
+}
+
+/** Payloads for many bot order ids (chunked; any number of ids). */
+export function botOrderPayloads(db: D1Database, ids: (string | null | undefined)[]): Promise<Map<string, string>> {
+  return payloadsByIds(db, "bot_orders", "order_id", ids);
 }
