@@ -25,6 +25,7 @@ import { BOT_ID_RE, type BotRow } from "./bots";
 import { getInstrument, referencePrices, type MarketDataConfig } from "./instruments";
 import { fromMicro, toMicro } from "./portfolio";
 import { secureEqual } from "./trade_core";
+import { checkStrategyFill, parseCandle, sizeAtLimit } from "./paper_fill";
 
 export const FEE_MODEL = Object.freeze({
   id: "ndax-flat-0.20-2026-11-12",
@@ -111,9 +112,10 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   const botId = typeof body.bot_id === "string" ? body.bot_id : "";
   const action = String(body.action ?? "");
   const symbol = typeof body.symbol === "string" ? body.symbol : "";
-  if (!ORDER_ID_RE.test(orderId) || !BOT_ID_RE.test(botId) || !["OPEN_LONG", "OPEN_SHORT", "CLOSE"].includes(action)) {
-    return json({ ok: false, code: "INVALID_ORDER", message: "order_id, bot_id (ALPHA-NN) and action OPEN_LONG|OPEN_SHORT|CLOSE are required" }, 400);
+  if (!ORDER_ID_RE.test(orderId) || !BOT_ID_RE.test(botId) || !["OPEN_LONG", "OPEN_SHORT", "CLOSE", "PLACE_LIMIT", "CANCEL_ORDER"].includes(action)) {
+    return json({ ok: false, code: "INVALID_ORDER", message: "order_id, bot_id (ALPHA-NN) and action OPEN_LONG|OPEN_SHORT|CLOSE|PLACE_LIMIT|CANCEL_ORDER are required" }, 400);
   }
+  if (action === "PLACE_LIMIT" || action === "CANCEL_ORDER") return handlePendingOrder(env, body, { orderId, botId, action, symbol });
   // Idempotency: the same order id is answered with its original outcome, never applied twice.
   const prior = await db.prepare(`SELECT status, code, message, trade_id FROM bot_orders WHERE order_id = ?`).bind(orderId).first<{ status: string; code: string; message: string | null; trade_id: string | null }>();
   if (prior) {
@@ -134,17 +136,43 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   if (!venue || !inst) return reject(db, { ...ctx, code: "INVALID_SYMBOL", message: `${symbol} has no verified venue rules` });
 
   const open = await db.prepare(`SELECT * FROM bot_positions WHERE bot_id = ? AND status = 'OPEN'`).bind(botId).first<PositionRow>();
-  const price = (await referencePrices([inst], env)).get(symbol);
-  if (!price || !price.ok || price.price === null) {
-    // Nothing is recorded: the engine retries (market data unavailable is not a decision about the order).
-    return json({ ok: false, status: "error", code: "MARKET_DATA_UNAVAILABLE", message: price && !price.ok ? price.message : "no reference price" }, 503);
+  const nowMs = Date.now();
+  const now = new Date(nowMs).toISOString();
+  const fillIn = body.fill && typeof body.fill === "object" ? body.fill as Record<string, unknown> : null;
+  const pendingId = typeof body.pending_order_id === "string" && body.pending_order_id ? body.pending_order_id : null;
+  let pending: PendingRow | null = null;
+  if (pendingId && action !== "CLOSE") {
+    pending = await db.prepare(`SELECT * FROM bot_pending_orders WHERE order_id = ? AND bot_id = ?`).bind(pendingId, botId).first<PendingRow>();
+    if (!pending) return reject(db, { ...ctx, code: "PENDING_ORDER_NOT_FOUND", message: `${botId} has no pending order ${pendingId}` });
+    if (pending.status !== "PENDING") return reject(db, { ...ctx, code: "PENDING_ORDER_NOT_ACTIVE", message: `pending order ${pendingId} is ${pending.status}; it cannot fill` });
+    if ((action === "OPEN_LONG") !== (pending.side === "LONG")) return reject(db, { ...ctx, code: "PENDING_ORDER_SIDE", message: `pending order ${pendingId} is ${pending.side}, not ${action}` });
+    if (!fillIn) return reject(db, { ...ctx, code: "FILL_EVIDENCE_INVALID", message: `a fill of pending limit ${pendingId} needs its completed candle` });
   }
-  const px = price.price;
-  const now = new Date().toISOString();
+  let px: number, priceSource: string, priceAt: string;
+  if (fillIn) {
+    // Strategy fill on a completed candle, validated (worker/src/paper_fill.ts): no future data, limits respected.
+    const isBuy = action === "OPEN_LONG" || (action === "CLOSE" && open?.side === "SHORT");
+    const exitKind = String(fillIn.kind ?? "");
+    const lim = pending ? pending.limit_price : action === "CLOSE" && open && exitKind === "TP" && open.tp ? open.tp : null;
+    const chk = checkStrategyFill({ side: isBuy ? "BUY" : "SELL", price: fillIn.price, candle: parseCandle(fillIn.candle, bot.timeframe_min), limit: lim, nowMs,
+      notBeforeMs: pending ? Date.parse(pending.placed_at) : null });
+    if (!chk.ok) return reject(db, { ...ctx, code: chk.code, message: chk.message });
+    px = chk.price; priceAt = chk.candleClose;
+    priceSource = pending ? "PAPER_LIMIT_FILL (strategy candle, simulated)" : `PAPER_STRATEGY_FILL ${exitKind || "fill"} (strategy candle, simulated)`;
+  } else {
+    const price = (await referencePrices([inst], env)).get(symbol);
+    if (!price || !price.ok || price.price === null) {
+      // Nothing is recorded: the engine retries (market data unavailable is not a decision about the order).
+      return json({ ok: false, status: "error", code: "MARKET_DATA_UNAVAILABLE", message: price && !price.ok ? price.message : "no reference price" }, 503);
+    }
+    px = price.price; priceSource = price.source; priceAt = price.at;
+  }
 
   if (action === "CLOSE") {
     if (!open) return reject(db, { ...ctx, code: "NO_POSITION", message: `${botId} has no open position to close` });
-    return closePosition(env, bot, open, { ...ctx, px, priceSource: price.source, priceAt: price.at, now });
+    const expect = typeof body.entry_order_id === "string" && body.entry_order_id ? body.entry_order_id : null;
+    if (expect && expect !== open.trade_id) return reject(db, { ...ctx, code: "POSITION_MISMATCH", message: `${botId}'s open position is ${open.trade_id}, not ${expect}; not closed` });
+    return closePosition(env, bot, open, { ...ctx, px, priceSource, priceAt, now });
   }
 
   // ---- OPEN_LONG / OPEN_SHORT
@@ -152,20 +180,21 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   const debt = await db.prepare(`SELECT shortfall_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ shortfall_micro: number }>();
   if (Number(debt?.shortfall_micro ?? 0) > 0) return reject(db, { ...ctx, code: "BOT_SHORTFALL", message: `${botId}: an unpaid shortfall blocks new entries; MAIN never covers it automatically` });
   if (bot.entries_paused) return reject(db, { ...ctx, code: "BOT_ENTRIES_PAUSED", message: `${botId}: new entries are paused; open positions are still managed` });
-  if (open) return reject(db, { ...ctx, code: "POSITION_ALREADY_OPEN", message: `${botId} already holds ${open.side} ${open.qty} (${open.trade_id}); pyramiding is 0` });
+  if (open) return reject(db, { ...ctx, code: "POSITION_ALREADY_OPEN", message: `${botId} already holds ${open.side} ${open.qty} (${open.trade_id}); pyramiding is 0. A reversal must close it first (CLOSE confirmed), then open.` });
   if (qtyIn === null || !(qtyIn > 0) || Number(qtyIn.toFixed(venue.decimals)) !== qtyIn) {
     return reject(db, { ...ctx, code: "INVALID_QTY", message: `quantity must be positive with at most ${venue.decimals} decimals` }, 400);
   }
   if (qtyIn < venue.minQty) return reject(db, { ...ctx, code: "BELOW_MIN_QTY", message: `${qtyIn} is below the ${symbol} minimum of ${venue.minQty}` });
   const requestedQty = qtyIn;
-  let qty = qtyIn;
+  let qty = pending?.accepted_qty ? Math.min(qtyIn, pending.accepted_qty) : qtyIn;
+  const pendingReduced = qty < requestedQty;
   const requestedRisk = typeof body.risk_usd === "number" && Number.isFinite(body.risk_usd) && body.risk_usd > 0 ? body.risk_usd : bot.risk_usd;
   const riskCap = Math.min(bot.risk_usd, requestedRisk);
   const stopDistance = typeof body.stop === "number" && Number.isFinite(body.stop) && body.stop > 0 ? Math.abs(px - body.stop) : null;
   // Recheck planned stop risk at the actual fill reference, which can differ from the engine's sizing price.
   // This is a quantity reduction only. Fees and a gap through the stop can still make realized losses larger.
   if (stopDistance !== null && stopDistance > 0) qty = Math.min(qty, Math.floor(riskCap / stopDistance * 10 ** venue.decimals) / 10 ** venue.decimals);
-  const riskReduced = qty < requestedQty;
+  const riskReduced = qty < requestedQty && !pendingReduced;
   if (qty < venue.minQty) return reject(db, { ...ctx, code: "BELOW_MIN_QTY", message: `quantity within the approved $${riskCap} stop risk is below the ${symbol} minimum` });
   let notional = toMicro(qty * px);
   if (notional < toMicro(venue.minNotional)) return reject(db, { ...ctx, code: "BELOW_MIN_COST", message: `order value $${fromMicro(notional)} is below the $${venue.minNotional} minimum` });
@@ -179,7 +208,8 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
   const w = await db.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number }>();
   if (!w) return reject(db, { ...ctx, code: "NO_WALLET", message: `${botId} has no wallet` });
   let capitalReduced = false;
-  let reducedNote: string | null = riskReduced ? `quantity reduced from ${requestedQty} to ${qty} to keep planned stop risk within $${riskCap} at reference price ${px}` : null;
+  let reducedNote: string | null = riskReduced ? `quantity reduced from ${requestedQty} to ${qty} to keep planned stop risk within $${riskCap} at fill price ${px}`
+    : pendingReduced ? `quantity ${qty} of ${requestedQty}: the pending order's accepted size (${pending?.message ?? "reduce-to-fit at the limit"})` : null;
   if (notional + fee > Number(w.available_micro)) {
     // The engine sized at its planned price; the ledger fills at the live reference price. When the market has moved
     // beyond the sizing headroom, the quantity is REDUCED (never raised) to what this bot's own wallet can pay, floored
@@ -212,13 +242,14 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
                       + (SELECT COALESCE(SUM(reserved_micro), 0) FROM paper_positions WHERE status = 'OPEN') + ? <= ?)
                     AND EXISTS (SELECT 1 FROM bots b JOIN portfolio_wallets w ON w.wallet = b.wallet
                       WHERE b.bot_id = ? AND b.entries_paused = 0 AND b.status = 'ACTIVE' AND w.shortfall_micro = 0)
+                    AND (? IS NULL OR EXISTS (SELECT 1 FROM bot_pending_orders WHERE order_id = ? AND status = 'PENDING'))
                     THEN ? ELSE NULL END, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .bind(tradeId, maxOpen, maxOpen, maxTotal, notional, maxTotal === null ? null : toMicro(maxTotal), botId, botId,
-          symbol, side, qty, px, fee, notional, num(body.stop), num(body.tp), riskCap, bot.profile,
-          typeof body.config_hash === "string" ? body.config_hash.slice(0, 32) : bot.inputs_hash, FEE_MODEL.id, now, px, price.at),
+        .bind(tradeId, maxOpen, maxOpen, maxTotal, notional, maxTotal === null ? null : toMicro(maxTotal), botId, pending?.order_id ?? null, pending?.order_id ?? null, botId,
+          symbol, side, qty, px, fee, notional, num(body.stop) ?? pending?.stop ?? null, num(body.tp) ?? pending?.tp ?? null, riskCap, bot.profile,
+          typeof body.config_hash === "string" ? body.config_hash.slice(0, 32) : bot.inputs_hash, FEE_MODEL.id, now, px, priceAt),
       db.prepare(`INSERT INTO bot_fills (fill_id, bot_id, trade_id, kind, side, qty, price, notional_micro, fee_rate_pct, fee_micro, fee_currency, fee_model, price_source, price_at, filled_at)
                   VALUES (?, ?, ?, 'ENTRY', ?, ?, ?, ?, ?, ?, 'USD', ?, ?, ?, ?)`)
-        .bind(orderId, botId, tradeId, side, qty, px, notional, FEE_MODEL.ratePct, fee, FEE_MODEL.id, price.source, price.at, now),
+        .bind(orderId, botId, tradeId, side, qty, px, notional, FEE_MODEL.ratePct, fee, FEE_MODEL.id, priceSource, priceAt, now),
       // CHECK (available_micro >= 0) fails the whole transaction if the bot's own wallet cannot pay.
       db.prepare(`UPDATE portfolio_wallets SET available_micro = available_micro - ?, reserved_micro = reserved_micro + ?, fees_micro = fees_micro + ?, updated_at = ? WHERE wallet = ?`)
         .bind(notional + fee, notional, fee, now, bot.wallet),
@@ -226,6 +257,8 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
                   VALUES (?, ?, ?, 'RESERVE', ?, ?, ?, ?, ?)`).bind(`RESERVE:${orderId}`, orderId, now, bot.wallet, -notional, notional, orderId, note),
       db.prepare(`INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, ref, note)
                   VALUES (?, ?, ?, 'FEE', ?, ?, 0, ?, ?)`).bind(`FEE:${orderId}`, orderId, now, bot.wallet, -fee, orderId, `${FEE_MODEL.provider}-equivalent ${FEE_MODEL.ratePct}% entry fee on $${fromMicro(notional)}`),
+      ...(pending ? [db.prepare(`UPDATE bot_pending_orders SET status = 'FILLED', code = 'FILLED', fill_trade_id = ?, message = ?, updated_at = ? WHERE order_id = ? AND status = 'PENDING'`)
+        .bind(tradeId, `filled ${qty} @ ${px} (${priceSource})`, now, pending.order_id)] : []),
     ]);
   } catch (e) {
     const msg = String(e instanceof Error ? e.message : e);
@@ -234,7 +267,8 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     return json({ ok: false, status: "error", code: "LEDGER_ERROR", message: `nothing was committed: ${msg.slice(0, 200)}` }, 500);
   }
   return json({ ok: true, status: "dry_run", code: "DRY_RUN_ACCEPTED", mode: "PAPER", broker_request_sent: false,
-    data: { trade_id: tradeId, bot_id: botId, side, qty, requested_qty: requestedQty, reduced_to_fit: capitalReduced, reduced_to_risk: riskReduced, risk_usd: riskCap, price: px, price_source: price.source, notional_usd: fromMicro(notional), fee_usd: fromMicro(fee), fee_model: FEE_MODEL.id } });
+    data: { trade_id: tradeId, bot_id: botId, side, qty, requested_qty: requestedQty, reduced_to_fit: capitalReduced, reduced_to_risk: riskReduced, risk_usd: riskCap, price: px, price_source: priceSource, pending_order_id: pending?.order_id ?? null,
+      actual_risk_usd: stopDistance !== null ? Number((qty * stopDistance).toFixed(6)) : null, notional_usd: fromMicro(notional), fee_usd: fromMicro(fee), fee_model: FEE_MODEL.id } });
 }
 
 async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
@@ -310,6 +344,107 @@ async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
       fees_usd: fromMicro(p.entry_fee_micro + exitFee), net_usd: fromMicro(net), swept_to_main_usd: fromMicro(sweep), shortfall_usd: fromMicro(Number(settled?.shortfall_micro ?? 0)) } });
 }
 
+interface PendingRow {
+  order_id: string; bot_id: string; symbol: string; timeframe_min: number; side: "LONG" | "SHORT"; limit_price: number; stop: number; tp: number;
+  requested_qty: number; accepted_qty: number | null; risk_usd: number | null; actual_risk_usd: number | null; collateral_usd: number | null; fee_estimate_usd: number | null;
+  placed_at: string; expires_at: string | null; status: string; code: string; message: string | null; fill_trade_id: string | null; received_at: string; updated_at: string;
+}
+
+const pendingJson = (r: PendingRow) => ({
+  order_id: r.order_id, bot_id: r.bot_id, symbol: r.symbol, timeframe_min: r.timeframe_min, side: r.side, limit: r.limit_price, stop: r.stop, tp: r.tp,
+  requested_qty: r.requested_qty, accepted_qty: r.accepted_qty, risk_usd: r.risk_usd, actual_risk_usd: r.actual_risk_usd, collateral_usd: r.collateral_usd,
+  fee_estimate_usd: r.fee_estimate_usd, placed_at: r.placed_at, expires_at: r.expires_at, status: r.status, code: r.code, message: r.message,
+  fill_trade_id: r.fill_trade_id, received_at: r.received_at, updated_at: r.updated_at,
+});
+
+/** Every pending-order record (newest first), for the dashboard. Empty before migration 0007. */
+export async function botPendingOrders(db: D1Database, o: { bot?: string | null; status?: string | null; limit?: number }) {
+  if (!(await botLedgerInstalled(db))) return { installed: false, orders: [] as ReturnType<typeof pendingJson>[] };
+  const where: string[] = [], args: unknown[] = [];
+  if (o.bot) { where.push("bot_id = ?"); args.push(o.bot); }
+  if (o.status) { where.push("status = ?"); args.push(o.status); }
+  const n = Math.max(1, Math.min(200, o.limit ?? 50));
+  const rows = await db.prepare(`SELECT * FROM bot_pending_orders ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY received_at DESC, order_id DESC LIMIT ?`)
+    .bind(...args, n).all<PendingRow>().catch(() => ({ results: [] as PendingRow[] }));
+  return { installed: true, orders: rows.results.map(pendingJson) };
+}
+
+/**
+ * Durable PAPER pending limit orders. PLACE_LIMIT records the strategy's order (limit, stop, target, requested and
+ * accepted quantity after reduce-to-fit at the limit, expiry) and replaces the bot's previous pending order.
+ * CANCEL_ORDER cancels or expires it. Both are idempotent by order id. Nothing here moves money.
+ */
+async function handlePendingOrder(env: BotLedgerEnv, body: Record<string, unknown>, c: { orderId: string; botId: string; action: string; symbol: string }): Promise<Response> {
+  const db = env.DB;
+  const now = new Date().toISOString();
+  if (c.action === "CANCEL_ORDER") {
+    const target = typeof body.target_order_id === "string" ? body.target_order_id : "";
+    const row = target ? await db.prepare(`SELECT * FROM bot_pending_orders WHERE order_id = ? AND bot_id = ?`).bind(target, c.botId).first<PendingRow>() : null;
+    if (!row) return json({ ok: false, status: "rejected", code: "PENDING_ORDER_NOT_FOUND", message: `${c.botId} has no pending order ${target}`, mode: "PAPER" }, 422);
+    if (row.status !== "PENDING") return json({ ok: true, status: "duplicate", code: "ORDER_ALREADY_FINAL", data: pendingJson(row) });
+    const expired = body.reason_code === "EXPIRED";
+    const msg = typeof body.reason === "string" ? body.reason.slice(0, 300) : expired ? "the strategy's setup expired" : "the strategy cancelled the order";
+    await db.prepare(`UPDATE bot_pending_orders SET status = ?, code = ?, message = ?, updated_at = ? WHERE order_id = ? AND status = 'PENDING'`)
+      .bind(expired ? "EXPIRED" : "CANCELLED", expired ? "ORDER_EXPIRED" : "ORDER_CANCELLED", msg, now, target).run();
+    const after = await db.prepare(`SELECT * FROM bot_pending_orders WHERE order_id = ?`).bind(target).first<PendingRow>();
+    return json({ ok: true, status: "dry_run", code: expired ? "ORDER_EXPIRED" : "ORDER_CANCELLED", mode: "PAPER", broker_request_sent: false, data: after ? pendingJson(after) : null });
+  }
+  // ---- PLACE_LIMIT
+  const prior = await db.prepare(`SELECT * FROM bot_pending_orders WHERE order_id = ?`).bind(c.orderId).first<PendingRow>();
+  if (prior) return json({ ok: true, status: "duplicate", code: "DUPLICATE", data: { original_status: prior.status === "REJECTED" ? "rejected" : "dry_run", original_code: prior.code, ...pendingJson(prior) } });
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null);
+  const side = body.side === "LONG" || body.side === "SHORT" ? body.side : null;
+  const limitPx = num(body.limit), stop = num(body.stop), tp = num(body.tp), qty = num(body.qty);
+  const placedAt = typeof body.placed_at === "string" && Number.isFinite(Date.parse(body.placed_at)) ? new Date(Date.parse(body.placed_at)).toISOString() : now;
+  const expiresAt = typeof body.expires_at === "string" && Number.isFinite(Date.parse(body.expires_at)) ? new Date(Date.parse(body.expires_at)).toISOString() : null;
+  if (!side || !limitPx || !stop || !tp || !qty) return json({ ok: false, code: "INVALID_ORDER", message: "PLACE_LIMIT needs side LONG|SHORT, limit, stop, tp and qty" }, 400);
+  const bot = await db.prepare(`SELECT * FROM bots WHERE bot_id = ?`).bind(c.botId).first<BotRow>();
+  if (!bot) return json({ ok: false, code: "UNKNOWN_BOT" }, 400);
+  const tf = Number(String(body.timeframe ?? "").replace(/m$/i, ""));
+  const record = async (status: "PENDING" | "REJECTED", code: string, message: string | null, sized: { qty: number; riskUsd: number; collateralUsd: number; feeUsd: number } | null) => {
+    const payload = JSON.stringify({ ...body, secret: undefined });
+    const stmts = [
+      ...(status === "PENDING" ? [db.prepare(`UPDATE bot_pending_orders SET status = 'REPLACED', code = 'ORDER_REPLACED', message = ?, updated_at = ? WHERE bot_id = ? AND status = 'PENDING'`)
+        .bind(`replaced by ${c.orderId}`, now, c.botId)] : []),
+      db.prepare(`INSERT INTO bot_pending_orders (order_id, bot_id, symbol, timeframe_min, side, limit_price, stop, tp, requested_qty, accepted_qty, risk_usd, actual_risk_usd,
+          collateral_usd, fee_estimate_usd, placed_at, expires_at, status, code, message, received_at, updated_at, payload_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .bind(c.orderId, c.botId, c.symbol || bot.symbol, Number.isFinite(tf) && tf > 0 ? tf : bot.timeframe_min, side, limitPx, stop, tp, qty, sized?.qty ?? null, bot.risk_usd,
+          sized?.riskUsd ?? null, sized?.collateralUsd ?? null, sized?.feeUsd ?? null, placedAt, expiresAt, status, code, message, now, now, payload.length <= 16000 ? payload : null),
+    ];
+    try { await db.batch(stmts); } catch (e) {
+      const msg = String(e instanceof Error ? e.message : e);
+      if (/UNIQUE/i.test(msg)) return json({ ok: false, status: "error", code: "CONCURRENT_ORDER", message: "another order for this bot was recorded concurrently; nothing was committed (retry)" }, 409);
+      return json({ ok: false, status: "error", code: "LEDGER_ERROR", message: `nothing was committed: ${msg.slice(0, 200)}` }, 500);
+    }
+    const row = await db.prepare(`SELECT * FROM bot_pending_orders WHERE order_id = ?`).bind(c.orderId).first<PendingRow>();
+    return status === "PENDING"
+      ? json({ ok: true, status: "dry_run", code: "ORDER_PENDING", mode: "PAPER", broker_request_sent: false, data: row ? pendingJson(row) : null })
+      : json({ ok: false, status: "rejected", code, message, order_id: c.orderId, mode: "PAPER", broker_request_sent: false, data: row ? pendingJson(row) : null }, 422);
+  };
+  if (bot.status !== "ACTIVE") return record("REJECTED", "BOT_NOT_ACTIVE", `${c.botId} is ${bot.status}; only ACTIVE bots trade`, null);
+  if (bot.ledger_api !== "bot") return record("REJECTED", "BOT_LEDGER_PATH", `${c.botId} trades through the legacy ledger path`, null);
+  if (c.symbol !== bot.symbol) return record("REJECTED", "BOT_MARKET_MISMATCH", `${c.botId} trades ${bot.symbol}, not ${c.symbol}`, null);
+  if (tf !== bot.timeframe_min) return record("REJECTED", "BOT_TIMEFRAME_MISMATCH", `${c.botId} trades ${bot.timeframe_min}m, not ${String(body.timeframe)}`, null);
+  if (body.config_hash !== undefined && body.config_hash !== bot.inputs_hash) return record("REJECTED", "BOT_PROFILE_MISMATCH", `${c.botId}: supplied strategy hash does not match its registered profile`, null);
+  if (side === "LONG" ? !(tp > limitPx && limitPx > stop) : !(tp < limitPx && limitPx < stop)) {
+    return record("REJECTED", "INVALID_LEVELS", `${side} needs ${side === "LONG" ? "target > limit > stop" : "target < limit < stop"} (limit ${limitPx}, stop ${stop}, target ${tp})`, null);
+  }
+  if (bot.entries_paused) return record("REJECTED", "BOT_ENTRIES_PAUSED", `${c.botId}: new entries are paused`, null);
+  const w = await db.prepare(`SELECT available_micro, shortfall_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number; shortfall_micro: number }>();
+  if (!w) return record("REJECTED", "NO_WALLET", `${c.botId} has no wallet`, null);
+  if (Number(w.shortfall_micro) > 0) return record("REJECTED", "BOT_SHORTFALL", `${c.botId}: an unpaid shortfall blocks new entries`, null);
+  const open = await db.prepare(`SELECT trade_id, side FROM bot_positions WHERE bot_id = ? AND status = 'OPEN'`).bind(c.botId).first<{ trade_id: string; side: string }>();
+  if (open) return record("REJECTED", "POSITION_ALREADY_OPEN", `${c.botId} already holds ${open.side} (${open.trade_id}); pyramiding is 0`, null);
+  const venue = VENUE[bot.symbol];
+  if (!venue) return record("REJECTED", "INVALID_SYMBOL", `${bot.symbol} has no verified venue rules`, null);
+  const riskIn = num(body.risk_usd);
+  const sized = sizeAtLimit({ side, limit: limitPx, stop, requestedQty: qty, riskUsd: Math.min(bot.risk_usd, riskIn ?? bot.risk_usd), availableUsd: fromMicro(w.available_micro),
+    feeRatePct: FEE_MODEL.ratePct, minQty: venue.minQty, minNotional: venue.minNotional, decimals: venue.decimals });
+  if (!sized.ok) return record("REJECTED", sized.code, `${c.botId}: ${sized.message}`, null);
+  return record("PENDING", "ORDER_PENDING", sized.reduced ? `accepted ${sized.qty} of ${qty}: ${sized.reduced}` : null, sized);
+}
+
 /** Read-only ledger view for one bot's engine (same shape as /webhook/engine-ledger). */
 export async function handleBotLedger(request: Request, env: BotLedgerEnv): Promise<Response> {
   const body = await readJson(request);
@@ -329,8 +464,11 @@ export async function handleBotLedger(request: Request, env: BotLedgerEnv): Prom
   }
   const w = await env.DB.prepare(`SELECT available_micro, reserved_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number; reserved_micro: number }>();
   const acct = await accountExposure(env.DB);
+  const po = await env.DB.prepare(`SELECT order_id, side, limit_price, accepted_qty, placed_at, expires_at FROM bot_pending_orders WHERE bot_id = ? AND status = 'PENDING'`).bind(botId)
+    .first<{ order_id: string; side: string; limit_price: number; accepted_qty: number | null; placed_at: string; expires_at: string | null }>();
   return json({
     ok: true, mode: "PAPER", read_only: true, symbol: bot.symbol, bot_id: botId, alerts,
+    pending_order: po ? { order_id: po.order_id, side: po.side, limit: po.limit_price, accepted_qty: po.accepted_qty, placed_at: po.placed_at, expires_at: po.expires_at } : null,
     position: p ? { symbol: p.symbol, side: p.side.toLowerCase(), status: p.status, qty: p.qty, avg_entry_price: p.entry_price, open_alert_id: p.trade_id, opened_at: p.opened_at } : null,
     balance: w ? {
       wallet: bot.wallet, available_usd: fromMicro(w.available_micro), reserved_usd: fromMicro(w.reserved_micro), bot_id: botId, bot_available_usd: fromMicro(w.available_micro),

@@ -157,6 +157,39 @@ UPDATE paper_positions SET bot_id = 'ALPHA-02' WHERE open_alert_id LIKE 'ENG-SOL
 UPDATE paper_fills SET bot_id = 'ALPHA-02' WHERE position_fk IN (SELECT id FROM paper_positions WHERE bot_id = 'ALPHA-02');
 UPDATE trades SET bot_id = 'ALPHA-02' WHERE open_alert_id LIKE 'ENG-SOLUSD-5-%';
 UPDATE mirror_accounts SET bot_id = 'ALPHA-02' WHERE account_id LIKE 'MIRROR-SOLUSD-5m-%';
+-- Durable PAPER pending limit orders (one authoritative record per strategy order; survives engine restarts).
+-- Lifecycle: PENDING -> FILLED (fill_trade_id = the position) | CANCELLED | EXPIRED | REPLACED | REJECTED.
+-- No capital is reserved while PENDING (each bot has one order at a time and its own wallet); affordability is
+-- checked at placement (accepted_qty, reduce-to-fit) and again at the fill.
+CREATE TABLE IF NOT EXISTS bot_pending_orders (
+  order_id TEXT PRIMARY KEY,                         -- the engine's id (ENG-…-PLACE_LONG / PLACE_SHORT)
+  bot_id TEXT NOT NULL REFERENCES bots(bot_id),
+  symbol TEXT NOT NULL,
+  timeframe_min INTEGER NOT NULL,
+  side TEXT NOT NULL CHECK (side IN ('LONG', 'SHORT')),
+  order_type TEXT NOT NULL DEFAULT 'LIMIT' CHECK (order_type IN ('LIMIT')),
+  limit_price REAL NOT NULL CHECK (limit_price > 0),
+  stop REAL NOT NULL CHECK (stop > 0),
+  tp REAL NOT NULL CHECK (tp > 0),
+  requested_qty REAL NOT NULL CHECK (requested_qty > 0),
+  accepted_qty REAL,                                 -- after risk / capital reduce-to-fit at the limit price
+  risk_usd REAL,                                     -- configured dollar risk
+  actual_risk_usd REAL,                              -- accepted_qty x |limit - stop|
+  collateral_usd REAL,                               -- accepted_qty x limit (LONG cost or SHORT collateral)
+  fee_estimate_usd REAL,
+  placed_at TEXT NOT NULL,                           -- the strategy candle close that placed it
+  expires_at TEXT,                                   -- the strategy's setup expiry (last candle close it can fill)
+  status TEXT NOT NULL CHECK (status IN ('PENDING', 'FILLED', 'CANCELLED', 'EXPIRED', 'REPLACED', 'REJECTED')),
+  code TEXT NOT NULL,
+  message TEXT,
+  fill_trade_id TEXT UNIQUE,
+  received_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  payload_json TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_bot_pending_one ON bot_pending_orders(bot_id) WHERE status = 'PENDING';
+CREATE INDEX IF NOT EXISTS idx_bot_pending_bot ON bot_pending_orders(bot_id, received_at);
+
 CREATE UNIQUE INDEX IF NOT EXISTS ux_paper_positions_open_owner ON paper_positions(bot_id, symbol) WHERE status = 'OPEN';
 CREATE INDEX IF NOT EXISTS idx_alerts_bot ON alerts(bot_id);
 

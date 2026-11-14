@@ -1,6 +1,6 @@
 import { handleCandles } from "./candles";
 import { lifetimePerformance } from "./performance";
-import { allocationPreview } from "./bot_ledger";
+import { allocationPreview, botPendingOrders } from "./bot_ledger";
 import { fleetSection } from "./bots";
 import { botTradeProof, botTrades } from "./bot_trades";
 import { alertPayloads, storyOf } from "./trade_story";
@@ -1302,6 +1302,10 @@ export async function handleDashboardApi(
     // Bot trades for the Trades / Performance filters (?bot=, ?signal=) and one bot trade's proof. Read-only.
     if (pathname === "/api/dashboard/bot-trades") {
       return json({ ok: true, data: await botTrades(env.DB, { bot: searchParams.get("bot"), signal: searchParams.get("signal"), limit: Number(searchParams.get("limit")) || 50 }) });
+    }
+    // Durable PAPER pending limit orders (bot_pending_orders): PENDING, FILLED, CANCELLED, EXPIRED, REPLACED, REJECTED.
+    if (pathname === "/api/dashboard/bot-orders") {
+      return json({ ok: true, data: await botPendingOrders(env.DB, { bot: searchParams.get("bot"), status: searchParams.get("status"), limit: Number(searchParams.get("limit")) || 50 }) });
     }
     if (pathname === "/api/dashboard/bot-trade") {
       const proof = await botTradeProof(env.DB, String(searchParams.get("id") ?? ""));

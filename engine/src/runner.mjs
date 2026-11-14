@@ -456,11 +456,14 @@ export class EngineRunner {
       S.plan ??= newPlanState();
       updatePlan(S.plan, events, { at: iso(closeMs), profile: this.cfg.profile ?? "default", inputsHash: inputsHash(this.cfg), inputs: S.strategy.inputs });
       const late = nowMs - closeMs > this.cfg.lateBars * this.step;
+      const botPath = this.cfg.ledgerApi === "bot";
+      const candle = { t: iso(k.t), o: k.o, h: k.h, l: k.l, c: k.c };
+      // The pending limit order that this candle's entry fill (if any) belongs to: it was placed at an EARLIER close.
+      const fillingOrder = botPath ? S.liveOrder ?? null : null;
       for (const e of events) {
         if (e.type !== "ENTRY_FILL" && e.type !== "EXIT_FILL") continue;
         const isExit = e.type === "EXIT_FILL";
         // Fleet bots (ledger path "bot"): explicit OPEN_LONG / OPEN_SHORT / CLOSE (the bot's own position only).
-        const botPath = this.cfg.ledgerApi === "bot";
         const action = isExit ? "CLOSE" : botPath ? (e.side === 1 ? "OPEN_LONG" : "OPEN_SHORT") : e.side === 1 ? "BUY" : "SELL";
         const id = `${this.idPrefix}-${iso(k.t)}-${action}`;
         const entryId = isExit ? S.openEntryId : null;
@@ -470,6 +473,10 @@ export class EngineRunner {
           id, action, kind: isExit ? "EXIT" : "ENTRY", entryId, qty: isExit ? null : fmtQty(e.qty), enginePrice: e.price,
           exitKind: e.kind ?? null, barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs),
           ...(botPath && !isExit ? { stop: S.strategy.curStop ?? S.strategy.planSL ?? null, tp: S.strategy.planTP2 ?? null, riskUSD: S.strategy.sizing?.riskUSD ?? null } : {}),
+          // Bot path: the completed candle and the strategy's fill price, validated by the ledger (no future data,
+          // limits respected); an entry names the durable pending order it fills.
+          ...(botPath ? { fill: { candle, price: e.price, kind: isExit ? e.kind ?? null : "ENTRY" } } : {}),
+          ...(botPath && !isExit && fillingOrder && fillingOrder.side === (e.side === 1 ? "LONG" : "SHORT") ? { pendingOrderId: fillingOrder.id } : {}),
           // Why: the entry carries its recorded plan; the exit carries the strategy's own exit reason and stop path.
           ...(isExit ? { exit: exitRecord(S.plan, e) } : { plan: S.plan.active ? JSON.parse(JSON.stringify(S.plan.active)) : null }),
           // Exits are never dropped for lateness here: whether they go out depends on their entry (see flush).
@@ -484,7 +491,9 @@ export class EngineRunner {
           this.audit({ type: "signal", id: added.id, action: added.action, status: added.status, code: added.code, reason: added.reason, attempts: 0, delayed_min: null });
           this.dropRefusedEntry(added);
         }
+        if (!isExit && botPath) S.liveOrder = null; // the pending order became the position
       }
+      if (botPath) this.trackPendingOrder(events, k, { closeMs, nowMs, late, warmup });
     }
     if (this.cfg.mirror) this.stepMirror(all, nowMs);
     if (warmup) S.warmedUpAt = iso(nowMs);
@@ -530,7 +539,7 @@ export class EngineRunner {
     // balance: the strategy's ALPHA PAPER balance (Workers from the small-account release on; older ones omit it).
     const b = body.balance && typeof body.balance === "object" ? body.balance : null;
     return {
-      position: body.position ?? null, alerts: body.alerts ?? {},
+      position: body.position ?? null, alerts: body.alerts ?? {}, pendingOrder: body.pending_order ?? null,
       balance: b && typeof b.available_usd === "number" ? {
         available_usd: b.available_usd, reserved_usd: Number(b.reserved_usd ?? 0), active: b.active === true,
         max_order_notional_usd: typeof b.max_order_notional_usd === "number" ? b.max_order_notional_usd : null,
@@ -546,6 +555,58 @@ export class EngineRunner {
     this.audit({ type: "signal", id: item.id, action: item.action, status, code, reason: item.reason, attempts: item.attempts, delayed_min: item.delayedMin ?? null });
     if (item.kind === "ENTRY" && (status === "rejected" || status === "skipped")) this.dropRefusedEntry(item);
     this.save();
+  }
+
+  /**
+   * Bot path: mirrors the strategy's working limit entry order (the broker emulator's live order) as a DURABLE PAPER
+   * pending order in the ledger. A new or changed order -> PLACE_LIMIT (the ledger replaces the previous one);
+   * an order that disappears without a fill -> CANCEL_ORDER (EXPIRED when the setup aged out). Ids are
+   * deterministic, so re-sends after a restart are idempotent. Market-entry profiles have no pending order.
+   */
+  trackPendingOrder(events, k, { closeMs, nowMs, late, warmup }) {
+    const S = this.state;
+    const br = S.strategy.broker;
+    const live = br.entry && br.entry.limit !== null && !br.pos ? br.entry : null;
+    const prev = S.liveOrder ?? null;
+    const sideOf = (n) => (n === 1 ? "LONG" : "SHORT");
+    const status = warmup ? "historical" : "pending";
+    if (prev && (!live || live.limit !== prev.limit || sideOf(live.side) !== prev.side || live.qty !== prev.qtyRaw)) {
+      if (!live) {
+        const sc = events.find((e) => e.type === "SETUP_CANCELLED");
+        const sk = events.find((e) => e.type === "ORDER_SKIPPED");
+        const expired = sc?.reason === "expired";
+        const reason = sc ? (expired ? "the setup expired (strategy maxAge)" : "the swing origin was broken; setup cancelled")
+          : sk ? `the strategy skipped the order: ${sk.code}${sk.reason ? ` (${sk.reason})` : ""}`
+          : "the strategy withdrew the order (entry conditions no longer met, or outside trading hours)";
+        const id = `${this.idPrefix}-${iso(k.t)}-CANCEL`;
+        if (!S.outbox.some((x) => x.id === id)) {
+          S.outbox.push({ id, action: "CANCEL_ORDER", kind: "ORDER", targetId: prev.id, reasonCode: expired ? "EXPIRED" : "CANCELLED", cancelReason: reason,
+            barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs), status, code: null, reason: warmup ? "warm-up history" : null, attempts: 0 });
+        }
+        this.audit({ type: "pending_order", event: expired ? "EXPIRED" : "CANCELLED", id: prev.id, reason });
+      }
+      S.liveOrder = null;
+    }
+    if (live && !S.liveOrder) {
+      const side = sideOf(live.side);
+      const id = `${this.idPrefix}-${iso(k.t)}-PLACE_${side}`;
+      const I = S.strategy.inputs ?? {};
+      const lastBar = Number.isFinite(S.strategy.legEndBar) && Number.isFinite(I.maxAge) ? S.strategy.legEndBar + I.maxAge + 1 : null;
+      const expiresAt = lastBar !== null ? iso(k.t + (lastBar - S.strategy.bar + 1) * this.step) : null;
+      S.liveOrder = { id, side, limit: live.limit, qtyRaw: live.qty };
+      if (!S.outbox.some((x) => x.id === id)) {
+        S.outbox.push({
+          id, action: "PLACE_LIMIT", kind: "ORDER", side, qty: fmtQty(live.qty), limit: live.limit, stop: br.exit?.stop ?? S.strategy.planSL ?? null, tp: br.exit?.limit ?? S.strategy.planTP2 ?? null,
+          riskUSD: S.strategy.sizing?.riskUSD ?? null, expiresAt, plan: S.plan?.active ? JSON.parse(JSON.stringify(S.plan.active)) : null,
+          barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs),
+          status: warmup ? "historical" : late ? "skipped" : "pending",
+          code: !warmup && late ? "SIGNAL_EXPIRED" : null,
+          reason: warmup ? "warm-up history" : late ? `placed ${Math.round((nowMs - closeMs) / 60_000)} min ago; not sent so it cannot fill at a later price` : null,
+          attempts: 0,
+        });
+        this.audit({ type: "pending_order", event: "PLACED", id, side, limit: live.limit, qty: fmtQty(live.qty), expires_at: expiresAt });
+      }
+    }
   }
 
   /**
@@ -578,7 +639,29 @@ export class EngineRunner {
       if (item.status !== "pending") continue;
       const ageMs = this.now() - Date.parse(item.barClose);
 
-      if (item.kind === "EXIT") {
+      if (item.kind === "ORDER") {
+        if (item.action === "CANCEL_ORDER") {
+          const target = box.find((x) => x.id === item.targetId);
+          if (target && target.status === "pending") return; // keep order
+          if (!target || target.status !== "accepted") {
+            this.final(item, "skipped", "NO_PENDING_ORDER", `the order ${item.targetId} is not pending in the ledger${target ? ` (${target.status}${target.code ? ` ${target.code}` : ""})` : ""}`);
+            continue;
+          }
+        } else if (ageMs > maxAgeMs) {
+          this.final(item, "skipped", "SIGNAL_EXPIRED", `not delivered within ${this.cfg.lateBars * this.cfg.intervalMin} min of the candle close; not placed so it cannot fill later`);
+          continue;
+        }
+      } else if (item.kind === "ENTRY" && item.pendingOrderId) {
+        const po = box.find((x) => x.id === item.pendingOrderId);
+        if (po && po.status === "pending") return; // keep order
+        if (po && po.status !== "accepted") {
+          this.final(item, "skipped", "ORDER_NOT_PENDING", `its pending order ${po.id} was ${po.status}${po.code ? ` (${po.code})` : ""}; nothing to fill in the ledger`);
+          continue;
+        }
+      }
+      if (item.kind === "ORDER") {
+        // no further checks
+      } else if (item.kind === "EXIT") {
         const entry = item.entryId ? box.find((x) => x.id === item.entryId) : null;
         if (!entry || entry.status !== "accepted") {
           if (entry && entry.status === "pending") return; // still being delivered; keep order
@@ -637,6 +720,11 @@ export class EngineRunner {
             liquidity: this.liquidityFor(item), stop: item.stop ?? null, tp: item.tp ?? null, risk_usd: item.riskUSD ?? null,
             profile: this.cfg.profile, config_hash: inputsHash(this.cfg), entry_order_id: item.entryId ?? null,
             ...(item.plan ? { plan: item.plan } : {}), ...(item.exit ? { exit: item.exit } : {}),
+            ...(item.fill ? { fill: item.fill } : {}), ...(item.pendingOrderId ? { pending_order_id: item.pendingOrderId } : {}),
+            ...(item.kind === "ORDER" ? {
+              side: item.side ?? null, limit: item.limit ?? null, placed_at: item.barClose, expires_at: item.expiresAt ?? null,
+              target_order_id: item.targetId ?? null, reason_code: item.reasonCode ?? null, reason: item.cancelReason ?? null,
+            } : {}),
           } : {
             secret: this.cfg.webhookSecret, id: item.id, symbol: this.cfg.symbol, timeframe: String(this.cfg.intervalMin),
             action: item.action, strategy: STRATEGY_NAME, ...(item.qty === null ? {} : { qty: Number(item.qty) }), timestamp: item.barClose,
@@ -654,7 +742,10 @@ export class EngineRunner {
       item.lastAttemptAt = iso(this.now());
       const code = body.code ?? `HTTP_${status}`;
       const delayed = item.delayedMin ? `delivered ${item.delayedMin} min after the engine's exit; the ledger closed at the live price` : null;
-      if (status === 200 && code === "DRY_RUN_ACCEPTED") {
+      if (status === 200 && item.kind === "ORDER" && ["ORDER_PENDING", "ORDER_CANCELLED", "ORDER_EXPIRED", "ORDER_ALREADY_FINAL"].includes(code)) {
+        if (Number.isFinite(Number(body.data?.accepted_qty))) item.acceptedQty = Number(body.data.accepted_qty);
+        this.final(item, "accepted", code, body.data?.message ?? null);
+      } else if (status === 200 && code === "DRY_RUN_ACCEPTED") {
         // Bot ledger: the quantity actually filled (it may be reduced to fit the bot's wallet at the live price).
         if (this.cfg.ledgerApi === "bot" && Number.isFinite(Number(body.data?.qty)) && item.qty !== null && Number(body.data.qty) !== Number(item.qty)) {
           item.filledQty = Number(body.data.qty);
@@ -663,7 +754,8 @@ export class EngineRunner {
       } else if (status === 200 && code === "DUPLICATE") {
         // Already processed earlier (e.g. crash before saving): adopt that earlier result.
         const orig = body.data ?? {};
-        if (orig.original_code === "DRY_RUN_ACCEPTED") this.final(item, "accepted", "DRY_RUN_ACCEPTED", "confirmed as a duplicate of the accepted signal");
+        if (item.kind === "ORDER" && orig.original_status === "dry_run") this.final(item, "accepted", orig.original_code ?? "ORDER_PENDING", "confirmed as a duplicate of the recorded order");
+        else if (orig.original_code === "DRY_RUN_ACCEPTED") this.final(item, "accepted", "DRY_RUN_ACCEPTED", "confirmed as a duplicate of the accepted signal");
         else if (orig.original_status === "rejected") this.final(item, "rejected", orig.original_code ?? "REJECTED", "rejected earlier (confirmed as a duplicate)");
         else {
           this.state.lastError = { at: iso(this.now()), where: "sync", message: `${item.id}: earlier attempt still ${orig.original_status ?? "unknown"}` };
@@ -709,9 +801,17 @@ export class EngineRunner {
     } else if (lp && String(lp.open_alert_id).startsWith(`${this.idPrefix}-`)) {
       issues.push(`the ledger holds an engine-opened ${this.cfg.symbol} position (${lp.open_alert_id}, qty ${lp.qty}) that the engine does not hold`);
     }
+    if (this.cfg.ledgerApi === "bot") {
+      // Durable pending order: the ledger's PENDING record must be the engine's live order (once delivered).
+      const lo = S.liveOrder ? S.outbox.find((x) => x.id === S.liveOrder.id) : null;
+      const lpo = L.pendingOrder;
+      if (lo && lo.status === "accepted" && (!lpo || lpo.order_id !== lo.id)) issues.push(`the engine's pending order ${lo.id} is ${lpo ? `not the ledger's (${lpo.order_id})` : "not pending in the ledger"}`);
+      if (!lo && lpo) issues.push(`the ledger has a pending order ${lpo.order_id} that the engine is not working`);
+    }
     S.ledgerCheck = {
       status: issues.length ? "DIVERGED" : "OK", at, issues: issues.slice(0, 5),
       ledger_position: lp ? { qty: Number(lp.qty), side: lp.side, open_alert_id: lp.open_alert_id } : null,
+      ...(this.cfg.ledgerApi === "bot" ? { ledger_pending_order: L.pendingOrder ?? null } : {}),
     };
     if (issues.length) this.log(`[engine] ledger reconciliation warning: ${issues.join("; ")}`);
     const key = JSON.stringify([S.ledgerCheck.status, S.ledgerCheck.issues]);

@@ -224,16 +224,29 @@ describe("bot identity on the wire (fleet path)", () => {
     const http = async (url, init) => {
       const path = String(url).replace(/^.*\/webhook\//, ""); const body = JSON.parse(init.body); seen.push({ path, body });
       if (path === "bot-ledger") return new Response(JSON.stringify({ ok: true, position: null, alerts: {}, balance: { available_usd: 500, bot_available_usd: 500, max_order_notional_usd: 5000 } }), { status: 200 });
-      if (path === "bot-order") return new Response(JSON.stringify({ ok: true, code: "DRY_RUN_ACCEPTED" }), { status: 200 });
+      if (path === "bot-order") return new Response(JSON.stringify({ ok: true, code: body.action === "PLACE_LIMIT" ? "ORDER_PENDING" : body.action === "CANCEL_ORDER" ? "ORDER_CANCELLED" : "DRY_RUN_ACCEPTED" }), { status: 200 });
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     };
     const [{ cfg }] = loadBotConfigs(["ALPHA-01"], env0({ ENGINE_SYNC: "on", ALPHA_API_BASE: "http://127.0.0.1:9", ALPHA_WEBHOOK_SECRET: "s", ENGINE_MIRROR: "on" }), ENGINE, { allowProposed: true });
     const clock = { now: 0 };
     const r = new EngineRunner(cfg, { fetchCandles: async ({ sinceMs }) => SOL1.filter((k) => k.t + 60_000 <= clock.now && (sinceMs === null || k.t > sinceMs)), http, now: () => clock.now, log: () => {} });
     clock.now = SOL1[300].t + 70_000; await r.tick();
-    for (let i = 301; i < SOL1.length && !seen.some((s) => s.path === "bot-order"); i++) { clock.now = SOL1[i].t + 70_000; await r.tick(); }
-    const order = seen.find((s) => s.path === "bot-order");
+    const isOpen = (s) => s.path === "bot-order" && /^OPEN_/.test(s.body.action);
+    for (let i = 301; i < SOL1.length && !seen.some(isOpen); i++) { clock.now = SOL1[i].t + 70_000; await r.tick(); }
+    const order = seen.find(isOpen);
     assert.ok(order, "an order was sent from real candles");
+    // Durable pending order first: PLACE_LIMIT with the strategy's levels, then the fill names it, with its candle.
+    const place = seen.find((s) => s.path === "bot-order" && s.body.order_id === order.body.pending_order_id);
+    assert.ok(place, "the entry fills a recorded pending order");
+    assert.equal(place.body.action, "PLACE_LIMIT");
+    assert.equal(place.body.side, order.body.action === "OPEN_LONG" ? "LONG" : "SHORT");
+    assert.ok(place.body.limit > 0 && place.body.stop > 0 && place.body.tp > 0 && place.body.qty > 0);
+    assert.ok(seen.indexOf(place) < seen.indexOf(order), "placed before it filled");
+    assert.ok(Date.parse(order.body.fill.candle.t) >= Date.parse(place.body.placed_at), "filled by a candle after the order was placed");
+    const c = order.body.fill.candle;
+    assert.ok(order.body.fill.price >= c.l && order.body.fill.price <= c.h, "fill inside its candle");
+    if (order.body.action === "OPEN_LONG") assert.ok(order.body.fill.price <= place.body.limit, "buy limit never above its limit");
+    else assert.ok(order.body.fill.price >= place.body.limit, "sell limit never below its limit");
     assert.equal(order.body.bot_id, "ALPHA-01");
     assert.match(order.body.action, /^OPEN_(LONG|SHORT)$/);
     assert.match(order.body.order_id, /^ENG-ALPHA-01-SOLUSD-1-/);
