@@ -57,6 +57,36 @@ The rollout plan is in `docs/RELEASE-FINAL-PLAN.md`.
 - There is exactly one fill per order and kind, and at most one sweep per trade.
 - **The wallet reconciles to the micro-dollar:** available + reserved = allocation + Σ(net − swept) − the open entry fee; MAIN = Σ swept.
 
+**Replay figures** (ALPHA-01, $50 DEMO allocation, 10–12 Nov 2026 recorded candles):
+
+| Item | Value |
+|---|---|
+| Positions | 8: 5 LONG, 3 SHORT |
+| Closed | 7, net +$0.0167 after 0.20% fees per fill |
+| Swept to MAIN | $1.330109 (= Σ swept) |
+| Open at the end | 1 SHORT, 0.57945649 @ 83.44, $48.35 collateral reserved |
+| Pending-order outcomes | 8 FILLED, 7 REPLACED (the strategy moved its limit), 2 EXPIRED |
+| Fills vs limits | every fill at its limit |
+
+**Example LONG:** limit 81.95, filled 81.95, exit 82.97, net +$0.407176, swept.
+
+**Example SHORT:** limit 85.52, filled 85.52, exit 84.29, net +$0.513454, swept.
+
+This is a DEMO replay over 2.5 days. **It is not a profitability claim.**
+
+## Regression results (final branch)
+
+| Suite | Result |
+|---|---|
+| Engine, including TradingView parity and the profile hashes | 263 / 263 |
+| Worker, including the engine replay, pending orders, S1, multi-bot and migrations | 320 / 320 |
+| Frontend | 220 / 220; `tsc` clean; build OK |
+| Schema-6 compatibility (`worker/tools/schema6-compat.mjs`) | 11 / 11 |
+| Schema-7 migration rehearsal | 31 / 31 |
+| Browser | 68 DEMO screenshots, `docs/demo/2026-11-14-recovery/`: 17 screens × 360 / 402 px × light / dark, no horizontal overflow |
+
+Strategy profiles, the Pine source, `ote.mjs`, `broker.mjs`, `sizing.mjs` and the legacy ledger are byte-identical to the baseline `c793cde`.
+
 ## Mirror no longer replaces execution
 
 - Every enabled bot has one execution destination: the bot ledger, or the legacy ledger until its switch.

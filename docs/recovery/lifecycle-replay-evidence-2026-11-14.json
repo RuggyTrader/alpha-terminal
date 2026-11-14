@@ -1,6 +1,6 @@
 {
  "label": "DEMO / HISTORICAL REPLAY: the real engine (ALPHA-01, profile hash 0932a1a0cfac03f9) on recorded Kraken SOLUSD 1m candles 10–12 Nov 2026 against a local Worker and a fresh D1. Not production.",
- "generated_at": "2026-11-14T23:36:53.910Z",
+ "generated_at": "2026-11-14T23:47:58.441Z",
  "allocation_usd": 50,
  "restart": {
   "at_candle_index": 311,
