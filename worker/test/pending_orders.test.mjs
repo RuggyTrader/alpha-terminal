@@ -176,4 +176,28 @@ describe("durable pending orders and reversal safety (TEST values, isolated D1)"
     assert.equal((await send("CANCEL_ORDER", { target_order_id: "ENG-ALPHA-01-T-PL4" })).code, "ORDER_ALREADY_FINAL");
     assert.equal((await send("OPEN_LONG", { pending_order_id: "ENG-ALPHA-01-T-PL4", qty: 0.2, fill: { price: 80, candle: { t: min(T0, 8), o: 80.1, h: 80.2, l: 79.9, c: 80 } } })).code, "PENDING_ORDER_NOT_ACTIVE");
   });
+
+  it("stage S1: ALPHA-02 moves from the long-only legacy ledger to the bot ledger only when flat; then SHORTs execute and the legacy route refuses it", async () => {
+    const legacy = (id, action, qty) => fetch(`${base}/webhook/dry-run`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: WEBHOOK_SECRET, id, symbol: "SOLUSD", timeframe: "5", action, strategy: "OTE", ...(qty ? { qty } : {}), timestamp: T0 }) }).then(async (r) => ({ http: r.status, ...(await r.json()) }));
+    const sell = await legacy("ENG-SOLUSD-5-2026-11-14T20:00:00Z-SELL", "sell", 0.1);
+    assert.equal(sell.code, "NO_POSITION", "before S1: a SELL entry is read as closing a LONG (the documented production refusal)");
+    const buy = await legacy("ENG-SOLUSD-5-2026-11-14T20:05:00Z-BUY", "buy", 0.1);
+    assert.equal(buy.code, "DRY_RUN_ACCEPTED");
+    const blocked = await act("bot-ledger", { bot_id: "ALPHA-02", ledger: "bot" });
+    assert.equal(blocked.code, "POSITION_OPEN", "never switched with an open legacy position");
+    assert.equal((await legacy("ENG-SOLUSD-5-2026-11-14T20:10:00Z-CLOSE", "close")).code, "DRY_RUN_ACCEPTED");
+    const sw = await act("bot-ledger", { bot_id: "ALPHA-02", ledger: "bot" });
+    assert.equal(sw.ok, true); assert.equal(sw.ledger_api, "bot");
+    const after = await legacy("ENG-SOLUSD-5-2026-11-14T20:15:00Z-BUY", "buy", 0.1);
+    assert.equal(after.code, "BOT_LEDGER_PATH", "one route only: the legacy route refuses it now");
+    const o = (action, x) => fetch(`${base}/webhook/bot-order`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: WEBHOOK_SECRET, bot_id: "ALPHA-02", action, symbol: "SOLUSD", timeframe: "5", ...x }) }).then((r) => r.json());
+    const p = await o("PLACE_LIMIT", { order_id: "ENG-SOLUSD-5-T-PLACE_SHORT", side: "SHORT", limit: 80, stop: 80.2, tp: 79.6, qty: 0.1, placed_at: min(T0, 10) });
+    assert.equal(p.code, "ORDER_PENDING");
+    const f = await o("OPEN_SHORT", { order_id: "ENG-SOLUSD-5-T-OPEN_SHORT", pending_order_id: "ENG-SOLUSD-5-T-PLACE_SHORT", qty: 0.1, fill: { price: 80, candle: { t: min(T0, 15), o: 79.95, h: 80.1, l: 79.9, c: 80 } } });
+    assert.equal(f.code, "DRY_RUN_ACCEPTED"); assert.equal(f.data.side, "SHORT");
+    assert.equal(sql(`SELECT side FROM bot_positions WHERE trade_id = 'ENG-SOLUSD-5-T-OPEN_SHORT' AND status = 'OPEN'`)[0].side, "SHORT");
+    assert.ok(sql(`SELECT reserved_micro r FROM portfolio_wallets WHERE wallet = 'SOLUSD'`)[0].r > 0, "collateral reserved in ALPHA-02's own (SOLUSD) wallet");
+  });
 });

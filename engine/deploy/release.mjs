@@ -591,6 +591,13 @@ export function taskXml({ root, node = null, taskName = "ALPHA TERMINAL Engine" 
   exec = /<Arguments>/.test(exec) ? exec.replace(/<Arguments>[\s\S]*?<\/Arguments>/, `<Arguments>${xmlEscape(args)}</Arguments>`) : exec.replace("</Command>", `</Command>\n      <Arguments>${xmlEscape(args)}</Arguments>`);
   exec = /<WorkingDirectory>/.test(exec) ? exec.replace(/<WorkingDirectory>[\s\S]*?<\/WorkingDirectory>/, `<WorkingDirectory>${xmlEscape(P.root)}</WorkingDirectory>`) : exec.replace("</Exec>", `  <WorkingDirectory>${xmlEscape(P.root)}</WorkingDirectory>\n    </Exec>`);
   const pinned = base.replace(execs[0], exec);
+  // Startup resilience (recovery 2026-11-14): never write a definition that would DROP a boot trigger or the
+  // "run whether logged on or not" logon type that the installed task has (original.xml may predate them).
+  const startupOf = (x) => ({ boot: /<BootTrigger>/.test(x), unattended: /<LogonType>(S4U|Password)<\/LogonType>/.test(x) });
+  const cur = startupOf(current), pin = startupOf(pinned);
+  if ((cur.boot && !pin.boot) || (cur.unattended && !pin.unattended)) {
+    fail(`the installed task starts at boot / without a logon, but ${original} does not: applying it would remove that. Export the installed task as the new baseline (owner) instead of using the old one.`);
+  }
   writeFileSync(join(dir, "pinned.xml"), "\uFEFF" + pinned, "utf16le");
   const command = (x) => /<Command>([\s\S]*?)<\/Command>/.exec(x)?.[1];
   return {

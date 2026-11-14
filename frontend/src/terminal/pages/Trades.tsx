@@ -1,3 +1,4 @@
+import type React from "react";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BotChips, BotTradesView } from "../components/BotTradesView";
@@ -21,6 +22,11 @@ const TABS: { id: TradesTab; label: string }[] = [
   { id: "history", label: "History" },
 ];
 
+/** The legacy single-engine records (signals, risk decisions, order intents): folded away once the bot stages exist. */
+function LegacyFold({ unified, children }: { unified: boolean; children: React.ReactNode }) {
+  return unified ? <details className="bot-details"><summary>Legacy engine records (signals, risk decisions, order intents)</summary>{children}</details> : <>{children}</>;
+}
+
 export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }) {
   const { state } = useDash();
   const [params] = useSearchParams();
@@ -43,8 +49,7 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
       <BotChips base="/trades" active={filter.bot} />
       {filtered ? <BotTradesView filter={filter} /> : null}
       {!filtered && unified ? <AllBotTrades initial={initialTab === "orders" ? "pending" : "completed"} /> : null}
-      {filtered ? null : <>
-      {unified ? <SectionHeader title="Engine records" sub="Signals received, risk decisions and order intents (legacy engine path)" /> : null}
+      {filtered ? null : <LegacyFold unified={unified}>
       <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
         <span className="seg-pill" aria-hidden />
         {tabs.map((t) => (
@@ -99,7 +104,7 @@ export function TradesPage({ initialTab = "alerts" }: { initialTab?: TradesTab }
             : <AnimatedList items={d.recent.trades} getKey={(t) => String(t.id)} render={(t) => <TradeCard t={t} />} />}
         </section>
       ) : null}
-      </>}
+      </LegacyFold>}
     </div>
   );
 }

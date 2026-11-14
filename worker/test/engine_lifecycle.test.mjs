@@ -10,7 +10,7 @@
 
 import { execFileSync, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -170,6 +170,25 @@ describe("DEMO historical replay: engine → durable pending orders → PAPER le
     const netClosed = closed.reduce((a, p) => a + p.net_pnl_micro - p.swept_micro, 0);
     assert.equal(w.a + w.r, 50_000_000 + netClosed - open.f, "available + reserved = allocation + net results − sweeps − open entry fee");
     assert.equal(W("MAIN").a, closed.reduce((a, p) => a + p.swept_micro, 0), "MAIN received exactly the swept profits");
+  });
+
+  it("evidence (written when EVIDENCE_OUT is set): every order, fill and position of the replay", () => {
+    if (!process.env.EVIDENCE_OUT) return;
+    const positions = sql(`SELECT p.trade_id, p.side, p.qty, o.requested_qty, o.limit_price AS planned_limit, p.entry_price, p.stop, p.tp, p.exit_price,
+        (SELECT price_source FROM bot_fills f WHERE f.trade_id = p.trade_id AND f.kind = 'ENTRY') AS entry_source,
+        (SELECT price_at FROM bot_fills f WHERE f.trade_id = p.trade_id AND f.kind = 'ENTRY') AS entry_candle_close,
+        (SELECT price_source FROM bot_fills f WHERE f.trade_id = p.trade_id AND f.kind = 'EXIT') AS exit_source,
+        p.collateral_micro / 1e6 AS collateral_usd, (p.entry_fee_micro + COALESCE(p.exit_fee_micro, 0)) / 1e6 AS fees_usd,
+        p.gross_pnl_micro / 1e6 AS gross_usd, p.net_pnl_micro / 1e6 AS net_usd, p.swept_micro / 1e6 AS swept_to_main_usd, p.status
+      FROM bot_positions p LEFT JOIN bot_pending_orders o ON o.fill_trade_id = p.trade_id WHERE p.bot_id = 'ALPHA-01' ORDER BY p.id`);
+    const orders = sql(`SELECT status, COUNT(*) n FROM bot_pending_orders WHERE bot_id = 'ALPHA-01' GROUP BY status`);
+    const w = W("ALPHA-01"), m = W("MAIN");
+    writeFileSync(process.env.EVIDENCE_OUT, JSON.stringify({
+      label: "DEMO / HISTORICAL REPLAY: the real engine (ALPHA-01, profile hash 0932a1a0cfac03f9) on recorded Kraken SOLUSD 1m candles 10–12 Nov 2026 against a local Worker and a fresh D1. Not production.",
+      generated_at: new Date().toISOString(), allocation_usd: 50, restart: run.restarted ? { at_candle_index: run.restarted.at, live_order: run.restarted.before.liveOrder } : null,
+      pending_orders_by_status: Object.fromEntries(orders.map((o) => [o.status, o.n])), positions,
+      wallet_after: { available_usd: w.a / 1e6, reserved_usd: w.r / 1e6, fees_usd: w.f / 1e6 }, main_received_usd: m.a / 1e6,
+    }, null, 1));
   });
 
   it("the dashboard shows the durable orders and the executed trades (no hypothetical rows)", async () => {

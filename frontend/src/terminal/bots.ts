@@ -86,6 +86,9 @@ export const allocate = (group: string, amountUsd: number, requestId: string, pa
   api.post<ActionResult>("/api/paper/allocate", { group, amount_usd: amountUsd, request_id: requestId, passphrase });
 export const setBotRisk = (botId: string, riskUsd: number, requestId: string, passphrase: string) =>
   api.post<ActionResult>("/api/paper/bot-risk", { bot_id: botId, risk_usd: riskUsd, request_id: requestId, passphrase });
+/** Stage S1 (owner approval): move the legacy bot to the bot ledger (LONG + simulated SHORT). Only while it is flat. */
+export const switchToBotLedger = (botId: string, requestId: string, passphrase: string) =>
+  api.post<ActionResult>("/api/paper/bot-ledger", { bot_id: botId, ledger: "bot", request_id: requestId, passphrase });
 export const setEntriesPaused = (botId: string, paused: boolean, requestId: string, passphrase: string) =>
   api.post<ActionResult>("/api/paper/bot-entries", { bot_id: botId, paused, request_id: requestId, passphrase });
 

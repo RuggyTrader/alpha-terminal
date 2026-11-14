@@ -1,0 +1,164 @@
+{
+ "label": "LOCAL REHEARSAL on a representative DEMO fixture (not production data)",
+ "at": "2026-11-14T23:23:23.455Z",
+ "migration": "0007_bots.sql",
+ "passed": 31,
+ "failed": 0,
+ "results": [
+  {
+   "name": "starts at schema 6 (production today)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "DEMO capital: $20 deposited, $10 moved to the SOLUSD strategy balance",
+   "ok": true,
+   "detail": "[null,null]"
+  },
+  {
+   "name": "legacy SELL entries refused NO_POSITION (as production 11 Nov)",
+   "ok": true,
+   "detail": "[\"NO_POSITION\",\"NO_POSITION\"]"
+  },
+  {
+   "name": "unaffordable legacy BUY refused (as production 11 Nov)",
+   "ok": true,
+   "detail": "[422,\"INSUFFICIENT_PAPER_CAPITAL\"]"
+  },
+  {
+   "name": "legacy LONG opened and closed (shape of production trade #1)",
+   "ok": true,
+   "detail": "[\"DRY_RUN_ACCEPTED\",\"DRY_RUN_ACCEPTED\"]"
+  },
+  {
+   "name": "history exists before the migration",
+   "ok": true,
+   "detail": "trades 1, alerts 5, events 2"
+  },
+  {
+   "name": "alerts: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "5 rows"
+  },
+  {
+   "name": "orders: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "2 rows"
+  },
+  {
+   "name": "paper_positions: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "1 rows"
+  },
+  {
+   "name": "paper_fills: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "2 rows"
+  },
+  {
+   "name": "trades: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "1 rows"
+  },
+  {
+   "name": "portfolio_entries: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "6 rows"
+  },
+  {
+   "name": "portfolio_wallets: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "6 rows"
+  },
+  {
+   "name": "trade_events: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "2 rows"
+  },
+  {
+   "name": "mirror_accounts: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "0 rows"
+  },
+  {
+   "name": "mirror_trades: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "0 rows"
+  },
+  {
+   "name": "risk_decisions: every pre-existing row and value unchanged",
+   "ok": true,
+   "detail": "5 rows"
+  },
+  {
+   "name": "added column shortfall_micro is 0 on every wallet",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "schema 7",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "foreign keys consistent",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "original profiles registered with their hashes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "new bot wallets are empty (no capital created)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no duplicate trade records",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bot_pending_orders installed (durable pending orders)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "legacy trade history served unchanged after the migration",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "lifetime performance unchanged after the migration",
+   "ok": true,
+   "detail": "{\"scope\":\"all-funded-paper\",\"bot_id\":null,\"complete\":true,\"closed_trades\":1,\"wins\":0,\"losses\":1,\"break_even\":0,\"gross_usd\":-0.031679,\"fees_usd\":0,\"net_usd\":-0.031679,\"win_rate\":0,\"expectancy_usd\":-0.0"
+  },
+  {
+   "name": "refusals preserved and served (ALPHA-02 signals)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "MAIN → SOLANA allocation split equally (ALPHA-01, ALPHA-02)",
+   "ok": true,
+   "detail": "[{\"bot_id\":\"ALPHA-02\",\"amount_micro\":5000000,\"amount_usd\":5},{\"bot_id\":\"ALPHA-01\",\"amount_micro\":5000000,\"amount_usd\":5}]"
+  },
+  {
+   "name": "SHORT on the migrated D1: pending → filled at its limit → closed at target",
+   "ok": true,
+   "detail": "[\"ORDER_PENDING\",\"DRY_RUN_ACCEPTED\",81.2,\"DRY_RUN_ACCEPTED\",-0.00622]"
+  },
+  {
+   "name": "SHORT accounting: gross = (entry − exit) × qty; net = gross − both fees; profit swept to MAIN; collateral released",
+   "ok": true,
+   "detail": "{\"gross\":10000,\"fees\":16220,\"net\":-6220,\"swept\":0,\"wallet\":{\"a\":4993780,\"r\":0},\"main\":0}"
+  },
+  {
+   "name": "legacy history still served unchanged after new bot trading",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

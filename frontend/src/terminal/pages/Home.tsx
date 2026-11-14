@@ -49,7 +49,7 @@ export function PositionsSection() {
           <AnimatedList items={rows} getKey={(p) => String(p.id)} render={(p) => <AlphaPaperPositionCard p={p} />} />
           {botRows.length ? <div className="tcard-list">{botRows.map((v) => <TradeStoryCard key={v.key} v={v} />)}</div> : null}
           {rows.length + botRows.length === 0 ? (
-            <EmptyState title="No open ALPHA PAPER positions">An accepted dry-run BUY opens a simulated position here.</EmptyState>
+            <EmptyState title="No open PAPER positions">A filled LONG or SHORT order appears here.</EmptyState>
           ) : null}
         </>
       )}
@@ -92,15 +92,12 @@ export function HomePage() {
           {/* The legacy single-engine pipeline only where there is no bot registry (schema 6); otherwise every bot,
               ALPHA-02 included, has its own live line in the Bots pipeline (no duplicate "offline" engine panel). */}
           {fleetAvailable ? null : <PipelinePanel state={state} mirror={activity.mirror} />}
-          <BotPipelinePanel />
+          {fleetAvailable ? <EngineStatusCard /> : <BotPipelinePanel />}
           <ActivityPanel activity={activity} />
         </div>
         <PositionsSection />
       </div>
       <div className="col-side m-stagger">
-        <Reveal>
-          <EngineStatusCard />
-        </Reveal>
         {/* The legacy signal list only without a bot registry (schema 6); with it, Trades and Activity carry every outcome. */}
         {fleetAvailable ? null : (
           <Reveal>

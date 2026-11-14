@@ -108,7 +108,7 @@ export function message(e: EventRow, p: Prefs): { title: string; body: string; u
     if (e.kind === "FUNDED_ENTRY") {
       const parts = amounts ? [e.price !== null ? `Entry $${px(e.price)}` : null, e.qty !== null ? `Qty ${qty(e.qty)}` : null,
         n(d.stop) !== null ? `Stop $${px(n(d.stop)!)}` : null, n(d.tp) !== null ? `Target $${px(n(d.tp)!)}` : null].filter(Boolean) : [];
-      return { ...base, title: head, body: `PAPER ${String(e.side)} entered${parts.length ? ` · ${parts.join(" · ")}` : ""} · simulated${e.side === "SHORT" ? " (hypothetical short)" : ""}` };
+      return { ...base, title: head, body: `PAPER ${String(e.side)} entered${parts.length ? ` · ${parts.join(" · ")}` : ""} · simulated${e.side === "SHORT" ? " (PAPER short, fully collateralised)" : ""}` };
     }
     if (e.kind === "FUNDED_CLOSE") {
       const parts = pnl ? [n(d.gross) !== null ? `Gross ${usd(n(d.gross)!)}` : null, n(e.fees) !== null ? `Fees $${e.fees!.toFixed(2)}` : null,

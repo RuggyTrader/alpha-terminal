@@ -179,7 +179,8 @@ export function botList(env = process.env, baseDir = process.cwd()) {
 }
 
 export function loadBotConfigs(ids, env = process.env, baseDir = process.cwd(), { list = BOTS, allowProposed = false } = {}) {
-  return selectBots(ids, { list, allowProposed }).map((bot) => {
+  return selectBots(ids, { list, allowProposed }).map((registered) => {
+    let bot = registered;
     if (!bot.profile) throw new Error(`${bot.id}: no strategy profile; the owner's inputs for ${bot.symbol} ${bot.intervalMin}m are required`);
     // Strategy inputs come ONLY from the bot's own profile file: STRAT_* in the environment or env file are ignored
     // for fleet bots, so no global setting can leak into another bot's strategy.
@@ -187,6 +188,12 @@ export function loadBotConfigs(ids, env = process.env, baseDir = process.cwd(), 
     const fileEnv = loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env"));
     const leaked = Object.keys(fileEnv).filter((k) => k.startsWith("STRAT_"));
     if (leaked.length) throw new Error(`${bot.id}: strategy inputs (${leaked.join(", ")}) in the shared env file would override bot profiles; remove them`);
+    // Stage S1 (owner approval): the legacy bot can be moved to the bot ledger by ENGINE_LEDGER_<ID>=bot (e.g.
+    // ENGINE_LEDGER_ALPHA_02=bot) after the Worker switch. It keeps its ids, state and wallet; only legacy bots accept it.
+    const ledgerKey = `ENGINE_LEDGER_${bot.id.replace(/-/g, "_")}`;
+    const ledgerSet = String(env[ledgerKey] ?? fileEnv[ledgerKey] ?? "").trim();
+    if (ledgerSet && !(bot.legacy && ledgerSet === "bot")) throw new Error(`${ledgerKey}=${ledgerSet}: only the legacy bot can be switched, and only to "bot"`);
+    if (ledgerSet === "bot") bot = { ...bot, ledgerApi: "bot" };
     const sizingEnv = bot.ledgerApi === "bot"
       ? { ENGINE_SIZING: "dollar", ENGINE_RISK_USD: String(bot.riskUSD), ENGINE_FEE_PCT: "0.2", ENGINE_REMOTE_SETTINGS: "off" }
       : { ENGINE_RISK_PCT: "1", ENGINE_MAX_RISK_USD: String(bot.riskUSD) };

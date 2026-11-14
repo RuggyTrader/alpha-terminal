@@ -123,7 +123,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
       <Group n={5} title="Security">
         <Row k="This browser"><StatusBadge tone="ok">SIGNED IN</StatusBadge></Row>
         <Row k="Money actions">Need the passphrase again, every time</Row>
-        <Row k="Credentials">Kept on the server only; never shown here</Row>
+        <Row k="Secrets">Kept on the server only; never shown here</Row>
         <div className="li">
           <span>Sign out of this browser</span>
           <button type="button" className="btn btn-sm btn-ghost m-press" onClick={doSignOut} disabled={signOut.busy}>

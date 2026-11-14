@@ -149,6 +149,9 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     if (!fillIn) return reject(db, { ...ctx, code: "FILL_EVIDENCE_INVALID", message: `a fill of pending limit ${pendingId} needs its completed candle` });
   }
   let px: number, priceSource: string, priceAt: string;
+  // A simulated strategy fill happened inside its candle: the position's opened_at / closed_at is that candle's open
+  // time (so charts place it on the right candle); the arrival time stays in bot_orders.received_at / bot_fills.filled_at.
+  let fillAt: string | null = null;
   if (fillIn) {
     // Strategy fill on a completed candle, validated (worker/src/paper_fill.ts): no future data, limits respected.
     const isBuy = action === "OPEN_LONG" || (action === "CLOSE" && open?.side === "SHORT");
@@ -157,7 +160,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     const chk = checkStrategyFill({ side: isBuy ? "BUY" : "SELL", price: fillIn.price, candle: parseCandle(fillIn.candle, bot.timeframe_min), limit: lim, nowMs,
       notBeforeMs: pending ? Date.parse(pending.placed_at) : null });
     if (!chk.ok) return reject(db, { ...ctx, code: chk.code, message: chk.message });
-    px = chk.price; priceAt = chk.candleClose;
+    px = chk.price; priceAt = chk.candleClose; fillAt = parseCandle(fillIn.candle, bot.timeframe_min)?.t ?? null;
     priceSource = pending ? "PAPER_LIMIT_FILL (strategy candle, simulated)" : `PAPER_STRATEGY_FILL ${exitKind || "fill"} (strategy candle, simulated)`;
   } else {
     const price = (await referencePrices([inst], env)).get(symbol);
@@ -172,7 +175,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     if (!open) return reject(db, { ...ctx, code: "NO_POSITION", message: `${botId} has no open position to close` });
     const expect = typeof body.entry_order_id === "string" && body.entry_order_id ? body.entry_order_id : null;
     if (expect && expect !== open.trade_id) return reject(db, { ...ctx, code: "POSITION_MISMATCH", message: `${botId}'s open position is ${open.trade_id}, not ${expect}; not closed` });
-    return closePosition(env, bot, open, { ...ctx, px, priceSource, priceAt, now });
+    return closePosition(env, bot, open, { ...ctx, px, priceSource, priceAt, now, fillAt });
   }
 
   // ---- OPEN_LONG / OPEN_SHORT
@@ -246,7 +249,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
                     THEN ? ELSE NULL END, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .bind(tradeId, maxOpen, maxOpen, maxTotal, notional, maxTotal === null ? null : toMicro(maxTotal), botId, pending?.order_id ?? null, pending?.order_id ?? null, botId,
           symbol, side, qty, px, fee, notional, num(body.stop) ?? pending?.stop ?? null, num(body.tp) ?? pending?.tp ?? null, riskCap, bot.profile,
-          typeof body.config_hash === "string" ? body.config_hash.slice(0, 32) : bot.inputs_hash, FEE_MODEL.id, now, px, priceAt),
+          typeof body.config_hash === "string" ? body.config_hash.slice(0, 32) : bot.inputs_hash, FEE_MODEL.id, fillAt ?? now, px, priceAt),
       db.prepare(`INSERT INTO bot_fills (fill_id, bot_id, trade_id, kind, side, qty, price, notional_micro, fee_rate_pct, fee_micro, fee_currency, fee_model, price_source, price_at, filled_at)
                   VALUES (?, ?, ?, 'ENTRY', ?, ?, ?, ?, ?, ?, 'USD', ?, ?, ?, ?)`)
         .bind(orderId, botId, tradeId, side, qty, px, notional, FEE_MODEL.ratePct, fee, FEE_MODEL.id, priceSource, priceAt, now),
@@ -272,7 +275,7 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
 }
 
 async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
-  c: { orderId: string; botId: string; action: string; symbol: string; qty: number | null; payload: string; px: number; priceSource: string; priceAt: string; now: string }): Promise<Response> {
+  c: { orderId: string; botId: string; action: string; symbol: string; qty: number | null; payload: string; px: number; priceSource: string; priceAt: string; now: string; fillAt?: string | null }): Promise<Response> {
   const db = env.DB;
   const exitNotional = toMicro(p.qty * c.px);
   const entryNotional = p.collateral_micro; // = qty × entry price, posted at entry
@@ -305,7 +308,7 @@ async function closePosition(env: BotLedgerEnv, bot: BotRow, p: PositionRow,
                   gross_pnl_micro = ?, net_pnl_micro = ?, swept_micro = ?, mark_price = ?, mark_at = ?,
                   shortfall_micro = (SELECT MAX(0, -(w.available_micro + ?)) FROM portfolio_wallets w WHERE w.wallet = ?)
                 WHERE id = ? AND status = 'OPEN'`)
-      .bind(c.px, exitFee, c.now, c.orderId, gross, net, sweep, c.px, c.priceAt, paid, bot.wallet, p.id),
+      .bind(c.px, exitFee, c.fillAt ?? c.now, c.orderId, gross, net, sweep, c.px, c.priceAt, paid, bot.wallet, p.id),
     // The wallet (one statement: every right-hand side reads the values before the update).
     db.prepare(`UPDATE portfolio_wallets SET
                   shortfall_micro = shortfall_micro + MAX(0, -(available_micro + ?)),
@@ -571,6 +574,19 @@ export async function handleBotOwnerAction(env: BotLedgerEnv, pathname: string, 
     return json({ ok: true, bot_id: botId, version, risk_usd: risk, status: "PENDING" });
   }
 
+  // Stage S1 (owner approval): move the legacy bot (ALPHA-02) from the long-only legacy ledger to the bot ledger
+  // (explicit OPEN_LONG / OPEN_SHORT / CLOSE, collateralised PAPER shorts, durable pending orders). Same wallet. Only
+  // while it is flat: no open legacy position and nothing pending. One route at a time: the legacy route refuses it after.
+  if (pathname === "/api/paper/bot-ledger") {
+    if (body.ledger !== "bot") return json({ ok: false, code: "INVALID_REQUEST", message: "ledger must be \"bot\" (the switch is one-way; rollback is a separate owner step)" }, 400);
+    if (bot.ledger_api === "bot") return json({ ok: true, duplicate: true, bot_id: botId, ledger_api: "bot" });
+    if (bot.status !== "ACTIVE") return json({ ok: false, code: "BOT_NOT_ACTIVE", message: `${botId} is ${bot.status}` }, 422);
+    const open = await db.prepare(`SELECT COUNT(*) AS n FROM paper_positions WHERE status = 'OPEN' AND (bot_id = ? OR (bot_id IS NULL AND symbol = ?))`).bind(botId, bot.symbol).first<{ n: number }>();
+    if (Number(open?.n ?? 0) > 0) return json({ ok: false, code: "POSITION_OPEN", message: `${botId} holds an open legacy position; switch when it is flat` }, 422);
+    await db.prepare(`UPDATE bots SET ledger_api = 'bot', updated_at = ? WHERE bot_id = ? AND ledger_api = 'legacy'`).bind(now, botId).run();
+    return json({ ok: true, bot_id: botId, ledger_api: "bot", wallet: bot.wallet,
+      note: "the Worker now accepts this bot only on /webhook/bot-order; set ENGINE_LEDGER_" + botId.replace("-", "_") + "=bot in the engine config and restart the engine" });
+  }
   if (pathname === "/api/paper/bot-entries") {
     if (typeof body.paused !== "boolean") return json({ ok: false, code: "INVALID_REQUEST", message: "paused must be true or false" }, 400);
     if (!body.paused) {

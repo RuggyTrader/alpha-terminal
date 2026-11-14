@@ -80,7 +80,7 @@ export function ActivityPanel({ activity }: { activity: ActivityState }) {
       <SectionHeader
         title="Activity"
         right={<Link className="link" to="/activity">All activity →</Link>}
-        sub={<span className="ac-legend"><i className="ac-src ac-src-funded">ALPHA PAPER</i><i className="ac-src ac-src-mirror">MIRROR · hypothetical</i><i className="ac-src ac-src-system">SYSTEM</i></span>}
+        sub="Actual PAPER orders, fills and exits"
       />
       {items === null ? (
         activity.error ? <EmptyState title="Activity unavailable" tone="warn">{activity.error}</EmptyState> : <SkeletonCards count={2} />
@@ -89,7 +89,7 @@ export function ActivityPanel({ activity }: { activity: ActivityState }) {
       ) : (
         <>
           {activity.error ? <div className="ac-stale">Not refreshed: {activity.error}</div> : null}
-          <AnimatedList className="ac-list" items={items.slice(0, 3)} getKey={(e) => e.id} render={(e) => <ActivityRowView e={e} />} />
+          <AnimatedList className="ac-list" items={items.filter((e) => e.source !== "mirror").slice(0, 3)} getKey={(e) => e.id} render={(e) => <ActivityRowView e={e} />} />
         </>
       )}
     </section>

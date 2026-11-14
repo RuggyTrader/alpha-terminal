@@ -9,7 +9,7 @@ import { newRequestId } from "../api";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp, tone } from "../fmt";
 import {
-  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused,
+  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused, switchToBotLedger,
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
@@ -134,6 +134,15 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
             <Passphrase value={pass} onChange={setPass} />
             <button className="btn" disabled={!pass} onClick={togglePause}>{b.entries_paused ? "Resume new entries" : "Pause new entries"}</button>
             <p className="sizing-note">Pausing stops NEW entries only; an open position keeps its stop, target and exit.</p>
+            {b.ledger_api === "legacy" ? (
+              <>
+                <button className="btn" disabled={!pass} onClick={async () => {
+                  try { const r = await switchToBotLedger(b.bot_id, newRequestId(), pass); setMsg(r.ok ? `${b.name} now trades on the bot ledger (LONG and simulated SHORT). Set ${String(r.note ?? "").replace(/^.*set /, "set ")}` : backendErrorMessage(r)); if (r.ok) { setPass(""); onChanged?.(); } }
+                  catch (err) { setMsg(backendErrorMessage(err)); }
+                }}>Move to the bot ledger (LONG + SHORT)</button>
+                <p className="sizing-note">Today this bot uses the legacy long-only ledger, so its SHORT setups are refused. Moving it is one-way, needs it to be flat, and must be followed by the matching engine setting (see the rollout plan).</p>
+              </>
+            ) : null}
             {msg ? <p className="sizing-note" role="status">{msg}</p> : null}
           </div>
         </div>
@@ -190,28 +199,31 @@ export function BotsPage() {
   const error = fleet ? null : fetchError;
   const now = fetchedAt ?? Date.now();
   const load = () => void invalidateFleet();
-  const groups = fleet?.groups.filter((g) => fleet.bots.some((b) => b.group === g.group_id && b.status !== "DISABLED")) ?? [];
+  // Owner's order: SOLANA (ALPHA-01 1m, ALPHA-02 5m), then BITCOIN (ALPHA-03 1m, ALPHA-04 5m).
+  const GROUP_ORDER = ["SOLANA", "BITCOIN"];
+  const rank = (id: string) => { const i = GROUP_ORDER.indexOf(id); return i < 0 ? GROUP_ORDER.length : i; };
+  const groups = (fleet?.groups.filter((g) => fleet.bots.some((b) => b.group === g.group_id && b.status !== "DISABLED")) ?? []).sort((a, b) => rank(a.group_id) - rank(b.group_id));
   return (
     <div className="page-narrow m-stagger bots-page">
-      <SectionHeader title="Bots" sub={<>Independent strategy instances, one market and timeframe each. <Link className="link" to="/engine">Engine →</Link></>} />
+      <SectionHeader title="Bots" sub="One strategy per market and timeframe, each with its own PAPER wallet." />
       {error ? <EmptyState title="Bots unavailable" tone="bad">{error}</EmptyState> : null}
       {!fleet && !error ? <SkeletonCards count={2} /> : null}
       {stale && fetchedAt ? <p className="sizing-note t-warn" role="status">STALE · showing the snapshot from {new Date(fetchedAt).toLocaleTimeString()} ({Math.round((Date.now() - fetchedAt) / 1000)} s old); the latest refresh failed: {fetchError}</p> : null}
       {fleet && !fleet.available ? <EmptyState title="No bot registry yet">The ledger has no bot registry (migration 0007 is not applied).</EmptyState> : null}
       {fleet?.available ? (
         <>
-          <AllocationPanel fleet={fleet} onDone={load} />
           {groups.map((g) => {
-            const bots = fleet.bots.filter((b) => b.group === g.group_id && b.status !== "DISABLED");
+            const bots = fleet.bots.filter((b) => b.group === g.group_id && b.status !== "DISABLED").sort((a, b) => a.bot_id.localeCompare(b.bot_id));
             const t = groupTotals(bots);
             return (
               <section key={g.group_id} className="bot-group" aria-label={`${g.name} bots`}>
-                <SectionHeader title={`${COIN[g.symbol]?.glyph ?? ""} ${g.name.toUpperCase()}`} sub={`${bots.length} bots · funded PAPER: available ${money(t.available_usd)} · reserved ${money(t.reserved_usd)} · net ${signedMoney(t.net_usd)} (fees ${money(t.fees_usd)}) · to MAIN ${money(t.swept_usd)}`} />
+                <SectionHeader title={`${COIN[g.symbol]?.glyph ?? ""} ${g.name.toUpperCase()}`} sub={`${bots.length} bots · net PAPER ${signedMoney(t.net_usd)} · available ${money(t.available_usd)} · in positions ${money(t.reserved_usd)}`} />
                 {bots.map((b) => <BotCard key={b.bot_id} b={b} nowMs={now} onChanged={load} />)}
               </section>
             );
           })}
-          <p className="sizing-note">Funded PAPER figures are simulated (Kraken reference prices, Ndax-equivalent 0.20% fee per fill, simulated shorts fully collateralised). Strategy Mirror figures are hypothetical and never added.</p>
+          <details className="bot-details"><summary>Allocate capital from MAIN</summary><AllocationPanel fleet={fleet} onDone={load} /></details>
+          <p className="sizing-note">PAPER figures are simulated: limit fills from completed Kraken candles, Ndax-equivalent 0.20% fee per fill, SHORTs fully collateralised from the bot's own wallet.</p>
         </>
       ) : null}
     </div>

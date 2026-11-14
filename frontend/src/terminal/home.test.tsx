@@ -187,9 +187,11 @@ describe("activity feed", () => {
     expect(html(<ActivityPanel activity={{ items: [], error: null, mirror: null, at: 1 }} />)).toContain("No recorded activity yet");
     expect(html(<ActivityPanel activity={{ items: null, error: "OFFLINE", mirror: null, at: null }} />)).toContain("Activity unavailable");
     const out = html(<ActivityPanel activity={{ items: [{ ...item("m", "2026-11-10T10:00:00Z", "mirror"), url: "/mirror", classification: "catch_up" }], error: null, mirror: null, at: 1 }} />);
-    expect(out).toContain("STRATEGY MIRROR");
-    expect(out).toContain("catch-up");
-    expect(out).toContain('href="/mirror"');
+    // Home's activity shows actual PAPER activity only: hypothetical Strategy Mirror events live in Research (recovery 2026-11-14).
+    expect(out).not.toContain("STRATEGY MIRROR");
+    expect(out).not.toContain('href="/mirror"');
+    const real = html(<ActivityPanel activity={{ items: [{ ...item("f", "2026-11-10T10:00:00Z", "funded"), classification: "catch_up" }], error: null, mirror: null, at: 1 }} />);
+    expect(real).toContain("catch-up");
   });
 });
 

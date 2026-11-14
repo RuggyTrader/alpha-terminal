@@ -1,0 +1,596 @@
+{
+ "label": "DEMO / HISTORICAL REPLAY — local Worker, fresh D1 (schema 7), DEMO orders at recorded Kraken prices (timestamps shifted to now). NOT production; nothing was sent to production.",
+ "generated_at": "2026-11-14T23:40:31.877Z",
+ "widths": [
+  360,
+  402
+ ],
+ "lifecycle": [
+  {
+   "step": "ALPHA-01 pending LONG",
+   "code": "ORDER_PENDING",
+   "limit": 82.52,
+   "stop": 82.08,
+   "tp": 83.4,
+   "accepted_qty": 0.5
+  },
+  {
+   "step": "ALPHA-04 pending SHORT",
+   "code": "ORDER_PENDING",
+   "limit": 74000,
+   "stop": 74100,
+   "tp": 73700,
+   "accepted_qty": 0.0008
+  },
+  {
+   "step": "ALPHA-01 LONG filled at its limit",
+   "code": "DRY_RUN_ACCEPTED",
+   "price": 82.52,
+   "qty": 0.5,
+   "fee": 0.08252,
+   "source": "PAPER_LIMIT_FILL (strategy candle, simulated)"
+  },
+  {
+   "step": "ALPHA-01 take profit",
+   "code": "DRY_RUN_ACCEPTED",
+   "gross": 0.44,
+   "fees": 0.16592,
+   "net": 0.27408,
+   "swept": 0.27408
+  },
+  {
+   "step": "ALPHA-03 SHORT stopped out",
+   "open": "DRY_RUN_ACCEPTED",
+   "price": 73868.3,
+   "close": "DRY_RUN_ACCEPTED",
+   "net": -0.331288,
+   "swept": 0
+  }
+ ],
+ "screenshots": [
+  {
+   "file": "DEMO-01-bots-grouped-360-light.png",
+   "path": "/bots",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-01-bots-grouped-360-dark.png",
+   "path": "/bots",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-01-bots-grouped-402-light.png",
+   "path": "/bots",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-01-bots-grouped-402-dark.png",
+   "path": "/bots",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-02-pending-long-chart-360-light.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-02-pending-long-chart-360-dark.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-02-pending-long-chart-402-light.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-02-pending-long-chart-402-dark.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-03-pending-short-chart-360-light.png",
+   "path": "/bots/ALPHA-04/chart",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-03-pending-short-chart-360-dark.png",
+   "path": "/bots/ALPHA-04/chart",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-03-pending-short-chart-402-light.png",
+   "path": "/bots/ALPHA-04/chart",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-03-pending-short-chart-402-dark.png",
+   "path": "/bots/ALPHA-04/chart",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-04-trades-pending-360-light.png",
+   "path": "/trades",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-04-trades-pending-360-dark.png",
+   "path": "/trades",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-04-trades-pending-402-light.png",
+   "path": "/trades",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-04-trades-pending-402-dark.png",
+   "path": "/trades",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-05-open-long-chart-360-light.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-05-open-long-chart-360-dark.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-05-open-long-chart-402-light.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-05-open-long-chart-402-dark.png",
+   "path": "/bots/ALPHA-01/chart",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-06-home-360-light.png",
+   "path": "/",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-06-home-360-dark.png",
+   "path": "/",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-06-home-402-light.png",
+   "path": "/",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-06-home-402-dark.png",
+   "path": "/",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-07-trades-completed-360-light.png",
+   "path": "/trades",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-07-trades-completed-360-dark.png",
+   "path": "/trades",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-07-trades-completed-402-light.png",
+   "path": "/trades",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-07-trades-completed-402-dark.png",
+   "path": "/trades",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-08-completed-long-chart-360-light.png",
+   "path": "/bots/ALPHA-01/chart?ledger=bot&trade=DEMO-ALPHA-01-OPEN_LONG-1",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-08-completed-long-chart-360-dark.png",
+   "path": "/bots/ALPHA-01/chart?ledger=bot&trade=DEMO-ALPHA-01-OPEN_LONG-1",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-08-completed-long-chart-402-light.png",
+   "path": "/bots/ALPHA-01/chart?ledger=bot&trade=DEMO-ALPHA-01-OPEN_LONG-1",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-08-completed-long-chart-402-dark.png",
+   "path": "/bots/ALPHA-01/chart?ledger=bot&trade=DEMO-ALPHA-01-OPEN_LONG-1",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-09-completed-short-chart-360-light.png",
+   "path": "/bots/ALPHA-03/chart?ledger=bot&trade=DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-09-completed-short-chart-360-dark.png",
+   "path": "/bots/ALPHA-03/chart?ledger=bot&trade=DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-09-completed-short-chart-402-light.png",
+   "path": "/bots/ALPHA-03/chart?ledger=bot&trade=DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-09-completed-short-chart-402-dark.png",
+   "path": "/bots/ALPHA-03/chart?ledger=bot&trade=DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-10-short-trade-proof-360-light.png",
+   "path": "/bots/trade/DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-10-short-trade-proof-360-dark.png",
+   "path": "/bots/trade/DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-10-short-trade-proof-402-light.png",
+   "path": "/bots/trade/DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-10-short-trade-proof-402-dark.png",
+   "path": "/bots/trade/DEMO-ALPHA-03-OPEN_SHORT-1",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-11-trades-rejected-cancelled-360-light.png",
+   "path": "/trades",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-11-trades-rejected-cancelled-360-dark.png",
+   "path": "/trades",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-11-trades-rejected-cancelled-402-light.png",
+   "path": "/trades",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-11-trades-rejected-cancelled-402-dark.png",
+   "path": "/trades",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-12-performance-360-light.png",
+   "path": "/performance",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-12-performance-360-dark.png",
+   "path": "/performance",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-12-performance-402-light.png",
+   "path": "/performance",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-12-performance-402-dark.png",
+   "path": "/performance",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-13-activity-360-light.png",
+   "path": "/activity",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-13-activity-360-dark.png",
+   "path": "/activity",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-13-activity-402-light.png",
+   "path": "/activity",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-13-activity-402-dark.png",
+   "path": "/activity",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-14-settings-360-light.png",
+   "path": "/settings",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-14-settings-360-dark.png",
+   "path": "/settings",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-14-settings-402-light.png",
+   "path": "/settings",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-14-settings-402-dark.png",
+   "path": "/settings",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-15-settings-advanced-open-360-light.png",
+   "path": "/settings",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-15-settings-advanced-open-360-dark.png",
+   "path": "/settings",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-15-settings-advanced-open-402-light.png",
+   "path": "/settings",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-15-settings-advanced-open-402-dark.png",
+   "path": "/settings",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-16-research-360-light.png",
+   "path": "/research",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-16-research-360-dark.png",
+   "path": "/research",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-16-research-402-light.png",
+   "path": "/research",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-16-research-402-dark.png",
+   "path": "/research",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-17-bot-details-open-360-light.png",
+   "path": "/bots",
+   "width": 360,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-17-bot-details-open-360-dark.png",
+   "path": "/bots",
+   "width": 360,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 360
+  },
+  {
+   "file": "DEMO-17-bot-details-open-402-light.png",
+   "path": "/bots",
+   "width": 402,
+   "scheme": "light",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  },
+  {
+   "file": "DEMO-17-bot-details-open-402-dark.png",
+   "path": "/bots",
+   "width": 402,
+   "scheme": "dark",
+   "horizontal_overflow": false,
+   "scroll_width": 402
+  }
+ ]
+}

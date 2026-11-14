@@ -77,6 +77,8 @@ export async function resolveOwner(db: D1Database, body: Record<string, unknown>
       .bind(symbol).first<BotRow>();
     if (!bot || (tf !== null && tf !== bot.timeframe_min)) return { ok: true, owner: "", bot: null };
     if (opts.alertId !== undefined && !opts.alertId.startsWith(`ENG-${symbol}-${bot.timeframe_min}-`)) return { ok: true, owner: "", bot: null };
+    // After its stage-S1 switch the legacy bot trades ONLY through /webhook/bot-order: never two routes at once.
+    if (bot.ledger_api === "bot") return { ok: false, code: "BOT_LEDGER_PATH", message: `${bot.bot_id} now trades through /webhook/bot-order with its own wallet` };
     return { ok: true, owner: bot.bot_id, bot };
   } catch (e) {
     if (noBotsTable(e)) return { ok: true, owner: null, bot: null };

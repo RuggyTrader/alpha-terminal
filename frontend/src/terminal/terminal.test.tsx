@@ -152,8 +152,7 @@ describe("Home", () => {
     expect(eng).toContain("STOCKS");
     expect(eng).toContain("NOT CONFIGURED");
     // Home shows the STRATEGY engine's status (bot heartbeats), not system health or the broker route (recovery 2026-11-14).
-    expect(html).toContain("Strategy engine");
-    expect(html).not.toContain("System health");
+    expect(html).not.toContain("System health"); // (the Strategy engine card needs the bot registry: recovery.test.tsx)
     for (const label of ["Home", "Bots", "Trades", "Activity", "Results", "Settings"]) expect(html).toContain(`>${label}<`);
     expect(html).not.toContain("bnav-engine"); // no Engine tab: diagnostics moved to Settings → Advanced
     expect(html).not.toMatch(/withdraw/i);
@@ -161,7 +160,7 @@ describe("Home", () => {
 
   it("shows an intentional empty state without positions", () => {
     const html = page("/", ok(dashboard()));
-    expect(html).toContain("No open ALPHA PAPER positions");
+    expect(html).toContain("No open PAPER positions");
     expect(html).toContain("No signals yet");
     expect(html).not.toContain("Alpaca PAPER account positions"); // no broker positions, no broker section
   });
@@ -259,7 +258,7 @@ describe("Home", () => {
     expect(html).toContain("STALE");
     expect(html).toContain("Showing data from");
     expect(html).toContain("is-stale");
-    expect(html).toContain("No open ALPHA PAPER positions"); // the last snapshot is still shown
+    expect(html).toContain("No open PAPER positions"); // the last snapshot is still shown
   });
 
   it("shows OFFLINE and no numbers when the first load fails", () => {

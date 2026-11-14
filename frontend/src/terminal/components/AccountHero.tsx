@@ -1,3 +1,5 @@
+import { useFleet } from "../fleetStore";
+import { fleetEngineStatus } from "../bots";
 import { Link } from "react-router-dom";
 import { clock, NA, pct, signedMoney, tone } from "../fmt";
 import { lifetimeMetrics } from "../performance";
@@ -21,10 +23,15 @@ const BOT_CLS = { ONLINE: "hs-ok", STALE: "hs-warn", OFFLINE: "hs-bad", NOT_RUNN
 /** The engine's real reported state; the feed's own failure takes precedence. */
 function HeroStatus({ state }: { state: FeedState }) {
   const bot = state.data?.bot ?? null;
+  // With a bot registry: the strategy engine's own status (most serious active bot), the same as Home's Strategy engine card.
+  const { fleet } = useFleet();
+  const worst = fleet?.available ? fleetEngineStatus(fleet.bots, Date.now()).worst : null;
+  const TONE_CLS = { ok: "hs-ok", warn: "hs-warn", bad: "hs-bad", muted: "hs-muted" } as const;
   const [cls, text] =
     state.status === "stale" ? ["hs-warn", `STALE · ${clock(state.lastSuccessAt)}`]
       : state.status === "error" ? ["hs-bad", "OFFLINE"]
       : !state.data ? ["hs-muted", "CONNECTING"]
+      : worst ? [TONE_CLS[worst.tone], `ENGINE · ${worst.label.toUpperCase()}`]
       : !bot ? ["hs-muted", "ENGINE N/A"]
       : [BOT_CLS[bot.state] ?? "hs-muted", `ENGINE ${BOT_TEXT[bot.state] ?? bot.state}`];
   return (

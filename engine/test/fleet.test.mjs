@@ -260,6 +260,25 @@ describe("bot identity on the wire (fleet path)", () => {
   });
 });
 
+describe("stage S1: the legacy bot can be switched to the bot ledger (explicit setting, legacy bot only)", () => {
+  it("ENGINE_LEDGER_ALPHA_02=bot gives ALPHA-02 the bot path, dollar sizing with simulated shorts, and keeps its ids and profile", () => {
+    const [{ cfg }] = loadBotConfigs(["ALPHA-02"], env0({ ENGINE_LEDGER_ALPHA_02: "bot" }), ENGINE);
+    assert.equal(cfg.ledgerApi, "bot");
+    assert.equal(cfg.sizing.mode, "dollar");
+    assert.equal(cfg.sizing.riskUSD, 10, "its $10 dollar risk");
+    assert.equal(cfg.sizing.simulatedShort, true, "SHORTs sized as simulated, fully collateralised PAPER shorts (never the broker)");
+    assert.equal(cfg.idPrefix, "ENG-SOLUSD-5", "same signal ids and state files (resumes its saved state)");
+    assert.equal(inputsHash(cfg), "c826d785d58a4a39", "original profile unchanged");
+    const [{ cfg: legacy }] = loadBotConfigs(["ALPHA-02"], env0(), ENGINE);
+    assert.equal(legacy.ledgerApi, "legacy", "without the setting nothing changes");
+    assert.equal(legacy.sizing.simulatedShort, false, "the legacy (production today) sizing refuses SHORTs: the documented SHORT_NOT_ALLOWED cause");
+  });
+  it("refused for a fleet bot or any other value", () => {
+    assert.throws(() => loadBotConfigs(["ALPHA-01"], env0({ ENGINE_LEDGER_ALPHA_01: "bot" }), ENGINE, { allowProposed: true }), /only the legacy bot/);
+    assert.throws(() => loadBotConfigs(["ALPHA-02"], env0({ ENGINE_LEDGER_ALPHA_02: "alpaca" }), ENGINE), /only the legacy bot/);
+  });
+});
+
 describe("four independent bots in one process", () => {
   it("one market-data request per market and timeframe per round", async () => {
     let calls = 0;

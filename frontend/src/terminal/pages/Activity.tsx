@@ -20,7 +20,8 @@ export function ActivityPage() {
   const items = activity.items;
   const sources = items ? ([...new Set(items.map((i) => i.source))] as ActivitySource[]) : [];
   const [src, setSrc] = useState<ActivitySource | "all">("all");
-  const shown = items ? (src === "all" ? items : items.filter((i) => i.source === src)) : null;
+  // "All" is actual PAPER and system activity; hypothetical Strategy Mirror research appears only when chosen.
+  const shown = items ? (src === "all" ? items.filter((i) => i.source !== "mirror") : items.filter((i) => i.source === src)) : null;
   const legacy = state.data?.recent.activity ?? [];
 
   return (
