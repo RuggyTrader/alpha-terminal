@@ -132,7 +132,7 @@ export function BotPerformanceView({ bot }: { bot: string }) {
         <SectionHeader title={b ? `${b.name} · ${b.symbol} ${b.timeframe}` : bot} sub="Lifetime · all closed trades" right={<StatusBadge tone="ok">FUNDED PAPER</StatusBadge>} />
         <div className="pm-grid">
           <div className="pm"><span className="pm-k">NET P&amp;L</span><b className={`pm-v ${L ? `t-${tone(L.net_usd)}` : ""}`}>{L && L.trades ? signedMoney(L.net_usd) : NA}</b><i className="pm-n">after fees</i></div>
-          <div className="pm"><span className="pm-k">GROSS · FEES</span><b className="pm-v">{L && L.trades ? `${signedMoney(L.gross_usd)} · ${money(L.fees_usd)}` : NA}</b></div>
+          <div className="pm"><span className="pm-k">GROSS</span><b className="pm-v">{L && L.trades ? signedMoney(L.gross_usd) : NA}</b><i className="pm-n">{L && L.trades ? `fees ${money(L.fees_usd)}` : ""}</i></div>
           <div className="pm"><span className="pm-k">CLOSED TRADES</span><b className="pm-v">{L ? L.trades : NA}</b><i className="pm-n">{L ? `${L.long_trades} long · ${L.short_trades} short` : ""}{b?.open_positions.length ? ` · ${b.open_positions.length} open` : ""}</i></div>
           <div className="pm"><span className="pm-k">WIN RATE · PF</span><b className="pm-v">{L ? `${rate(L.win_rate)} · ${L.profit_factor === null ? NA : L.profit_factor.toFixed(2)}` : NA}</b></div>
           <div className="pm"><span className="pm-k">MAX DRAWDOWN</span><b className="pm-v">{L && L.trades ? money(L.max_drawdown_usd) : NA}</b></div>

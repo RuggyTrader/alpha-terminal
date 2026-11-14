@@ -221,7 +221,7 @@ h1, h2, h3, p { margin: 0; }
   background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(6px);
 }
 .hero-strip div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.hero-strip span { font-size: 9.5px; font-weight: 750; letter-spacing: 0.1em; color: var(--on-dark-2); white-space: nowrap; }
+.hero-strip span { font-size: 9.5px; font-weight: 750; letter-spacing: 0.1em; color: var(--on-dark-2); white-space: normal; line-height: 1.25; } /* wraps on narrow phones instead of running into the next label */
 .hero-strip b { font-size: 14.5px; font-weight: 750; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hero.is-stale .hero-main, .hero.is-stale .hero-strip { opacity: 0.55; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
