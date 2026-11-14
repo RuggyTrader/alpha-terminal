@@ -1,0 +1,400 @@
+{
+ "source": "production engine audit-SOLUSD-5m.jsonl (release af924ffa4703 and earlier), read-only",
+ "bot": "ALPHA-02 (SOLUSD 5m, legacy engine)",
+ "refusals": [
+  {
+   "candle_open_utc": "2026-11-12T05:00:00Z",
+   "processed_at": "2026-11-12T05:05:05.211Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 83.17,
+   "planned_stop": 83.37,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    83.35,
+    82.75
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T05:40:00Z",
+   "processed_at": "2026-11-12T05:45:05.642Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 83.12,
+   "planned_stop": 83.37,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    83.35,
+    82.57
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T06:25:00Z",
+   "processed_at": "2026-11-12T06:30:09.993Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 83.12,
+   "planned_stop": 83.37,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": null,
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T07:20:00Z",
+   "processed_at": "2026-11-12T07:25:05.351Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 83.07,
+   "planned_stop": 83.37,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    83.35,
+    82.41
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T12:15:00Z",
+   "processed_at": "2026-11-12T12:20:05.175Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 83,
+   "planned_stop": 83.42,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    83.4,
+    82.04
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T12:50:00Z",
+   "processed_at": "2026-11-12T12:55:05.156Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 82.99,
+   "planned_stop": 83.42,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    83.4,
+    82.01
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T13:35:00Z",
+   "processed_at": "2026-11-12T13:40:05.329Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 82.55,
+   "planned_stop": 83.43,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    83.4,
+    80.51
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T14:50:00Z",
+   "processed_at": "2026-11-12T14:55:05.180Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 82.51,
+   "planned_stop": 83.44,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    83.4,
+    80.37
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-12T17:40:00Z",
+   "processed_at": "2026-11-12T17:45:05.202Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 81.82,
+   "planned_stop": 82.18,
+   "requested_qty": null,
+   "capital_usd": 10,
+   "swing": [
+    82.15,
+    81.04
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-13T01:05:00Z",
+   "processed_at": "2026-11-13T01:10:05.183Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 81.49,
+   "planned_stop": 81.74,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    81.72,
+    80.95
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-13T03:45:00Z",
+   "processed_at": "2026-11-14T03:08:58.482Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 80.72,
+   "planned_stop": 81.64,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    81.6,
+    78.6
+   ],
+   "catch_up": true
+  },
+  {
+   "candle_open_utc": "2026-11-13T04:15:00Z",
+   "processed_at": "2026-11-14T03:08:58.487Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 80.49,
+   "planned_stop": 81.64,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    81.6,
+    77.85
+   ],
+   "catch_up": true
+  },
+  {
+   "candle_open_utc": "2026-11-13T16:00:00Z",
+   "processed_at": "2026-11-14T03:09:00.120Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 80.83,
+   "planned_stop": 81.75,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    81.71,
+    78.71
+   ],
+   "catch_up": true
+  },
+  {
+   "candle_open_utc": "2026-11-13T22:40:00Z",
+   "processed_at": "2026-11-14T03:09:01.387Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 79.71,
+   "planned_stop": 80.5,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    80.47,
+    77.9
+   ],
+   "catch_up": true
+  },
+  {
+   "candle_open_utc": "2026-11-13T23:25:00Z",
+   "processed_at": "2026-11-14T03:09:01.503Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 79.48,
+   "planned_stop": 80.5,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    80.47,
+    77.11
+   ],
+   "catch_up": true
+  },
+  {
+   "candle_open_utc": "2026-11-14T02:55:00Z",
+   "processed_at": "2026-11-14T03:09:02.467Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 77.4,
+   "planned_stop": 78.46,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    78.42,
+    74.96
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T03:55:00Z",
+   "processed_at": "2026-11-14T04:00:05.212Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 77.36,
+   "planned_stop": 78.46,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    78.42,
+    74.82
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T04:25:00Z",
+   "processed_at": "2026-11-14T04:30:05.171Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 77.33,
+   "planned_stop": 78.46,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    78.42,
+    74.74
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T07:10:00Z",
+   "processed_at": "2026-11-14T07:15:05.166Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 75.83,
+   "planned_stop": 76.07,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    76.05,
+    75.29
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T07:45:00Z",
+   "processed_at": "2026-11-14T07:50:05.294Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 75.71,
+   "planned_stop": 76.07,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    76.05,
+    74.9
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T13:55:00Z",
+   "processed_at": "2026-11-14T14:00:05.171Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 75.64,
+   "planned_stop": 75.91,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": null,
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T14:55:00Z",
+   "processed_at": "2026-11-14T15:00:05.150Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 75.24,
+   "planned_stop": 75.93,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    75.89,
+    73.68
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T15:55:00Z",
+   "processed_at": "2026-11-14T16:00:05.166Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 75.07,
+   "planned_stop": 75.93,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    75.89,
+    73.1
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T17:10:00Z",
+   "processed_at": "2026-11-14T17:15:05.177Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 74.7,
+   "planned_stop": 75.94,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    75.89,
+    71.84
+   ],
+   "catch_up": false
+  },
+  {
+   "candle_open_utc": "2026-11-14T21:40:00Z",
+   "processed_at": "2026-11-14T21:45:25.833Z",
+   "side": "SHORT",
+   "code": "SHORT_NOT_ALLOWED",
+   "reason": "funded PAPER is long-only: no short selling",
+   "planned_limit": 71.36,
+   "planned_stop": 72.56,
+   "requested_qty": null,
+   "capital_usd": 9.968321,
+   "swing": [
+    72.51,
+    68.61
+   ],
+   "catch_up": false
+  }
+ ]
+}
