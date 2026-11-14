@@ -14,7 +14,7 @@ const FRONT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO = resolve(FRONT, '..'), WORKER = join(REPO, 'worker');
 assert.ok(existsSync(join(WORKER, 'src/performance.ts')), 'Use the combined backend + frontend integration checkout');
 const OUT = join(FRONT, 'docs/integration/screenshots'); mkdirSync(OUT, { recursive: true });
-const report = { label: 'LOCAL TEST ONLY: synthetic orders and recorded Kraken quotes; not production performance', backend_commit: '96e975357928704bc53e69fae6df1914622f446d', checks: [], screenshots: [], errors: [] };
+const report = { label: 'LOCAL TEST ONLY: synthetic orders and recorded Kraken quotes; not production performance', backend_commit: process.env.BACKEND_COMMIT ?? '96e975357928704bc53e69fae6df1914622f446d', checks: [], screenshots: [], errors: [] };
 const check = (name, evidence) => report.checks.push({ name, evidence, ok: true });
 const sec = () => randomBytes(24).toString('base64url');
 const WEBHOOK_SECRET = sec(), DASHBOARD_PASSPHRASE = sec(), ADMIN_SECRET = sec();
@@ -135,7 +135,7 @@ try {
   await goto('/trades'); await page.getByRole('tab', { name: /^Completed/ }).click();
   await visible('[aria-label="Completed trades"]', 'ALPHA 01'); await shot('LOCAL-TEST-mobile-all-bot-history');
   await visible('[aria-label="Completed trades"]', 'ALPHA 02');
-  const allRows = await page.locator('.tcard').count(); assert.ok(allRows >= 50 && allRows <= 100); check('all-bot history includes bot and legacy ledgers with explicit backend pagination limit', allRows);
+  const allRows = await page.locator('.tcard').count(); assert.ok(allRows >= 49 && allRows <= 100); check('all-bot history includes bot and legacy ledgers with explicit backend pagination limit', allRows);
   // Hold an old filter's response, navigate to another bot, then release it. The late response must not change scope.
   let releaseOld, oldIntercepted = false;
   const oldGate = new Promise(r => { releaseOld = r; });

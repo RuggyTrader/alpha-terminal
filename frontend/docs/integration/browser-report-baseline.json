@@ -1,0 +1,242 @@
+{
+  "label": "LOCAL TEST ONLY: synthetic orders and recorded Kraken quotes; not production performance",
+  "backend_commit": "96e975357928704bc53e69fae6df1914622f446d",
+  "checks": [
+    {
+      "name": "authentic integrated lifetime aggregate exceeds recent-row cap",
+      "evidence": {
+        "backend_closed_trades": 207,
+        "legacy_rows": 1,
+        "sample_sources": "synthetic local TEST orders, recorded Kraken ticker quotes"
+      },
+      "ok": true
+    },
+    {
+      "name": "Home uses complete account lifetime count",
+      "evidence": 207,
+      "ok": true
+    },
+    {
+      "name": "complete lifetime headlines retained while bounded history is explicitly refused as a full account curve",
+      "evidence": true,
+      "ok": true
+    },
+    {
+      "name": "history range does not replace lifetime headline statistics",
+      "evidence": true,
+      "ok": true
+    },
+    {
+      "name": "per-bot lifetime count is 205 despite the bounded 50-row history",
+      "evidence": 205,
+      "ok": true
+    },
+    {
+      "name": "all-bot history includes bot and legacy ledgers with explicit backend pagination limit",
+      "evidence": 50,
+      "ok": true
+    },
+    {
+      "name": "late response from previous bot filter cannot overwrite current scope",
+      "evidence": true,
+      "ok": true
+    },
+    {
+      "name": "filtered trade refresh shows a newly settled order without navigation",
+      "evidence": true,
+      "ok": true
+    },
+    {
+      "name": "failed refresh retains correctly scoped prior records and labels stale",
+      "evidence": true,
+      "ok": true
+    },
+    {
+      "name": "bot-only close refreshes account performance without a legacy close",
+      "evidence": 208,
+      "ok": true
+    },
+    {
+      "name": "reduced filled quantity and requested quantity shown from actual order and position evidence",
+      "evidence": 0.1,
+      "ok": true
+    },
+    {
+      "name": "chart reset, fit-level toggle and full-screen controls",
+      "evidence": true,
+      "ok": true
+    },
+    {
+      "name": "legacy trade chart link uses numeric proof id, not engine alert id",
+      "evidence": 1,
+      "ok": true
+    },
+    {
+      "name": "aged bot market marks explicitly label stale account equity",
+      "evidence": true,
+      "ok": true
+    },
+    {
+      "name": "missing bot mark yields unavailable account equity instead of zero",
+      "evidence": true,
+      "ok": true
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "LOCAL-TEST-mobile-home-light.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-mobile-performance.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-mobile-bot-performance.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-mobile-all-bot-history.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-mobile-stale-filter.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": true
+    },
+    {
+      "name": "LOCAL-TEST-mobile-trade-proof.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": true
+    },
+    {
+      "name": "LOCAL-TEST-mobile-chart.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": true
+    },
+    {
+      "name": "LOCAL-TEST-mobile-portfolio.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-mobile-bots.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": true
+    },
+    {
+      "name": "LOCAL-TEST-mobile-stale-marks.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-mobile-equity-unavailable.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-desktop-performance.jpg",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "document_width": 1440,
+      "body_width": 1440,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-desktop-dark-performance.jpg",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "document_width": 1440,
+      "body_width": 1440,
+      "full_page": false
+    },
+    {
+      "name": "LOCAL-TEST-mobile-home-dark.jpg",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "document_width": 402,
+      "body_width": 402,
+      "full_page": false
+    }
+  ],
+  "errors": [],
+  "history_api": [
+    {
+      "path": "/api/dashboard/bot-trades?limit=5000",
+      "status": 500,
+      "code": "DASHBOARD_QUERY_FAILED",
+      "message": "D1_ERROR: too many SQL variables at offset 265: SQLITE_ERROR"
+    },
+    {
+      "path": "/api/dashboard/bot-trades?bot=ALPHA-02&limit=50",
+      "status": 200,
+      "rows": 0
+    }
+  ],
+  "ok": true
+}

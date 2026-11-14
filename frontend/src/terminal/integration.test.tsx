@@ -95,4 +95,12 @@ describe("history compatibility", () => {
       expect(get.mock.calls.map(c => c[0])).toEqual(["/api/dashboard/bot-trades?bot=ALPHA-02&limit=50", "/api/dashboard/trades?limit=50"]);
     } finally { get.mockRestore(); }
   });
+  it("trusts the repaired paginated backend without adding fallback rows outside its page", async () => {
+    const { vi } = await import("vitest"); const { api } = await import("../api/client"); const { fetchBotTrades } = await import("./botTrades");
+    const get = vi.spyOn(api, "get").mockResolvedValueOnce({ ok: true, data: { available: true, trades: [], orders: [], signals: [], page: { limit: 50, returned: 0, total: 0, truncated: false } } })
+      .mockResolvedValueOnce({ ok: true, data: [{ id: 17, source: "ALPHA_PAPER", open_alert_id: "ENG-SOLUSD-5-TEST-BUY", entry_qty: "0.1", entry_avg_price: "80", direction: "long", status: "CLOSED", symbol: "SOLUSD" }] });
+    try { expect((await fetchBotTrades({ bot: "ALPHA-02" })).trades).toEqual([]); }
+    finally { get.mockRestore(); }
+  });
+
 });

@@ -1,19 +1,19 @@
 > alpha-terminal-frontend@1.2.0 test
 > vitest run --run
  RUN  v2.1.8 /workspace/scratch/6f9b4744f52e/alpha-integration/frontend
- ✓ src/terminal/home.test.tsx (26 tests) 65ms
- ✓ src/terminal/bots.test.tsx (20 tests) 48ms
- ✓ src/terminal/mirror.test.tsx (13 tests) 61ms
- ✓ src/terminal/trades-sync.test.tsx (12 tests) 125ms
- ✓ src/terminal/verified.test.tsx (11 tests) 71ms
- ✓ src/terminal/costs.test.tsx (11 tests) 102ms
- ✓ src/lib/derive.test.ts (11 tests) 7ms
- ✓ src/terminal/story.test.tsx (13 tests) 36ms
- ✓ src/terminal/filters.test.tsx (9 tests) 36ms
- ✓ src/terminal/integration.test.tsx (14 tests) 38ms
- ✓ src/terminal/portfolio.test.tsx (12 tests) 73ms
- ✓ src/terminal/terminal.test.tsx (58 tests) 209ms
+ ✓ src/terminal/home.test.tsx (26 tests) 77ms
+ ✓ src/terminal/trades-sync.test.tsx (12 tests) 143ms
+ ✓ src/terminal/mirror.test.tsx (13 tests) 95ms
+ ✓ src/terminal/bots.test.tsx (20 tests) 54ms
+ ✓ src/terminal/verified.test.tsx (11 tests) 101ms
+ ✓ src/terminal/costs.test.tsx (11 tests) 106ms
+ ✓ src/lib/derive.test.ts (11 tests) 8ms
+ ✓ src/terminal/story.test.tsx (13 tests) 31ms
+ ✓ src/terminal/integration.test.tsx (15 tests) 50ms
+ ✓ src/terminal/filters.test.tsx (9 tests) 38ms
+ ✓ src/terminal/portfolio.test.tsx (12 tests) 77ms
+ ✓ src/terminal/terminal.test.tsx (58 tests) 214ms
  Test Files  12 passed (12)
-      Tests  210 passed (210)
-   Start at  19:40:57
-   Duration  2.30s (transform 3.01s, setup 0ms, collect 6.68s, tests 871ms, environment 2ms, prepare 850ms)
+      Tests  211 passed (211)
+   Start at  19:48:14
+   Duration  2.13s (transform 3.18s, setup 0ms, collect 7.00s, tests 994ms, environment 2ms, prepare 964ms)

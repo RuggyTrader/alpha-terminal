@@ -1,6 +1,6 @@
 {
   "label": "LOCAL TEST ONLY: synthetic orders and recorded Kraken quotes; not production performance",
-  "backend_commit": "96e975357928704bc53e69fae6df1914622f446d",
+  "backend_commit": "5f93ea2cfdb5c8bfc03223286f51a7d68982bcb7",
   "checks": [
     {
       "name": "authentic integrated lifetime aggregate exceeds recent-row cap",
@@ -33,7 +33,7 @@
     },
     {
       "name": "all-bot history includes bot and legacy ledgers with explicit backend pagination limit",
-      "evidence": 50,
+      "evidence": 49,
       "ok": true
     },
     {
@@ -228,14 +228,13 @@
   "history_api": [
     {
       "path": "/api/dashboard/bot-trades?limit=5000",
-      "status": 500,
-      "code": "DASHBOARD_QUERY_FAILED",
-      "message": "D1_ERROR: too many SQL variables at offset 265: SQLITE_ERROR"
+      "status": 200,
+      "rows": 208
     },
     {
       "path": "/api/dashboard/bot-trades?bot=ALPHA-02&limit=50",
       "status": 200,
-      "rows": 0
+      "rows": 1
     }
   ],
   "ok": true

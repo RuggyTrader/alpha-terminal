@@ -60,7 +60,7 @@ export async function fetchBotTrades(f: { bot?: string | null; signal?: string |
   ]);
   if (!env?.ok || !env.data) throw new ApiError(502, env?.code ?? "BAD_RESPONSE", env?.message ?? "Unexpected bot trades response");
   if (legacy && (!legacy.ok || !Array.isArray(legacy.data))) throw new ApiError(502, "BAD_RESPONSE", "Legacy history unavailable");
-  const combined = [...env.data.trades, ...legacyHistoryRows(legacy?.data ?? [], f)];
+  const combined = [...env.data.trades, ...(!env.data.page ? legacyHistoryRows(legacy?.data ?? [], f) : [])];
   const trades = [...new Map(combined.map(t => [`${t.ledger}:${t.trade_id}`, t])).values()].sort((a, b) => b.opened_at.localeCompare(a.opened_at));
   return { ...env.data, trades };
 }

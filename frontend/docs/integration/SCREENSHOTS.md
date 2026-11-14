@@ -1,6 +1,6 @@
 # Mobile and desktop evidence
 
-LOCAL TEST only: synthetic orders, recorded Kraken fixture quotes. No production performance is shown. All 14 captures passed horizontal-overflow assertions; 15 browser checks passed with no runtime exceptions.
+LOCAL TEST only: synthetic orders, recorded Kraken fixture quotes. No production performance is shown. Captured against backend `5f93ea2cfdb5c8bfc03223286f51a7d68982bcb7`. All 14 captures passed horizontal-overflow assertions; 15 browser checks passed with no runtime exceptions.
 
 | Screenshot | Viewport |
 |---|---|
