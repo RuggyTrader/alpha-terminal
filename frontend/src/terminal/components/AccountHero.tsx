@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { clock, NA, pct, signedMoney, tone } from "../fmt";
-import { computeMetrics } from "../performance";
+import { headlineMetrics } from "../performance";
 import { AnimatedNumber, useFlash } from "../motion";
 import type { FeedState } from "../poller";
 import type { VerifiedState } from "../useVerified";
@@ -53,7 +53,9 @@ export interface HeroScope { label: string; value: number | null; strip: { k: st
 export function AccountHero({ state, verified, reconnected = false, now = Date.now(), scope = null }: { state: FeedState; verified: VerifiedState; reconnected?: boolean; now?: number; scope?: HeroScope | null }) {
   const d = state.data;
   const funded = d?.portfolio?.active ? d.portfolio.totals.net_funding_usd : null;
-  const m = verified.data ? computeMetrics(verified.data.trades, "ALL", now, funded) : null;
+  // Lifetime figures from the Worker's complete aggregate (every closed legacy AND bot-ledger trade), never from a page.
+  const h = headlineMetrics(verified.data, now, funded);
+  const m = h?.m ?? null;
   const loading = (state.status === "loading" && !d) || (verified.status === "loading" && !!d);
   const pnlText = m ? signedMoney(m.totalPnl) : "";
   const flash = useFlash(m ? m.totalPnl : null);
@@ -70,7 +72,7 @@ export function AccountHero({ state, verified, reconnected = false, now = Date.n
       </div>
 
       <div className="hero-main">
-        <div className="hero-label">{scope ? scope.label : "FUNDED PAPER · VERIFIED P&L"}</div>
+        <div className="hero-label">{scope ? scope.label : "FUNDED PAPER · LIFETIME · VERIFIED P&L"}</div>
         {scope ? (
           <div className="hero-value-wrap">
             <span className={`hero-value ${heroSize(scope.value === null ? NA : signedMoney(scope.value))} ${scope.value === null ? "na" : `t-hero-${tone(scope.value)}`}`}>{scope.value === null ? NA : signedMoney(scope.value)}</span>
@@ -91,6 +93,7 @@ export function AccountHero({ state, verified, reconnected = false, now = Date.n
           {m && m.returnPct !== null ? <span className={`t-hero-${tone(m.returnPct)}`}>{pct(m.returnPct)}</span> : <span className="na">{NA}</span>}
           {m && m.returnPct === null && !loading ? <span className="hero-note">no PAPER capital funded</span> : null}
         </div></>)}
+        {!scope && h && !h.complete ? <div className="hero-note">Partial: the Worker returned only part of the history.</div> : null}
         {!scope && !loading && !m ? (
           <div className="hero-err m-fade">{verified.status === "unsupported" ? "Verified history not provided by this backend yet" : verified.error ?? "Verified history unavailable"}</div>
         ) : null}

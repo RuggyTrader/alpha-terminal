@@ -131,6 +131,9 @@ export function humanReason(code: string | null | undefined, ctx: { available?: 
     case "NO_CAPITAL": return "This bot has no available PAPER capital.";
     case "MAX_ORDER_NOTIONAL": case "MAX_TOTAL_EXPOSURE": case "MAX_OPEN_POSITIONS": case "EXPOSURE_LIMIT": return "The order would exceed one of the account's safety limits, so it was refused.";
     case "BOT_ENTRIES_PAUSED": return "New entries are paused for this bot by the owner; open positions are still managed.";
+    case "BOT_PROFILE_MISMATCH": return "The order came from an engine whose strategy settings do not match this bot's registered original profile, so no new entry was opened. (A close is still accepted so a position is never trapped.)";
+    case "BOT_SHORTFALL": return "This bot has an unpaid loss (shortfall) from an earlier trade. New entries and resuming stay blocked until it is settled; MAIN never covers it automatically.";
+    case "CONCURRENT_ORDER": return "The account changed at the same moment (another order, a slot or a pause), so nothing was committed. The engine retries with the same order id.";
     case "SIGNAL_EXPIRED": return "The signal was not delivered in time (the engine was catching up), so it was not sent at a later, different price.";
     default: return null;
   }

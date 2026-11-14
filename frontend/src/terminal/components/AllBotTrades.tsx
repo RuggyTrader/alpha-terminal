@@ -35,6 +35,9 @@ const HEADLINE: Record<string, string> = {
   STALE_PRICE: "Market price too old to size the order",
   NO_CAPITAL: "No PAPER capital allocated to this bot",
   SIGNAL_EXPIRED: "Signal arrived too late",
+  BOT_PROFILE_MISMATCH: "Strategy settings do not match the bot's original profile",
+  BOT_SHORTFALL: "Bot has an unpaid shortfall",
+  CONCURRENT_ORDER: "Account changed at the same moment; nothing committed",
 };
 export function refusalText(code: string, message: string | null): string {
   const head = HEADLINE[code];

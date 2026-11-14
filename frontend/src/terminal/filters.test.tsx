@@ -91,19 +91,3 @@ describe("bot trade proof page", () => {
   });
 });
 
-import { mergeFunded } from "./fundedTrades";
-import { computeMetrics } from "./performance";
-describe("Home funded set: legacy ledger + bot ledger, never twice, never the mirror", () => {
-  it("adds closed bot-ledger trades; legacy rows from bot-trades and open trades are not added", () => {
-    const legacy = { id: 7, symbol: "SOLUSD", direction: "long", strategy: null, realized_pnl: 1.5, return_pct: null, cost_basis: 10, opened_at: "2026-11-10T00:00:00Z", closed_at: "2026-11-10T01:00:00Z", price_sources: null };
-    const v = { status: "ok" as const, data: { verification: "v", trades: [legacy], truncated: false, excluded_closed_trades: 0 }, error: null };
-    const row = (o: Record<string, unknown>) => ({ trade_id: "T", bot_id: "ALPHA-01", ledger: "bot", symbol: "SOLUSD", side: "LONG", status: "CLOSED", qty: 1, entry_price: 80, exit_price: 81,
-      opened_at: "2026-11-11T00:00:00Z", closed_at: "2026-11-11T00:10:00Z", gross_usd: 1, fees_usd: 0.322, net_usd: 0.678, swept_usd: 0.678, stop: null, tp: null, proof_url: "/bots/trade/T", ...o }) as never;
-    const merged = mergeFunded(v, [row({}), row({ trade_id: "L", ledger: "legacy", net_usd: 1.5 }), row({ trade_id: "O", status: "OPEN", net_usd: null })]);
-    expect(merged.data!.trades.map((t) => t.id)).toEqual([7, -1]);
-    const m = computeMetrics(merged.data!.trades, "ALL", Date.parse("2026-11-12T00:00:00Z"), null);
-    expect(m.trades).toBe(2);
-    expect(m.totalPnl).toBeCloseTo(2.18);
-    expect(mergeFunded(v, null)).toBe(v);
-  });
-});

@@ -342,7 +342,12 @@ export interface PaperWallet {
   net_funding_usd: number;
   unrealized_pnl_usd: number | null;
   book_balance_usd: number;
+  /** Cash + reserved + last recorded unrealized P&L − unpaid shortfall; null when a position has no recorded mark. */
   equity_usd: number | null;
+  /** Recorded unpaid liability (never funded automatically from MAIN). Absent on older Workers. */
+  shortfall_usd?: number;
+  /** Wallet-paid realized P&L − fees − unpaid shortfall. Absent on older Workers. */
+  economic_net_realized_pnl_usd?: number;
   open_positions: number;
   updated_at: string;
 }
@@ -391,6 +396,10 @@ export interface PaperPortfolio {
     net_realized_pnl_usd?: number;
     net_funding_usd: number;
     unrealized_pnl_usd: number | null;
+    /** Backend 2026-11-13 (absent on older Workers): see PaperWallet. equity_usd is null when any mark is missing. */
+    equity_usd?: number | null;
+    shortfall_usd?: number;
+    economic_net_realized_pnl_usd?: number;
   };
   consistency: { ok: boolean; issues: string[] };
   history: PortfolioEntry[];
@@ -435,10 +444,24 @@ export interface VerifiedTrade {
   cost_profile?: string | null;
 }
 
+/** GET /api/dashboard/performance → data.lifetime (backend 2026-11-13): the COMPLETE account-level funded PAPER aggregate,
+ *  computed by the Worker over every closed ALPHA PAPER legacy trade and every closed bot-ledger position (no row limit).
+ *  Excludes Mirror, open trades and internal transfers. Absent on older Workers. */
+export interface LifetimePerformance {
+  scope: string; bot_id: string | null; complete: boolean;
+  closed_trades: number; wins: number; losses: number; break_even: number;
+  gross_usd: number; fees_usd: number; net_usd: number;
+  win_rate: number | null; expectancy_usd: number | null; profit_factor: number | null;
+  max_drawdown_usd: number; drawdown_basis: string;
+  first_close: string | null; last_close: string | null;
+}
+
 export interface PerformanceData {
   verification: string;
+  /** The LEGACY ALPHA PAPER ledger's closed trades (capped at 5,000). Not the account-wide scope: see `lifetime`. */
   trades: VerifiedTrade[];
   truncated: boolean;
+  lifetime?: LifetimePerformance;
   /** Closed trades from other sources (not the ALPHA PAPER ledger), never counted. */
   excluded_closed_trades: number;
 }

@@ -83,6 +83,7 @@ export function TradeStoryCard({ v, defaultOpen = false }: { v: TradeView; defau
             <div><span>Target (TP2)</span><b>{px(pl.tp2)}</b></div>
             <div><span>Risk · reward</span><b>{f.risk === null ? NA : money(f.risk)} · {f.reward === null ? NA : money(f.reward)}</b>{f.rr ? <i>{f.rr.toFixed(2)} : 1 at this quantity</i> : null}</div>
           </div>
+          <p className="tc-note">The planned entry is the strategy's limit level. The PAPER ledger records the fill at the Kraken reference price when the order arrives; it is not an exchange limit order.</p>
         </section>
       ) : null}
       <div className="tc-actions">

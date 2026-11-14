@@ -2,7 +2,7 @@
 // Pure functions: nothing here estimates, extrapolates or fills gaps. A metric that the evidence cannot
 // support is null and shown as N/A. Engine-internal simulations and backtests never enter these numbers.
 
-import type { VerifiedTrade } from "./types";
+import type { LifetimePerformance, PerformanceData, VerifiedTrade } from "./types";
 
 export type Range = "1D" | "1W" | "1M" | "ALL";
 export const RANGES: Range[] = ["1D", "1W", "1M", "ALL"];
@@ -15,6 +15,25 @@ export interface CurvePoint {
   t: number;
   equity: number; // cumulative verified realized P&L since the start of the range
   tradeId: number | null;
+}
+
+/** The Worker's complete lifetime aggregate in the Metrics shape used by the hero and the metrics grids. It has no
+ *  per-trade curve (the aggregate carries none): `curve` is empty, and any curve shown beside it must say its own coverage. */
+export function lifetimeMetrics(l: LifetimePerformance, fundedCapital: number | null): Metrics {
+  return {
+    trades: l.closed_trades, wins: l.wins, losses: l.losses, totalPnl: l.net_usd,
+    returnPct: fundedCapital !== null && fundedCapital > 0 ? (l.net_usd / fundedCapital) * 100 : null,
+    winRate: l.win_rate === null ? null : l.win_rate * 100, profitFactor: l.profit_factor,
+    expectancy: l.expectancy_usd === null ? null : round2(l.expectancy_usd), maxDrawdown: l.closed_trades ? round2(l.max_drawdown_usd) : null, curve: [],
+  };
+}
+
+/** Headline funded metrics: the complete lifetime aggregate when the Worker provides it; otherwise (older Worker) the
+ *  legacy list, which is then all the ledger there is (no bot ledger before migration 0007). */
+export function headlineMetrics(data: PerformanceData | null, now: number, fundedCapital: number | null): { m: Metrics; complete: boolean } | null {
+  if (!data) return null;
+  if (data.lifetime) return { m: lifetimeMetrics(data.lifetime, fundedCapital), complete: data.lifetime.complete };
+  return { m: computeMetrics(data.trades, "ALL", now, fundedCapital), complete: !data.truncated };
 }
 
 export interface Metrics {

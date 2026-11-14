@@ -199,7 +199,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
     s.setMarkers([]); // A former open trade must not leave a marker on a pending order.
     if (lv) {
       const add = (price: number | null, color: string, title: string, style = 0) => { if (price !== null && Number.isFinite(price)) lines.push(s.createPriceLine({ price, color, lineWidth: 2, lineStyle: style, axisLabelVisible: true, title })); };
-      add(lv.entry, "#f08c00", lv.kind === "pending" ? "Limit" : "Entry", lv.kind === "pending" ? 2 : 0);
+      add(lv.entry, "#f08c00", lv.kind === "pending" ? "Planned limit" : "Entry", lv.kind === "pending" ? 2 : 0);
       add(lv.stop, "#d64545", lv.kind === "position" && lv.stop !== lv.initialStop ? "Stop (moved)" : "Stop");
       if (lv.kind === "position" && lv.initialStop !== null && lv.initialStop !== lv.stop) add(lv.initialStop, "rgba(214,69,69,0.45)", "Initial stop", 2);
       add(lv.tp, "#1f9d55", "Target");
@@ -246,7 +246,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
         <section className="card">
           <SectionHeader title={lv.kind === "pending" ? "Pending limit order" : `Open PAPER ${lv.side}`} sub={`${bot.bot_id} · ${bot.profile} · config ${bot.inputs_hash}`} />
           <div className="sizing-grid">
-            <div><span>{lv.kind === "pending" ? "Limit" : "Entry"}</span><b>{lv.entry ?? NA}</b></div>
+            <div><span>{lv.kind === "pending" ? "Planned limit" : "Entry (filled)"}</span><b>{lv.entry ?? NA}</b></div>
             <div><span>{lv.kind === "position" ? "Stop (current)" : "Stop"}</span><b>{lv.stop ?? NA}</b></div>
             {lv.kind === "position" ? <div><span>Initial stop</span><b>{lv.initialStop ?? NA}</b></div> : null}
             <div><span>Target</span><b>{lv.tp ?? NA}</b></div>
@@ -265,7 +265,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
           {lv.kind === "pending" && bot.engine?.strategy_state?.pending_order ? (() => { const po = bot.engine.strategy_state.pending_order;
             const conf = (po.confluence ?? []).map((t) => CONFLUENCE[t] ?? t);
             return <p className="sizing-note"><b>Why:</b> {po.side} OTE limit at the 70.5% retracement{po.ote_705 !== null && po.ote_705 !== undefined ? ` (${po.ote_705})` : ""} of the {po.side === "LONG" ? "bullish" : "bearish"} swing {bot.engine.strategy_state.leg_start} → {bot.engine.strategy_state.leg_end}{conf.length ? `, with ${conf.join(" and ")} confluence` : ""}{po.score !== null && po.score !== undefined ? ` (score ${po.score})` : ""}{po.placed_at ? `; placed ${stamp(po.placed_at)}` : ""}{bot.engine.strategy_state.setup_bars !== null && bot.engine.strategy_state.max_age_bars ? `; setup valid for ${Math.max(0, bot.engine.strategy_state.max_age_bars - bot.engine.strategy_state.setup_bars)} more candles` : ""}.</p>; })() : null}
-          <p className="sizing-note">{lv.tradeId ? `Trade ${lv.tradeId} · opened ${stamp(lv.openedAt!)} · ` : ""}Fee estimates use the Ndax-equivalent 0.20% per fill. Unrealized figures are estimates at the last completed candle, not realized profit. A stop does not guarantee the loss (gaps, fees).</p>
+          <p className="sizing-note">{lv.kind === "pending" ? "A pending order is the engine's plan, not a reserved exchange order. If it fills, the PAPER ledger records the Kraken reference price when the engine's order arrives, which can differ from the planned limit. " : ""}{lv.tradeId ? `Trade ${lv.tradeId} · opened ${stamp(lv.openedAt!)} · ` : ""}Fee estimates use the Ndax-equivalent 0.20% per fill. Unrealized figures are estimates at the last completed candle, not realized profit. A stop does not guarantee the loss (gaps, fees).</p>
         </section>
       ); })() : trade ? (
         <section className="card" aria-label="This trade">

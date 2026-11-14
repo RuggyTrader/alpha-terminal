@@ -19,7 +19,7 @@ const { createBotTradesStore, ledgerSignature, BOT_TRADES_LIMIT } = await vi.imp
 const { allBotRecords, refusalText } = await import("./components/AllBotTrades");
 const { BotPerformanceView } = await import("./components/BotTradesView");
 const { fromBotTrade } = await import("./tradeStory");
-const { fundedState } = await import("./fundedTrades");
+const { headlineMetrics, lifetimeMetrics } = await import("./performance");
 
 const paper = (o: Partial<Bot["paper"]> = {}): Bot["paper"] => ({ trades: 0, long_trades: 0, short_trades: 0, wins: 0, losses: 0, break_even: 0, gross_usd: 0, fees_usd: 0, net_usd: 0,
   win_rate: null, profit_factor: null, expectancy_usd: null, max_drawdown_usd: 0, ...o });
@@ -161,19 +161,55 @@ describe("C: lifetime performance is never computed from a page of 200 rows", ()
   });
 });
 
-describe("Home funded totals never silently leave out the bot ledger", () => {
-  const verified = { status: "ok", data: { trades: [], verification: "v" }, error: null } as never;
-  it("a failed or truncated bot-ledger read makes the totals unavailable, with the reason", () => {
-    const failed = fundedState(verified, { rows: null, problem: "the bot-ledger trades could not be loaded (D1_ERROR: too many SQL variables)" });
-    expect(failed.status).toBe("error");
-    expect(failed.data).toBeNull();
-    expect(failed.error).toContain("too many SQL variables");
-    const cut = fundedState(verified, { rows: null, problem: "the Worker returned 50 of 60 bot-ledger trades" });
-    expect(cut.error).toContain("50 of 60");
+describe("Home headline = the Worker's complete lifetime aggregate, never a page", () => {
+  // Shape from docs/backend/API-2026-11-13.md (a labelled TEST fixture: 5,002 legacy trades + 1 bot trade).
+  const lifetime = { scope: "all-funded-paper", bot_id: null, complete: true, closed_trades: 5003, wins: 2502, losses: 2501, break_even: 0, gross_usd: 3502.4, fees_usd: 1000.434,
+    net_usd: 2501.966, win_rate: 2502 / 5003, expectancy_usd: 2501.966 / 5003, profit_factor: 1.5, max_drawdown_usd: 1, drawdown_basis: "closed-trade", first_close: null, last_close: null };
+  it("uses lifetime (5,003 trades) even though the legacy list holds only 2 rows and is truncated", () => {
+    const legacyPage = [{ id: 1, realized_pnl: 9, closed_at: "2026-11-01T00:00:00Z" }, { id: 2, realized_pnl: 9, closed_at: "2026-11-02T00:00:00Z" }] as never;
+    const h = headlineMetrics({ verification: "v", trades: legacyPage, truncated: true, excluded_closed_trades: 0, lifetime } as never, Date.now(), 1000)!;
+    expect(h.complete).toBe(true);
+    expect(h.m.trades).toBe(5003);
+    expect(h.m.totalPnl).toBeCloseTo(2501.966);
+    expect(h.m.winRate).toBeCloseTo((2502 / 5003) * 100);
+    expect(h.m.returnPct).toBeCloseTo(250.1966);
+    expect(h.m.curve).toEqual([]); // the aggregate has no curve: none is invented
   });
-  it("a complete read is merged (bot-ledger closed trades added once)", () => {
-    const ok = fundedState(verified, { rows: [row({ trade_id: "A" }), row({ trade_id: "L", ledger: "legacy" })], problem: null });
-    expect(ok.status).toBe("ok");
-    expect((ok.data as { trades: unknown[] }).trades.length).toBe(1); // the legacy row is already in the verified set
+  it("an older Worker without lifetime falls back to its legacy list and says whether it is complete", () => {
+    const h = headlineMetrics({ verification: "v", trades: [], truncated: true, excluded_closed_trades: 0 } as never, Date.now(), null)!;
+    expect(h.complete).toBe(false);
+  });
+  it("no closed trade: zero trades, rates unavailable", () => {
+    const m = lifetimeMetrics({ ...lifetime, closed_trades: 0, wins: 0, losses: 0, net_usd: 0, win_rate: null, expectancy_usd: null, profit_factor: null, max_drawdown_usd: 0 }, null);
+    expect([m.trades, m.winRate, m.profitFactor, m.maxDrawdown, m.returnPct]).toEqual([0, null, null, null, null]);
+  });
+});
+
+describe("Capital card: equity, shortfall and mark age come from the Worker and the recorded marks", async () => {
+  const { walletSummary, markSummary } = await import("./components/WalletOverview");
+  const { executedSize } = await import("./pages/BotTradeProof");
+  const { humanReason } = await import("./tradeStory");
+  const base = { label: "", simulated: true, active: true, wallets: [], consistency: { ok: true, issues: [] }, history: [], strategies: {}, validated_engines: [], limits: {} } as never;
+  const totals = (o: object) => ({ ...(base as object), totals: { book_balance_usd: 1000, unallocated_usd: 0, available_usd: 960, reserved_usd: 40, realized_pnl_usd: 0, net_funding_usd: 1000, unrealized_pnl_usd: -5, ...o } }) as never;
+  it("uses the Worker's equity_usd (shortfall included), and null equity stays null (never zero)", () => {
+    expect(walletSummary(totals({ equity_usd: 994.92, shortfall_usd: 0 })).equity).toBeCloseTo(994.92);
+    expect(walletSummary(totals({ equity_usd: null })).equity).toBeNull();
+    expect(walletSummary(totals({ equity_usd: 990, shortfall_usd: 5 })).shortfall).toBe(5);
+    const older = { ...(totals({}) as object), wallets: [{ wallet: "SOLUSD", kind: "STRATEGY", unrealized_pnl_usd: -5, book_balance_usd: 1000 }] } as never;
+    expect(walletSummary(older).equity).toBeCloseTo(995); // older Worker without equity_usd: book + unrealized, as before
+  });
+  it("mark age: missing marks counted, stale past 5 minutes", () => {
+    const now = Date.parse("2026-11-13T12:00:00Z");
+    expect(markSummary([{ at: "2026-11-13T11:59:30Z" }], now)).toMatchObject({ count: 1, missing: 0, oldestSeconds: 30, stale: false });
+    expect(markSummary([{ at: "2026-11-13T11:50:00Z" }, { at: null }], now)).toMatchObject({ missing: 1, oldestSeconds: 600, stale: true });
+  });
+  it("filled vs requested quantity and the recorded reduction reason", () => {
+    const pos = { trade_id: "T1" } as never;
+    expect(executedSize({ position: pos, orders: [{ order_id: "T1", requested_qty: 0.5, message: "LONG 0.1 @ 80: purchase cost reserved; quantity reduced from 0.5 to 0.1 to keep planned stop risk within $2 at reference price 80" }] as never })).toEqual({ requested: 0.5, reason: expect.stringMatching(/stop risk/) });
+    expect(executedSize({ position: pos, orders: [{ order_id: "T1", requested_qty: 0.5, message: "quantity reduced from 0.5 to 0.2 to fit ALPHA-01's available $16 at the fill price 80" }] as never }).reason).toMatch(/available capital/);
+    expect(executedSize({ position: pos, orders: [] as never }).requested).toBeNull();
+  });
+  it("new refusal codes have plain explanations", () => {
+    for (const c of ["BOT_PROFILE_MISMATCH", "BOT_SHORTFALL", "CONCURRENT_ORDER"]) expect(humanReason(c)).toBeTruthy();
   });
 });

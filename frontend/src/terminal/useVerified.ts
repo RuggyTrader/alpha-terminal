@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { ApiError } from "../api/client";
 import { fetchPerformance } from "./api";
 import { useDash } from "./store";
+import { useFleet } from "./fleetStore";
+import { ledgerSignature } from "./botTrades";
 import type { PerformanceData } from "./types";
 
 export interface VerifiedState {
@@ -21,14 +23,17 @@ export function primeVerified(key: string, data: PerformanceData | null, status:
   cache = { key, value: { status, data, error: null } };
 }
 
-export function verifiedKey(closed: number, total: number): string {
-  return `${closed}|${total}`;
+/** Changes when the legacy ledger's closed-trade count changes OR a bot's trades change (fleet ledger signature), so the
+ *  lifetime aggregate refreshes after a bot-ledger close too. One small request per change, never a full download. */
+export function verifiedKey(closed: number, total: number, botLedger = ""): string {
+  return botLedger ? `${closed}|${total}|${botLedger}` : `${closed}|${total}`;
 }
 
 export function useVerified(): VerifiedState {
   const { state } = useDash();
   const c = state.data?.counts.trades;
-  const key = c ? verifiedKey(c.closed, c.total) : null;
+  const { fleet } = useFleet();
+  const key = c ? verifiedKey(c.closed, c.total, ledgerSignature(fleet)) : null;
   const [v, setV] = useState<VerifiedState>(() => (key && cache?.key === key ? cache.value : LOADING));
 
   useEffect(() => {

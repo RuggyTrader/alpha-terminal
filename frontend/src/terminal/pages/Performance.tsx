@@ -6,7 +6,7 @@ import { AlphaPaperPerformance } from "../components/AlphaPaperPerformance";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { costMoney, NA, money, pct, signedMoney, tone, when } from "../fmt";
 import type { VerifiedTrade } from "../types";
-import { computeMetrics, MIN_CURVE_TRADES, profitFactorNote, RANGES, type CurvePoint, type Metrics, type Range } from "../performance";
+import { computeMetrics, lifetimeMetrics, MIN_CURVE_TRADES, profitFactorNote, RANGES, type CurvePoint, type Metrics, type Range } from "../performance";
 import { useDash } from "../store";
 import { useVerified } from "../useVerified";
 
@@ -106,7 +106,11 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
   const d = state.data;
   const funded = d?.portfolio?.active ? d.portfolio.totals.net_funding_usd : null;
   const balance = d?.portfolio?.active ? d.portfolio.totals.book_balance_usd : null;
-  const m = v.data ? computeMetrics(v.data.trades, range, now, funded) : null;
+  // `list` = the LEGACY ledger's closed trades (capped list): it feeds the date ranges, the curve and the trade list, each
+  // labelled with that coverage. "ALL" headline figures use the Worker's complete lifetime aggregate (every funded trade).
+  const list = v.data ? computeMetrics(v.data.trades, range, now, funded) : null;
+  const life = v.data?.lifetime ?? null;
+  const m = range === "ALL" && life ? lifetimeMetrics(life, funded) : list;
   const idx = RANGES.indexOf(range);
   const engineSim = d?.bot?.status?.trades ?? null;
   const [params] = useSearchParams();
@@ -140,27 +144,30 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
         ) : (
           <>
             <section className="card dark-card" aria-label="Verified metrics">
-              <SectionHeader title={range === "ALL" ? "All verified trades" : `Last ${range}`} right={<StatusBadge tone="ok">VERIFIED PAPER</StatusBadge>} />
+              <SectionHeader title={range === "ALL" ? (life ? "Lifetime · every funded trade" : "All verified trades") : `Last ${range}`}
+                sub={range === "ALL" && life ? `${life.closed_trades} closed trades, all bots · computed by the Worker` : life ? "Selected range · original ALPHA PAPER ledger (ALPHA-02) trades only · per-bot results: bot chips above" : undefined}
+                right={<StatusBadge tone="ok">VERIFIED PAPER</StatusBadge>} />
               <MetricsGrid m={m} balance={range === "ALL" ? balance : null} />
+              {range === "ALL" && life ? <p className="sizing-note">Gross {signedMoney(life.gross_usd)} · fees {money(life.fees_usd)} · net {signedMoney(life.net_usd)}. Drawdown: {life.drawdown_basis}.</p> : null}
             </section>
 
-            <CostBreakdown trades={m.curve.filter((p) => p.tradeId !== null).map((p) => v.data!.trades.find((x) => x.id === p.tradeId)!)} />
+            <CostBreakdown trades={list!.curve.filter((p) => p.tradeId !== null).map((p) => v.data!.trades.find((x) => x.id === p.tradeId)!)} />
 
             <section className="card dark-card" aria-label="Equity curve">
-              <SectionHeader title="Equity curve" sub="Cumulative verified realized P&L (net of simulated costs) at each close" />
-              {m.curve.length - 1 >= MIN_CURVE_TRADES ? <EquityCurve points={m.curve} /> : (
+              <SectionHeader title="Equity curve" sub={life ? `Coverage: the original ALPHA PAPER ledger (ALPHA-02) closes${v.data!.truncated ? ", first 5,000" : ""} — not the bots' own ledger and not the lifetime figure above` : "Cumulative verified realized P&L (net of simulated costs) at each close"} />
+              {list!.curve.length - 1 >= MIN_CURVE_TRADES ? <EquityCurve points={list!.curve} /> : (
                 <div className="curve-empty">
                   <b>NOT ENOUGH VERIFIED TRADING HISTORY</b>
-                  <span>{m.trades === 0 ? "No closed ALPHA PAPER trades in this range." : `${m.trades} closed trade in this range; a curve needs at least ${MIN_CURVE_TRADES}.`}</span>
+                  <span>{list!.trades === 0 ? "No closed ALPHA PAPER ledger trades in this range." : `${list!.trades} closed trade in this range; a curve needs at least ${MIN_CURVE_TRADES}.`}</span>
                 </div>
               )}
             </section>
 
             <section aria-label="Verified trades">
-              <SectionHeader title="Verified trades" right={<span className="count">{m.trades}</span>} />
-              {m.trades === 0 ? <EmptyState title="No verified trades yet">A trade counts once the ALPHA PAPER ledger fully closes a position.</EmptyState> : (
+              <SectionHeader title={life ? "Original ledger trades (ALPHA-02)" : "Verified trades"} sub={life ? <Link className="link" to="/trades">Every bot's trades →</Link> : undefined} right={<span className="count">{list!.trades}</span>} />
+              {list!.trades === 0 ? <EmptyState title="No verified trades yet">A trade counts once the ALPHA PAPER ledger fully closes a position.</EmptyState> : (
                 <div className="card list-card">
-                  {m.curve.filter((p) => p.tradeId !== null).slice().reverse().slice(0, 50).map((p) => {
+                  {list!.curve.filter((p) => p.tradeId !== null).slice().reverse().slice(0, 50).map((p) => {
                     const t = v.data!.trades.find((x) => x.id === p.tradeId)!;
                     return (
                       <Link key={t.id} to={`/trades/${t.id}`} className="li li-link m-press">

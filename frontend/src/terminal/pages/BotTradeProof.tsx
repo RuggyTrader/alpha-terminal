@@ -12,6 +12,16 @@ import { fromBotTrade } from "../tradeStory";
 
 const v = (x: number | null | undefined) => (x === null || x === undefined ? NA : String(x));
 
+/** The entry order's requested vs filled quantity and the recorded reason for any reduction (the ledger's own order
+ *  message: "...to keep planned stop risk within $X..." or "...to fit <bot>'s available $Y..."). Nothing is inferred. */
+export function executedSize(p: Pick<BotTradeProof, "orders" | "position">): { requested: number | null; reason: string | null } {
+  const entry = p.orders.find((o) => o.order_id === p.position.trade_id) ?? null;
+  const msg = entry?.message ?? "";
+  const reason = /stop risk/i.test(msg) ? "to keep the planned stop risk within the bot's dollar risk at the reference price"
+    : /to fit/i.test(msg) ? "to fit the bot's available capital" : null;
+  return { requested: entry?.requested_qty ?? null, reason };
+}
+
 export function BotTradeProofView({ p }: { p: BotTradeProof }) {
   const pos = p.position;
   const view = fromBotTrade({ trade_id: pos.trade_id, bot_id: pos.bot_id, ledger: "bot", symbol: String(pos.symbol), side: pos.side, status: pos.status, qty: pos.qty, entry_price: pos.entry_price,
@@ -26,6 +36,9 @@ export function BotTradeProofView({ p }: { p: BotTradeProof }) {
           right={<StatusBadge tone={p.all_checks_ok ? "ok" : "bad"}>{p.all_checks_ok ? "CHECKS PASS" : "CHECK FAILED"}</StatusBadge>} />
         <div className="sizing-grid">
           <div><span>Status</span><b>{pos.status}</b></div>
+          {(() => { const s = executedSize(p); return (
+            <div><span>Quantity filled</span><b>{pos.qty}</b>{s.requested !== null && s.requested !== pos.qty ? <i>requested {s.requested}{s.reason ? ` · reduced ${s.reason}` : " · reduced"}</i> : <i>as requested</i>}</div>
+          ); })()}
           <div><span>Entry · exit</span><b>{pos.entry_price} · {v(pos.exit_price)}</b></div>
           <div><span>Opened · closed</span><b>{stamp(pos.opened_at)} · {pos.closed_at ? stamp(pos.closed_at) : NA}</b></div>
           <div><span>Strategy stop · target</span><b>{v(pos.stop)} · {v(pos.tp)}</b></div>
@@ -36,6 +49,7 @@ export function BotTradeProofView({ p }: { p: BotTradeProof }) {
           <div><span>Transferred to MAIN</span><b>{pos.swept_usd === null ? NA : money(pos.swept_usd)}</b></div>
           {pos.shortfall_usd ? <div><span>Shortfall</span><b className="t-bad">{money(pos.shortfall_usd)}</b></div> : null}
         </div>
+        <p className="sizing-note">PAPER fills are recorded at the Kraken reference price when the engine's order arrives; they are not exchange limit orders, so the entry can differ from the planned limit.</p>
         <p className="sizing-note">{p.labels.mode} · fee model {p.labels.fee_model}{p.labels.short_model ? ` · ${p.labels.short_model}` : ""}</p>
       </section>
 
