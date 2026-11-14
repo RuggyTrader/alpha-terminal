@@ -20,6 +20,7 @@ import { TerminalRoutes } from "./Terminal";
 import { AnimatedList, AnimatedNumber, prefersReducedMotion, Reveal } from "./motion";
 import { Expandable } from "./components/ui";
 import { AlphaPaperPositionCard } from "./components/AlphaPaperPositionCard";
+import { PositionCard } from "./components/PositionCard";
 import { TradeCard } from "./components/TradeCard";
 import { primeVerified, verifiedKey } from "./useVerified";
 import type { AlertRow, AlphaPaperPosition, AlphaPaperSection, DashboardData, OrderRow, PaperPosition, RiskRow, TradeRow } from "./types";
@@ -150,8 +151,11 @@ describe("Home", () => {
     expect(eng).toContain("Markets");
     expect(eng).toContain("STOCKS");
     expect(eng).toContain("NOT CONFIGURED");
-    expect(html).toContain("System health");
-    for (const label of ["Home", "Trades", "Engine", "Activity", "Settings"]) expect(html).toContain(`>${label}<`);
+    // Home shows the STRATEGY engine's status (bot heartbeats), not system health or the broker route (recovery 2026-11-14).
+    expect(html).toContain("Strategy engine");
+    expect(html).not.toContain("System health");
+    for (const label of ["Home", "Bots", "Trades", "Activity", "Results", "Settings"]) expect(html).toContain(`>${label}<`);
+    expect(html).not.toContain("bnav-engine"); // no Engine tab: diagnostics moved to Settings → Advanced
     expect(html).not.toMatch(/withdraw/i);
   });
 
@@ -162,19 +166,17 @@ describe("Home", () => {
     expect(html).not.toContain("Alpaca PAPER account positions"); // no broker positions, no broker section
   });
 
-  it("renders populated positions as cards", () => {
+  it("renders populated positions as cards; the optional Alpaca account's positions are not on Home", () => {
     const d = dashboard();
     d.broker.positions = [position];
-    const html = page("/", ok(d));
+    expect(page("/", ok(d))).not.toContain("TSTA"); // the strategies never trade through Alpaca (recovery 2026-11-14)
+    const html = renderToStaticMarkup(<PositionCard p={position} />);
     expect(html).toContain("TSTA");
     expect(html).toContain("STOCK");
     expect(html).toContain("LONG");
     expect(html).toContain("+$7.50");
     expect(html).toContain("+25.0%");
     expect(html).toContain("$37.50");
-    // Broker positions are listed separately from the ALPHA PAPER ledger.
-    expect(html).toContain("Alpaca PAPER account positions");
-    expect(html).toContain("No open ALPHA PAPER positions");
   });
 
   it("shows ALPHA PAPER positions, labelled and kept apart from broker equity", () => {
@@ -227,11 +229,13 @@ describe("Home", () => {
     expect(html).not.toContain("+$");
   });
 
-  it("shows the compact system mode card", () => {
-    const html = page("/", ok(dashboard()));
-    expect(html).toContain("DRY RUN");
-    expect(html).toContain("BROKER ROUTE STOPPED");
-    expect(html).toContain("BROKER SUBMISSION OFF");
+  it("the Alpaca broker route's state never stands for the strategy engine: it is only under Settings → Advanced", () => {
+    const home = page("/", ok(dashboard()));
+    expect(home).not.toContain("BROKER ROUTE STOPPED");
+    expect(home).not.toMatch(/ENGINE NOT RUNNING|KILL SWITCH/i);
+    const settings = page("/settings", ok(dashboard()));
+    expect(settings).toContain("not used by the strategies");
+    expect(settings).toContain("Route state");
   });
 
   it("does not invent account values when Alpaca PAPER is not configured", () => {
@@ -382,12 +386,15 @@ describe("Activity", () => {
 describe("Settings", () => {
   it("reports markets and security truthfully", () => {
     const html = page("/settings", ok(dashboard()));
-    expect(html).toContain("Crypto");
-    expect(html).toContain("Stocks · no provider");
+    expect(html).toContain("Crypto · Kraken");
     expect(html).toContain("NOT CONFIGURED");
     expect(html).toContain("cannot be withdrawn");
-    expect(html).toContain("Read-only");
-    expect(html).toContain("Server-side only");
+    expect(html).toContain("Need the passphrase again");
+    expect(html).toContain("never shown here");
+    // the six sections, in order
+    const order = ["Account &amp; wallets", "Bots &amp; risk", "Notifications", "Appearance", "Security", "Advanced"].map((t) => html.indexOf(t));
+    for (const i of order) expect(i).toBeGreaterThan(-1);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(html).not.toMatch(/ADMIN_SECRET|DASHBOARD_PASSPHRASE/);
   });
 });

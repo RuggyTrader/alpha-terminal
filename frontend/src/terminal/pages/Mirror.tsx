@@ -279,9 +279,9 @@ export function MirrorPage() {
   return (
     <div className="page-narrow m-stagger mirror-page">
       <div className="page-head">
-        <Link to="/engine" className="back-link m-press">← Engine</Link>
-        <h1 className="page-title">Strategy Mirror</h1>
-        <p className="page-sub">The original strategy, both directions, fixed $10 risk · hypothetical fills, not orders</p>
+        <Link to="/settings" className="back-link m-press">← Settings</Link>
+        <h1 className="page-title">Research · Strategy Mirror</h1>
+        <p className="page-sub">Advanced research only. The original strategy replayed with fixed $10 risk and unlimited buying power: HYPOTHETICAL fills, not orders. It never replaces actual PAPER execution and is never added to account results.</p>
       </div>
       {overview ? <MarketOverview o={overview} selected={account || null} onSelect={(a) => setAccount(a)} /> : null}
       {s.status === "loading" ? <SkeletonCards count={3} tall />

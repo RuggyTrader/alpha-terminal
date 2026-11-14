@@ -136,7 +136,7 @@ describe("Home performance selector keeps datasets apart", () => {
   it("funded view with no closed trade shows 0 and says mirror trades are not counted", () => {
     const v = { status: "ok", data: { trades: [], lifetime: fixtureLifetime() }, error: null } as unknown as VerifiedState;
     const out = r(<FundedView verified={v} now={NOW} />);
-    expect(out).toContain("No funded PAPER trade has closed yet");
+    expect(out).toContain("No PAPER trade has closed yet");
     // the hero above already shows net P&L, closed trades, win rate and profit factor for this scope: not repeated
     expect(out).not.toContain("Closed trades");
     expect(out).not.toContain("Profit factor");
@@ -151,11 +151,12 @@ describe("Home performance selector keeps datasets apart", () => {
   it("mirror view is labelled hypothetical", () => {
     expect(r(<MirrorView overview={{ label: "", disclosure: "", note: "", markets: [] }} />)).toContain("Hypothetical");
   });
-  it("bot view shows that bot's funded figures and its mirror separately", () => {
+  it("bot view shows that bot's executed PAPER figures only (Strategy Mirror is in Research)", () => {
     const b = bot({ paper: { ...PAPER0, trades: 3, long_trades: 1, short_trades: 2, gross_usd: 4, fees_usd: 1, net_usd: 3 }, mirror: [{ account_id: "m", trades: 9, gross: 20, net_modelled: -5, last_candle_time: null, hypothetical: true }] });
     const out = r(<BotView fleet={fleet([b])} botId="ALPHA-02" />);
     expect(out).toContain("3 (1 L / 2 S)");
-    expect(out).toContain("Mirror (hypothetical)");
+    expect(out).not.toContain("Mirror");
+    expect(out).not.toContain("-$5.00");
   });
 });
 

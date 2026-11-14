@@ -1,6 +1,6 @@
 // The unfiltered Trades page when the bot registry exists: EVERY bot's funded PAPER records in one place, so the owner
 // never has to pick a bot to discover that a trade happened.
-//   Pending   each bot's live limit order (engine report in the shared fleet snapshot)
+//   Pending   each bot's durable PAPER limit order (ledger record, schema 7); before schema 7 the engine's report
 //   Open      open positions: bot-ledger rows (with their story) + legacy ALPHA-02 positions from the fleet snapshot
 //   Completed closed trades from /bot-trades (bot ledger AND legacy ALPHA-02 rows, each exactly once)
 //   Rejected  orders the ledger refused, and rejected legacy signals, in plain language with the original code kept
@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useBotTrades, type BotOrderRow, type BotTrades, type SignalRow } from "../botTrades";
+import { ORDER_STATUS_TEXT, useBotOrders, type DurableOrder } from "../botOrders";
 import type { Bot, Fleet, OpenPosition } from "../bots";
 import { useFleet } from "../fleetStore";
 import { NA, stamp } from "../fmt";
@@ -20,9 +21,13 @@ import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "./ui";
 export type AllTab = "pending" | "open" | "completed" | "rejected";
 export interface AllFilter { market: string | null; timeframe: string | null; side: "LONG" | "SHORT" | null }
 
-export interface PendingRow { bot: Bot; side: "LONG" | "SHORT"; qty: number; limit: number | null; stop: number | null; tp: number | null; placedAt: string | null }
+export interface PendingRow {
+  bot: Bot; side: "LONG" | "SHORT"; qty: number; limit: number | null; stop: number | null; tp: number | null; placedAt: string | null;
+  /** From the ledger's durable record (schema 7); absent when only the engine report is available. */
+  durable?: { order_id: string; requested_qty: number; actual_risk_usd: number | null; collateral_usd: number | null; expires_at: string | null; message: string | null };
+}
 export interface LegacyOpen { bot: Bot; p: OpenPosition }
-export interface RejectedRow { key: string; botId: string | null; symbol: string; side: "LONG" | "SHORT" | null; code: string; text: string; at: string; ref: string }
+export interface RejectedRow { key: string; botId: string | null; symbol: string; side: "LONG" | "SHORT" | null; code: string; text: string; at: string; ref: string; kind?: "REJECTED" | "CANCELLED" | "EXPIRED" }
 
 const sideOfAction = (a: string): "LONG" | "SHORT" | null => (/SHORT/i.test(a) ? "SHORT" : /LONG|BUY/i.test(a) ? "LONG" : null);
 
@@ -43,7 +48,7 @@ export function refusalText(code: string, message: string | null): string {
 }
 
 /** Every record of every bot, split by stage and filtered. Pure: the same input always gives the same lists. */
-export function allBotRecords(fleet: Fleet | null, data: BotTrades | null, f: AllFilter) {
+export function allBotRecords(fleet: Fleet | null, data: BotTrades | null, f: AllFilter, orders: DurableOrder[] | null = null) {
   const bots = fleet?.available ? fleet.bots : [];
   const byId = new Map(bots.map((b) => [b.bot_id, b]));
   const botOk = (id: string | null, symbol?: string) => {
@@ -55,10 +60,19 @@ export function allBotRecords(fleet: Fleet | null, data: BotTrades | null, f: Al
   };
   const sideOk = (s: string | null) => !f.side || s === f.side;
 
-  const pending: PendingRow[] = bots.flatMap((b) => {
-    const o = b.engine?.strategy_state?.pending_order;
-    return o && botOk(b.bot_id) && sideOk(o.side) ? [{ bot: b, side: o.side, qty: o.qty, limit: o.limit, stop: o.stop, tp: o.tp, placedAt: o.placed_at ?? null }] : [];
-  });
+  // The ledger's durable record is authoritative once installed; the engine report is used only for bots without one.
+  const durableBots = new Set((orders ?? []).map((o) => o.bot_id));
+  const pending: PendingRow[] = [
+    ...(orders ?? []).filter((o) => o.status === "PENDING").flatMap((o) => {
+      const b = byId.get(o.bot_id);
+      return b && botOk(b.bot_id) && sideOk(o.side) ? [{ bot: b, side: o.side, qty: o.accepted_qty ?? o.requested_qty, limit: o.limit, stop: o.stop, tp: o.tp, placedAt: o.placed_at,
+        durable: { order_id: o.order_id, requested_qty: o.requested_qty, actual_risk_usd: o.actual_risk_usd, collateral_usd: o.collateral_usd, expires_at: o.expires_at, message: o.message } }] : [];
+    }),
+    ...bots.filter((b) => !durableBots.has(b.bot_id)).flatMap((b) => {
+      const o = b.engine?.strategy_state?.pending_order;
+      return o && botOk(b.bot_id) && sideOk(o.side) ? [{ bot: b, side: o.side, qty: o.qty, limit: o.limit, stop: o.stop, tp: o.tp, placedAt: o.placed_at ?? null }] : [];
+    }),
+  ];
 
   const rows = data?.available ? data.trades : [];
   const views = rows.map(fromBotTrade).filter((v) => botOk(v.botId, v.symbol) && sideOk(v.side));
@@ -73,13 +87,16 @@ export function allBotRecords(fleet: Fleet | null, data: BotTrades | null, f: Al
   const rejectedSignals: RejectedRow[] = (data?.available ? data.signals : []).filter((s: SignalRow) => s.status === "rejected" || s.status === "error")
     .map((s) => ({ key: `s-${s.id}`, botId: s.bot_id || null, symbol: s.symbol, side: sideOfAction(s.action), code: s.rejection_reason ?? s.response_code ?? s.status.toUpperCase(),
       text: humanReason(s.rejection_reason) ?? s.rejection_reason ?? s.status, at: s.received_at, ref: s.alert_id }));
-  const rejected = [...rejectedOrders, ...rejectedSignals].filter((r) => botOk(r.botId, r.symbol) && sideOk(r.side)).sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+  const endedOrders: RejectedRow[] = (orders ?? []).filter((o) => o.status === "REJECTED" || o.status === "CANCELLED" || o.status === "EXPIRED")
+    .map((o) => ({ key: `p-${o.order_id}`, botId: o.bot_id, symbol: o.symbol, side: o.side, code: o.code, kind: o.status as "REJECTED" | "CANCELLED" | "EXPIRED",
+      text: `${ORDER_STATUS_TEXT[o.status]} ${o.side} limit ${o.limit}: ${o.status === "REJECTED" ? refusalText(o.code, o.message) : o.message ?? o.code}`, at: o.updated_at, ref: o.order_id }));
+  const rejected = [...endedOrders, ...rejectedOrders, ...rejectedSignals].filter((r) => botOk(r.botId, r.symbol) && sideOk(r.side)).sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
 
   return { pending, open, legacyOpen, completed, rejected };
 }
 
 const TABS: { id: AllTab; label: string }[] = [
-  { id: "pending", label: "Pending" }, { id: "open", label: "Open" }, { id: "completed", label: "Completed" }, { id: "rejected", label: "Rejected" },
+  { id: "pending", label: "Pending" }, { id: "open", label: "Open" }, { id: "completed", label: "Completed" }, { id: "rejected", label: "Rejected / Cancelled" },
 ];
 
 /** One compact row of toggle chips: tapping the active chip clears that filter (no separate "All" chips). */
@@ -101,20 +118,21 @@ function FilterRow({ f, setF, markets, tfs }: { f: AllFilter; setF: (f: AllFilte
 export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
   const { fleet } = useFleet();
   const snap = useBotTrades({ bot: null, signal: null }, fleet);
+  const ords = useBotOrders(fleet ?? null);
   const [tab, setTab] = useState<AllTab>(initial);
   const [f, setF] = useState<AllFilter>({ market: null, timeframe: null, side: null });
   const bots = fleet?.available ? fleet.bots : [];
   const markets = [...new Set(bots.map((b) => b.symbol))].map((m) => ({ v: m, label: m.replace(/USD$/, "") }));
   const tfs = [...new Set(bots.map((b) => b.timeframe))].sort((a, b) => parseInt(a) - parseInt(b)).map((t) => ({ v: t, label: t }));
-  const r = allBotRecords(fleet, snap.data, f);
+  const r = allBotRecords(fleet, snap.data, f, ords.installed ? ords.orders : null);
   const count: Record<AllTab, number> = { pending: r.pending.length, open: r.open.length + r.legacyOpen.length, completed: r.completed.length, rejected: r.rejected.length };
   const idx = TABS.findIndex((t) => t.id === tab);
   const label = (b: Bot | undefined, id: string | null) => (b ? `${b.name} · ${b.symbol.replace(/USD$/, "")} ${b.timeframe}` : id ?? "Engine");
 
   return (
     <section aria-label="All bots" className="m-fade">
-      <SectionHeader title="All bots" sub="Funded PAPER records of every bot · Strategy Mirror (hypothetical) is on Performance" right={<button className="btn btn-ghost" type="button" onClick={snap.refresh}>Refresh records</button>} />
-      <p className="sizing-note">Engine-planned limits are not resting exchange orders. Funded PAPER execution records the Kraken reference on signal arrival; a limit fill is not guaranteed.</p>
+      <SectionHeader title="All bots" sub="Executed PAPER records of every bot, each once · hypothetical research is under Settings → Advanced" right={<button className="btn btn-ghost" type="button" onClick={snap.refresh}>Refresh</button>} />
+      <details className="sizing-note"><summary>How PAPER orders fill</summary>Bot-ledger orders are durable PAPER limit orders. A fill is simulated from the completed Kraken candle that reached the limit (a buy never above its limit, a sell never below); no exchange queue or partial fill is modelled, so it is not a guaranteed exchange fill. The legacy ALPHA-02 ledger fills at the Kraken reference price on arrival.</details>
       <FilterRow f={f} setF={setF} markets={markets} tfs={tfs} />
       <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
         <span className="seg-pill" aria-hidden />
@@ -131,7 +149,9 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
           <div className="card list-card" aria-label="Pending orders">
             {r.pending.map((p) => (
               <div key={p.bot.bot_id} className="li">
-                <span><b>{label(p.bot, null)} · {p.side} planned limit {p.limit ?? NA}</b> · stop {p.stop ?? NA} · target {p.tp ?? NA} · qty {p.qty}{p.placedAt ? ` · placed ${stamp(p.placedAt)}` : ""}</span>
+                <span><b>{label(p.bot, null)} · {p.side} limit {p.limit ?? NA}</b> · stop {p.stop ?? NA} · target {p.tp ?? NA} · qty {p.qty}{p.durable && p.durable.requested_qty !== p.qty ? ` of ${p.durable.requested_qty} requested` : ""}
+                  {p.durable?.actual_risk_usd != null ? ` · risk $${p.durable.actual_risk_usd.toFixed(2)}` : ""}{p.placedAt ? ` · placed ${stamp(p.placedAt)}` : ""}{p.durable?.expires_at ? ` · expires ${stamp(p.durable.expires_at)}` : ""}
+                  {p.durable ? null : <i> · from the engine report (no ledger record on this backend)</i>}</span>
                 <Link className="btn btn-ghost" to={`/bots/${p.bot.bot_id}/chart`}>View chart</Link>
               </div>
             ))}
@@ -173,11 +193,11 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
               <div key={x.key} className="li">
                 <span><b>{label(x.botId ? bots.find((b) => b.bot_id === x.botId) : undefined, x.botId)}{x.side ? ` · ${x.side}` : ""}</b> · {x.text} · {stamp(x.at)}
                   <details><summary>Details</summary><code>{x.code}</code> · <code>{x.ref}</code></details></span>
-                <StatusBadge tone="bad">REJECTED</StatusBadge>
+                <StatusBadge tone={x.kind && x.kind !== "REJECTED" ? "muted" : "bad"}>{x.kind ?? "REJECTED"}</StatusBadge>
               </div>
             ))}
           </div>
-        ) : <EmptyState title="Nothing rejected">No order or signal was refused{f.market || f.timeframe || f.side ? " for these filters" : ""}.</EmptyState>
+        ) : <EmptyState title="Nothing rejected or cancelled">No order or signal was refused or cancelled{f.market || f.timeframe || f.side ? " for these filters" : ""}.</EmptyState>
       ) : null}
     </section>
   );

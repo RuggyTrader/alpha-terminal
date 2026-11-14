@@ -142,3 +142,46 @@ export function groupTotals(bots: Bot[]) {
     swept_usd: sum((b) => b.funding.profit_swept_to_main_usd), trades: sum((b) => b.paper.trades),
   };
 }
+
+// ---- The STRATEGY ENGINE's status, from its own telemetry only -----------------------------------------------------
+// Never from the website or Worker being reachable, and never from the Alpaca broker route's kill switch (a separate,
+// optional /webhook route that the strategies do not use).
+export type EngineStatusKey = "SCANNING" | "PENDING_ORDER" | "POSITION_OPEN" | "PAUSED" | "MARKET_DATA_STALE" | "BACKEND_DISCONNECTED" | "OFFLINE" | "NOT_ACTIVE";
+export interface EngineStatus { key: EngineStatusKey; label: string; tone: "ok" | "warn" | "bad" | "muted"; detail: string }
+export const ENGINE_STATUS_LABEL: Record<EngineStatusKey, string> = {
+  SCANNING: "Online — scanning", PENDING_ORDER: "Pending order", POSITION_OPEN: "Position open", PAUSED: "Paused",
+  MARKET_DATA_STALE: "Market data stale", BACKEND_DISCONNECTED: "Backend disconnected", OFFLINE: "Engine offline", NOT_ACTIVE: "Not active",
+};
+const hhmm = (iso: string | null | undefined) => (iso ? `${iso.slice(11, 16)} UTC` : "never");
+
+/**
+ * One bot's engine status:
+ *   heartbeat  the age of ITS OWN latest engine report received by the Worker (offline beyond 30 min or never);
+ *   market     the age of its last COMPLETED candle (stale beyond three candles + 2 min);
+ *   backend    the engine's own ledger check (UNVERIFIED = it could not reach the PAPER ledger);
+ *   state      paused flag, open position, durable/engine pending order, otherwise scanning.
+ */
+export function engineStatus(b: Bot, nowMs: number, pendingFromLedger = false): EngineStatus {
+  const s = botState(b, nowMs);
+  const mk = (key: EngineStatusKey, detail: string): EngineStatus => ({ key, label: ENGINE_STATUS_LABEL[key], tone: key === "SCANNING" || key === "PENDING_ORDER" || key === "POSITION_OPEN" ? "ok" : key === "PAUSED" || key === "MARKET_DATA_STALE" ? "warn" : key === "NOT_ACTIVE" ? "muted" : "bad", detail });
+  if (s === "PROPOSED" || s === "DISABLED") return mk("NOT_ACTIVE", s === "PROPOSED" ? "proposed; activation needs the owner's approval" : "disabled");
+  const e = b.engine;
+  if (s === "NO_REPORT" || s === "OFFLINE") return mk("OFFLINE", `last heartbeat ${hhmm(e?.received_at)}; the engine host may be off or the engine stopped`);
+  const tf = Number(String(b.timeframe).replace(/\D/g, "")) || 5;
+  const candleClose = Date.parse(String(e?.last_candle_time ?? "")) + tf * 60_000;
+  if (!Number.isFinite(candleClose) || nowMs - candleClose > (3 * tf * 60 + 120) * 1000) return mk("MARKET_DATA_STALE", `last completed candle ${hhmm(e?.last_candle_time)}; heartbeat ${hhmm(e?.received_at)}`);
+  if (e?.ledger_check?.status === "UNVERIFIED") return mk("BACKEND_DISCONNECTED", e.ledger_check.issues?.[0] ?? "the engine could not reach the PAPER ledger");
+  if (s === "PAUSED") return mk("PAUSED", "new entries paused by the owner; open positions are still managed");
+  const pos = b.open_positions[0] ?? (e?.position ? { side: e.position.side, qty: e.position.qty } : null);
+  if (pos) return mk("POSITION_OPEN", `${pos.side} ${pos.qty} · last candle ${hhmm(e?.last_candle_time)}`);
+  if (pendingFromLedger || e?.strategy_state?.pending_order) return mk("PENDING_ORDER", `last candle ${hhmm(e?.last_candle_time)}`);
+  return mk("SCANNING", `last candle ${hhmm(e?.last_candle_time)} · heartbeat ${hhmm(e?.received_at)}`);
+}
+
+/** The fleet's headline: the active bots' statuses, the most serious first. */
+export function fleetEngineStatus(bots: Bot[], nowMs: number): { worst: EngineStatus | null; byBot: { bot: Bot; status: EngineStatus }[] } {
+  const order: EngineStatusKey[] = ["OFFLINE", "BACKEND_DISCONNECTED", "MARKET_DATA_STALE", "PAUSED", "POSITION_OPEN", "PENDING_ORDER", "SCANNING", "NOT_ACTIVE"];
+  const byBot = bots.filter((b) => b.status === "ACTIVE").map((b) => ({ bot: b, status: engineStatus(b, nowMs) }));
+  const worst = byBot.length ? [...byBot].sort((a, c) => order.indexOf(a.status.key) - order.indexOf(c.status.key))[0].status : null;
+  return { worst, byBot };
+}

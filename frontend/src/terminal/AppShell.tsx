@@ -93,15 +93,16 @@ function Banners() {
 
 const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: "/", label: "Home", icon: "home", end: true },
+  { to: "/bots", label: "Bots", icon: "bolt" },
   { to: "/trades", label: "Trades", icon: "trades" },
-  { to: "/engine", label: "Engine", icon: "bolt" },
   { to: "/activity", label: "Activity", icon: "activity" },
+  { to: "/performance", label: "Results", icon: "chart" },
   { to: "/settings", label: "Settings", icon: "settings" },
 ];
 
 function activeIndex(pathname: string): number {
   const first = pathname.split("/")[1] ?? "";
-  const seg = "/" + (first === "mirror" || first === "bots" ? "engine" : first); // Strategy Mirror and Bots are reached from the Engine page
+  const seg = "/" + (["mirror", "research", "engine", "portfolio"].includes(first) ? "settings" : first); // advanced pages are reached from Settings
   const i = NAV.findIndex((n) => n.to === seg);
   return i < 0 ? 0 : i;
 }
@@ -118,10 +119,8 @@ export function BottomNav() {
       const box = inner.current;
       const el = box?.querySelectorAll<HTMLElement>("[data-nav]")[idx];
       if (!box || !el) return;
-      const engine = NAV[idx].to === "/engine";
       const x = el.offsetLeft + el.offsetWidth / 2 - 11;
-      // The orange Engine pill carries its own active ring, so the bar hides there.
-      setInd({ ["--x" as string]: `${x}px`, ["--o" as string]: engine ? 0 : 1 });
+      setInd({ ["--x" as string]: `${x}px`, ["--o" as string]: 1 });
     };
     place();
     window.addEventListener("resize", place);
@@ -132,19 +131,12 @@ export function BottomNav() {
     <nav className="bnav" aria-label="Main">
       <div className="bnav-in" ref={inner}>
         <i className="bnav-ind" style={ind} aria-hidden />
-        {NAV.map((n) =>
-          n.to === "/engine" ? (
-            <NavLink key={n.to} to={n.to} data-nav className={({ isActive }) => `bnav-engine m-press${isActive ? " on" : ""}`}>
-              <Icon name="bolt" size={15} fill />
-              <span>Engine</span>
-            </NavLink>
-          ) : (
-            <NavLink key={n.to} to={n.to} end={n.end} data-nav className={({ isActive }) => `bnav-item${isActive ? " on" : ""}`}>
-              <Icon name={n.icon} size={22} />
-              <span>{n.label}</span>
-            </NavLink>
-          ),
-        )}
+        {NAV.map((n) => (
+          <NavLink key={n.to} to={n.to} end={n.end} data-nav className={({ isActive }) => `bnav-item${isActive ? " on" : ""}`}>
+            <Icon name={n.icon} size={22} />
+            <span>{n.label}</span>
+          </NavLink>
+        ))}
       </div>
     </nav>
   );
@@ -169,7 +161,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="page" key={section}>
           {children}
         </main>
-        <footer className="foot">PAPER account · dry run only · no broker orders are submitted</footer>
+        <footer className="foot">PAPER trading · simulated internal ledger · no real money and no broker orders</footer>
       </div>
       <AssistantDrawer />
       <BottomNav />

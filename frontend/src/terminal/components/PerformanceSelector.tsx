@@ -26,7 +26,7 @@ export function FundedView({ verified }: { verified: VerifiedState; now: number 
       <div><span>Wins · losses</span><b>{m.trades ? `${m.wins} · ${m.losses}` : NA}</b></div>
       <div><span>Average per trade (net)</span><b>{m.expectancy === null ? NA : signedMoney(m.expectancy)}</b></div>
       <div><span>Max drawdown (closed)</span><b>{m.maxDrawdown === null ? NA : money(m.maxDrawdown)}</b></div>
-      {m.trades === 0 ? <p className="sizing-note">No funded PAPER trade has closed yet. Strategy Mirror trades are hypothetical and are not counted here.</p> : null}
+      {m.trades === 0 ? <p className="sizing-note">No PAPER trade has closed yet.</p> : null}
     </div>
   );
 }
@@ -47,7 +47,7 @@ export function MirrorView({ overview }: { overview: MirrorOverview | null }) {
           })}
         </div>
       ))}
-      <Link className="link" to="/mirror">Strategy Mirror details →</Link>
+      <Link className="link" to="/research">Research: Strategy Mirror details →</Link>
     </div>
   );
 }
@@ -63,7 +63,6 @@ export function BotView({ fleet, botId }: { fleet: Fleet | null; botId: string }
       <div><span>Closed trades</span><b>{b.paper.trades} ({b.paper.long_trades} L / {b.paper.short_trades} S)</b></div>
       <div><span>Win rate · PF</span><b>{rate(b.paper.win_rate === null ? null : b.paper.win_rate * 100)} · {b.paper.profit_factor === null ? NA : b.paper.profit_factor.toFixed(2)}</b></div>
       <div><span>Transferred to MAIN</span><b>{money(b.funding.profit_swept_to_main_usd)}</b></div>
-      {b.mirror[0] ? <div><span>Mirror (hypothetical)</span><b>{b.mirror[0].trades} trades · {signedMoney(b.mirror[0].gross)}</b></div> : null}
     </div>
   );
 }
@@ -105,9 +104,9 @@ export function PerformanceSelector({ verified, now = Date.now(), view: cView, o
   return (
     <section className="card hp-card" aria-label="Performance">
       <div className="perf-tabs" role="tablist">
-        {(["funded", "mirror", "bot"] as const).map((v) => (
+        {(["funded", "bot"] as const).map((v) => (
           <button key={v} role="tab" aria-selected={view === v} className={`perf-tab ${view === v ? "is-on" : ""}`} onClick={() => setView(v)}>
-            {v === "funded" ? "Funded PAPER" : v === "mirror" ? "Strategy Mirror" : "By bot"}
+            {v === "funded" ? "Account" : "By bot"}
           </button>
         ))}
       </div>

@@ -1,13 +1,11 @@
 import { PerformanceSelector } from "../components/PerformanceSelector";
 import { Link } from "react-router-dom";
 import { AccountHero } from "../components/AccountHero";
-import { AlertCard } from "../components/AlertCard";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
 import { ActivityPanel, PipelinePanel } from "../components/HomePanels";
 import { BotPipelinePanel } from "../components/BotPipeline";
 import { PositionCard } from "../components/PositionCard";
-import { SafetyCard } from "../components/SafetyCard";
-import { SystemHealthCard } from "../components/SystemHealth";
+import { EngineStatusCard } from "../components/EngineStatusCard";
 import { useFleet } from "../fleetStore";
 import { TradeStoryCard } from "../components/TradeStoryCard";
 import { fromBotTrade } from "../tradeStory";
@@ -19,6 +17,7 @@ import { useVerified } from "../useVerified";
 import { useState } from "react";
 import type { HeroScope } from "../components/AccountHero";
 import { WalletOverview } from "../components/WalletOverview";
+import { AlertCard as LegacyAlert } from "../components/AlertCard";
 
 /** Every open ALPHA PAPER position: the legacy ledger's (simulated) AND each fleet bot's own (bot ledger), from the
  *  same records as the Capital card's "reserved" figure, so the two can never disagree. */
@@ -97,30 +96,22 @@ export function HomePage() {
           <ActivityPanel activity={activity} />
         </div>
         <PositionsSection />
-        <BrokerPositionsSection />
       </div>
       <div className="col-side m-stagger">
         <Reveal>
-          <SystemHealthCard state={state} />
+          <EngineStatusCard />
         </Reveal>
-        <Reveal>
-          <section aria-label="Recent signals">
-            <SectionHeader
-              title="Recent signals"
-              right={d ? <Link className="link" to="/trades">{total} total · View all</Link> : null}
-            />
-            {!d ? (
-              state.status === "loading" ? <SkeletonCards count={2} /> : <EmptyState title="No data" />
-            ) : alerts.length === 0 ? (
-              <EmptyState title="No signals yet">Signals received by the Worker will appear here.</EmptyState>
-            ) : (
-              <AnimatedList items={alerts.slice(0, 3)} getKey={(a) => String(a.id)} render={(a) => <AlertCard a={a} />} />
-            )}
-          </section>
-        </Reveal>
-        <Reveal>
-          <SafetyCard data={d} />
-        </Reveal>
+        {/* The legacy signal list only without a bot registry (schema 6); with it, Trades and Activity carry every outcome. */}
+        {fleetAvailable ? null : (
+          <Reveal>
+            <section aria-label="Recent signals">
+              <SectionHeader title="Recent signals" right={d ? <Link className="link" to="/trades">{total} total · View all</Link> : null} />
+              {!d ? (state.status === "loading" ? <SkeletonCards count={2} /> : <EmptyState title="No data" />)
+                : alerts.length === 0 ? <EmptyState title="No signals yet">Signals received by the Worker will appear here.</EmptyState>
+                : <AnimatedList items={alerts.slice(0, 3)} getKey={(a) => String(a.id)} render={(a) => <LegacyAlert a={a} />} />}
+            </section>
+          </Reveal>
+        )}
       </div>
     </div>
   );

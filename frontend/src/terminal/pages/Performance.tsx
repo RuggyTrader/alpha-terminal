@@ -116,7 +116,7 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
   const shown = (history?.curve ?? []).flatMap(p => p.tradeId === null ? [] : byId.has(p.tradeId) ? [byId.get(p.tradeId)!] : []);
   return <div className="page-narrow m-stagger">
     <div className="page-head"><Link to="/" className="back-link m-press">← Home</Link><h1 className="page-title">Verified performance</h1>
-      <p className="page-sub">Funded PAPER · simulated, not broker money · Mirror is separate</p></div>
+      <p className="page-sub">Actual executed PAPER results · simulated money, not broker money · hypothetical research is under Settings → Advanced</p></div>
     <BotChips base="/performance" active={botFilter} />
     {botFilter ? <BotPerformanceView bot={botFilter} /> : <>
       {v.stale ? <p className="sizing-note t-warn" role="status">STALE PERFORMANCE · last successful lifetime totals retained. {v.error}</p> : null}

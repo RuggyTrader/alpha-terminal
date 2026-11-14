@@ -9,7 +9,7 @@ import { newRequestId } from "../api";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp, tone } from "../fmt";
 import {
-  allocate, botPhase, botState, groupTotals, previewAllocation, setBotRisk, setEntriesPaused, STATE_TONE,
+  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused,
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
@@ -56,7 +56,6 @@ function RiskEditor({ b, onDone }: { b: Bot; onDone: () => void }) {
 }
 
 export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChanged?: () => void }) {
-  const state = botState(b, nowMs);
   const phase = botPhase(b, nowMs);
   const e = b.engine;
   const st = e?.strategy_state ?? null;
@@ -72,56 +71,58 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
     } catch (err) { setMsg(backendErrorMessage(err)); }
   };
   const canChart = b.status !== "DISABLED"; // every bot: scanning, pending order, open position (real Kraken candles)
+  const es = engineStatus(b, nowMs);
   return (
     <section className="card bot-card" aria-label={`${b.name} ${b.symbol} ${b.timeframe}`}>
       <div className="bot-h">
         <span className="bot-ic" aria-hidden="true">{COIN[b.symbol]?.glyph ?? "α"}</span>
         <div>
-          <b>{b.name} <span className="bot-id">{b.bot_id}</span></b>
-          <span className="bot-sub">KRAKEN:{b.symbol} · {b.timeframe}{b.profile ? ` · ${b.profile}` : ""}</span>
+          <b>{b.name} <span className="bot-id">{b.timeframe}</span></b>
+          <span className="bot-sub">KRAKEN:{b.symbol}</span>
         </div>
-        <StatusBadge tone={STATE_TONE[state]} dot>{state.replace("_", " ")}</StatusBadge>
+        <StatusBadge tone={es.tone} dot>{es.label}</StatusBadge>
       </div>
       {b.status === "PROPOSED" ? <p className="sizing-note">Exact settings registered; not approved and not running. No activity is shown for it.</p> : null}
       <p className={`bot-phase ${phase.live ? "is-live" : ""}`}>{phase.phase}{phase.detail ? <span> · {phase.detail}</span> : null}</p>
-      <div className="sizing-grid">
-        <div><span>Latest candle</span><b>{e?.last_candle_time ? stamp(e.last_candle_time) : NA}</b></div>
-        <div><span>Last update</span><b>{e?.received_at ? stamp(e.received_at) : NA}</b></div>
-        <div><span>Available</span><b>{money(b.balances.available_usd)}</b></div>
-        <div><span>Reserved (cost / collateral)</span><b>{money(b.balances.reserved_usd)}</b></div>
-        <div><span>Allocated (total)</span><b>{money(b.funding.allocated_usd + b.funding.transferred_in_usd)}</b></div>
-        <div><span>Risk per trade</span><b>{money(b.risk_usd)}</b></div>
-        <div><span>Gross P&amp;L</span><b className={`t-${tone(b.paper.gross_usd)}`}>{signedMoney(b.paper.gross_usd)}</b></div>
-        <div><span>Fees</span><b>{money(b.paper.fees_usd)}</b></div>
-        <div><span>Net P&amp;L</span><b className={`t-${tone(b.paper.net_usd)}`}>{signedMoney(b.paper.net_usd)}</b></div>
-        <div><span>Net profit to MAIN</span><b>{money(b.funding.profit_swept_to_main_usd)}</b></div>
-        <div><span>Trades · win rate · PF</span><b>{b.paper.trades} · {pct(b.paper.win_rate)} · {pf(b.paper.profit_factor)}</b></div>
-        <div><span>Max drawdown</span><b>{money(b.paper.max_drawdown_usd)}</b></div>
+      <div className="sizing-grid bot-key">
+        <div><span>Last scan</span><b>{e?.last_candle_time ? stamp(e.last_candle_time) : NA}</b></div>
+        <div><span>Allocated</span><b>{money(b.funding.allocated_usd + b.funding.transferred_in_usd)}</b></div>
+        <div><span>Net PAPER P&amp;L</span><b className={`t-${tone(b.paper.net_usd)}`}>{signedMoney(b.paper.net_usd)}</b></div>
       </div>
-      {st?.pending_order ? (
-        <p className="sizing-note">Pending {st.pending_order.side} limit {st.pending_order.limit ?? NA} · stop {st.pending_order.stop ?? NA} · target {st.pending_order.tp ?? NA} · qty {st.pending_order.qty}</p>
-      ) : null}
-      {b.open_positions.map((p) => (
-        <p key={p.trade_id} className="sizing-note">
-          Open PAPER {p.side} {p.qty} @ {p.entry_price}{p.stop !== null ? ` · stop ${p.stop}` : ""}{p.tp !== null ? ` · target ${p.tp}` : ""} · {money(p.collateral_usd)} {p.side === "SHORT" ? "collateral (simulated short)" : "cost"} · {p.trade_id} · last recorded mark {p.mark_price ?? NA} · {p.mark_at ? stamp(p.mark_at) : "mark unavailable"}{!p.mark_at || nowMs - Date.parse(p.mark_at) > 120000 ? " · STALE / UNAVAILABLE" : ""}
-        </p>
-      ))}
-      {last && last.code && humanReason(last.code, { available: b.balances.available_usd, cost: last.notional_usd ?? null, unit: b.symbol.replace("USD", "") }) ? (
-        <p className="sizing-note t-warn">{humanReason(last.code, { available: b.balances.available_usd, cost: last.notional_usd ?? null, unit: b.symbol.replace("USD", "") })}</p>
-      ) : null}
-      {last && last.status ? (
-        <p className="sizing-note">Last sizing: {last.status}{last.code ? ` (${last.code})` : ""}{last.qty ? ` · qty ${last.qty}` : ""}{last.risk_actual_usd !== null && last.risk_actual_usd !== undefined ? ` · stop risk ${money(last.risk_actual_usd)}` : ""}{last.notional_usd ? ` · notional ${money(last.notional_usd)}` : ""}{last.explanation ? ` · ${last.explanation}` : ""}</p>
-      ) : null}
       {b.balances.shortfall_usd > 0 ? <p className="sizing-note t-bad">Recorded shortfall {money(b.balances.shortfall_usd)}: a loss beyond this bot's collateral and cash. Entries are paused; MAIN did not cover it.</p> : null}
-      {e?.last_error?.message ? <p className="sizing-note t-warn">Last error: {e.last_error.message}</p> : null}
-      {b.mirror.map((m) => (
-        <div key={m.account_id} className="bot-mirror" aria-label="Hypothetical Strategy Mirror">
-          <b>Strategy Mirror (hypothetical, TradingView reference)</b>
-          <p className="sizing-note">{m.trades} trades · gross {signedMoney(m.gross)} · modelled net after costs {signedMoney(m.net_modelled)} · never added to PAPER results</p>
+      {canChart ? <Link className="btn btn-primary bot-chart-btn" to={`/bots/${b.bot_id}/chart`}>View chart</Link> : null}
+      <details className="bot-details">
+        <summary>Details</summary>
+        <p className="sizing-note">{es.detail}</p>
+        <div className="sizing-grid">
+          <div><span>Last heartbeat</span><b>{e?.received_at ? stamp(e.received_at) : NA}</b></div>
+          <div><span>Available</span><b>{money(b.balances.available_usd)}</b></div>
+          <div><span>Reserved (cost / collateral)</span><b>{money(b.balances.reserved_usd)}</b></div>
+          <div><span>Risk per trade</span><b>{money(b.risk_usd)}</b></div>
+          <div><span>Gross P&amp;L</span><b className={`t-${tone(b.paper.gross_usd)}`}>{signedMoney(b.paper.gross_usd)}</b></div>
+          <div><span>Fees</span><b>{money(b.paper.fees_usd)}</b></div>
+          <div><span>Net profit to MAIN</span><b>{money(b.funding.profit_swept_to_main_usd)}</b></div>
+          <div><span>Trades · win rate · PF</span><b>{b.paper.trades} · {pct(b.paper.win_rate)} · {pf(b.paper.profit_factor)}</b></div>
+          <div><span>Max drawdown</span><b>{money(b.paper.max_drawdown_usd)}</b></div>
         </div>
-      ))}
+        {st?.pending_order ? (
+          <p className="sizing-note">Pending {st.pending_order.side} limit {st.pending_order.limit ?? NA} · stop {st.pending_order.stop ?? NA} · target {st.pending_order.tp ?? NA} · qty {st.pending_order.qty}</p>
+        ) : null}
+        {b.open_positions.map((p) => (
+          <p key={p.trade_id} className="sizing-note">
+            Open PAPER {p.side} {p.qty} @ {p.entry_price}{p.stop !== null ? ` · stop ${p.stop}` : ""}{p.tp !== null ? ` · target ${p.tp}` : ""} · {money(p.collateral_usd)} {p.side === "SHORT" ? "collateral (simulated short)" : "cost"} · last recorded mark {p.mark_price ?? NA} · {p.mark_at ? stamp(p.mark_at) : "mark unavailable"}{!p.mark_at || nowMs - Date.parse(p.mark_at) > 120000 ? " · STALE / UNAVAILABLE" : ""}
+          </p>
+        ))}
+        {last && last.code && humanReason(last.code, { available: b.balances.available_usd, cost: last.notional_usd ?? null, unit: b.symbol.replace("USD", "") }) ? (
+          <p className="sizing-note t-warn">{humanReason(last.code, { available: b.balances.available_usd, cost: last.notional_usd ?? null, unit: b.symbol.replace("USD", "") })}</p>
+        ) : null}
+        {last && last.status ? (
+          <p className="sizing-note">Last sizing: {last.status}{last.code ? ` (${last.code})` : ""}{last.qty ? ` · qty ${last.qty}` : ""}{last.risk_actual_usd !== null && last.risk_actual_usd !== undefined ? ` · stop risk ${money(last.risk_actual_usd)}` : ""}{last.notional_usd ? ` · notional ${money(last.notional_usd)}` : ""}{last.explanation ? ` · ${last.explanation}` : ""}</p>
+        ) : null}
+        {e?.last_error?.message ? <p className="sizing-note t-warn">Last error: {e.last_error.message}</p> : null}
+        <p className="sizing-note">{b.bot_id} · profile {b.profile ?? NA} · config {b.inputs_hash ?? NA} · wallet {b.wallet} · {b.ledger_api === "legacy" ? "legacy ledger (long-only until its approved switch to the bot ledger)" : "bot ledger: LONG and simulated, fully collateralised SHORT"}</p>
+      </details>
       <div className="bot-actions">
-        {canChart ? <Link className="btn" to={`/bots/${b.bot_id}/chart`}>View chart</Link> : null}
         <Link className="btn btn-ghost" to={`/trades?bot=${b.bot_id}`}>Trades</Link>
         <Link className="btn btn-ghost" to={`/performance?bot=${b.bot_id}`}>Performance</Link>
         {b.status === "ACTIVE" ? <button className="btn btn-ghost" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "Close settings" : "Settings"}</button> : null}
@@ -135,7 +136,6 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
             <p className="sizing-note">Pausing stops NEW entries only; an open position keeps its stop, target and exit.</p>
             {msg ? <p className="sizing-note" role="status">{msg}</p> : null}
           </div>
-          <p className="sizing-note">Profile {b.profile} · config {b.inputs_hash ?? NA} · wallet {b.wallet}{b.ledger_api === "legacy" ? " · legacy path (long-only until its approved switch)" : " · LONG and simulated SHORT"}</p>
         </div>
       ) : null}
     </section>

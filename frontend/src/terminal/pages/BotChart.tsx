@@ -9,7 +9,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { EmptyState, SectionHeader, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp } from "../fmt";
-import { botState, STATE_TONE, type Bot } from "../bots";
+import { engineStatus, type Bot } from "../bots";
 import { useFleet } from "../fleetStore";
 import { fetchTradeProof } from "../api";
 import { fetchBotTradeProof } from "../botTrades";
@@ -41,6 +41,23 @@ export function tradeOverlay(v: TradeView, tfMin: number) {
 
 interface Candle { t: number; o: number; h: number; l: number; c: number; v: number }
 interface Candles { source: string; symbol: string; pair: string; timeframe_min: number; fetched_at: string; candles: Candle[]; forming: Candle | null }
+
+/**
+ * Risk and reward shading for a RECORDED plan: the band between the entry and the target is the reward (green) and the
+ * band between the entry and the stop is the risk (red). Direction-specific: a LONG's target is above its entry and
+ * its stop below; a SHORT's are reversed, so its reward band lies BELOW the entry and its risk band ABOVE. Returns null
+ * unless entry, stop and target are all recorded and on the correct sides (nothing is drawn from guesses).
+ */
+export function riskRewardBands(side: "LONG" | "SHORT", entry: number | null | undefined, stop: number | null | undefined, tp: number | null | undefined) {
+  if (![entry, stop, tp].every((v) => v !== null && v !== undefined && Number.isFinite(v))) return null;
+  const e = entry as number, st = stop as number, t = tp as number;
+  const ok = side === "LONG" ? t > e && e > st : t < e && e < st;
+  if (!ok) return null;
+  return {
+    reward: { base: e, value: t, fill: side === "LONG" ? "above" as const : "below" as const },
+    risk: { base: e, value: st, fill: side === "LONG" ? "below" as const : "above" as const },
+  };
+}
 
 /** Do not place a fill on a nearby or missing candle. */
 export function candleBucket(iso: string | null, tfMin: number): number | null {
@@ -149,6 +166,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
   const chart = useRef<IChartApi | null>(null);
   const series = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const forming = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const bands = useRef<ISeriesApi<"Baseline">[]>([]);
 
   useEffect(() => {
     let live = true;
@@ -182,7 +200,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
     series.current = c.addCandlestickSeries({ upColor: "#1f9d55", downColor: "#d64545", borderVisible: false, wickUpColor: "#1f9d55", wickDownColor: "#d64545" });
     forming.current = c.addCandlestickSeries({ upColor: "rgba(31,157,85,0.35)", downColor: "rgba(214,69,69,0.35)", borderVisible: true, borderUpColor: "#1f9d55", borderDownColor: "#d64545", wickUpColor: "#888", wickDownColor: "#888", lastValueVisible: false, priceLineVisible: false });
     chart.current = c;
-    return () => { c.remove(); chart.current = null; series.current = null; forming.current = null; };
+    return () => { c.remove(); chart.current = null; series.current = null; forming.current = null; bands.current = []; };
   }, []);
 
   const lv = useMemo(() => (bot && !tradeRef ? botLevels(bot) : null), [bot, tradeRef]);
@@ -226,6 +244,34 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
       s.setMarkers(chartMarkersInCandles(o.markers, data.candles).map((m) => ({ ...m, time: m.time as UTCTimestamp })));
     } else if (!lv) s.setMarkers([]);
     (s as unknown as { __lines?: unknown[] }).__lines = lines;
+    // Risk / reward shading from the recorded levels only (pending order, open position, or the trade's recorded plan).
+    const c = chart.current;
+    if (c) {
+      for (const b of bands.current) c.removeSeries(b);
+      bands.current = [];
+      const plan = trade?.story?.plan ?? null;
+      const src = lv ? { side: lv.side, entry: lv.entry, stop: lv.initialStop ?? lv.stop, tp: lv.tp, from: lv.openedAt }
+        : trade && plan ? { side: trade.side, entry: plan.planned_entry ?? null, stop: plan.initial_stop ?? null, tp: plan.tp2 ?? null, from: trade.openedAt } : null;
+      const rb = src ? riskRewardBands(src.side, src.entry, src.stop, src.tp) : null;
+      if (rb && data.candles.length) {
+        const start = candleBucket(src!.from ?? null, data.timeframe_min);
+        const times = data.candles.map((k) => k.t).filter((t) => start === null ? true : t >= start);
+        const span = (start === null ? times.slice(-40) : times);
+        if (span.length) {
+          for (const [band, rgb] of [[rb.reward, "31,157,85"], [rb.risk, "214,69,69"]] as const) {
+            const series2 = c.addBaselineSeries({
+              baseValue: { type: "price", price: band.base }, lineVisible: false, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false,
+              topLineColor: "rgba(0,0,0,0)", bottomLineColor: "rgba(0,0,0,0)",
+              topFillColor1: band.fill === "above" ? `rgba(${rgb},0.16)` : "rgba(0,0,0,0)", topFillColor2: band.fill === "above" ? `rgba(${rgb},0.16)` : "rgba(0,0,0,0)",
+              bottomFillColor1: band.fill === "below" ? `rgba(${rgb},0.16)` : "rgba(0,0,0,0)", bottomFillColor2: band.fill === "below" ? `rgba(${rgb},0.16)` : "rgba(0,0,0,0)",
+              autoscaleInfoProvider: () => null,
+            });
+            series2.setData(span.map((t) => ({ time: t as UTCTimestamp, value: band.value })));
+            bands.current.push(series2);
+          }
+        }
+      }
+    }
   }, [data, lv, trade]);
 
   const now = Date.now();
@@ -237,7 +283,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
   return (
     <div className="page-narrow bots-page">
       <SectionHeader title={bot ? `${bot.name} · ${bot.symbol} ${bot.timeframe}` : id} sub={<Link className="link" to="/bots">← Bots</Link>}
-        right={bot ? <StatusBadge tone={STATE_TONE[botState(bot, now)]} dot>{botState(bot, now)}</StatusBadge> : null} />
+        right={bot ? <StatusBadge tone={engineStatus(bot, now).tone} dot>{engineStatus(bot, now).label}</StatusBadge> : null} />
       {err ? <EmptyState title="Trade details unavailable" tone="bad">{err}</EmptyState> : null}
       {marketError ? <EmptyState title={data ? "Market refresh failed — last snapshot" : "Chart unavailable"} tone="bad">{marketError}</EmptyState> : null}
       <div className={`bot-chart-wrap ${full ? "is-full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? "Full-screen price chart" : undefined}>
@@ -249,7 +295,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
         <button className={`btn btn-ghost ${fit ? "is-on" : ""}`} type="button" aria-pressed={fit} onClick={() => setFit(!fit)}>{fit ? "Fit candles" : "Fit trade levels"}</button>
         <button className="btn btn-ghost" type="button" onClick={() => setFull(true)}>Full screen</button>
       </div>
-      <p className="sizing-note">Engine-planned limits are not resting exchange orders. Funded PAPER fills use the Kraken reference when the signal arrives.</p>
+      <p className="sizing-note">Shading: green = reward (entry → target), red = risk (entry → stop), drawn only from recorded levels; a SHORT's target is below its entry. PAPER limit fills are simulated from completed Kraken candles (a buy never above its limit, a sell never below), not guaranteed exchange fills.</p>
       <p className="sizing-note">
         Source: {data?.source ?? "Kraken"} ({data?.pair ?? NA}) · {data ? `${data.candles.length} completed ${data.timeframe_min}m candles` : NA} · forming candle shown faded ·
         last refresh {refreshedAt ? stamp(new Date(refreshedAt).toISOString()) : NA} · <StatusBadge tone={fresh === "FRESH" ? "ok" : fresh === "STALE" ? "warn" : fresh === "LOADING" ? "muted" : "bad"}>{fresh}</StatusBadge>

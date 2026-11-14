@@ -11,6 +11,7 @@ const PATHS = {
   logout: "M14 4h4.5a1.5 1.5 0 0 1 1.5 1.5v13a1.5 1.5 0 0 1-1.5 1.5H14M10 8l-4 4 4 4M6 12h10",
   shield: "M12 3 5 6v5.5c0 4.3 3 8 7 9.5 4-1.5 7-5.2 7-9.5V6z",
   check: "M5 12.5l4.5 4.5L19 7.5",
+  chart: "M4 20V11M10 20V5M16 20v-6M3 20.5h18",
 } as const;
 
 export type IconName = keyof typeof PATHS;
