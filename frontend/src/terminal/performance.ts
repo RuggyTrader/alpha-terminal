@@ -2,7 +2,7 @@
 // Pure functions: nothing here estimates, extrapolates or fills gaps. A metric that the evidence cannot
 // support is null and shown as N/A. Engine-internal simulations and backtests never enter these numbers.
 
-import type { VerifiedTrade } from "./types";
+import type { LifetimePerformance, PerformanceData, VerifiedTrade } from "./types";
 
 export type Range = "1D" | "1W" | "1M" | "ALL";
 export const RANGES: Range[] = ["1D", "1W", "1M", "ALL"];
@@ -82,4 +82,18 @@ export function profitFactorNote(m: Metrics): string | null {
   if (m.trades === 0) return "no closed trades";
   if (m.losses === 0) return "no losing trades yet";
   return null;
+}
+
+/** Account headlines never infer lifetime totals from a bounded trade array. */
+export function lifetimeMetrics(data: PerformanceData | null, capital: number | null): Metrics | null {
+  const p: LifetimePerformance | undefined = data?.lifetime;
+  if (!p?.complete || p.scope !== "all-funded-paper") return null;
+  return { trades: p.closed_trades, wins: p.wins, losses: p.losses, totalPnl: p.net_usd,
+    returnPct: capital !== null && capital > 0 ? p.net_usd / capital * 100 : null,
+    winRate: p.win_rate === null ? null : p.win_rate * 100, profitFactor: p.profit_factor,
+    expectancy: p.expectancy_usd, maxDrawdown: p.closed_trades ? p.max_drawdown_usd : null, curve: [] };
+}
+
+export function completeFundedHistory(data: PerformanceData | null): boolean {
+  return !!data?.lifetime?.complete && !data.truncated && !data.history_error && data.trades.length === data.lifetime.closed_trades;
 }

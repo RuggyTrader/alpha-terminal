@@ -132,6 +132,19 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
   const [err, setErr] = useState<string | null>(null);
   const [marketError, setMarketError] = useState<string | null>(null);
   const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
+  const exitButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!full) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; exitButton.current?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFull(false);
+      if (e.key === "Tab") { e.preventDefault(); exitButton.current?.focus(); }
+    };
+    window.addEventListener("keydown", key);
+    return () => { document.body.style.overflow = overflow; window.removeEventListener("keydown", key); previous?.focus(); };
+  }, [full]);
   const box = useRef<HTMLDivElement>(null);
   const chart = useRef<IChartApi | null>(null);
   const series = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -199,7 +212,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
     s.setMarkers([]); // A former open trade must not leave a marker on a pending order.
     if (lv) {
       const add = (price: number | null, color: string, title: string, style = 0) => { if (price !== null && Number.isFinite(price)) lines.push(s.createPriceLine({ price, color, lineWidth: 2, lineStyle: style, axisLabelVisible: true, title })); };
-      add(lv.entry, "#f08c00", lv.kind === "pending" ? "Limit" : "Entry", lv.kind === "pending" ? 2 : 0);
+      add(lv.entry, "#f08c00", lv.kind === "pending" ? "Planned limit" : "Actual PAPER entry", lv.kind === "pending" ? 2 : 0);
       add(lv.stop, "#d64545", lv.kind === "position" && lv.stop !== lv.initialStop ? "Stop (moved)" : "Stop");
       if (lv.kind === "position" && lv.initialStop !== null && lv.initialStop !== lv.stop) add(lv.initialStop, "rgba(214,69,69,0.45)", "Initial stop", 2);
       add(lv.tp, "#1f9d55", "Target");
@@ -227,8 +240,8 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
         right={bot ? <StatusBadge tone={STATE_TONE[botState(bot, now)]} dot>{botState(bot, now)}</StatusBadge> : null} />
       {err ? <EmptyState title="Trade details unavailable" tone="bad">{err}</EmptyState> : null}
       {marketError ? <EmptyState title={data ? "Market refresh failed — last snapshot" : "Chart unavailable"} tone="bad">{marketError}</EmptyState> : null}
-      <div className={`bot-chart-wrap ${full ? "is-full" : ""}`}>
-        {full ? <div className="chart-tools"><b>{sym} {tf}</b><button className="btn btn-ghost" type="button" onClick={() => setFull(false)}>Exit full screen</button></div> : null}
+      <div className={`bot-chart-wrap ${full ? "is-full" : ""}`} role={full ? "dialog" : undefined} aria-modal={full || undefined} aria-label={full ? "Full-screen price chart" : undefined}>
+        {full ? <div className="chart-tools"><b>{sym} {tf}</b><button className="btn btn-ghost" type="button" ref={exitButton} onClick={() => setFull(false)}>Exit full screen</button></div> : null}
         <div className="bot-chart" ref={box} aria-label="Price chart" />
       </div>
       <div className="chart-tools">
@@ -236,6 +249,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
         <button className={`btn btn-ghost ${fit ? "is-on" : ""}`} type="button" aria-pressed={fit} onClick={() => setFit(!fit)}>{fit ? "Fit candles" : "Fit trade levels"}</button>
         <button className="btn btn-ghost" type="button" onClick={() => setFull(true)}>Full screen</button>
       </div>
+      <p className="sizing-note">Engine-planned limits are not resting exchange orders. Funded PAPER fills use the Kraken reference when the signal arrives.</p>
       <p className="sizing-note">
         Source: {data?.source ?? "Kraken"} ({data?.pair ?? NA}) · {data ? `${data.candles.length} completed ${data.timeframe_min}m candles` : NA} · forming candle shown faded ·
         last refresh {refreshedAt ? stamp(new Date(refreshedAt).toISOString()) : NA} · <StatusBadge tone={fresh === "FRESH" ? "ok" : fresh === "STALE" ? "warn" : fresh === "LOADING" ? "muted" : "bad"}>{fresh}</StatusBadge>
@@ -246,7 +260,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
         <section className="card">
           <SectionHeader title={lv.kind === "pending" ? "Pending limit order" : `Open PAPER ${lv.side}`} sub={`${bot.bot_id} · ${bot.profile} · config ${bot.inputs_hash}`} />
           <div className="sizing-grid">
-            <div><span>{lv.kind === "pending" ? "Limit" : "Entry"}</span><b>{lv.entry ?? NA}</b></div>
+            <div><span>{lv.kind === "pending" ? "Planned limit" : "Actual PAPER entry"}</span><b>{lv.entry ?? NA}</b></div>
             <div><span>{lv.kind === "position" ? "Stop (current)" : "Stop"}</span><b>{lv.stop ?? NA}</b></div>
             {lv.kind === "position" ? <div><span>Initial stop</span><b>{lv.initialStop ?? NA}</b></div> : null}
             <div><span>Target</span><b>{lv.tp ?? NA}</b></div>

@@ -1,6 +1,7 @@
 // Bot trade records (worker/src/bot_trades.ts): the Trades filters (?bot=, ?signal=), the Performance bot filter and
 // the bot trade proof page. Read-only; every figure is the ledger's own.
 
+import type { TradeRow } from "./types";
 import { useEffect, useState } from "react";
 import { api, ApiError } from "../api/client";
 import type { Fleet } from "./bots";
@@ -26,14 +27,42 @@ export function tradeFilter(params: URLSearchParams): { bot: string | null; sign
   return { bot: bot && BOT_ID_RE.test(bot) ? bot : null, signal: signal && SIGNAL_RE.test(signal) ? signal : null };
 }
 
+/** Current Worker payload lookups bind two ids per closed trade; stay inside D1's 100-variable budget. */
+export const RECENT_TRADE_LIMIT = 50;
+const numberOrNull = (v: unknown): number | null => v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v);
+
+export function legacyHistoryRows(rows: (TradeRow & { story?: import("./tradeStory").TradeStory | null })[], f: { bot?: string | null; signal?: string | null }): BotTradeRow[] {
+  return rows.flatMap(t => {
+    if (t.source !== "ALPHA_PAPER" || !String(t.open_alert_id ?? "").startsWith("ENG-SOLUSD-5-")) return [];
+    if (f.bot && f.bot !== "ALPHA-02") return [];
+    if (f.signal && f.signal !== t.open_alert_id && f.signal !== t.close_alert_id && f.signal !== String(t.id)) return [];
+    const qty = numberOrNull(t.entry_qty), entry = numberOrNull(t.entry_avg_price);
+    if (qty === null || entry === null) return [];
+    return [{ legacy_id: t.id, trade_id: t.open_alert_id ?? String(t.id), bot_id: "ALPHA-02", ledger: "legacy" as const, symbol: t.symbol,
+      side: t.direction.toUpperCase(), status: t.status, qty, entry_price: entry, exit_price: numberOrNull(t.exit_avg_price),
+      opened_at: t.opened_at, closed_at: t.closed_at, gross_usd: numberOrNull(t.gross_pnl ?? t.realized_pnl),
+      fees_usd: numberOrNull(t.fees_usd), net_usd: t.status === "CLOSED" ? numberOrNull(t.realized_pnl) : null,
+      swept_usd: null, stop: null, tp: null, proof_url: `/trades/${t.id}`, story: t.story ?? null }];
+  });
+}
+
 export async function fetchBotTrades(f: { bot?: string | null; signal?: string | null; limit?: number }): Promise<BotTrades> {
   const q = new URLSearchParams();
   if (f.bot) q.set("bot", f.bot);
   if (f.signal) q.set("signal", f.signal);
-  q.set("limit", String(f.limit ?? 100));
-  const env = await api.get<{ ok: boolean; data?: BotTrades; code?: string; message?: string }>(`/api/dashboard/bot-trades?${q}`);
+  const limit = Math.min(RECENT_TRADE_LIMIT, Math.max(1, f.limit ?? RECENT_TRADE_LIMIT));
+  q.set("limit", String(limit));
+  // Known backend issue: its legacy bot query selects obsolete column names and returns no rows.
+  // Use the existing authoritative legacy route; never reconstruct trades from engine simulation.
+  const [env, legacy] = await Promise.all([
+    api.get<{ ok: boolean; data?: BotTrades; code?: string; message?: string }>(`/api/dashboard/bot-trades?${q}`),
+    !f.bot || f.bot === "ALPHA-02" ? api.get<{ ok: boolean; data: (TradeRow & { story?: import("./tradeStory").TradeStory | null })[] }>(`/api/dashboard/trades?limit=${limit}`) : Promise.resolve(null),
+  ]);
   if (!env?.ok || !env.data) throw new ApiError(502, env?.code ?? "BAD_RESPONSE", env?.message ?? "Unexpected bot trades response");
-  return env.data;
+  if (legacy && (!legacy.ok || !Array.isArray(legacy.data))) throw new ApiError(502, "BAD_RESPONSE", "Legacy history unavailable");
+  const combined = [...env.data.trades, ...legacyHistoryRows(legacy?.data ?? [], f)];
+  const trades = [...new Map(combined.map(t => [`${t.ledger}:${t.trade_id}`, t])).values()].sort((a, b) => b.opened_at.localeCompare(a.opened_at));
+  return { ...env.data, trades };
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -118,10 +147,10 @@ export const invalidateBotTrades = () => tradesStore.refreshActive();
 /** The shared, auto-refreshing bot trade records for a filter. Keeps showing the last good data while refreshing. */
 export function useBotTrades(filter: Filter, fleet?: Fleet | null): BotTradesSnapshot & { refresh: () => void } {
   const key = filterKey(filter);
-  const [s, setS] = useState<BotTradesSnapshot>(tradesStore.get(filter));
+  const [s, setS] = useState<BotTradesSnapshot & { key: string }>({ ...tradesStore.get(filter), key });
   useEffect(() => {
-    setS(tradesStore.get(filter));
-    const off = tradesStore.subscribe(filter, setS);
+    setS({ ...tradesStore.get(filter), key });
+    const off = tradesStore.subscribe(filter, snap => setS({ ...snap, key }));
     startTrades();
     const cur = tradesStore.get(filter);
     if (!cur.fetchedAt || Date.now() - cur.fetchedAt > BOT_TRADES_POLL_MS / 2) void tradesStore.refresh(filter);
@@ -129,7 +158,7 @@ export function useBotTrades(filter: Filter, fleet?: Fleet | null): BotTradesSna
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   const sig = ledgerSignature(fleet ?? null);
   useEffect(() => { if (fleet !== undefined) noteFleetForTrades(fleet); }, [sig]); // eslint-disable-line react-hooks/exhaustive-deps
-  return { ...s, refresh: () => void tradesStore.refresh(filter, true) };
+  return { ...(s.key === key ? s : tradesStore.get(filter)), refresh: () => void tradesStore.refresh(filter, true) };
 }
 
 export interface ProofCheck { name: string; ok: boolean; detail: string }

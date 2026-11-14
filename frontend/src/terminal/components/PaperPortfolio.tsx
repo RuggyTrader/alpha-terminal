@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../api/client";
+import { backendErrorMessage } from "../tradeStory";
 import { newRequestId } from "../api";
 import { money, NA, signedMoney, tone } from "../fmt";
 import type { PaperPortfolio, PaperWallet } from "../types";
@@ -71,7 +72,7 @@ export function PortfolioSummaryCard({ portfolio }: { portfolio: PaperPortfolio 
             <div><span>Unallocated</span><b>{money(t.unallocated_usd)}</b></div>
             {t.fees_usd !== undefined ? (
               // Same net as the hero and the Funded PAPER tab: gross realized minus recorded fees.
-              <div><span>Realized net P&amp;L</span><b className={`t-${tone(t.net_realized_pnl_usd ?? t.realized_pnl_usd - t.fees_usd)}`}>{signedMoney(t.net_realized_pnl_usd ?? t.realized_pnl_usd - t.fees_usd)}</b>
+              <div><span>Economic realized P&amp;L</span><b className={`t-${tone(t.economic_net_realized_pnl_usd ?? null)}`}>{signedMoney(t.economic_net_realized_pnl_usd ?? null)}</b>
                 <i className="pm-n">gross {signedMoney(t.realized_pnl_usd)} · fees {money(t.fees_usd)}</i></div>
             ) : <div><span>Realized P&amp;L</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>}
           </div>
@@ -110,7 +111,7 @@ export function ActionForm({
       setRequestId(newRequestId());
     } catch (err) {
       const e2 = err instanceof ApiError ? err : null;
-      setMsg({ tone: "bad", text: e2 ? `${e2.code}: ${e2.message}` : "Request failed; nothing confirmed." });
+      setMsg({ tone: "bad", text: e2 ? backendErrorMessage(e2) : "Request failed; nothing confirmed." });
       // A definite rejection gets a new id; a network failure keeps it so a retry is idempotent.
       if (e2 && e2.status !== 0) setRequestId(newRequestId());
     } finally {

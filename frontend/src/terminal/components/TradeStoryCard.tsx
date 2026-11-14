@@ -4,6 +4,7 @@
 
 import { Link } from "react-router-dom";
 import { costMoney, money, NA, signedMoney, stamp, tone } from "../fmt";
+import { PAPER_FILL_DISCLOSURE } from "../disclosures";
 import { askAlpha } from "../askAlpha";
 import { explainEntry, explainExit, hypotheticalFees, planFigures, type TradeView } from "../tradeStory";
 import { Expandable, StatusBadge } from "./ui";
@@ -51,8 +52,8 @@ export function TradeStoryCard({ v, defaultOpen = false }: { v: TradeView; defau
         <h4>Trade result</h4>
         <div className="tc-grid">
           <div><span>Position value</span><b>{value === null ? NA : money(value)}</b></div>
-          <div><span>Quantity</span><b>{v.qty ?? NA}</b></div>
-          <div><span>Entry</span><b>{px(v.entry)}</b></div>
+          <div><span>Filled quantity</span><b>{v.qty ?? NA}</b></div>
+          <div><span>Actual PAPER entry</span><b>{px(v.entry)}</b></div>
           <div><span>{closed ? "Exit" : "Exit"}</span><b>{closed ? px(v.exit) : "open"}</b></div>
           <div><span>Gross P&amp;L</span><b className={v.gross === null ? "" : `t-${tone(v.gross)}`}>{v.gross === null ? NA : signedMoney(v.gross)}</b></div>
           <div><span>Fees</span><b>{v.fees === null ? "not modelled" : costMoney(v.fees)}</b>{feeFree ? <i>{v.costProfile === null ? "closed before cost accounting" : `fee-free legacy record (cost profile “${v.costProfile}”)`}</i> : null}</div>
@@ -64,6 +65,7 @@ export function TradeStoryCard({ v, defaultOpen = false }: { v: TradeView; defau
         {v.swept ? <p className="tc-note">{money(v.swept)} of net profit was transferred to MAIN.</p> : null}
         <p className="tc-note">{v.source === "VERIFIED PAPER" ? "✓ VERIFIED PAPER · closed by the ALPHA PAPER ledger · simulated, not broker-executed" : v.source === "ALPHA PAPER" ? "ALPHA PAPER · simulated, not broker-executed" : "Not an ALPHA PAPER ledger trade: excluded from verified performance"}</p>
       </section>
+      <p className="tc-note">{PAPER_FILL_DISCLOSURE}</p>
       <section className="tc-sec" aria-label="Why the bot entered">
         <h4>Why the bot entered</h4>
         <p>{entryWhy ?? "Not recorded for this trade: the engine release that placed it did not send its strategy plan. Nothing is reconstructed here; see the proof page for the evidence that exists."}</p>

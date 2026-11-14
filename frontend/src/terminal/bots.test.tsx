@@ -1,3 +1,4 @@
+import { fixtureLifetime } from "./test-fixtures";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
@@ -133,7 +134,7 @@ describe("ALPHA Assistant is deterministic and read-only", () => {
 
 describe("Home performance selector keeps datasets apart", () => {
   it("funded view with no closed trade shows 0 and says mirror trades are not counted", () => {
-    const v = { status: "ok", data: { trades: [] }, error: null } as unknown as VerifiedState;
+    const v = { status: "ok", data: { trades: [], lifetime: fixtureLifetime() }, error: null } as unknown as VerifiedState;
     const out = r(<FundedView verified={v} now={NOW} />);
     expect(out).toContain("No funded PAPER trade has closed yet");
     // the hero above already shows net P&L, closed trades, win rate and profit factor for this scope: not repeated

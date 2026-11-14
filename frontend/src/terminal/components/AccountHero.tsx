@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { clock, NA, pct, signedMoney, tone } from "../fmt";
-import { computeMetrics } from "../performance";
+import { lifetimeMetrics } from "../performance";
 import { AnimatedNumber, useFlash } from "../motion";
 import type { FeedState } from "../poller";
 import type { VerifiedState } from "../useVerified";
@@ -50,10 +50,10 @@ function Strip({ k, v, t }: { k: string; v: string; t?: string }) {
  *  SAME data it shows. When set, every hero figure belongs to that scope; funded figures are not shown beside it. */
 export interface HeroScope { label: string; value: number | null; strip: { k: string; v: string; t?: string }[]; note?: string | null; link: { to: string; text: string } }
 
-export function AccountHero({ state, verified, reconnected = false, now = Date.now(), scope = null }: { state: FeedState; verified: VerifiedState; reconnected?: boolean; now?: number; scope?: HeroScope | null }) {
+export function AccountHero({ state, verified, reconnected = false, scope = null }: { state: FeedState; verified: VerifiedState; reconnected?: boolean; now?: number; scope?: HeroScope | null }) {
   const d = state.data;
   const funded = d?.portfolio?.active ? d.portfolio.totals.net_funding_usd : null;
-  const m = verified.data ? computeMetrics(verified.data.trades, "ALL", now, funded) : null;
+  const m = lifetimeMetrics(verified.data, funded);
   const loading = (state.status === "loading" && !d) || (verified.status === "loading" && !!d);
   const pnlText = m ? signedMoney(m.totalPnl) : "";
   const flash = useFlash(m ? m.totalPnl : null);
@@ -92,10 +92,11 @@ export function AccountHero({ state, verified, reconnected = false, now = Date.n
           {m && m.returnPct === null && !loading ? <span className="hero-note">no PAPER capital funded</span> : null}
         </div></>)}
         {!scope && !loading && !m ? (
-          <div className="hero-err m-fade">{verified.status === "unsupported" ? "Verified history not provided by this backend yet" : verified.error ?? "Verified history unavailable"}</div>
+          <div className="hero-err m-fade">{verified.status === "unsupported" ? "Verified history not provided by this backend yet" : verified.error ?? "Complete funded PAPER totals unavailable"}</div>
         ) : null}
       </div>
 
+      {verified.stale && !scope ? <p className="hero-note" role="status">STALE PERFORMANCE · last verified totals retained</p> : null}
       <div className="hero-strip">
         {scope ? scope.strip.map((x) => <Strip key={x.k} k={x.k} v={x.v} t={x.t} />) : (<>
           {/* Return is shown once, above; the strip carries the other headline figures. */}

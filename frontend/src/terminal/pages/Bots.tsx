@@ -13,7 +13,7 @@ import {
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
-import { humanReason } from "../tradeStory";
+import { backendErrorMessage, humanReason } from "../tradeStory";
 
 const pct = (v: number | null) => (v === null ? NA : `${(v * 100).toFixed(0)}%`);
 const pf = (v: number | null) => (v === null ? NA : v.toFixed(2));
@@ -34,9 +34,9 @@ function RiskEditor({ b, onDone }: { b: Bot; onDone: () => void }) {
     setBusy(true);
     try {
       const r = await setBotRisk(b.bot_id, n, newRequestId(), pass);
-      setMsg(r.ok ? `Saved as version ${String(r.version)}: pending until ${b.name}'s engine confirms it. New orders only.` : `${r.code ?? "Refused"}: ${r.message ?? ""}`);
+      setMsg(r.ok ? `Saved as version ${String(r.version)}: pending until ${b.name}'s engine confirms it. New orders only.` : backendErrorMessage(r));
       if (r.ok) { setPass(""); onDone(); }
-    } catch (e) { setMsg(String((e as Error).message)); } finally { setBusy(false); }
+    } catch (e) { setMsg(backendErrorMessage(e)); } finally { setBusy(false); }
   };
   const s = b.risk_setting;
   return (
@@ -67,9 +67,9 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
   const togglePause = async () => {
     try {
       const r = await setEntriesPaused(b.bot_id, !b.entries_paused, newRequestId(), pass);
-      setMsg(r.ok ? (b.entries_paused ? "New entries resumed." : "New entries paused; the open position keeps its exits.") : `${r.code ?? "Refused"}: ${r.message ?? ""}`);
+      setMsg(r.ok ? (b.entries_paused ? "New entries resumed." : "New entries paused; the open position keeps its exits.") : backendErrorMessage(r));
       if (r.ok) { setPass(""); onChanged?.(); }
-    } catch (err) { setMsg(String((err as Error).message)); }
+    } catch (err) { setMsg(backendErrorMessage(err)); }
   };
   const canChart = b.status !== "DISABLED"; // every bot: scanning, pending order, open position (real Kraken candles)
   return (
@@ -103,7 +103,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
       ) : null}
       {b.open_positions.map((p) => (
         <p key={p.trade_id} className="sizing-note">
-          Open PAPER {p.side} {p.qty} @ {p.entry_price}{p.stop !== null ? ` · stop ${p.stop}` : ""}{p.tp !== null ? ` · target ${p.tp}` : ""} · {money(p.collateral_usd)} {p.side === "SHORT" ? "collateral (simulated short)" : "cost"} · {p.trade_id}
+          Open PAPER {p.side} {p.qty} @ {p.entry_price}{p.stop !== null ? ` · stop ${p.stop}` : ""}{p.tp !== null ? ` · target ${p.tp}` : ""} · {money(p.collateral_usd)} {p.side === "SHORT" ? "collateral (simulated short)" : "cost"} · {p.trade_id} · last recorded mark {p.mark_price ?? NA} · {p.mark_at ? stamp(p.mark_at) : "mark unavailable"}{!p.mark_at || nowMs - Date.parse(p.mark_at) > 120000 ? " · STALE / UNAVAILABLE" : ""}
         </p>
       ))}
       {last && last.code && humanReason(last.code, { available: b.balances.available_usd, cost: last.notional_usd ?? null, unit: b.symbol.replace("USD", "") }) ? (
@@ -158,7 +158,7 @@ function AllocationPanel({ fleet, onDone }: { fleet: Fleet; onDone: () => void }
   };
   const confirm = async () => {
     const r = await allocate(group, Number(amount), rid, pass);
-    setMsg(r.ok ? `Moved ${money(Number(amount))} from MAIN to ${group}${r.duplicate ? " (already done)" : ""}.` : `${r.code ?? "Refused"}: ${r.message ?? ""}`);
+    setMsg(r.ok ? `Moved ${money(Number(amount))} from MAIN to ${group}${r.duplicate ? " (already done)" : ""}.` : backendErrorMessage(r));
     if (r.ok) { setPass(""); setPreview(null); setRid(newRequestId()); onDone(); }
   };
   if (!groups.length) return null;

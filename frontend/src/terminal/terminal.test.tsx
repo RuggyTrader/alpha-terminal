@@ -1,3 +1,4 @@
+import { fixtureLifetime } from "./test-fixtures";
 // Dashboard UI and data-loop tests. Fixture data below exists only in this test file.
 
 import type { ReactElement } from "react";
@@ -130,7 +131,7 @@ const MONEY = /\$\d/;
 
 describe("Home", () => {
   it("renders the mobile home from Worker values only", () => {
-    primeVerified(verifiedKey(0, 0), { verification: "test", trades: [], truncated: false, excluded_closed_trades: 0 });
+    primeVerified(verifiedKey(0, 0), { verification: "test", lifetime: fixtureLifetime(), trades: [], truncated: false, excluded_closed_trades: 0 });
     const html = page("/", ok(dashboard()));
     expect(html).toContain("ALPHA TERMINAL");
     expect(html).toContain("PAPER DESK");
@@ -192,10 +193,10 @@ describe("Home", () => {
     expect(html).toContain("Kraken · 5s ago");
     expect(html).toContain("Funded PAPER"); // Home keeps the summary (hero + selector); the full ALPHA PAPER performance section was a duplicate (UI duplicate audit)
     // Realized / unrealized / total moved to the Performance page (one place; Home keeps the summary).
+    primeVerified(verifiedKey(d.counts.trades.closed, d.counts.trades.total), { verification: "TEST older backend without lifetime", trades: [], truncated: false, excluded_closed_trades: 0 });
     const perf = page("/performance", ok(d));
-    expect(perf).toContain("Simulated ledger · not broker equity");
-    expect(perf).toContain("+$12.50"); // realized
-    expect(perf).toContain("+$17.50"); // total
+    expect(perf).toContain("Complete lifetime performance unavailable");
+    expect(perf).not.toContain("+$17.50"); // legacy open + realized is not lifetime profit
     expect(html).not.toContain("$2,222.22"); // broker equity is not mixed in
     expect(html).not.toContain("Alpaca PAPER account positions");
   });

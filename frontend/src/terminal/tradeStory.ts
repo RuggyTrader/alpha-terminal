@@ -60,7 +60,7 @@ export function fromBotTrade(r: BotTradeRow & { story?: TradeStory | null }): Tr
     gross: r.gross_usd, fees: r.fees_usd, net: r.net_usd, returnPct: r.net_usd !== null && r.entry_price ? (r.net_usd / (r.qty * r.entry_price)) * 100 : null,
     openedAt: r.opened_at, closedAt: r.closed_at, costProfile: r.ledger === "bot" ? "ndax-flat-0.20" : null, swept: r.swept_usd, story: r.story ?? null, proofUrl: r.proof_url,
     slippage: null, source: r.status === "CLOSED" ? "VERIFIED PAPER" : "ALPHA PAPER",
-    chartUrl: `/bots/${r.bot_id}/chart?ledger=${r.ledger}&trade=${encodeURIComponent(id)}` };
+    chartUrl: r.ledger === "legacy" ? (/^\/trades\/(\d+)$/.test(r.proof_url) ? `/bots/${r.bot_id}/chart?ledger=legacy&trade=${r.proof_url.split("/").pop()}` : null) : `/bots/${r.bot_id}/chart?ledger=bot&trade=${encodeURIComponent(r.trade_id)}` };
 }
 
 /** Why the bot entered — every clause is a recorded field. Null when no plan was recorded. */
@@ -130,8 +130,18 @@ export function humanReason(code: string | null | undefined, ctx: { available?: 
     case "BALANCE_UNKNOWN": return "The bot could not read its PAPER balance, so it did not place an order.";
     case "NO_CAPITAL": return "This bot has no available PAPER capital.";
     case "MAX_ORDER_NOTIONAL": case "MAX_TOTAL_EXPOSURE": case "MAX_OPEN_POSITIONS": case "EXPOSURE_LIMIT": return "The order would exceed one of the account's safety limits, so it was refused.";
+    case "BOT_PROFILE_MISMATCH": return "This order's strategy settings do not match the bot's registered profile. No new position was opened; existing positions can still close.";
+    case "BOT_SHORTFALL": return "This bot has an unpaid simulated loss. New entries remain blocked; MAIN and other bots do not cover it automatically. Adding capital does not clear this liability.";
+    case "CONCURRENT_ORDER": return "The bot or account limits changed while this order was being checked. Nothing was committed by this attempt; the engine can retry with the same order ID.";
     case "BOT_ENTRIES_PAUSED": return "New entries are paused for this bot by the owner; open positions are still managed.";
     case "SIGNAL_EXPIRED": return "The signal was not delivered in time (the engine was catching up), so it was not sent at a later, different price.";
     default: return null;
   }
+}
+
+export function backendErrorMessage(e: unknown): string {
+  const row = e && typeof e === "object" ? e as { code?: unknown; message?: unknown } : null;
+  const code = typeof row?.code === "string" ? row.code : null;
+  const explanation = humanReason(code);
+  return explanation ? `${code}: ${explanation}` : String(row?.message ?? e);
 }

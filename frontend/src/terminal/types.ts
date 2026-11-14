@@ -339,6 +339,8 @@ export interface PaperWallet {
   /** Simulated fees paid from this balance; absent on Workers without cost accounting. */
   fees_usd?: number;
   net_realized_pnl_usd?: number;
+  economic_net_realized_pnl_usd?: number | null;
+  shortfall_usd?: number;
   net_funding_usd: number;
   unrealized_pnl_usd: number | null;
   book_balance_usd: number;
@@ -382,6 +384,7 @@ export interface PaperPortfolio {
   active: boolean;
   wallets: PaperWallet[];
   totals: {
+    equity_usd?: number | null;
     book_balance_usd: number;
     unallocated_usd: number;
     available_usd: number;
@@ -389,6 +392,8 @@ export interface PaperPortfolio {
     realized_pnl_usd: number;
     fees_usd?: number;
     net_realized_pnl_usd?: number;
+    economic_net_realized_pnl_usd?: number | null;
+    shortfall_usd?: number;
     net_funding_usd: number;
     unrealized_pnl_usd: number | null;
   };
@@ -419,6 +424,7 @@ export type CostProfileInfo =
 
 /** A closed ALPHA PAPER ledger trade: the only kind counted as verified. */
 export interface VerifiedTrade {
+  proof_url?: string;
   id: number;
   symbol: string;
   direction: string;
@@ -435,7 +441,20 @@ export interface VerifiedTrade {
   cost_profile?: string | null;
 }
 
+export interface LifetimePerformance {
+  scope: "all-funded-paper"; complete: boolean; bot_id: string | null;
+  closed_trades: number; wins: number; losses: number; break_even: number;
+  gross_usd: number; fees_usd: number; net_usd: number;
+  win_rate: number | null; profit_factor: number | null; expectancy_usd: number | null;
+  max_drawdown_usd: number; drawdown_basis: string;
+  first_close: string | null; last_close: string | null;
+}
+
 export interface PerformanceData {
+  /** Authoritative lifetime aggregate, independent of the bounded legacy trade list. */
+  lifetime?: LifetimePerformance;
+  /** Frontend coverage diagnostic for the separately loaded trade history. */
+  history_error?: string | null;
   verification: string;
   trades: VerifiedTrade[];
   truncated: boolean;

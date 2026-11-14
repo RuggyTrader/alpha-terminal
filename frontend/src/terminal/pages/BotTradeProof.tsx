@@ -14,6 +14,8 @@ const v = (x: number | null | undefined) => (x === null || x === undefined ? NA 
 
 export function BotTradeProofView({ p }: { p: BotTradeProof }) {
   const pos = p.position;
+  const entryOrder = p.orders.find(o => o.action === "OPEN_LONG" || o.action === "OPEN_SHORT");
+  const requested = entryOrder?.requested_qty ?? entryOrder?.engine_payload?.qty ?? null;
   const view = fromBotTrade({ trade_id: pos.trade_id, bot_id: pos.bot_id, ledger: "bot", symbol: String(pos.symbol), side: pos.side, status: pos.status, qty: pos.qty, entry_price: pos.entry_price,
     exit_price: pos.exit_price, opened_at: pos.opened_at, closed_at: pos.closed_at, gross_usd: pos.gross_usd, fees_usd: (pos.entry_fee_usd ?? 0) + (pos.exit_fee_usd ?? 0), net_usd: pos.net_usd,
     swept_usd: pos.swept_usd, stop: pos.stop, tp: pos.tp, proof_url: `/bots/trade/${encodeURIComponent(pos.trade_id)}`, story: p.story ?? null });
@@ -25,6 +27,8 @@ export function BotTradeProofView({ p }: { p: BotTradeProof }) {
           sub={`${p.bot?.bot_id ?? pos.bot_id} · ${p.bot?.profile ?? ""} · config ${p.bot?.inputs_hash ?? NA}`}
           right={<StatusBadge tone={p.all_checks_ok ? "ok" : "bad"}>{p.all_checks_ok ? "CHECKS PASS" : "CHECK FAILED"}</StatusBadge>} />
         <div className="sizing-grid">
+          <div><span>Filled quantity</span><b>{pos.qty}</b></div>
+          <div><span>Requested quantity</span><b>{v(requested)}</b></div>
           <div><span>Status</span><b>{pos.status}</b></div>
           <div><span>Entry · exit</span><b>{pos.entry_price} · {v(pos.exit_price)}</b></div>
           <div><span>Opened · closed</span><b>{stamp(pos.opened_at)} · {pos.closed_at ? stamp(pos.closed_at) : NA}</b></div>
@@ -36,6 +40,8 @@ export function BotTradeProofView({ p }: { p: BotTradeProof }) {
           <div><span>Transferred to MAIN</span><b>{pos.swept_usd === null ? NA : money(pos.swept_usd)}</b></div>
           {pos.shortfall_usd ? <div><span>Shortfall</span><b className="t-bad">{money(pos.shortfall_usd)}</b></div> : null}
         </div>
+        {requested !== null && pos.qty < requested ? <p className="sizing-note" role="status">Quantity reduced: filled {pos.qty} of {requested} requested. {entryOrder?.message ?? "See the order evidence for the capital or stop-risk sizing decision."}</p> : null}
+        <p className="sizing-note">Actual PAPER fills use the Kraken reference when the signal arrives; the planned limit is not a guaranteed exchange fill.</p>
         <p className="sizing-note">{p.labels.mode} · fee model {p.labels.fee_model}{p.labels.short_model ? ` · ${p.labels.short_model}` : ""}</p>
       </section>
 

@@ -2,15 +2,16 @@
 // linked to its trade proof. A filter that matches nothing says so; nothing is estimated. Bot chips switch the filter.
 
 import { Link } from "react-router-dom";
-import { useBotTrades, type BotTradeRow, type BotTradesPage } from "../botTrades";
+import { useBotTrades, RECENT_TRADE_LIMIT, type BotTradeRow, type BotTradesPage } from "../botTrades";
 import { useFleet } from "../fleetStore";
+import type { Bot } from "../bots";
+import { humanReason } from "../tradeStory";
 import { money, NA, signedMoney, stamp, tone } from "../fmt";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "./ui";
 import { TradeStoryCard } from "./TradeStoryCard";
 import { fromBotTrade } from "../tradeStory";
 
-/** Funded results of a GIVEN set of closed bot trades (the ledger's own net figures; fees recorded per fill).
- *  Only for the rows loaded on screen. Lifetime figures come from the server (fleet `paper`), never from a page. */
+/** Funded results of a set of closed bot trades (the ledger's own net figures; fees recorded per fill). */
 export function botTradeSummary(rows: BotTradeRow[]) {
   const closed = rows.filter((r) => r.status === "CLOSED" && r.net_usd !== null);
   const nets = closed.map((r) => r.net_usd as number);
@@ -31,7 +32,7 @@ export { useBotTrades };
 
 /** "Showing the latest N of M": a page of rows is never presented as the whole history. */
 export function PageNote({ page }: { page?: BotTradesPage }) {
-  if (!page) return null;
+  if (!page) return <p className="sizing-note">Latest 50 records per ledger. Older history needs backend pagination; lifetime totals are complete.</p>;
   return page.truncated
     ? <p className="sizing-note">Showing the latest {page.returned} of {page.total} trades. Lifetime totals above are computed by the server from all of them.</p>
     : null;
@@ -63,17 +64,20 @@ export function TradeRowLink({ t }: { t: BotTradeRow }) {
   );
 }
 
-export function BotTradesView({ filter }: { filter: { bot: string | null; signal: string | null } }) {
+export function BotTradesView({ filter, historyOnly = false }: { filter: { bot: string | null; signal: string | null }; historyOnly?: boolean }) {
+  const limit = RECENT_TRADE_LIMIT;
   const { fleet } = useFleet();
-  const { data, error, fetchedAt, stale } = useBotTrades(filter, fleet);
-  const label = filter.signal ? `signal ${filter.signal}` : `bot ${filter.bot}`;
+  const { data, error, stale, refresh } = useBotTrades(filter, fleet);
+  const label = filter.signal ? `signal ${filter.signal}` : filter.bot ? `bot ${filter.bot}` : "all bots";
   return (
     <section aria-label="Filtered records" className="m-fade">
-      <SectionHeader title={`Filtered: ${label}`} sub={<Link className="link" to="/trades">Clear filter</Link>} />
-      <RefreshNote fetchedAt={fetchedAt} stale={stale} error={error} />
+      <SectionHeader title={historyOnly ? "All-bot trade history" : `Filtered: ${label}`} sub={filter.bot || filter.signal ? <Link className="link" to="/trades">Clear filter</Link> : "Funded PAPER · legacy and bot ledgers"}
+        right={<button className="btn btn-ghost" type="button" onClick={refresh}>Refresh records</button>} />
+      {stale ? <p role="status" className="sizing-note t-warn">STALE RECORDS · last successful {label} response retained. {error}</p> : null}
+      {data ? <p className="sizing-note">Latest {limit} records per ledger. Older history needs backend pagination; lifetime summaries remain complete.</p> : null}
       {error && !data ? <EmptyState title="Records unavailable" tone="bad">{error}</EmptyState> : !data ? <SkeletonCards count={2} /> : !data.available ? (
         <EmptyState title="No bot registry yet">The ledger has no bot tables (migration 0007 is not applied).</EmptyState>
-      ) : !data.trades.length && !data.orders.length && !data.signals.length ? (
+      ) : !data.trades.length && (historyOnly || (!data.orders.length && !data.signals.length)) ? (
         <EmptyState title={`Nothing recorded for ${label}`}>No trade, order or signal matches this filter.</EmptyState>
       ) : (
         <>
@@ -84,18 +88,18 @@ export function BotTradesView({ filter }: { filter: { bot: string | null; signal
               <PageNote page={data.page} />
             </div>
           ) : null}
-          {data.orders.length ? (
+          {!historyOnly && data.orders.length ? (
             <div className="card list-card" aria-label="Bot orders">
               <SectionHeader title="Orders" sub="Every order the bot's engine sent, with the ledger's decision" />
               {data.orders.map((o) => (
                 <div key={o.order_id} className="li">
-                  <span><b>{o.action}</b> · {o.order_id} · {stamp(o.received_at)}{o.status !== "ACCEPTED" ? ` · ${o.code}` : ""}{o.message ? ` · ${o.message}` : ""}</span>
+                  <span><b>{o.action}</b> · {o.order_id} · {stamp(o.received_at)}{o.status !== "ACCEPTED" ? ` · ${o.code}` : ""}{humanReason(o.code) ? ` · ${humanReason(o.code)}` : o.message ? ` · ${o.message}` : ""}</span>
                   <StatusBadge tone={o.status === "ACCEPTED" ? "ok" : "bad"}>{o.status === "ACCEPTED" ? "ACCEPTED" : "REJECTED"}</StatusBadge>
                 </div>
               ))}
             </div>
           ) : null}
-          {data.signals.length ? (
+          {!historyOnly && data.signals.length ? (
             <div className="card list-card" aria-label="Signals">
               <SectionHeader title="Signals" />
               {data.signals.map((s) => (
@@ -114,41 +118,29 @@ export function BotTradesView({ filter }: { filter: { bot: string | null; signal
   );
 }
 
+/** Every headline here comes from /bots, regardless of the size or availability of the recent trade list. */
+export function BotLifetimePanel({ b }: { b: Bot }) {
+  const p = b.paper;
+  const rate = (v: number | null) => v === null ? NA : `${(v * 100).toFixed(1)}%`;
+  return <section className="card dark-card" aria-label={`${b.bot_id} funded performance`}>
+    <SectionHeader title={`${b.name} · ${b.symbol} ${b.timeframe}`} sub="Lifetime · all closed trades" right={<StatusBadge tone="ok">FUNDED PAPER</StatusBadge>} />
+    <div className="pm-grid">
+      <div className="pm"><span className="pm-k">NET P&amp;L</span><b className={`pm-v t-${tone(p.net_usd)}`}>{signedMoney(p.net_usd)}</b><i className="pm-n">after fees</i></div>
+      <div className="pm"><span className="pm-k">GROSS · FEES</span><b className="pm-v">{signedMoney(p.gross_usd)} · {money(p.fees_usd)}</b></div>
+      <div className="pm"><span className="pm-k">CLOSED TRADES</span><b className="pm-v">{p.trades}</b><i className="pm-n">{p.long_trades} long · {p.short_trades} short · {b.open_positions.length} open</i></div>
+      <div className="pm"><span className="pm-k">WIN RATE · PF</span><b className="pm-v">{rate(p.win_rate)} · {p.profit_factor === null ? NA : p.profit_factor.toFixed(2)}</b></div>
+      <div className="pm"><span className="pm-k">MAX DRAWDOWN</span><b className="pm-v">{money(p.max_drawdown_usd)}</b><i className="pm-n">closed-trade equity; intratrade losses may be larger</i></div>
+      <div className="pm"><span className="pm-k">TO MAIN</span><b className="pm-v">{money(b.funding.profit_swept_to_main_usd)}</b><i className="pm-n">already included in trading P&amp;L; never added twice</i></div>
+    </div>
+  </section>;
+}
+
 export function BotPerformanceView({ bot }: { bot: string }) {
-  const { fleet } = useFleet();
-  const { data, error, fetchedAt, stale } = useBotTrades({ bot, signal: null }, fleet);
-  const b = fleet?.bots.find((x) => x.bot_id === bot) ?? null;
-  if (error && !data) return <EmptyState title="Bot performance unavailable" tone="bad">{error}</EmptyState>;
-  if (!data) return <SkeletonCards count={2} tall />;
-  const rate = (v: number | null) => (v === null ? NA : `${(v * 100).toFixed(0)}%`);
-  // LIFETIME figures: the Worker computes them from every closed trade of this bot (worker/src/bots.ts), never from the
-  // page of rows loaded below. Without the fleet snapshot they are shown as unavailable, not estimated from the page.
-  const L = b?.paper ?? null;
-  const swept = b?.funding.profit_swept_to_main_usd ?? null;
-  const loaded = botTradeSummary(data.trades);
-  return (
-    <>
-      <section className="card dark-card" aria-label={`${bot} funded performance`}>
-        <SectionHeader title={b ? `${b.name} · ${b.symbol} ${b.timeframe}` : bot} sub="Lifetime · all closed trades" right={<StatusBadge tone="ok">FUNDED PAPER</StatusBadge>} />
-        <div className="pm-grid">
-          <div className="pm"><span className="pm-k">NET P&amp;L</span><b className={`pm-v ${L ? `t-${tone(L.net_usd)}` : ""}`}>{L && L.trades ? signedMoney(L.net_usd) : NA}</b><i className="pm-n">after fees</i></div>
-          <div className="pm"><span className="pm-k">GROSS · FEES</span><b className="pm-v">{L && L.trades ? `${signedMoney(L.gross_usd)} · ${money(L.fees_usd)}` : NA}</b></div>
-          <div className="pm"><span className="pm-k">CLOSED TRADES</span><b className="pm-v">{L ? L.trades : NA}</b><i className="pm-n">{L ? `${L.long_trades} long · ${L.short_trades} short` : ""}{b?.open_positions.length ? ` · ${b.open_positions.length} open` : ""}</i></div>
-          <div className="pm"><span className="pm-k">WIN RATE · PF</span><b className="pm-v">{L ? `${rate(L.win_rate)} · ${L.profit_factor === null ? NA : L.profit_factor.toFixed(2)}` : NA}</b></div>
-          <div className="pm"><span className="pm-k">MAX DRAWDOWN</span><b className="pm-v">{L && L.trades ? money(L.max_drawdown_usd) : NA}</b></div>
-          <div className="pm"><span className="pm-k">TO MAIN</span><b className="pm-v">{swept === null ? NA : money(swept)}</b><i className="pm-n">profit transfers do not make a losing bot profitable</i></div>
-        </div>
-        {L && !data.page?.truncated && data.trades.length && Math.abs(L.net_usd - loaded.net) > 0.005 ? (
-          <p className="sizing-note t-bad">The lifetime summary ({signedMoney(L.net_usd)}) and the complete list of its trades ({signedMoney(loaded.net)}) disagree; reported, not hidden.</p>
-        ) : null}
-      </section>
-      <section aria-label="Bot trades">
-        <SectionHeader title="Trade history" right={<span className="count">{data.page?.total ?? data.trades.length}</span>} />
-        <RefreshNote fetchedAt={fetchedAt} stale={stale} error={error} />
-        {data.trades.length ? <div className="tcard-list">{data.trades.map((t) => <TradeStoryCard key={`${t.ledger}-${t.trade_id}`} v={fromBotTrade(t)} />)}</div>
-          : <EmptyState title="NOT YET OBSERVED">{bot} has no recorded trade.</EmptyState>}
-        <PageNote page={data.page} />
-      </section>
-    </>
-  );
+  const { fleet, stale, error } = useFleet();
+  const b = fleet?.bots.find(x => x.bot_id === bot) ?? null;
+  return <>
+    {stale ? <p className="sizing-note t-warn" role="status">STALE BOT TOTALS · last verified summary retained. {error}</p> : null}
+    {b ? <BotLifetimePanel b={b} /> : !fleet && !error ? <SkeletonCards count={2} /> : <EmptyState title="Bot lifetime performance unavailable" tone="warn">No authoritative summary is available for {bot}.</EmptyState>}
+    <BotTradesView filter={{ bot, signal: null }} />
+  </>;
 }

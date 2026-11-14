@@ -19,7 +19,6 @@ import { useVerified } from "../useVerified";
 import { useState } from "react";
 import type { HeroScope } from "../components/AccountHero";
 import { WalletOverview } from "../components/WalletOverview";
-import { useFundedVerified } from "../fundedTrades";
 
 /** Every open ALPHA PAPER position: the legacy ledger's (simulated) AND each fleet bot's own (bot ledger), from the
  *  same records as the Capital card's "reserved" figure, so the two can never disagree. */
@@ -77,7 +76,7 @@ export function BrokerPositionsSection() {
 export function HomePage() {
   const { state, reconnected } = useDash();
   // One funded trade set for the hero and the Funded PAPER tab: the legacy ledger + the bot ledger, never twice.
-  const verified = useFundedVerified(useVerified());
+  const verified = useVerified();
   const [scope, setScope] = useState<HeroScope | null>(null); // the hero follows the selected performance scope
   const fleetAvailable = !!useFleet().fleet?.available;
   const d = state.data;
@@ -89,7 +88,7 @@ export function HomePage() {
       <div className="col-main m-stagger">
         <AccountHero state={state} verified={verified} reconnected={reconnected} scope={scope} />
         <PerformanceSelector verified={verified} onScope={setScope} />
-        {d?.portfolio ? <WalletOverview portfolio={d.portfolio} /> : null}
+        {d?.portfolio ? <WalletOverview portfolio={d.portfolio} paper={d.paper} feedStale={state.status === "stale" || state.status === "error"} /> : null}
         <div className="hp-panels">
           {/* The legacy single-engine pipeline only where there is no bot registry (schema 6); otherwise every bot,
               ALPHA-02 included, has its own live line in the Bots pipeline (no duplicate "offline" engine panel). */}

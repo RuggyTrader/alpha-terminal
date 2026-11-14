@@ -509,3 +509,10 @@ h1, h2, h3, p { margin: 0; }
 @media (max-width: 360px) { .pf-row { flex-direction: column; align-items: flex-start; } }
 .pf-hist > span { flex-shrink: 1; min-width: 0; }
 .pf-hist > b { white-space: nowrap; display: flex; flex-direction: column; align-items: flex-end; }
+
+/* Long signal ids and recorded execution explanations must wrap inside mobile cards. */
+.li > span { min-width: 0; flex-shrink: 1; overflow-wrap: anywhere; }
+.tc-grid > div, .sizing-grid > div, .wallet-grid > div { min-width: 0; overflow-wrap: anywhere; }
+
+/* Keep currency intact while adjacent trade descriptions wrap on mobile. */
+.li-link > b { white-space: nowrap; flex-shrink: 0; }
