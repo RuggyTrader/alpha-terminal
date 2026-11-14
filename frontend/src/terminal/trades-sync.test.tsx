@@ -19,6 +19,7 @@ const { createBotTradesStore, ledgerSignature, BOT_TRADES_LIMIT } = await vi.imp
 const { allBotRecords, refusalText } = await import("./components/AllBotTrades");
 const { BotPerformanceView } = await import("./components/BotTradesView");
 const { fromBotTrade } = await import("./tradeStory");
+const { fundedState } = await import("./fundedTrades");
 
 const paper = (o: Partial<Bot["paper"]> = {}): Bot["paper"] => ({ trades: 0, long_trades: 0, short_trades: 0, wins: 0, losses: 0, break_even: 0, gross_usd: 0, fees_usd: 0, net_usd: 0,
   win_rate: null, profit_factor: null, expectancy_usd: null, max_drawdown_usd: 0, ...o });
@@ -67,6 +68,7 @@ describe("B: shared bot-trades store refreshes and never regresses", () => {
     const s = createBotTradesStore(async (f) => { limit = f.limit; return tradesOf([]); });
     await s.refresh({ bot: null, signal: null });
     expect(limit).toBe(BOT_TRADES_LIMIT);
+    expect(BOT_TRADES_LIMIT).toBeLessThanOrEqual(50); // the Worker's current D1 bound-parameter ceiling
   });
   it("the fleet's ledger signature changes on a fill, a close and a new pending order — and not on an unrelated refresh", () => {
     const a = FLEET([bot("ALPHA-01", "SOLUSD", "1m")]);
@@ -156,5 +158,22 @@ describe("C: lifetime performance is never computed from a page of 200 rows", ()
     const html = renderToStaticMarkup(<MemoryRouter><BotPerformanceView bot="ALPHA-01" /></MemoryRouter>);
     expect(html).not.toMatch(/CLOSED TRADES<\/span><b class="pm-v">200</);
     expect(html).toContain("Showing the latest 200 of 250 trades");
+  });
+});
+
+describe("Home funded totals never silently leave out the bot ledger", () => {
+  const verified = { status: "ok", data: { trades: [], verification: "v" }, error: null } as never;
+  it("a failed or truncated bot-ledger read makes the totals unavailable, with the reason", () => {
+    const failed = fundedState(verified, { rows: null, problem: "the bot-ledger trades could not be loaded (D1_ERROR: too many SQL variables)" });
+    expect(failed.status).toBe("error");
+    expect(failed.data).toBeNull();
+    expect(failed.error).toContain("too many SQL variables");
+    const cut = fundedState(verified, { rows: null, problem: "the Worker returned 50 of 60 bot-ledger trades" });
+    expect(cut.error).toContain("50 of 60");
+  });
+  it("a complete read is merged (bot-ledger closed trades added once)", () => {
+    const ok = fundedState(verified, { rows: [row({ trade_id: "A" }), row({ trade_id: "L", ledger: "legacy" })], problem: null });
+    expect(ok.status).toBe("ok");
+    expect((ok.data as { trades: unknown[] }).trades.length).toBe(1); // the legacy row is already in the verified set
   });
 });

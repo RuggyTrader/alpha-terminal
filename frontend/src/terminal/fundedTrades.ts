@@ -24,18 +24,36 @@ export function mergeFunded(verified: VerifiedState, botRows: BotTradeRow[] | nu
     verification: `${verified.data.verification} Includes ${extra.length} closed bot-ledger trade(s) (each bot's own wallet, net of its recorded fees).` } };
 }
 
+/** Bot-ledger rows for the funded totals, or why they could not be used. */
+export interface FundedRows { rows: BotTradeRow[] | null; problem: string | null }
+
+/**
+ * The funded totals Home shows. If the bot-ledger history could not be read COMPLETELY (request failed, or the
+ * Worker returned fewer rows than exist), the totals are reported unavailable with the reason: a total that silently
+ * leaves out the bot ledger would be a misleading profit figure.
+ */
+export function fundedState(verified: VerifiedState, f: FundedRows): VerifiedState {
+  if (f.problem) return { status: "error", data: null, error: `Funded totals unavailable: ${f.problem}. Nothing is shown rather than a partial total.` };
+  return mergeFunded(verified, f.rows);
+}
+
 /** Re-reads the bot trades whenever the shared fleet snapshot shows a ledger change (so a close shows on Home with the fleet). */
 export function useFundedVerified(verified: VerifiedState): VerifiedState {
   const { fleet } = useFleet();
-  const [rows, setRows] = useState<BotTradeRow[] | null>(null);
+  const [f, setF] = useState<FundedRows>({ rows: null, problem: null });
   const botLedger = !!fleet?.bots.some((b) => b.ledger_api === "bot");
   // Refetch only when a bot's trades actually changed (not on every 20 s fleet poll: this read is the full history).
   const sig = ledgerSignature(fleet ?? null);
   useEffect(() => {
-    if (!botLedger) { setRows([]); return; }
+    if (!botLedger) { setF({ rows: [], problem: null }); return; }
     let live = true;
-    fetchBotTrades({ limit: 5000 }).then((d) => { if (live) setRows(d.available ? d.trades : []); }).catch(() => { if (live) setRows([]); });
+    fetchBotTrades({ limit: 5000 }).then((d) => {
+      if (!live) return;
+      if (!d.available) { setF({ rows: [], problem: null }); return; }
+      if (d.page?.truncated) { setF({ rows: null, problem: `the Worker returned ${d.page.returned} of ${d.page.total} bot-ledger trades` }); return; }
+      setF({ rows: d.trades, problem: null });
+    }).catch((e) => { if (live) setF({ rows: null, problem: `the bot-ledger trades could not be loaded (${String((e as Error)?.message ?? e)})` }); });
     return () => { live = false; };
   }, [botLedger, sig]);
-  return mergeFunded(verified, rows);
+  return fundedState(verified, f);
 }

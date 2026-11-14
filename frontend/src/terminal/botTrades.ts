@@ -43,7 +43,10 @@ export async function fetchBotTrades(f: { bot?: string | null; signal?: string |
 //   * refreshes when the shared fleet snapshot shows the ledger changed (a fill, a close, a new open position), so a
 //     trade that settles while the owner stays on the page appears without leaving it; plus a slow visible-only poll
 //     as a fallback (rejections do not change the fleet summary). No per-component poller.
-export const BOT_TRADES_LIMIT = 200;
+// 50: the Worker's story lookup binds two ids per trade in one IN (...) list, and D1 allows 100 bound parameters, so
+// pages over 50 fail with "too many SQL variables" (reported to the backend owner). Lifetime figures never depend on
+// this page size; the list says "Showing the latest N of M".
+export const BOT_TRADES_LIMIT = 50;
 export const BOT_TRADES_POLL_MS = 60_000;
 export interface BotTradesSnapshot { data: BotTrades | null; error: string | null; fetchedAt: number | null; stale: boolean }
 type Filter = { bot: string | null; signal: string | null };
