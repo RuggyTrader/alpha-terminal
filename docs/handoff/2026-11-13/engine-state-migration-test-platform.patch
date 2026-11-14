@@ -1,0 +1,14 @@
+diff --git a/engine/test/state-migration.test.mjs b/engine/test/state-migration.test.mjs
+index 4c5c487..2c9aee9 100644
+--- a/engine/test/state-migration.test.mjs
++++ b/engine/test/state-migration.test.mjs
+@@ -204,7 +204,8 @@ describe("engine state across every switch", () => {
+     assert.equal(final.duplicate_signal_ids, 0);
+     const audit = readFileSync(join(oldEngine, "data", "audit-SOLUSD-5m.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+     const starts = audit.filter((a) => a.type === "process_start");
+-    assert.ok(starts.length >= 6, `one audit log carried through every switch (${starts.length} starts)`);
++    // Steps 4, 5, 6 and 8 start the Windows launcher and are skipped elsewhere: they add 2 of the 6 starts.
++    assert.ok(starts.length >= (WIN ? 6 : 4), `one audit log carried through every switch (${starts.length} starts)`);
+     assert.ok(starts.slice(1).every((s) => s.resumed === true), "every start after the first resumed saved state");
+     assert.deepEqual(readdirSync(work).filter((f) => f.startsWith("engine-state")).length >= 1, true);
+   });

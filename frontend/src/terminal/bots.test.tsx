@@ -141,6 +141,12 @@ describe("Home performance selector keeps datasets apart", () => {
     expect(out).not.toContain("Profit factor");
     expect(out).toContain("Max drawdown (closed)");
   });
+  it("funded view shows WHY totals are unavailable instead of loading forever", () => {
+    const v = { status: "error", data: null, error: "Funded totals unavailable: the Worker returned 50 of 60 bot-ledger trades." } as unknown as VerifiedState;
+    const out = r(<FundedView verified={v} now={NOW} />);
+    expect(out).toContain("50 of 60");
+    expect(out).not.toContain("Loading");
+  });
   it("mirror view is labelled hypothetical", () => {
     expect(r(<MirrorView overview={{ label: "", disclosure: "", note: "", markets: [] }} />)).toContain("Hypothetical");
   });

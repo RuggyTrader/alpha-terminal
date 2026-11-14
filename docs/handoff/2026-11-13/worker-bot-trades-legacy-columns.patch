@@ -1,0 +1,100 @@
+diff --git a/worker/src/bot_trades.ts b/worker/src/bot_trades.ts
+index 13f9b8d..11fb0af 100644
+--- a/worker/src/bot_trades.ts
++++ b/worker/src/bot_trades.ts
+@@ -14,7 +14,7 @@ const ID_RE = /^[A-Za-z0-9:_.\-]{1,160}$/;
+ const BOT_RE = /^ALPHA-\d{2}$/;
+ 
+ export interface BotTradeRow {
+-  trade_id: string; bot_id: string; ledger: "bot" | "legacy"; symbol: string; side: string; status: string; qty: number;
++  trade_id: string; /** legacy ledger only: the trades.id its proof page and chart use */ legacy_id?: number; bot_id: string; ledger: "bot" | "legacy"; symbol: string; side: string; status: string; qty: number;
+   entry_price: number; exit_price: number | null; opened_at: string; closed_at: string | null;
+   gross_usd: number | null; fees_usd: number | null; net_usd: number | null; swept_usd: number | null; stop: number | null; tp: number | null; proof_url: string;
+   story?: TradeStory;
+@@ -47,12 +47,16 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
+   // Legacy bot (ALPHA-02 until stage S1): its closed trades in the original ledger, with the existing proof page.
+   const legacy = (await db.prepare(`SELECT bot_id FROM bots WHERE ledger_api = 'legacy'${where("bot_id")}`).bind(...args).all<{ bot_id: string }>()).results.map((r) => r.bot_id);
+   for (const id of legacy) {
+-    const rows = (await db.prepare(`SELECT id, symbol, qty, entry_price, exit_price, opened_at, closed_at, COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees,
+-        realized_pnl AS net, open_alert_id, close_alert_id FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : ""} ORDER BY id DESC LIMIT ?`)
+-      .bind(id, ...(signal ? [signal, signal] : []), limit).all<Obj>().catch(() => ({ results: [] as Obj[] }))).results;
++    // The legacy trades table's own columns (0001/0002/0004): entry_qty, entry_avg_price, exit_avg_price. Its ALPHA_PAPER
++    // rows are written only when a position closes (paper_ledger.ts), so every row here is a closed trade. No silent
++    // catch: a failing query must surface, never make ALPHA-02's history disappear from the bot view.
++    const rows = (await db.prepare(`SELECT id, symbol, status, entry_qty AS qty, entry_avg_price AS entry_price, exit_avg_price AS exit_price, opened_at, closed_at,
++        COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees, realized_pnl AS net, open_alert_id, close_alert_id
++        FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : ""} ORDER BY id DESC LIMIT ?`)
++      .bind(id, ...(signal ? [signal, signal] : []), limit).all<Obj>()).results;
+     for (const r of rows) {
+       if (r.close_alert_id) closeIds.set(String(r.open_alert_id ?? r.id), String(r.close_alert_id));
+-      trades.push({ trade_id: String(r.open_alert_id ?? r.id), bot_id: id, ledger: "legacy", symbol: String(r.symbol), side: "LONG", status: "CLOSED", qty: Number(r.qty),
++      trades.push({ trade_id: String(r.open_alert_id ?? r.id), legacy_id: Number(r.id), bot_id: id, ledger: "legacy", symbol: String(r.symbol), side: "LONG", status: String(r.status) === "OPEN" ? "OPEN" : "CLOSED", qty: Number(r.qty),
+         entry_price: Number(r.entry_price), exit_price: r.exit_price === null ? null : Number(r.exit_price), opened_at: String(r.opened_at), closed_at: (r.closed_at as string) ?? null,
+         gross_usd: Number(r.gross), fees_usd: Number(r.fees), net_usd: Number(r.net), swept_usd: null, stop: null, tp: null, proof_url: `/trades/${r.id}` });
+     }
+@@ -74,7 +78,15 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
+   const signals = hasBotCol ? (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason, bot_id FROM alerts
+       WHERE 1 = 1${bot ? " AND bot_id = ?" : ""}${signal ? " AND alert_id = ?" : ""} ORDER BY id DESC LIMIT ?`)
+     .bind(...args, ...(signal ? [signal] : []), limit).all<Obj>().catch(() => ({ results: [] as Obj[] }))).results : [];
+-  return { available: true, filter: { bot, signal }, trades: page, orders, signals };
++  // How many trades exist for this filter, so a page of `limit` rows is never presented as the complete history.
++  let total: number | null = null;
++  if (!signal) {
++    const nBot = await db.prepare(`SELECT COUNT(*) AS n FROM bot_positions WHERE 1 = 1${where("bot_id")}`).bind(...args).first<{ n: number }>();
++    let nLeg = 0;
++    for (const id of legacy) nLeg += Number((await db.prepare(`SELECT COUNT(*) AS n FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'`).bind(id).first<{ n: number }>())?.n ?? 0);
++    total = Number(nBot?.n ?? 0) + nLeg;
++  }
++  return { available: true, filter: { bot, signal }, trades: page, orders, signals, page: { limit, returned: page.length, total, truncated: total !== null && total > page.length } };
+ }
+ 
+ export async function botTradeProof(db: D1Database, tradeId: string) {
+diff --git a/worker/test/multi_bot.test.mjs b/worker/test/multi_bot.test.mjs
+index 0e265df..d30f2c9 100644
+--- a/worker/test/multi_bot.test.mjs
++++ b/worker/test/multi_bot.test.mjs
+@@ -319,5 +319,44 @@ describe("bot fleet ledger (migration 0007)", () => {
+     const lp = await dash(`/api/dashboard/trade-proof?id=${t.id}`);
+     assert.equal(lp.data.story.plan.ote_705, 81.3393);
+     assert.ok(!JSON.stringify(lp).includes(WEBHOOK_SECRET), "the secret is never stored or shown");
++    // The bot filter and the all-bot view list the legacy bot's trades from the legacy table's REAL columns
++    // (entry_qty / entry_avg_price / exit_avg_price), with its trades.id for the proof page and chart.
++    const leg = await dash("/api/dashboard/bot-trades?bot=ALPHA-02");
++    const lr = leg.data.trades.find((x) => x.trade_id === "ENG-SOLUSD-5-2026-11-13T00:30:00Z-BUY");
++    assert.ok(lr, `legacy trade listed for ALPHA-02: ${JSON.stringify(leg.data.trades.map((x) => x.trade_id))}`);
++    assert.equal(lr.ledger, "legacy");
++    assert.equal(lr.legacy_id, t.id);
++    assert.equal(lr.proof_url, `/trades/${t.id}`);
++    assert.equal(lr.status, "CLOSED");
++    assert.ok(lr.qty > 0 && Number.isFinite(lr.qty), `qty ${lr.qty}`);
++    assert.ok(lr.entry_price > 0 && lr.exit_price > 0, `prices ${lr.entry_price} → ${lr.exit_price}`);
++    assert.equal(lr.net_usd, Number(t.realized_pnl));
++    assert.equal(lr.story.exit.result, "SL");
++    assert.equal(leg.data.page.total, leg.data.trades.length, "every ALPHA-02 trade counted once");
++    const every = await dash("/api/dashboard/bot-trades");
++    const ids = every.data.trades.map((x) => `${x.ledger}:${x.trade_id}`);
++    assert.equal(new Set(ids).size, ids.length, "no trade appears twice in the all-bot list");
++    assert.ok(every.data.trades.some((x) => x.ledger === "legacy") && every.data.trades.some((x) => x.ledger === "bot"), "legacy and bot ledger in one list");
++  });
++
++  it("more than 200 closed trades: the page is bounded and says so; the fleet lifetime figures cover all of them", async () => {
++    // Last test in the file: 205 closed TEST rows seeded straight into bot_positions (wallets untouched), so the Worker's
++    // real paging and lifetime aggregation run over > 200 trades. Nets alternate -1.000000 / +0.500000 USD.
++    const before = (await dash("/api/dashboard/bots")).data.bots.find((b) => b.bot_id === "ALPHA-04").paper.trades;
++    for (let i = 0; i < 205; i++) {
++      const at = new Date(Date.UTC(2026, 9, 1, 0, i)).toISOString();
++      const net = i % 2 ? 500_000 : -1_000_000;
++      sql(`INSERT INTO bot_positions (trade_id, bot_id, symbol, side, status, qty, entry_price, entry_fee_micro, collateral_micro, fee_model, opened_at, exit_price, exit_fee_micro, closed_at, close_order_id, gross_pnl_micro, net_pnl_micro, swept_micro)
++           VALUES (?, 'ALPHA-04', 'BTCUSD', 'LONG', 'CLOSED', 0.0001, 100000, 20000, 10000000, 'ndax-flat-0.20-2026-11-12', ?, 100000, 20000, ?, ?, ?, ?, ?)`,
++        `TEST-MANY-${i}`, at, at, `TEST-MANY-${i}-CLOSE`, net + 40_000, net, Math.max(net, 0));
++    }
++    const pageR = await dash("/api/dashboard/bot-trades?bot=ALPHA-04&limit=200");
++    assert.equal(pageR.data.trades.length, 200);
++    assert.equal(pageR.data.page.total, sql(`SELECT COUNT(*) AS n FROM bot_positions WHERE bot_id = 'ALPHA-04'`)[0].n, "total = every ALPHA-04 position (open and closed)");
++    assert.equal(pageR.data.page.truncated, true);
++    const fleetB = (await dash("/api/dashboard/bots")).data.bots.find((b) => b.bot_id === "ALPHA-04");
++    assert.equal(fleetB.paper.trades, before + 205, "lifetime count is every closed trade, not the page");
++    const dbNet = sql(`SELECT COALESCE(SUM(net_pnl_micro), 0) AS n FROM bot_positions WHERE bot_id = 'ALPHA-04' AND status = 'CLOSED'`)[0].n / 1e6;
++    assert.ok(Math.abs(fleetB.paper.net_usd - dbNet) < 1e-6, `lifetime net ${fleetB.paper.net_usd} = ledger ${dbNet}`);
+   });
+ });

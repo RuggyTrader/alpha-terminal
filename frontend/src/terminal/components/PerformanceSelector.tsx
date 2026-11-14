@@ -19,7 +19,7 @@ const rate = (v: number | null) => (v === null ? NA : `${v.toFixed(0)}%`);
 
 export function FundedView({ verified, now }: { verified: VerifiedState; now: number }) {
   const m = verified.data ? computeMetrics(verified.data.trades, "ALL", now, null) : null;
-  if (!m) return <p className="sizing-note">Loading funded PAPER results…</p>;
+  if (!m) return <p className="sizing-note">{verified.status === "error" ? verified.error ?? "Funded PAPER results unavailable." : verified.status === "unsupported" ? "Verified history not provided by this backend yet." : "Loading funded PAPER results…"}</p>;
   return (
     <div className="sizing-grid" aria-label="Funded PAPER performance">
       {/* Net P&L, closed trades, win rate and profit factor are in the hero above (same scope): not repeated here. */}
