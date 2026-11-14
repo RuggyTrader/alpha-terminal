@@ -4,7 +4,7 @@
   "description": "ALPHA TERMINAL Cloudflare Worker (PAPER, dry-run only)",
   "main": "index.js",
   "scripts": {
-    "test": "node --test test/*.test.mjs",
+    "test": "node --test --test-concurrency=2 test/*.test.mjs",
     "build:frontend": "npm --prefix ../frontend run build",
     "check": "wrangler deploy --dry-run --outdir .wrangler/dry-run"
   },

@@ -1,0 +1,24 @@
+{
+  "label": "RESEARCH ONLY; never activated. Predeclared small hypothesis set, not a parameter search.",
+  "base_profile": "solusd-5m",
+  "train_end": "2026-09-01T00:00:00Z",
+  "validation_end": "2026-10-01T00:00:00Z",
+  "history_warning": "These dates were examined in prior project research. Validation and later diagnostics are reused data, NOT an untouched final test. No candidate may be recommended from this run alone.",
+  "fee_pct_per_fill": 0.2,
+  "spread_pct_per_side": 0.01,
+  "slippage_pct_per_side": 0.02,
+  "reference_risk_usd": 10,
+  "capital_usd": 1000,
+  "min_training_trades": 20,
+  "variants": [
+    { "id": "RESEARCH-BE13-H60-CONTROL", "tf": 60, "overrides": {} },
+    { "id": "RESEARCH-BE13-H15-STRUCTURE", "tf": 15, "overrides": { "swingLen": 12, "minLegATR": 3.5 } },
+    { "id": "RESEARCH-BE13-H30-STRUCTURE", "tf": 30, "overrides": { "swingLen": 12, "minLegATR": 3.5 } },
+    { "id": "RESEARCH-BE13-H60-STRUCTURE", "tf": 60, "overrides": { "swingLen": 12, "minLegATR": 3.5 } },
+    { "id": "RESEARCH-BE13-H15-RUNNER", "tf": 15, "overrides": { "tp2Ext": -0.55, "beFrac": 0.6, "trailFrac": 0.8, "trailBuf": 0.3 } },
+    { "id": "RESEARCH-BE13-H30-RUNNER", "tf": 30, "overrides": { "tp2Ext": -0.55, "beFrac": 0.6, "trailFrac": 0.8, "trailBuf": 0.3 } },
+    { "id": "RESEARCH-BE13-H60-RUNNER", "tf": 60, "overrides": { "tp2Ext": -0.55, "beFrac": 0.6, "trailFrac": 0.8, "trailBuf": 0.3 } },
+    { "id": "RESEARCH-BE13-H30-CONFLUENCE", "tf": 30, "overrides": { "minScore": 2, "slBuf": 0.4 } },
+    { "id": "RESEARCH-BE13-H60-CONFLUENCE", "tf": 60, "overrides": { "minScore": 2, "slBuf": 0.4 } }
+  ]
+}

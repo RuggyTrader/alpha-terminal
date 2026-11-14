@@ -6,7 +6,7 @@
 //   legacy ALPHA-02  trades / paper_positions owned by bot_id (migration 0007)
 // The proof recomputes the trade's arithmetic from its own rows and says whether it matches; nothing is estimated.
 
-import { alertPayloads, botOrderPayloads, storyOf, type TradeStory } from "./trade_story";
+import { botOrderPayloads, storyOf, type TradeStory } from "./trade_story";
 
 type Obj = Record<string, unknown>;
 const µ = (v: unknown) => (v === null || v === undefined ? null : Number(v) / 1e6);
@@ -14,7 +14,7 @@ const ID_RE = /^[A-Za-z0-9:_.\-]{1,160}$/;
 const BOT_RE = /^ALPHA-\d{2}$/;
 
 export interface BotTradeRow {
-  trade_id: string; bot_id: string; ledger: "bot" | "legacy"; symbol: string; side: string; status: string; qty: number;
+  trade_id: string; /** legacy ledger only: the trades.id its proof page and chart use */ legacy_id?: number; bot_id: string; ledger: "bot" | "legacy"; symbol: string; side: string; status: string; qty: number;
   entry_price: number; exit_price: number | null; opened_at: string; closed_at: string | null;
   gross_usd: number | null; fees_usd: number | null; net_usd: number | null; swept_usd: number | null; stop: number | null; tp: number | null; proof_url: string;
   story?: TradeStory;
@@ -47,21 +47,36 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
   // Legacy bot (ALPHA-02 until stage S1): its closed trades in the original ledger, with the existing proof page.
   const legacy = (await db.prepare(`SELECT bot_id FROM bots WHERE ledger_api = 'legacy'${where("bot_id")}`).bind(...args).all<{ bot_id: string }>()).results.map((r) => r.bot_id);
   for (const id of legacy) {
-    const rows = (await db.prepare(`SELECT id, symbol, qty, entry_price, exit_price, opened_at, closed_at, COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees,
-        realized_pnl AS net, open_alert_id, close_alert_id FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : ""} ORDER BY id DESC LIMIT ?`)
-      .bind(id, ...(signal ? [signal, signal] : []), limit).all<Obj>().catch(() => ({ results: [] as Obj[] }))).results;
+    // The legacy trades table's own columns (0001/0002/0004): entry_qty, entry_avg_price, exit_avg_price. Its ALPHA_PAPER
+    // rows are written only when a position closes (paper_ledger.ts), so every row here is a closed trade. No silent
+    // catch: a failing query must surface, never make ALPHA-02's history disappear from the bot view.
+    const rows = (await db.prepare(`SELECT id, symbol, status, entry_qty AS qty, entry_avg_price AS entry_price, exit_avg_price AS exit_price, opened_at, closed_at,
+        COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees, realized_pnl AS net, open_alert_id, close_alert_id
+        FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : ""} ORDER BY id DESC LIMIT ?`)
+      .bind(id, ...(signal ? [signal, signal] : []), limit).all<Obj>()).results;
     for (const r of rows) {
       if (r.close_alert_id) closeIds.set(String(r.open_alert_id ?? r.id), String(r.close_alert_id));
-      trades.push({ trade_id: String(r.open_alert_id ?? r.id), bot_id: id, ledger: "legacy", symbol: String(r.symbol), side: "LONG", status: "CLOSED", qty: Number(r.qty),
+      trades.push({ trade_id: String(r.open_alert_id ?? r.id), legacy_id: Number(r.id), bot_id: id, ledger: "legacy", symbol: String(r.symbol), side: "LONG", status: String(r.status) === "OPEN" ? "OPEN" : "CLOSED", qty: Number(r.qty),
         entry_price: Number(r.entry_price), exit_price: r.exit_price === null ? null : Number(r.exit_price), opened_at: String(r.opened_at), closed_at: (r.closed_at as string) ?? null,
         gross_usd: Number(r.gross), fees_usd: Number(r.fees), net_usd: Number(r.net), swept_usd: null, stop: null, tp: null, proof_url: `/trades/${r.id}` });
     }
   }
   trades.sort((a, b) => (b.opened_at > a.opened_at ? 1 : b.opened_at < a.opened_at ? -1 : 0));
-  // Each trade's recorded story (entry plan + exit reason), from the stored order payloads: two queries per page.
+  // Each trade's recorded story (entry plan + exit reason), from the stored order payloads. The page's ids are selected
+  // INSIDE the SQL (same filter and limit as the rows above), so each statement binds at most 4 values whatever the page
+  // size: D1 allows 100 bound parameters per statement, and an IN (...) list of two ids per trade failed above 50 trades.
   const page = trades.slice(0, limit);
-  const botP = await botOrderPayloads(db, page.filter((t) => t.ledger === "bot").flatMap((t) => [t.trade_id, closeIds.get(t.trade_id) ?? null]));
-  const legP = await alertPayloads(db, page.filter((t) => t.ledger === "legacy").flatMap((t) => [t.trade_id, closeIds.get(t.trade_id) ?? null]));
+  const botP = new Map<string, string>(), legP = new Map<string, string>();
+  if (page.some((x) => x.ledger === "bot")) {
+    for (const r of (await db.prepare(`WITH pg AS (SELECT trade_id, close_order_id FROM bot_positions WHERE 1 = 1${where("bot_id")}${signal ? " AND (trade_id = ? OR close_order_id = ?)" : ""} ORDER BY id DESC LIMIT ?)
+        SELECT order_id, payload_json FROM bot_orders WHERE order_id IN (SELECT trade_id FROM pg) OR order_id IN (SELECT close_order_id FROM pg WHERE close_order_id IS NOT NULL)`)
+      .bind(...args, ...(signal ? [signal, signal] : []), limit).all<{ order_id: string; payload_json: string | null }>()).results) botP.set(r.order_id, r.payload_json ?? "");
+  }
+  for (const id of page.some((x) => x.ledger === "legacy") ? legacy : []) {
+    for (const r of (await db.prepare(`WITH pg AS (SELECT open_alert_id, close_alert_id FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : ""} ORDER BY id DESC LIMIT ?)
+        SELECT alert_id, payload_json FROM alerts WHERE alert_id IN (SELECT open_alert_id FROM pg WHERE open_alert_id IS NOT NULL) OR alert_id IN (SELECT close_alert_id FROM pg WHERE close_alert_id IS NOT NULL)`)
+      .bind(id, ...(signal ? [signal, signal] : []), limit).all<{ alert_id: string; payload_json: string | null }>()).results) legP.set(r.alert_id, r.payload_json ?? "");
+  }
   for (const t of page) {
     const m = t.ledger === "bot" ? botP : legP;
     t.story = storyOf(m.get(t.trade_id), m.get(closeIds.get(t.trade_id) ?? ""), t.status === "CLOSED");
@@ -74,7 +89,20 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
   const signals = hasBotCol ? (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason, bot_id FROM alerts
       WHERE 1 = 1${bot ? " AND bot_id = ?" : ""}${signal ? " AND alert_id = ?" : ""} ORDER BY id DESC LIMIT ?`)
     .bind(...args, ...(signal ? [signal] : []), limit).all<Obj>().catch(() => ({ results: [] as Obj[] }))).results : [];
-  return { available: true, filter: { bot, signal }, trades: page, orders, signals };
+  // How many trades exist for this filter (the same bot AND signal filter as the rows), so a page of `limit` rows is never
+  // presented as the complete history. COUNTs only: no rows are read for the metadata.
+  const sigBot = signal ? " AND (trade_id = ? OR close_order_id = ?)" : "", sigLeg = signal ? " AND (open_alert_id = ? OR close_alert_id = ?)" : "";
+  const sigArgs = signal ? [signal, signal] : [];
+  const cBot = await db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(status = 'OPEN'), 0) AS open FROM bot_positions WHERE 1 = 1${where("bot_id")}${sigBot}`).bind(...args, ...sigArgs).first<{ n: number; open: number }>();
+  let nLeg = 0, openLeg = 0;
+  for (const id of legacy) {
+    const c = await db.prepare(`SELECT COUNT(*) AS n, COALESCE(SUM(status = 'OPEN'), 0) AS open FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER'${sigLeg}`).bind(id, ...sigArgs).first<{ n: number; open: number }>();
+    nLeg += Number(c?.n ?? 0); openLeg += Number(c?.open ?? 0);
+  }
+  const total = Number(cBot?.n ?? 0) + nLeg, open = Number(cBot?.open ?? 0) + openLeg;
+  return { available: true, filter: { bot, signal }, trades: page, orders, signals,
+    page: { limit, returned: page.length, total, truncated: total > page.length, open, closed: total - open,
+      by_ledger: { bot: Number(cBot?.n ?? 0), legacy: nLeg }, order: "newest opened first" } };
 }
 
 export async function botTradeProof(db: D1Database, tradeId: string) {

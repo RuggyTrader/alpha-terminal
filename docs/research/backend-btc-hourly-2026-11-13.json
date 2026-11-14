@@ -1,0 +1,368 @@
+{
+  "id": "RESEARCH-BE13-BTC-H60-DATA-SCREEN",
+  "label": "RESEARCH ONLY; original BTC 5m inputs on 1h candles; no tuning and no activation",
+  "market": "KRAKEN:BTCUSD",
+  "timeframe_min": 60,
+  "exact_inputs": {
+    "swingLen": 8,
+    "minLegATR": 5.5,
+    "maxAge": 37,
+    "entryMode": "Limit @ 0.705",
+    "slMode": "Swing origin (1.0)",
+    "slBuf": 0,
+    "tp2Ext": -0.15,
+    "minScore": 1,
+    "useFVG": true,
+    "fvgMinATR": 0.15,
+    "useOB": true,
+    "dispATR": 1,
+    "useRB": true,
+    "rbWick": 0.6,
+    "rbMinATR": 1,
+    "rbLook": 15,
+    "maxZones": 70,
+    "allowLong": true,
+    "allowShort": true,
+    "riskUSD": 10,
+    "useBE": true,
+    "beFrac": 0.4,
+    "useTrail": true,
+    "trailFrac": 0.05,
+    "trailLen": 3,
+    "trailBuf": 0.2,
+    "useHours": false,
+    "weekendFlat": false,
+    "useSleep": false,
+    "hoursTz": "America/New_York"
+  },
+  "costs": {
+    "fee_pct_per_fill": 0.2,
+    "spread_pct_per_side": 0.01,
+    "slippage_pct_per_side": 0.02,
+    "reference_risk_usd": 10,
+    "capital_usd": 1000
+  },
+  "source": {
+    "url": "https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=60",
+    "fetched_at": "2026-11-13T23:53:13.288Z",
+    "provider_rows": 721,
+    "completed_candles": 720,
+    "excluded_forming_rows": 1,
+    "first": "2026-10-14T23:00:00.000Z",
+    "last_completed": "2026-11-13T22:00:00.000Z",
+    "rows_sha256": "da785f6c7a0cafada83a90b143de67147c8c9a165aa28222986ec3003c16efe1",
+    "note": "Public Kraken OHLC download. No interpolation. Does not cover the 103-day BTC dataset cited by earlier reports."
+  },
+  "training_reused": {
+    "from": "2026-10-14T23:00:00.000Z",
+    "to_exclusive": "2026-11-01T00:00:00.000Z",
+    "trades": 4,
+    "total_entry_notional": 4945.34,
+    "total_exit_notional": 4968.76,
+    "avg_position_notional": 1236.33,
+    "gross": -16.57,
+    "fees": 19.83,
+    "net": -39.38,
+    "avg_gross_per_trade": -4.14,
+    "avg_net_per_trade": -9.84,
+    "avg_win": 3.43,
+    "avg_loss": -10,
+    "win_rate": 0.25,
+    "avg_move_pct": -0.2949,
+    "median_move_pct": -0.3576,
+    "avg_abs_move_pct": 0.4523,
+    "avg_stop_pct": 0.8496,
+    "avg_tp_pct": 2.4624,
+    "avg_hold_min": 465,
+    "gross_expectancy": -4.14,
+    "net_expectancy": -9.84,
+    "net_profit_factor": 0,
+    "gross_profit_factor": 0.1714,
+    "max_drawdown_net": 39.38,
+    "break_even_fee_pct_per_fill": -0.1972,
+    "break_even_round_trip_pct": -0.3943,
+    "fee_to_gross_profit": null,
+    "avg_fee_to_planned_risk": 0.4957,
+    "spread_slippage_usd": 2.97423,
+    "total_traded_notional": 9914.098791,
+    "gross_win_rate": 0.25,
+    "net_win_rate": 0,
+    "max_consecutive_losses": 4,
+    "max_closed_drawdown_pct_on_reference_capital": 3.937566,
+    "reference_capital_usd": 1000,
+    "reference_risk_usd": 10,
+    "break_even_fee_pct_per_fill_before_spread_slippage": -0.1672,
+    "fee_sensitivity": [
+      {
+        "hypothetical_fee_pct_per_fill": 0,
+        "net": -19.55
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.02,
+        "net": -21.53
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.05,
+        "net": -24.5
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.1,
+        "net": -29.46
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.2,
+        "net": -39.38
+      }
+    ],
+    "hold_duration": [
+      {
+        "minutes": [
+          0,
+          60
+        ],
+        "trades": 1,
+        "gross": -10,
+        "fees": 5.61,
+        "net": -16.46,
+        "max_drawdown_net": 16.46,
+        "net_expectancy": -16.46,
+        "break_even_fee_pct_per_fill": -0.3863
+      },
+      {
+        "minutes": [
+          60,
+          240
+        ],
+        "trades": 0,
+        "gross": 0,
+        "fees": 0,
+        "net": 0,
+        "max_drawdown_net": 0,
+        "net_expectancy": null,
+        "break_even_fee_pct_per_fill": null
+      },
+      {
+        "minutes": [
+          240,
+          null
+        ],
+        "trades": 3,
+        "gross": -6.57,
+        "fees": 14.22,
+        "net": -22.92,
+        "max_drawdown_net": 22.92,
+        "net_expectancy": -7.64,
+        "break_even_fee_pct_per_fill": -0.1225
+      }
+    ]
+  },
+  "validation_reused": {
+    "from": "2026-11-01T00:00:00.000Z",
+    "to_exclusive": "2026-11-13T01:00:00.000Z",
+    "trades": 3,
+    "total_entry_notional": 2443.2,
+    "total_exit_notional": 2427.63,
+    "avg_position_notional": 814.4,
+    "gross": -15.57,
+    "fees": 9.74,
+    "net": -26.78,
+    "avg_gross_per_trade": -5.19,
+    "avg_net_per_trade": -8.93,
+    "avg_win": null,
+    "avg_loss": -7.79,
+    "win_rate": 0,
+    "avg_move_pct": -0.8911,
+    "median_move_pct": -0.5524,
+    "avg_abs_move_pct": 0.8911,
+    "avg_stop_pct": 1.0149,
+    "avg_tp_pct": 2.9416,
+    "avg_hold_min": 380,
+    "gross_expectancy": -5.19,
+    "net_expectancy": -8.93,
+    "net_profit_factor": 0,
+    "gross_profit_factor": 0,
+    "max_drawdown_net": 26.78,
+    "break_even_fee_pct_per_fill": -0.3497,
+    "break_even_round_trip_pct": -0.6995,
+    "fee_to_gross_profit": null,
+    "avg_fee_to_planned_risk": 0.3247,
+    "spread_slippage_usd": 1.461249,
+    "total_traded_notional": 4870.830784,
+    "gross_win_rate": 0,
+    "net_win_rate": 0,
+    "max_consecutive_losses": 3,
+    "max_closed_drawdown_pct_on_reference_capital": 2.67765,
+    "reference_capital_usd": 1000,
+    "reference_risk_usd": 10,
+    "break_even_fee_pct_per_fill_before_spread_slippage": -0.3197,
+    "fee_sensitivity": [
+      {
+        "hypothetical_fee_pct_per_fill": 0,
+        "net": -17.03
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.02,
+        "net": -18.01
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.05,
+        "net": -19.47
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.1,
+        "net": -21.91
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.2,
+        "net": -26.78
+      }
+    ],
+    "hold_duration": [
+      {
+        "minutes": [
+          0,
+          60
+        ],
+        "trades": 1,
+        "gross": -10,
+        "fees": 1.87,
+        "net": -12.15,
+        "max_drawdown_net": 12.15,
+        "net_expectancy": -12.15,
+        "break_even_fee_pct_per_fill": -1.1018
+      },
+      {
+        "minutes": [
+          60,
+          240
+        ],
+        "trades": 0,
+        "gross": 0,
+        "fees": 0,
+        "net": 0,
+        "max_drawdown_net": 0,
+        "net_expectancy": null,
+        "break_even_fee_pct_per_fill": null
+      },
+      {
+        "minutes": [
+          240,
+          null
+        ],
+        "trades": 2,
+        "gross": -5.57,
+        "fees": 7.88,
+        "net": -14.63,
+        "max_drawdown_net": 14.63,
+        "net_expectancy": -7.32,
+        "break_even_fee_pct_per_fill": -0.1715
+      }
+    ]
+  },
+  "fresh_slice": {
+    "from": "2026-11-13T01:00:00.000Z",
+    "to_exclusive": "2026-11-13T23:00:00.000Z",
+    "candles": 22,
+    "trades": 0,
+    "total_entry_notional": 0,
+    "total_exit_notional": 0,
+    "avg_position_notional": null,
+    "gross": 0,
+    "fees": 0,
+    "net": 0,
+    "avg_gross_per_trade": null,
+    "avg_net_per_trade": null,
+    "avg_win": null,
+    "avg_loss": null,
+    "win_rate": null,
+    "avg_move_pct": null,
+    "median_move_pct": null,
+    "avg_abs_move_pct": null,
+    "avg_stop_pct": null,
+    "avg_tp_pct": null,
+    "avg_hold_min": null,
+    "gross_expectancy": null,
+    "net_expectancy": null,
+    "net_profit_factor": null,
+    "gross_profit_factor": null,
+    "max_drawdown_net": 0,
+    "break_even_fee_pct_per_fill": null,
+    "break_even_round_trip_pct": null,
+    "fee_to_gross_profit": null,
+    "avg_fee_to_planned_risk": null,
+    "spread_slippage_usd": 0,
+    "total_traded_notional": 0,
+    "gross_win_rate": null,
+    "net_win_rate": null,
+    "max_consecutive_losses": 0,
+    "max_closed_drawdown_pct_on_reference_capital": 0,
+    "reference_capital_usd": 1000,
+    "reference_risk_usd": 10,
+    "break_even_fee_pct_per_fill_before_spread_slippage": null,
+    "fee_sensitivity": [
+      {
+        "hypothetical_fee_pct_per_fill": 0,
+        "net": 0
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.02,
+        "net": 0
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.05,
+        "net": 0
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.1,
+        "net": 0
+      },
+      {
+        "hypothetical_fee_pct_per_fill": 0.2,
+        "net": 0
+      }
+    ],
+    "hold_duration": [
+      {
+        "minutes": [
+          0,
+          60
+        ],
+        "trades": 0,
+        "gross": 0,
+        "fees": 0,
+        "net": 0,
+        "max_drawdown_net": 0,
+        "net_expectancy": null,
+        "break_even_fee_pct_per_fill": null
+      },
+      {
+        "minutes": [
+          60,
+          240
+        ],
+        "trades": 0,
+        "gross": 0,
+        "fees": 0,
+        "net": 0,
+        "max_drawdown_net": 0,
+        "net_expectancy": null,
+        "break_even_fee_pct_per_fill": null
+      },
+      {
+        "minutes": [
+          240,
+          null
+        ],
+        "trades": 0,
+        "gross": 0,
+        "fees": 0,
+        "net": 0,
+        "max_drawdown_net": 0,
+        "net_expectancy": null,
+        "break_even_fee_pct_per_fill": null
+      }
+    ],
+    "warning": "Only about one day of fresh hourly candles. Too short for a meaningful final test; no robustness/profitability inference."
+  },
+  "recommendation": "NONE: limited sample, no statistically useful untouched final period, and no configuration optimization performed."
+}

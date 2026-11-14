@@ -390,23 +390,38 @@ export function signalState(status: string, code: string | null): { label: strin
   return { label: status.toUpperCase(), tone: "muted" };
 }
 
-export interface FeedItem { id: string; at: string; source: "funded" | "mirror" | "system"; symbol: string | null; title: string; outcome: string; tone: "ok" | "bad" | "warn" | "info" | "muted"; url: string | null; classification?: string }
+export interface FeedItem { id: string; at: string; source: "funded" | "mirror" | "system"; symbol: string | null; title: string; outcome: string; tone: "ok" | "bad" | "warn" | "info" | "muted"; url: string | null; classification?: string;
+  /** The canonical source records this item presents (the accepted signal or bot order behind a fill event). */
+  refs?: string[] }
 
 /** Recent genuine activity: trade events, funded signals and their outcomes, the engine heartbeat, observation gaps. */
 export async function activityFeed(db: D1Database, limit = 30): Promise<{ items: FeedItem[]; generated_at: string }> {
   const n = Math.min(Math.max(limit, 1), 50);
   const items: FeedItem[] = [];
   const t = await tables(db);
+  // ONE item per execution. A fill event (trade_events FILL:<paper_fills.id> / BOTFILL:<bot_fills.id>) and the accepted
+  // signal or bot order that produced it are the same execution; both records are kept unchanged in the database, but the
+  // feed presents the fill event (it carries the figures) and lists the source record in `refs`. The source record is
+  // hidden ONLY when its own fill event is in this same response, so an execution never disappears from the feed.
+  // Refusals, processing and errors have no fill and are always shown.
+  const presented = new Set<string>();
   if (t.has("trade_events")) {
-    for (const e of (await db.prepare(`SELECT * FROM trade_events WHERE kind <> 'TEST' ORDER BY id DESC LIMIT ?`).bind(n).all<EventRow>()).results) {
+    const srcLegacy = `CASE WHEN e.event_key LIKE 'FILL:%' THEN (SELECT pf.alert_id FROM paper_fills pf WHERE pf.id = CAST(substr(e.event_key, 6) AS INTEGER)) END`;
+    const srcBot = t.has("bot_fills") ? `CASE WHEN e.event_key LIKE 'BOTFILL:%' THEN (SELECT bf.fill_id FROM bot_fills bf WHERE bf.id = CAST(substr(e.event_key, 9) AS INTEGER)) END` : "NULL";
+    for (const e of (await db.prepare(`SELECT e.*, ${srcLegacy} AS src_alert, ${srcBot} AS src_order FROM trade_events e WHERE e.kind <> 'TEST' ORDER BY e.id DESC LIMIT ?`)
+      .bind(n).all<EventRow & { src_alert: string | null; src_order: string | null }>()).results) {
       const m = message(e, DEFAULT_PREFS);
       const tone = e.pnl === null ? "info" : e.pnl > 0 ? "ok" : e.pnl < 0 ? "bad" : "muted";
-      items.push({ id: `E${e.id}`, at: e.occurred_at, source: e.source as FeedItem["source"], symbol: e.symbol, title: m.title, outcome: m.body, tone, url: e.url, classification: e.classification });
+      const refs = [e.src_alert, e.src_order].filter((x): x is string => typeof x === "string" && x !== "");
+      refs.forEach((r) => presented.add(r));
+      items.push({ id: `E${e.id}`, at: e.occurred_at, source: e.source as FeedItem["source"], symbol: e.symbol, title: m.title, outcome: m.body, tone, url: e.url, classification: e.classification,
+        ...(refs.length ? { refs } : {}) });
     }
   }
   for (const a of (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason FROM alerts ORDER BY id DESC LIMIT ?`).bind(n).all<Obj>()).results) {
     // ONE status mapping, shared with the Trades page (signalState): processing and error are never shown as accepted.
     const st = signalState(String(a.status), a.response_code === null ? null : String(a.response_code));
+    if (st.tone === "ok" && presented.has(String(a.alert_id))) continue; // shown once, as its fill event
     items.push({ id: `A${a.id}`, at: String(a.received_at), source: "funded", symbol: String(a.symbol), title: `${String(a.symbol)} ${String(a.action).toUpperCase()} signal ${st.label}`,
       outcome: `${String(a.alert_id)} · ${a.response_code ?? a.status}${a.rejection_reason ? `: ${String(a.rejection_reason).slice(0, 120)}` : ""}`, tone: st.tone,
       url: `/trades?signal=${encodeURIComponent(String(a.alert_id))}` });
@@ -415,6 +430,7 @@ export async function activityFeed(db: D1Database, limit = 30): Promise<{ items:
   if ((await tables(db)).has("bot_orders")) {
     for (const o of (await db.prepare(`SELECT o.order_id, o.bot_id, o.action, o.symbol, o.status, o.code, o.message, o.received_at, b.name, b.timeframe_min FROM bot_orders o JOIN bots b ON b.bot_id = o.bot_id ORDER BY o.received_at DESC LIMIT ?`).bind(n).all<Obj>()).results) {
       const ok = o.status === "ACCEPTED";
+      if (ok && presented.has(String(o.order_id))) continue; // shown once, as its fill event
       items.push({ id: `O${String(o.order_id)}`, at: String(o.received_at), source: "funded", symbol: String(o.symbol),
         title: `${String(o.name)} | ${String(o.symbol)} ${String(o.timeframe_min)}m · ${String(o.action).replace("_", " ")} ${ok ? "filled (PAPER)" : "refused"}`,
         outcome: `${String(o.order_id)} · ${String(o.code)}${o.message ? `: ${String(o.message).slice(0, 120)}` : ""}`, tone: ok ? "ok" : "warn",

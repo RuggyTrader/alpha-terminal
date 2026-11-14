@@ -48,13 +48,21 @@ try {
   await act("allocate", { group: "BITCOIN", amount_usd: 200 });
   for (let i = 0; i < 60; i++) {
     for (const [bot, qty, act1] of [["ALPHA-01", 0.2, i % 2 ? "OPEN_SHORT" : "OPEN_LONG"], ["ALPHA-03", 0.0002, i % 2 ? "OPEN_LONG" : "OPEN_SHORT"], ["ALPHA-04", 0.0002, "OPEN_LONG"]]) {
-      await order(bot, act1, { qty });
+      const entry = await order(bot, act1, { qty });
+      if (entry.code !== "DRY_RUN_ACCEPTED") throw new Error(`TEST seed entry failed: ${entry.code}`);
       KRAKEN.set(SYM[bot] === "SOLUSD" ? "SOLUSD" : "XBTUSD", SYM[bot] === "SOLUSD" ? 80 + ((i % 5) - 2) * 0.1 : 100000 + ((i % 5) - 2) * 50);
-      await order(bot, "CLOSE");
+      const exit = await order(bot, "CLOSE");
+      if (exit.code !== "DRY_RUN_ACCEPTED") throw new Error(`TEST seed close failed: ${exit.code}`);
     }
   }
-  const report = { tool: "worker/tools/measure-dashboard.mjs", environment: "LOCAL wrangler dev (miniflare D1), not production", seeded: { closed_bot_trades: 180, n_requests_per_endpoint: N },
-    generated_at: new Date().toISOString(), endpoints: {} };
+  const countDb = new DatabaseSync(dbFile());
+  const seeded = Number(countDb.prepare(`SELECT COUNT(*) AS n FROM bot_positions WHERE status = 'CLOSED'`).get().n);
+  countDb.close();
+  if (seeded !== 180) throw new Error(`TEST seed expected 180 closed trades, found ${seeded}`);
+  const report = { tool: "worker/tools/measure-dashboard.mjs", environment: "LOCAL wrangler dev (miniflare D1), not production", seeded: { closed_bot_trades: seeded, n_requests_per_endpoint: N },
+    generated_at: new Date().toISOString(),
+    limitations: ["D1 rows_read, rows_written and d1_ms exclude first/raw metadata in the current meter; totals are lower bounds, not complete billing measurements.", "Local wall-clock latency is not Cloudflare Worker CPU time or production latency."],
+    endpoints: {} };
   const pct = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))]; };
   for (const path of ["/api/dashboard", "/api/dashboard/bots", "/api/dashboard/events?limit=30", "/api/dashboard/bot-trades?bot=ALPHA-01", "/api/dashboard/performance"]) {
     const lat = [], d1 = [];

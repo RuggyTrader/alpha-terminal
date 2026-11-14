@@ -51,15 +51,25 @@ function d1(sql, ...args) {
 }
 let worker = null, cookie = null;
 async function start() {
+  // A stale process must never satisfy readiness for this test's private D1/secrets.
+  try {
+    await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(1000) });
+    throw new Error(`port ${PORT} is already in use; refusing to attach to another test Worker`);
+  } catch (e) { if (/already in use/.test(String(e.message))) throw e; }
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9810", "--ip", "127.0.0.1", "--persist-to", persist];
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
-  worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: DEV_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
+  worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: DEV_DIR, stdio: ["ignore", "pipe", "pipe"], shell: WIN, detached: !WIN });
+  let output = "";
+  const capture = (chunk) => { output = (output + String(chunk)).slice(-8000); };
+  worker.stdout.on("data", capture); worker.stderr.on("data", capture);
+  const diagnostic = () => [WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET].reduce((s, secret) => s.replaceAll(secret, "[REDACTED]"), output);
   const end = Date.now() + 90000;
   while (Date.now() < end) {
-    try { if ((await fetch(`${BASE}/health`)).status === 200) return; } catch { /* starting */ }
+    if (worker.exitCode !== null) throw new Error(`Worker exited (${worker.exitCode}) before readiness:\n${diagnostic()}`);
+    try { if ((await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(1000) })).status === 200) return; } catch { /* starting */ }
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error("Worker did not start");
+  throw new Error(`Worker did not start:\n${diagnostic()}`);
 }
 async function stop() {
   if (worker && worker.exitCode === null) {

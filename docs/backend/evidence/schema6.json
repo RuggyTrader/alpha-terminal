@@ -1,0 +1,62 @@
+{
+ "schema": "0001–0006 (production today)",
+ "passed": 11,
+ "failed": 0,
+ "results": [
+  {
+   "name": "engine-status (legacy engine, new strategy_state field) on schema 6",
+   "ok": true,
+   "detail": 200
+  },
+  {
+   "name": "legacy /webhook/dry-run still answers (no 5xx)",
+   "ok": true,
+   "detail": 422
+  },
+  {
+   "name": "GET /api/dashboard",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "name": "GET /api/dashboard/bots",
+   "ok": true,
+   "detail": "200 (bot features inert: available=false)"
+  },
+  {
+   "name": "GET /api/dashboard/bot-trades?bot=ALPHA-01",
+   "ok": true,
+   "detail": "200 (bot features inert: available=false)"
+  },
+  {
+   "name": "GET /api/dashboard/bot-trades?signal=ENG-SOLUSD-5-2026-11-12T10:00:00Z-BUY",
+   "ok": true,
+   "detail": "200 (bot features inert: available=false)"
+  },
+  {
+   "name": "GET /api/dashboard/events?limit=30",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "name": "GET /api/dashboard/performance",
+   "ok": true,
+   "detail": "200"
+  },
+  {
+   "name": "GET /api/dashboard/allocation-preview?group=SOLANA&amount=10",
+   "ok": true,
+   "detail": "200 (bot features inert: available=false)"
+  },
+  {
+   "name": "GET /api/dashboard/bot-trade on schema 6 → 404, not 5xx",
+   "ok": true,
+   "detail": 404
+  },
+  {
+   "name": "bot-order on schema 6 is refused (no funded bot trading), not 5xx",
+   "ok": true,
+   "detail": 409
+  }
+ ]
+}

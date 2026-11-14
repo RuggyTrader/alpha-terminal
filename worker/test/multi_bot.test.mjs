@@ -46,7 +46,7 @@ const TF = { "ALPHA-01": "1", "ALPHA-02": "5", "ALPHA-03": "1", "ALPHA-04": "5" 
 const SYM = { "ALPHA-01": "SOLUSD", "ALPHA-02": "SOLUSD", "ALPHA-03": "BTCUSD", "ALPHA-04": "BTCUSD" };
 const order = (bot, action, o = {}) => fetch(`${base}/webhook/bot-order`, {
   method: "POST", headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ secret: WEBHOOK_SECRET, bot_id: bot, order_id: o.order_id ?? `ENG-${bot}-${SYM[bot]}-${TF[bot]}-T${++n}-${action}`, action, symbol: SYM[bot], timeframe: TF[bot], stop: 1, tp: 2, ...o }),
+  body: JSON.stringify({ secret: WEBHOOK_SECRET, bot_id: bot, order_id: o.order_id ?? `ENG-${bot}-${SYM[bot]}-${TF[bot]}-T${++n}-${action}`, action, symbol: SYM[bot], timeframe: TF[bot], stop: SYM[bot] === "SOLUSD" ? 79 : 99000, tp: 2, ...o }),
 }).then(async (r) => ({ http: r.status, ...(await r.json()) }));
 const act = (kind, body) => fetch(`${base}/api/paper/${kind}`, { method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie }, body: JSON.stringify({ request_id: secret(), ...body, passphrase: DASHBOARD_PASSPHRASE }) }).then((r) => r.json());
 const dash = (path) => fetch(`${base}${path}`, { headers: { Cookie: cookie } }).then((r) => r.json());
@@ -184,7 +184,7 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.equal(W("ALPHA-03").a, 0); assert.ok(W("ALPHA-03").s > 0);
     assert.equal(W("MAIN").a, mainBefore); assert.equal(W("ALPHA-04").a, otherBefore);
     assert.equal(sql(`SELECT entries_paused FROM bots WHERE bot_id = 'ALPHA-03'`)[0].entries_paused, 1);
-    assert.equal((await order("ALPHA-03", "OPEN_LONG", { qty: 0.00006 })).code, "BOT_ENTRIES_PAUSED");
+    assert.equal((await order("ALPHA-03", "OPEN_LONG", { qty: 0.00006 })).code, "BOT_SHORTFALL");
     const t = sql(`SELECT net_pnl_micro, gross_pnl_micro, entry_fee_micro, exit_fee_micro, shortfall_micro FROM bot_positions WHERE close_order_id IS NOT NULL ORDER BY id DESC LIMIT 1`)[0];
     assert.equal(t.net_pnl_micro, t.gross_pnl_micro - t.entry_fee_micro - t.exit_fee_micro, "the trade's full loss is reported");
     KRAKEN.set("XBTUSD", 100000);
@@ -217,6 +217,10 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.ok(Math.abs(b["ALPHA-01"].paper.gross_usd - b["ALPHA-01"].paper.fees_usd - b["ALPHA-01"].paper.net_usd) < 1e-9, "net = gross − fees");
     assert.deepEqual(f.data.groups.map((g) => g.group_id), ["BITCOIN", "ETHEREUM", "SOLANA"]);
     for (const x of f.data.bots) for (const m of x.mirror) assert.equal(m.hypothetical, true);
+    const lifetime = (await dash("/api/dashboard/performance")).data.lifetime;
+    const expected = sql(`SELECT (SELECT COUNT(*) FROM bot_positions WHERE status = 'CLOSED') + (SELECT COUNT(*) FROM trades WHERE source = 'ALPHA_PAPER' AND status = 'CLOSED' AND closed_at IS NOT NULL) n`)[0].n;
+    assert.equal(lifetime.closed_trades, expected, "lifetime API spans both funded ledgers");
+    assert.equal(lifetime.complete, true);
     // money is conserved: every wallet's balance = its funding + what it paid out/received in trading − fees
     for (const w of sql(`SELECT wallet, available_micro + reserved_micro AS book, net_funding_micro + realized_pnl_micro - fees_micro AS ident FROM portfolio_wallets`)) assert.equal(w.book, w.ident, w.wallet);
   });
@@ -319,5 +323,101 @@ describe("bot fleet ledger (migration 0007)", () => {
     const lp = await dash(`/api/dashboard/trade-proof?id=${t.id}`);
     assert.equal(lp.data.story.plan.ote_705, 81.3393);
     assert.ok(!JSON.stringify(lp).includes(WEBHOOK_SECRET), "the secret is never stored or shown");
+    // The bot filter and the all-bot view list the legacy bot's trades from the legacy table's REAL columns
+    // (entry_qty / entry_avg_price / exit_avg_price), with its trades.id for the proof page and chart.
+    const leg = await dash("/api/dashboard/bot-trades?bot=ALPHA-02");
+    const lr = leg.data.trades.find((x) => x.trade_id === "ENG-SOLUSD-5-2026-11-13T00:30:00Z-BUY");
+    assert.ok(lr, `legacy trade listed for ALPHA-02: ${JSON.stringify(leg.data.trades.map((x) => x.trade_id))}`);
+    assert.equal(lr.ledger, "legacy");
+    assert.equal(lr.legacy_id, t.id);
+    assert.equal(lr.proof_url, `/trades/${t.id}`);
+    assert.equal(lr.status, "CLOSED");
+    assert.ok(lr.qty > 0 && Number.isFinite(lr.qty), `qty ${lr.qty}`);
+    assert.ok(lr.entry_price > 0 && lr.exit_price > 0, `prices ${lr.entry_price} → ${lr.exit_price}`);
+    assert.equal(lr.net_usd, Number(t.realized_pnl));
+    assert.equal(lr.story.exit.result, "SL");
+    assert.equal(leg.data.page.total, leg.data.trades.length, "every ALPHA-02 trade counted once");
+    const every = await dash("/api/dashboard/bot-trades");
+    const ids = every.data.trades.map((x) => `${x.ledger}:${x.trade_id}`);
+    assert.equal(new Set(ids).size, ids.length, "no trade appears twice in the all-bot list");
+    assert.ok(every.data.trades.some((x) => x.ledger === "legacy") && every.data.trades.some((x) => x.ledger === "bot"), "legacy and bot ledger in one list");
+  });
+
+  it("Activity presents each execution once: the fill event carries the accepted order / signal in refs; refusals stay; records unchanged", async () => {
+    const BOT_OPEN = "ENG-ALPHA-01-SOLUSD-1-STORY-OPEN_LONG", LEG_BUY = "ENG-SOLUSD-5-2026-11-13T00:30:00Z-BUY";
+    const refused = await order("ALPHA-01", "OPEN_LONG", { qty: 0.04, order_id: "ENG-ALPHA-01-SOLUSD-1-FEEDREFUSE-OPEN_LONG" });
+    assert.equal(refused.code, "BELOW_MIN_QTY");
+    let feed;
+    for (let i = 0; i < 40; i++) { // events are synced after each webhook (waitUntil)
+      feed = (await dash("/api/dashboard/events?limit=50")).data.items;
+      if (feed.some((x) => (x.refs ?? []).includes(BOT_OPEN)) && feed.some((x) => (x.refs ?? []).includes(LEG_BUY))) break;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    const botFill = feed.find((x) => (x.refs ?? []).includes(BOT_OPEN));
+    assert.ok(botFill, `bot fill event carries its order id: ${JSON.stringify(feed.map((x) => [x.id, x.refs]))}`);
+    assert.equal(botFill.url, `/bots/trade/${BOT_OPEN}`);
+    assert.ok(!feed.some((x) => x.id === `O${BOT_OPEN}`), "the accepted bot order is not presented a second time");
+    const legFill = feed.find((x) => (x.refs ?? []).includes(LEG_BUY));
+    assert.ok(legFill, "legacy fill event carries its signal id");
+    const legAlert = sql(`SELECT id FROM alerts WHERE alert_id = ?`, LEG_BUY)[0];
+    assert.ok(!feed.some((x) => x.id === `A${legAlert.id}`), "the accepted legacy signal is not presented a second time");
+    assert.ok(feed.some((x) => x.id === "OENG-ALPHA-01-SOLUSD-1-FEEDREFUSE-OPEN_LONG" && /refused/.test(x.title)), "a refusal has no fill: always shown");
+    const ids = feed.map((x) => x.id);
+    assert.equal(new Set(ids).size, ids.length, "no item twice");
+    // canonical records untouched by the presentation
+    assert.equal(sql(`SELECT status FROM bot_orders WHERE order_id = ?`, BOT_OPEN)[0].status, "ACCEPTED");
+    assert.equal(sql(`SELECT COUNT(*) AS n FROM alerts WHERE alert_id = ?`, LEG_BUY)[0].n, 1);
+  });
+
+  it("trade stories past D1's 100-parameter limit: a 200-row page answers with every story (was HTTP 500 above 50 trades)", async () => {
+    for (let i = 0; i < 70; i++) {
+      const id = `ENG-ALPHA-03-BTCUSD-1-P${i}-OPEN_LONG`;
+      sql(`INSERT INTO bot_orders (order_id, bot_id, action, symbol, requested_qty, status, code, message, trade_id, received_at, payload_json) VALUES (?, 'ALPHA-03', 'OPEN_LONG', 'BTCUSD', 0.0001, 'ACCEPTED', 'DRY_RUN_ACCEPTED', NULL, ?, ?, ?)`,
+        id, id, new Date(Date.UTC(2026, 9, 2, 0, i)).toISOString(), JSON.stringify({ plan: { v: 1, side: "LONG", swing: { origin: 1, end: 2 }, ote_705: 1.3, order: { limit: 1.3, stop: 0.9, tp2: 2.5 } } }));
+      sql(`INSERT INTO bot_positions (trade_id, bot_id, symbol, side, status, qty, entry_price, entry_fee_micro, collateral_micro, fee_model, opened_at, exit_price, exit_fee_micro, closed_at, close_order_id, gross_pnl_micro, net_pnl_micro, swept_micro)
+           VALUES (?, 'ALPHA-03', 'BTCUSD', 'LONG', 'CLOSED', 0.0001, 100000, 20000, 10000000, 'ndax-flat-0.20-2026-11-12', ?, 100000, 20000, ?, ?, 40000, 0, 0)`,
+        id, new Date(Date.UTC(2026, 9, 2, 0, i)).toISOString(), new Date(Date.UTC(2026, 9, 2, 0, i, 30)).toISOString(), `${id}-CLOSE`);
+    }
+    const r = await fetch(`${base}/api/dashboard/bot-trades?limit=200`, { headers: { Cookie: cookie } });
+    assert.equal(r.status, 200, await r.clone().text());
+    const d = (await r.json()).data;
+    assert.ok(d.trades.length > 50, `page of ${d.trades.length}: past the old 50-trade failure point (two story ids per trade, 100 bound parameters)`);
+    assert.ok(d.trades.every((t) => t.story && Array.isArray(t.story.missing)), "every row carries its story object");
+    const seeded = d.trades.filter((t) => /^ENG-ALPHA-03-BTCUSD-1-P\d+-OPEN_LONG$/.test(t.trade_id));
+    assert.equal(seeded.length, 70);
+    assert.ok(seeded.every((t) => t.story.plan && t.story.plan.ote_705 === 1.3), "stories found for all 70 (none dropped)");
+    // pagination metadata matches the ledger, for the all-bot view and for one bot
+    const nAll = sql(`SELECT COUNT(*) AS n FROM bot_positions`)[0].n + sql(`SELECT COUNT(*) AS n FROM trades WHERE source = 'ALPHA_PAPER' AND bot_id = 'ALPHA-02'`)[0].n;
+    assert.equal(d.page.total, nAll);
+    assert.equal(d.page.returned, d.trades.length);
+    assert.equal(d.page.truncated, nAll > d.trades.length);
+    assert.equal(d.page.open + d.page.closed, d.page.total);
+    assert.equal(d.page.by_ledger.bot + d.page.by_ledger.legacy, d.page.total);
+    const one = (await dash(`/api/dashboard/bot-trades?signal=${encodeURIComponent("ENG-ALPHA-03-BTCUSD-1-P5-OPEN_LONG")}`)).data;
+    assert.deepEqual([one.page.total, one.page.returned, one.page.truncated], [1, 1, false], "metadata follows the signal filter too");
+    // a legacy row keeps its numeric proof id
+    const leg = d.trades.find((t) => t.ledger === "legacy");
+    assert.ok(Number.isInteger(leg.legacy_id) && leg.proof_url === `/trades/${leg.legacy_id}`);
+  });
+
+  it("more than 200 closed trades: the page is bounded and says so; the fleet lifetime figures cover all of them", async () => {
+    // Last test in the file: 205 closed TEST rows seeded straight into bot_positions (wallets untouched), so the Worker's
+    // real paging and lifetime aggregation run over > 200 trades. Nets alternate -1.000000 / +0.500000 USD.
+    const before = (await dash("/api/dashboard/bots")).data.bots.find((b) => b.bot_id === "ALPHA-04").paper.trades;
+    for (let i = 0; i < 205; i++) {
+      const at = new Date(Date.UTC(2026, 9, 1, 0, i)).toISOString();
+      const net = i % 2 ? 500_000 : -1_000_000;
+      sql(`INSERT INTO bot_positions (trade_id, bot_id, symbol, side, status, qty, entry_price, entry_fee_micro, collateral_micro, fee_model, opened_at, exit_price, exit_fee_micro, closed_at, close_order_id, gross_pnl_micro, net_pnl_micro, swept_micro)
+           VALUES (?, 'ALPHA-04', 'BTCUSD', 'LONG', 'CLOSED', 0.0001, 100000, 20000, 10000000, 'ndax-flat-0.20-2026-11-12', ?, 100000, 20000, ?, ?, ?, ?, ?)`,
+        `TEST-MANY-${i}`, at, at, `TEST-MANY-${i}-CLOSE`, net + 40_000, net, Math.max(net, 0));
+    }
+    const pageR = await dash("/api/dashboard/bot-trades?bot=ALPHA-04&limit=200");
+    assert.equal(pageR.data.trades.length, 200);
+    assert.equal(pageR.data.page.total, sql(`SELECT COUNT(*) AS n FROM bot_positions WHERE bot_id = 'ALPHA-04'`)[0].n, "total = every ALPHA-04 position (open and closed)");
+    assert.equal(pageR.data.page.truncated, true);
+    const fleetB = (await dash("/api/dashboard/bots")).data.bots.find((b) => b.bot_id === "ALPHA-04");
+    assert.equal(fleetB.paper.trades, before + 205, "lifetime count is every closed trade, not the page");
+    const dbNet = sql(`SELECT COALESCE(SUM(net_pnl_micro), 0) AS n FROM bot_positions WHERE bot_id = 'ALPHA-04' AND status = 'CLOSED'`)[0].n / 1e6;
+    assert.ok(Math.abs(fleetB.paper.net_usd - dbNet) < 1e-6, `lifetime net ${fleetB.paper.net_usd} = ledger ${dbNet}`);
   });
 });
