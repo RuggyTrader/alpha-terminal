@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { NA, signedMoney, money } from "../fmt";
-import { headlineMetrics } from "../performance";
+import { lifetimeMetrics } from "../performance";
 import { fetchMirrorOverview, type MirrorOverview } from "../mirror";
 import type { Fleet } from "../bots";
 import { useFleet } from "../fleetStore";
@@ -17,19 +17,16 @@ import type { HeroScope } from "./AccountHero";
 export type PerfView = "funded" | "mirror" | "bot";
 const rate = (v: number | null) => (v === null ? NA : `${v.toFixed(0)}%`);
 
-export function FundedView({ verified, now }: { verified: VerifiedState; now: number }) {
-  const h = headlineMetrics(verified.data, now, null);
-  const m = h?.m ?? null;
-  if (!m) return <p className="sizing-note">{verified.status === "error" ? verified.error ?? "Funded PAPER results unavailable." : verified.status === "unsupported" ? "Verified history not provided by this backend yet." : "Loading funded PAPER results…"}</p>;
+export function FundedView({ verified }: { verified: VerifiedState; now: number }) {
+  const m = lifetimeMetrics(verified.data, null);
+  if (!m) return <p className="sizing-note">{verified.error ?? (verified.status === "loading" ? "Loading funded PAPER lifetime results…" : "Complete funded PAPER totals unavailable. This backend must provide lifetime aggregates.")}</p>;
   return (
     <div className="sizing-grid" aria-label="Funded PAPER performance">
       {/* Net P&L, closed trades, win rate and profit factor are in the hero above (same scope): not repeated here. */}
       <div><span>Wins · losses</span><b>{m.trades ? `${m.wins} · ${m.losses}` : NA}</b></div>
       <div><span>Average per trade (net)</span><b>{m.expectancy === null ? NA : signedMoney(m.expectancy)}</b></div>
       <div><span>Max drawdown (closed)</span><b>{m.maxDrawdown === null ? NA : money(m.maxDrawdown)}</b></div>
-      {verified.data?.lifetime ? <div><span>Gross · fees</span><b>{m.trades ? `${signedMoney(verified.data.lifetime.gross_usd)} · ${money(verified.data.lifetime.fees_usd)}` : NA}</b></div> : null}
-      {m.trades === 0 ? <p className="sizing-note">No funded PAPER trade has closed yet. Strategy Mirror trades are hypothetical and are not counted here.</p>
-        : <p className="sizing-note">{verified.data?.lifetime ? "Lifetime · every closed funded PAPER trade (all bots), computed by the Worker. " : "Legacy ALPHA PAPER ledger trades only (this Worker has no lifetime aggregate). "}Drawdown is between closed trades; open-trade swings are not included.</p>}
+      {m.trades === 0 ? <p className="sizing-note">No funded PAPER trade has closed yet. Strategy Mirror trades are hypothetical and are not counted here.</p> : null}
     </div>
   );
 }

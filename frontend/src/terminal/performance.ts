@@ -17,25 +17,6 @@ export interface CurvePoint {
   tradeId: number | null;
 }
 
-/** The Worker's complete lifetime aggregate in the Metrics shape used by the hero and the metrics grids. It has no
- *  per-trade curve (the aggregate carries none): `curve` is empty, and any curve shown beside it must say its own coverage. */
-export function lifetimeMetrics(l: LifetimePerformance, fundedCapital: number | null): Metrics {
-  return {
-    trades: l.closed_trades, wins: l.wins, losses: l.losses, totalPnl: l.net_usd,
-    returnPct: fundedCapital !== null && fundedCapital > 0 ? (l.net_usd / fundedCapital) * 100 : null,
-    winRate: l.win_rate === null ? null : l.win_rate * 100, profitFactor: l.profit_factor,
-    expectancy: l.expectancy_usd === null ? null : round2(l.expectancy_usd), maxDrawdown: l.closed_trades ? round2(l.max_drawdown_usd) : null, curve: [],
-  };
-}
-
-/** Headline funded metrics: the complete lifetime aggregate when the Worker provides it; otherwise (older Worker) the
- *  legacy list, which is then all the ledger there is (no bot ledger before migration 0007). */
-export function headlineMetrics(data: PerformanceData | null, now: number, fundedCapital: number | null): { m: Metrics; complete: boolean } | null {
-  if (!data) return null;
-  if (data.lifetime) return { m: lifetimeMetrics(data.lifetime, fundedCapital), complete: data.lifetime.complete };
-  return { m: computeMetrics(data.trades, "ALL", now, fundedCapital), complete: !data.truncated };
-}
-
 export interface Metrics {
   trades: number;
   wins: number;
@@ -101,4 +82,18 @@ export function profitFactorNote(m: Metrics): string | null {
   if (m.trades === 0) return "no closed trades";
   if (m.losses === 0) return "no losing trades yet";
   return null;
+}
+
+/** Account headlines never infer lifetime totals from a bounded trade array. */
+export function lifetimeMetrics(data: PerformanceData | null, capital: number | null): Metrics | null {
+  const p: LifetimePerformance | undefined = data?.lifetime;
+  if (!p?.complete || p.scope !== "all-funded-paper") return null;
+  return { trades: p.closed_trades, wins: p.wins, losses: p.losses, totalPnl: p.net_usd,
+    returnPct: capital !== null && capital > 0 ? p.net_usd / capital * 100 : null,
+    winRate: p.win_rate === null ? null : p.win_rate * 100, profitFactor: p.profit_factor,
+    expectancy: p.expectancy_usd, maxDrawdown: p.closed_trades ? p.max_drawdown_usd : null, curve: [] };
+}
+
+export function completeFundedHistory(data: PerformanceData | null): boolean {
+  return !!data?.lifetime?.complete && !data.truncated && !data.history_error && data.trades.length === data.lifetime.closed_trades;
 }

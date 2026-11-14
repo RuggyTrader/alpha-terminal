@@ -35,9 +35,6 @@ const HEADLINE: Record<string, string> = {
   STALE_PRICE: "Market price too old to size the order",
   NO_CAPITAL: "No PAPER capital allocated to this bot",
   SIGNAL_EXPIRED: "Signal arrived too late",
-  BOT_PROFILE_MISMATCH: "Strategy settings do not match the bot's original profile",
-  BOT_SHORTFALL: "Bot has an unpaid shortfall",
-  CONCURRENT_ORDER: "Account changed at the same moment; nothing committed",
 };
 export function refusalText(code: string, message: string | null): string {
   const head = HEADLINE[code];
@@ -116,7 +113,8 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
 
   return (
     <section aria-label="All bots" className="m-fade">
-      <SectionHeader title="All bots" sub="Funded PAPER records of every bot · Strategy Mirror (hypothetical) is on Performance" right={<StatusBadge tone="ok">FUNDED PAPER</StatusBadge>} />
+      <SectionHeader title="All bots" sub="Funded PAPER records of every bot · Strategy Mirror (hypothetical) is on Performance" right={<button className="btn btn-ghost" type="button" onClick={snap.refresh}>Refresh records</button>} />
+      <p className="sizing-note">Engine-planned limits are not resting exchange orders. Funded PAPER execution records the Kraken reference on signal arrival; a limit fill is not guaranteed.</p>
       <FilterRow f={f} setF={setF} markets={markets} tfs={tfs} />
       <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
         <span className="seg-pill" aria-hidden />
@@ -133,12 +131,12 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
           <div className="card list-card" aria-label="Pending orders">
             {r.pending.map((p) => (
               <div key={p.bot.bot_id} className="li">
-                <span><b>{label(p.bot, null)} · {p.side} limit {p.limit ?? NA}</b> · stop {p.stop ?? NA} · target {p.tp ?? NA} · qty {p.qty}{p.placedAt ? ` · placed ${stamp(p.placedAt)}` : ""}</span>
+                <span><b>{label(p.bot, null)} · {p.side} planned limit {p.limit ?? NA}</b> · stop {p.stop ?? NA} · target {p.tp ?? NA} · qty {p.qty}{p.placedAt ? ` · placed ${stamp(p.placedAt)}` : ""}</span>
                 <Link className="btn btn-ghost" to={`/bots/${p.bot.bot_id}/chart`}>View chart</Link>
               </div>
             ))}
           </div>
-        ) : <EmptyState title="No pending orders">No bot has a live limit order right now (from each bot's latest engine report).</EmptyState>
+        ) : <EmptyState title="No pending orders">No bot has an engine-planned limit right now (from each bot's latest engine report).</EmptyState>
       ) : null}
 
       {tab === "open" ? (

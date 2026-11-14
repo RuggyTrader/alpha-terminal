@@ -339,15 +339,12 @@ export interface PaperWallet {
   /** Simulated fees paid from this balance; absent on Workers without cost accounting. */
   fees_usd?: number;
   net_realized_pnl_usd?: number;
+  economic_net_realized_pnl_usd?: number | null;
+  shortfall_usd?: number;
   net_funding_usd: number;
   unrealized_pnl_usd: number | null;
   book_balance_usd: number;
-  /** Cash + reserved + last recorded unrealized P&L − unpaid shortfall; null when a position has no recorded mark. */
   equity_usd: number | null;
-  /** Recorded unpaid liability (never funded automatically from MAIN). Absent on older Workers. */
-  shortfall_usd?: number;
-  /** Wallet-paid realized P&L − fees − unpaid shortfall. Absent on older Workers. */
-  economic_net_realized_pnl_usd?: number;
   open_positions: number;
   updated_at: string;
 }
@@ -387,6 +384,7 @@ export interface PaperPortfolio {
   active: boolean;
   wallets: PaperWallet[];
   totals: {
+    equity_usd?: number | null;
     book_balance_usd: number;
     unallocated_usd: number;
     available_usd: number;
@@ -394,12 +392,10 @@ export interface PaperPortfolio {
     realized_pnl_usd: number;
     fees_usd?: number;
     net_realized_pnl_usd?: number;
+    economic_net_realized_pnl_usd?: number | null;
+    shortfall_usd?: number;
     net_funding_usd: number;
     unrealized_pnl_usd: number | null;
-    /** Backend 2026-11-13 (absent on older Workers): see PaperWallet. equity_usd is null when any mark is missing. */
-    equity_usd?: number | null;
-    shortfall_usd?: number;
-    economic_net_realized_pnl_usd?: number;
   };
   consistency: { ok: boolean; issues: string[] };
   history: PortfolioEntry[];
@@ -428,6 +424,7 @@ export type CostProfileInfo =
 
 /** A closed ALPHA PAPER ledger trade: the only kind counted as verified. */
 export interface VerifiedTrade {
+  proof_url?: string;
   id: number;
   symbol: string;
   direction: string;
@@ -444,24 +441,23 @@ export interface VerifiedTrade {
   cost_profile?: string | null;
 }
 
-/** GET /api/dashboard/performance → data.lifetime (backend 2026-11-13): the COMPLETE account-level funded PAPER aggregate,
- *  computed by the Worker over every closed ALPHA PAPER legacy trade and every closed bot-ledger position (no row limit).
- *  Excludes Mirror, open trades and internal transfers. Absent on older Workers. */
 export interface LifetimePerformance {
-  scope: string; bot_id: string | null; complete: boolean;
+  scope: "all-funded-paper"; complete: boolean; bot_id: string | null;
   closed_trades: number; wins: number; losses: number; break_even: number;
   gross_usd: number; fees_usd: number; net_usd: number;
-  win_rate: number | null; expectancy_usd: number | null; profit_factor: number | null;
+  win_rate: number | null; profit_factor: number | null; expectancy_usd: number | null;
   max_drawdown_usd: number; drawdown_basis: string;
   first_close: string | null; last_close: string | null;
 }
 
 export interface PerformanceData {
+  /** Authoritative lifetime aggregate, independent of the bounded legacy trade list. */
+  lifetime?: LifetimePerformance;
+  /** Frontend coverage diagnostic for the separately loaded trade history. */
+  history_error?: string | null;
   verification: string;
-  /** The LEGACY ALPHA PAPER ledger's closed trades (capped at 5,000). Not the account-wide scope: see `lifetime`. */
   trades: VerifiedTrade[];
   truncated: boolean;
-  lifetime?: LifetimePerformance;
   /** Closed trades from other sources (not the ALPHA PAPER ledger), never counted. */
   excluded_closed_trades: number;
 }

@@ -75,15 +75,11 @@ export function BrokerPositionsSection() {
 
 export function HomePage() {
   const { state, reconnected } = useDash();
-  // Headline figures come from the Worker's lifetime aggregate (GET /api/dashboard/performance → lifetime): one small
-  // request per ledger change; Home never downloads the trade history to compute them.
+  // One funded trade set for the hero and the Funded PAPER tab: the legacy ledger + the bot ledger, never twice.
   const verified = useVerified();
   const [scope, setScope] = useState<HeroScope | null>(null); // the hero follows the selected performance scope
-  const fleetNow = useFleet().fleet;
-  const fleetAvailable = !!fleetNow?.available;
+  const fleetAvailable = !!useFleet().fleet?.available;
   const d = state.data;
-  // The recorded marks behind the account's unrealized P&L (legacy ledger + every bot's open positions).
-  const marks = [...(d?.paper?.positions ?? []).map((p) => ({ at: p.mark_at })), ...(fleetNow?.available ? fleetNow.bots.flatMap((b) => b.open_positions.map((p) => ({ at: p.mark_at }))) : [])];
   const alerts = d?.recent.alerts ?? [];
   const total = d?.counts.alerts.total ?? 0;
   const activity = useActivity(reconnected, state.status === "stale" || state.status === "error");
@@ -92,7 +88,7 @@ export function HomePage() {
       <div className="col-main m-stagger">
         <AccountHero state={state} verified={verified} reconnected={reconnected} scope={scope} />
         <PerformanceSelector verified={verified} onScope={setScope} />
-        {d?.portfolio ? <WalletOverview portfolio={d.portfolio} marks={marks} /> : null}
+        {d?.portfolio ? <WalletOverview portfolio={d.portfolio} paper={d.paper} feedStale={state.status === "stale" || state.status === "error"} /> : null}
         <div className="hp-panels">
           {/* The legacy single-engine pipeline only where there is no bot registry (schema 6); otherwise every bot,
               ALPHA-02 included, has its own live line in the Bots pipeline (no duplicate "offline" engine panel). */}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import { fetchBacktest, paperApplyRisk, paperFund, paperTransfer } from "../api";
+import { ValuationNotice } from "../components/ValuationNotice";
 import { ActionForm, AllocationLegend, AllocationPie, parseUsd, WALLET_NAME } from "../components/PaperPortfolio";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { costMoney, money, NA, signedMoney, stamp, tone } from "../fmt";
@@ -25,15 +26,16 @@ function WalletRow({ w }: { w: PaperWallet }) {
       <span className="pf-w-name">{WALLET_NAME[w.wallet] ?? w.wallet}{w.kind === "MAIN" ? null : <em> {w.wallet}</em>}</span>
       <span className="pf-w-nums">
         <b>{money(w.book_balance_usd)}</b>
+        <i>equity {w.equity_usd === null ? NA : money(w.equity_usd)}{w.shortfall_usd ? ` · unpaid shortfall ${money(w.shortfall_usd)}` : ""}</i>
         <i>{money(w.available_usd)} available{w.reserved_usd > 0 ? ` · ${money(w.reserved_usd)} reserved` : ""}</i>
       </span>
     </>
   );
-  return w.kind === "STRATEGY" ? <Link className="pf-w m-press" to={`/portfolio/${w.wallet}`}>{inner}</Link> : <div className="pf-w">{inner}</div>;
+  return w.wallet.startsWith("ALPHA-") ? <Link className="pf-w m-press" to="/bots">{inner}</Link> : w.kind === "STRATEGY" ? <Link className="pf-w m-press" to={`/portfolio/${w.wallet}`}>{inner}</Link> : <div className="pf-w">{inner}</div>;
 }
 
 export function PortfolioPage() {
-  const { refresh } = useDash();
+  const { refresh, state } = useDash();
   const { p, loading } = usePortfolio();
   const [fundAmt, setFundAmt] = useState("");
   const [fundAction, setFundAction] = useState<"deposit" | "withdraw">("deposit");
@@ -49,7 +51,7 @@ export function PortfolioPage() {
     );
   }
   const t = p.totals;
-  const names = p.wallets.map((w) => w.wallet);
+  const names = p.wallets.filter(w => !w.wallet.startsWith("ALPHA-")).map(w => w.wallet);
   const fundUsd = parseUsd(fundAmt);
   const xferUsd = parseUsd(amt);
   const fromW = p.wallets.find((w) => w.wallet === from);
@@ -67,13 +69,15 @@ export function PortfolioPage() {
           <AllocationPie wallets={p.wallets} />
           <div className="pf-figs">
             <div><span>Total book balance</span><b>{money(t.book_balance_usd)}</b></div>
+            <div><span>Account equity</span><b>{t.equity_usd === null || t.equity_usd === undefined ? NA : money(t.equity_usd)}</b></div>
+            <div><span>Unpaid shortfall</span><b className="t-neg">{t.shortfall_usd === undefined ? NA : money(t.shortfall_usd)}</b></div>
             <div><span>Unallocated</span><b>{money(t.unallocated_usd)}</b></div>
             <div><span>Reserved in positions</span><b>{money(t.reserved_usd)}</b></div>
             {t.fees_usd !== undefined ? (
               <>
                 <div><span>Realized P&amp;L before fees</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
                 <div><span>Simulated fees paid</span><b className={t.fees_usd > 0 ? "t-neg" : ""}>{costMoney(t.fees_usd)}</b></div>
-                <div><span>Net realized P&amp;L</span><b className={`t-${tone(t.net_realized_pnl_usd ?? null)}`}>{signedMoney(t.net_realized_pnl_usd ?? null)}</b></div>
+                <div><span>Economic realized P&amp;L</span><b className={`t-${tone(t.economic_net_realized_pnl_usd ?? null)}`}>{signedMoney(t.economic_net_realized_pnl_usd ?? null)}</b></div>
               </>
             ) : (
               <div><span>Realized P&amp;L</span><b className={`t-${tone(t.realized_pnl_usd)}`}>{signedMoney(t.realized_pnl_usd)}</b></div>
@@ -82,6 +86,7 @@ export function PortfolioPage() {
           </div>
         </div>
         <AllocationLegend wallets={p.wallets} />
+        <ValuationNotice portfolio={p} paper={state.data?.paper} feedStale={state.status === "stale" || state.status === "error"} />
       </section>
 
       <section aria-label="Balances">
@@ -275,7 +280,7 @@ export function StrategyPage() {
             <>
               <div><span>Realized P&amp;L before fees</span><b className={`t-${tone(w.realized_pnl_usd)}`}>{signedMoney(w.realized_pnl_usd)}</b></div>
               <div><span>Simulated fees paid</span><b className={w.fees_usd > 0 ? "t-neg" : ""}>{costMoney(w.fees_usd)}</b></div>
-              <div><span>Net realized P&amp;L</span><b className={`t-${tone(w.net_realized_pnl_usd ?? null)}`}>{signedMoney(w.net_realized_pnl_usd ?? null)}</b></div>
+              <div><span>Economic realized P&amp;L</span><b className={`t-${tone(w.economic_net_realized_pnl_usd ?? null)}`}>{signedMoney(w.economic_net_realized_pnl_usd ?? null)}</b></div>
             </>
           ) : (
             <div><span>Realized P&amp;L</span><b className={`t-${tone(w.realized_pnl_usd)}`}>{signedMoney(w.realized_pnl_usd)}</b></div>
@@ -341,7 +346,7 @@ export function StrategyPage() {
                   {w.fees_usd !== undefined ? (
                     <>
                       <div className="li"><span>Simulated fees paid</span><b className={w.fees_usd > 0 ? "t-neg" : ""}>{costMoney(w.fees_usd)}</b></div>
-                      <div className="li"><span>Net realized P&amp;L</span><b className={`t-${tone(w.net_realized_pnl_usd ?? null)}`}>{signedMoney(w.net_realized_pnl_usd ?? null)}</b></div>
+                      <div className="li"><span>Economic realized P&amp;L</span><b className={`t-${tone(w.economic_net_realized_pnl_usd ?? null)}`}>{signedMoney(w.economic_net_realized_pnl_usd ?? null)}</b></div>
                     </>
                   ) : null}
                   <div className="li"><span>Closed ledger trades (recent list)</span><b>{ledgerTrades.length}</b></div>

@@ -1,3 +1,4 @@
+import { fixtureLifetime } from "./test-fixtures";
 // Verified performance, markets, system health and trade proof. Fixture data exists only in this file.
 
 import type { ReactElement } from "react";
@@ -58,7 +59,7 @@ function dash(over: Partial<DashboardData> = {}): DashboardData {
 }
 
 const ok = (data: DashboardData): FeedState => ({ ...initialFeedState, status: "ok", data, lastSuccessAt: NOW });
-const verified = (trades: VerifiedTrade[], excluded = 0): VerifiedState => ({ status: "ok", data: { verification: "Closed ALPHA PAPER ledger trades only.", trades, truncated: false, excluded_closed_trades: excluded }, error: null });
+const verified = (trades: VerifiedTrade[], excluded = 0): VerifiedState => ({ status: "ok", data: { verification: "Closed ALPHA PAPER ledger trades only.", trades, lifetime: fixtureLifetime(trades), truncated: false, excluded_closed_trades: excluded }, error: null });
 
 function render(state: FeedState, node: ReactElement): string {
   return renderToStaticMarkup(
@@ -159,7 +160,8 @@ describe("Verified Performance page", () => {
     expect(html).toContain("Verified performance");
     expect(html).toContain("NOT ENOUGH VERIFIED TRADING HISTORY");
     expect(html).toContain("1 closed trade(s) from other sources are excluded.");
-    expect(html).toContain("The engine&#x27;s own simulation (18 trades, +$16.33)");
+    expect(html).toContain("engine simulations");
+    expect(html).not.toContain("+$16.33");
     expect(html).toContain("no losing trades yet");
   });
 
