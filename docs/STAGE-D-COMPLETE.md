@@ -92,3 +92,19 @@ Nothing is required. Open the website to see what the bots have done. Your decis
 - approving strategy improvements.
 
 The emergency stop is in Settings.
+
+## Production website check (21:00 UTC, signed in)
+
+**Correct:**
+- **Bots page:** four bots, $20.00 allocated each. Live scans: 1m bots at 20:59, 5m bots at 20:55. Pending orders match the ledger. No per-bot activation or settings controls.
+- **Trades:** 3 pending, 0 open, 1 completed (trade #1), 17 rejected or cancelled.
+- **Results:** −$0.03, one closed trade.
+- **Home:** MAIN $19.97, SOL $40.00, BTC $40.00.
+- **ALPHA-04 chart:** real BTCUSD 5m candles. The limit 64598.10, stop 64360.00 and target 65288.28 match the ledger.
+
+**Found wrong:** ALPHA-03 is shown as "Position open" (Home, Bots), and its trailing-stop moves appear in Activity (1 break-even and 3 trailing events since 20:34). That position exists only in the engine (warm-up history); it is not a PAPER trade.
+
+**Fixed (not yet deployed):**
+- `d78603b`: badge and phase.
+- `54ffd95`: Worker. Stop events are recorded only while the ledger holds the bot's position.
+- Tests: website 230/230. Worker: the new test fails without the fix and passes with it.
