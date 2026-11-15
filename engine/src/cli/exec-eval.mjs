@@ -20,19 +20,26 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { aggregate, profileInputs, runFleetBacktest } from "./fleet-backtest.mjs";
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i === -1 ? d : process.argv[i + 1]; };
-const load = (f) => JSON.parse(readFileSync(f, "utf8")).candles;
+// Several files (comma-separated) are merged by candle time (duplicates dropped), e.g. Aug-Oct + Oct-Nov.
+const load = (fs) => {
+  const m = new Map();
+  for (const f of String(fs).split(",")) for (const k of JSON.parse(readFileSync(f, "utf8")).candles) m.set(k.t, k);
+  return [...m.values()].sort((a, b) => a.t - b.t);
+};
 const sol1 = arg("sol1") ? load(arg("sol1")) : null, btc1 = load(arg("btc1")), sol5file = arg("sol5") ? load(arg("sol5")) : null;
 const WALLET = Number(arg("wallet", "20"));
 const FEES = (arg("fees", "0,0.02,0.05,0.1,0.2")).split(",").map(Number);
 const variant = arg("variant", null) ? JSON.parse(arg("variant")) : {};
 const only = arg("bots", "ALPHA-01,ALPHA-02,ALPHA-03,ALPHA-04").split(",");
 const WARMUP_MS = 2 * 86_400_000;
+const TF = Number(arg("tf", "5")); // timeframe for the two "5m" profiles (higher-timeframe research: 15, 30, 60)
+const SLIP = Number(arg("slip", "0")); // % slippage applied by the backtest's fill model (sensitivity)
 
 const defs = [
   { id: "ALPHA-01", group: "SOLANA", symbol: "SOLUSD", intervalMin: 1, priority: 2, profile: "solusd-1m", candles: sol1 },
-  { id: "ALPHA-02", group: "SOLANA", symbol: "SOLUSD", intervalMin: 5, priority: 1, profile: "solusd-5m", candles: sol5file ?? (sol1 ? aggregate(sol1, 5) : null) },
+  { id: "ALPHA-02", group: "SOLANA", symbol: "SOLUSD", intervalMin: TF, priority: 1, profile: "solusd-5m", candles: TF === 5 && sol5file ? sol5file : sol1 ? aggregate(sol1, TF) : sol5file && TF % 5 === 0 ? aggregate(sol5file, TF / 5) : null },
   { id: "ALPHA-03", group: "BITCOIN", symbol: "BTCUSD", intervalMin: 1, priority: 3, profile: "btcusd-1m", candles: btc1 },
-  { id: "ALPHA-04", group: "BITCOIN", symbol: "BTCUSD", intervalMin: 5, priority: 4, profile: "btcusd-5m", candles: aggregate(btc1, 5) },
+  { id: "ALPHA-04", group: "BITCOIN", symbol: "BTCUSD", intervalMin: TF, priority: 4, profile: "btcusd-5m", candles: aggregate(btc1, TF) },
 ].filter((d) => d.candles && only.includes(d.id));
 
 const iso = (ms) => new Date(ms).toISOString();
@@ -54,7 +61,7 @@ function metrics(T) {
 }
 function runOne(d, { feePct, fillModel, fromMs, toMs }) {
   const bot = { ...d, inputs: { ...profileInputs(process.cwd(), d.profile), ...variant }, riskUSD: 10 };
-  const r = runFleetBacktest({ bots: [bot], main: WALLET, allocations: [{ group: d.group, amountUsd: WALLET }], feePct, fillModel, fromMs, toMs, slippagePct: 0 });
+  const r = runFleetBacktest({ bots: [bot], main: WALLET, allocations: [{ group: d.group, amountUsd: WALLET }], feePct, fillModel, fromMs, toMs, slippagePct: SLIP });
   return r;
 }
 // The ledger's own trade list (with prices, qty, fees) from a run: re-run the simulation and capture its trades.
@@ -64,7 +71,7 @@ const origClose = FleetLedgerSim.prototype.close;
 FleetLedgerSim.prototype.close = function (...a) { const r = origClose.apply(this, a); if (r?.trade) trades.push(r.trade); return r; };
 function tradesOf(d, opts) { trades.length = 0; runOne(d, opts); return trades.slice(); }
 
-const report = { label: "RESEARCH (recorded Kraken candles; not production results)", wallet_per_bot: WALLET, variant, fee_levels_pct_per_fill: FEES, bots: {} };
+const report = { label: "RESEARCH (recorded Kraken candles; not production results)", wallet_per_bot: WALLET, variant, timeframe_5m_profiles: TF, slippage_pct: SLIP, fee_levels_pct_per_fill: FEES, bots: {} };
 for (const d of defs) {
   const t0 = d.candles[0].t + WARMUP_MS, t1 = d.candles.at(-1).t, split = t0 + Math.floor((t1 - t0) * 0.6);
   const periods = { development: [t0, split], out_of_sample: [split, t1 + 1], full: [t0, t1 + 1] };

@@ -280,7 +280,15 @@ export function onBar(S, bar) {
     const valid = slPlan !== null && (S.dir === 1 ? (tp2v > ep && ep > slPlan) : (tp2v < ep && ep < slPlan));
     const trendOk = !(I.trendEma > 0) || ((S.trendBars ?? 0) >= I.trendEma && (S.dir === 1 ? c > S.trendEma : c < S.trendEma));
     const dirOk = (S.dir === 1 ? I.allowLong : I.allowShort) && trendOk;
-    const place = timing && valid && dirOk && sc >= I.minScore && canTrade;
+    // RESEARCH-ONLY filters (NOT in the Pine script; absent = off; never set by a production profile, so production
+    // behaviour and settings hashes are unchanged). minNetRR: the target's reward AFTER entry and exit fees must be at
+    // least minNetRR x the stop's risk INCLUDING fees and stop slippage. minAtrPct: skip when ATR is below that % of price.
+    const feeF = (I.researchCostPct ?? 0.2) / 100, slipF = (I.researchSlipPct ?? 0) / 100;
+    const netRewardU = Math.abs(tp2v - ep) - (ep + tp2v) * feeF;
+    const netRiskU = slPlan === null ? null : Math.abs(ep - slPlan) + (ep + slPlan) * feeF + slPlan * slipF;
+    const netOk = !(I.minNetRR > 0) || (netRiskU !== null && netRiskU > 0 && netRewardU / netRiskU >= I.minNetRR);
+    const volOk = !(I.minAtrPct > 0) || (atr !== null && (atr / c) * 100 >= I.minAtrPct);
+    const place = timing && valid && dirOk && sc >= I.minScore && canTrade && netOk && volOk;
     S.armed = armedNow;
     plan = { entry: l705, sl: slPlan, tp2: tp2v, score: sc, tags: tags.trim() };
     const eid = S.dir === 1 ? "OTE Long" : "OTE Short";
