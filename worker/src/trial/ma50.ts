@@ -8,7 +8,7 @@ export interface Candle { t: number; o: number; h: number; l: number; c: number 
 export const PARAMS = Object.freeze({
   strategy: "BTC-MA50-LONG", version: 1, symbol: "BTCUSD", pair: "XBTUSD", timeframe: "1d",
   sma: 50, atr: 14, stopAtr: 3, trailAtr: 3, riskPct: 2, // risk = 2 % of current strategy equity per trade
-  feePct: 0.2, slipPct: 0.05, minQty: 0.00005, minCost: 0.5, qtyStep: 1e-8, startEquityUsd: 100,
+  feePct: 0.2, slipPct: 0.05, minQty: 0.00006, minCost: 0.5, qtyStep: 1e-8, startEquityUsd: 100, // minimums: Kraken XBTUSD AssetPairs, 2026-11-15
   long: true, short: false, leverage: false,
 });
 export type Params = typeof PARAMS;

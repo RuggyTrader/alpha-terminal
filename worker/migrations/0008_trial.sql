@@ -88,5 +88,5 @@ CREATE TABLE IF NOT EXISTS trial_events (
 
 INSERT OR IGNORE INTO trial_accounts (account_id, name, strategy, params_json, start_equity_micro, cash_micro, status, created_at)
 VALUES ('TRIAL-BTC-MA50', 'BTC 50-day trend (forward PAPER trial)', 'BTC-MA50-LONG v1',
-  '{"strategy":"BTC-MA50-LONG","version":1,"symbol":"BTCUSD","pair":"XBTUSD","timeframe":"1d","sma":50,"atr":14,"stopAtr":3,"trailAtr":3,"riskPct":2,"feePct":0.2,"slipPct":0.05,"minQty":0.00005,"minCost":0.5,"qtyStep":1e-8,"startEquityUsd":100,"long":true,"short":false,"leverage":false}',
+  '{"strategy":"BTC-MA50-LONG","version":1,"symbol":"BTCUSD","pair":"XBTUSD","timeframe":"1d","sma":50,"atr":14,"stopAtr":3,"trailAtr":3,"riskPct":2,"feePct":0.2,"slipPct":0.05,"minQty":0.00006,"minCost":0.5,"qtyStep":1e-8,"startEquityUsd":100,"long":true,"short":false,"leverage":false}',
   100000000, 100000000, 'PROPOSED', '2026-11-15T00:00:00Z');
