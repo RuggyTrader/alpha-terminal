@@ -570,7 +570,17 @@ export class EngineRunner {
     const prev = S.liveOrder ?? null;
     const sideOf = (n) => (n === 1 ? "LONG" : "SHORT");
     const status = warmup ? "historical" : "pending";
-    if (prev && (!live || live.limit !== prev.limit || sideOf(live.side) !== prev.side || live.qty !== prev.qtyRaw)) {
+    // An order the strategy carried out of its warm-up history was never sent (history is never sent), so the ledger
+    // does not know it. At the first timely live candle it is placed for real, as a NEW pending order from this
+    // candle's close (it can fill only on later candles); otherwise a live fill of it would be refused.
+    if (!warmup && !late && prev && live) {
+      const item = S.outbox.find((x) => x.id === prev.id);
+      if (prev.historical || item?.status === "historical") {
+        this.audit({ type: "pending_order", event: "PLACED_AFTER_WARMUP", previous_id: prev.id });
+        S.liveOrder = null;
+      }
+    }
+    if (prev && S.liveOrder && (!live || live.limit !== prev.limit || sideOf(live.side) !== prev.side || live.qty !== prev.qtyRaw)) {
       if (live) {
         // Replaced by a new strategy order: cancel the old one explicitly, so the ledger never keeps an order the engine
         // no longer works even when the replacement itself cannot be sent (too late after an outage).
@@ -603,7 +613,7 @@ export class EngineRunner {
       const I = S.strategy.inputs ?? {};
       const lastBar = Number.isFinite(S.strategy.legEndBar) && Number.isFinite(I.maxAge) ? S.strategy.legEndBar + I.maxAge + 1 : null;
       const expiresAt = lastBar !== null ? iso(k.t + (lastBar - S.strategy.bar + 1) * this.step) : null;
-      S.liveOrder = { id, side, limit: live.limit, qtyRaw: live.qty };
+      S.liveOrder = { id, side, limit: live.limit, qtyRaw: live.qty, historical: warmup };
       if (!S.outbox.some((x) => x.id === id)) {
         S.outbox.push({
           id, action: "PLACE_LIMIT", kind: "ORDER", side, qty: fmtQty(live.qty), limit: live.limit, stop: br.exit?.stop ?? S.strategy.planSL ?? null, tp: br.exit?.limit ?? S.strategy.planTP2 ?? null,

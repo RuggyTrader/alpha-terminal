@@ -454,3 +454,45 @@ describe("financial reconciliation identities (MAIN, every bot, every group, com
     }
   });
 });
+
+describe("an order carried out of warm-up history (production 2026-11-15, ALPHA-01 and ALPHA-04)", () => {
+  it("is placed for real at the first live candle (new id, fills only later), never refused as unknown, and only once", async () => {
+    const mk = (startIdx) => {
+      const seen = [];
+      let ledgerPending = null;
+      const http = async (url, init) => {
+        const path = String(url).replace(/^.*\/webhook\//, ""); const body = JSON.parse(init.body); seen.push({ path, body });
+        if (path === "bot-ledger") return new Response(JSON.stringify({ ok: true, position: null, alerts: {}, pending_order: ledgerPending, balance: { available_usd: 20, bot_available_usd: 20, max_order_notional_usd: 5000 } }), { status: 200 });
+        if (path === "bot-order" && body.action === "PLACE_LIMIT") { ledgerPending = { order_id: body.order_id, side: body.side, limit: body.limit, accepted_qty: body.qty, placed_at: body.placed_at, expires_at: null }; return new Response(JSON.stringify({ ok: true, code: "ORDER_PENDING" }), { status: 200 }); }
+        if (path === "bot-order" && body.action === "CANCEL_ORDER") { ledgerPending = null; return new Response(JSON.stringify({ ok: true, code: "ORDER_CANCELLED", data: {} }), { status: 200 }); }
+        if (path === "bot-order") return new Response(JSON.stringify({ ok: true, code: "DRY_RUN_ACCEPTED" }), { status: 200 });
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      };
+      const [{ cfg }] = loadBotConfigs(["ALPHA-01"], env0({ ENGINE_SYNC: "on", ALPHA_API_BASE: "http://127.0.0.1:9", ALPHA_WEBHOOK_SECRET: "s", ENGINE_MIRROR: "off" }), ENGINE, { allowProposed: true });
+      const clock = { now: SOL1[startIdx].t + 70_000 };
+      const r = new EngineRunner(cfg, { fetchCandles: async ({ sinceMs }) => SOL1.filter((k) => k.t + 60_000 <= clock.now && (sinceMs === null || k.t > sinceMs)), http, now: () => clock.now, log: () => {} });
+      return { r, seen, clock };
+    };
+    // A warm-up that ends while the strategy works a limit order whose setup survives the next candle (real candles).
+    let found = null;
+    for (let i = 300; i < 1500 && !found; i += 7) {
+      const t = mk(i); await t.r.tick();
+      if (!t.r.state.liveOrder) continue;
+      const warm = t.r.state.liveOrder;
+      assert.ok(!t.seen.some((s) => s.path === "bot-order"), "warm-up history is never sent");
+      t.clock.now += 60_000; await t.r.tick();
+      const lo = t.r.state.liveOrder;
+      if (lo && lo.limit === warm.limit && lo.side === warm.side) found = { ...t, warm };
+    }
+    assert.ok(found, "precondition: a warm-up order that is still worked at the next candle exists in the fixture");
+    const places = found.seen.filter((s) => s.path === "bot-order" && s.body.action === "PLACE_LIMIT");
+    assert.equal(places.length, 1, "placed exactly once");
+    assert.notEqual(places[0].body.order_id, found.warm.id, "a new live order id, not the unsent historical one");
+    assert.equal(places[0].body.limit, found.warm.limit);
+    assert.ok(!found.seen.some((s) => s.path === "bot-order" && s.body.action === "CANCEL_ORDER"), "nothing to cancel: the ledger never had the historical order");
+    assert.equal(found.r.state.liveOrder.id, places[0].body.order_id);
+    found.clock.now += 60_000; await found.r.tick();
+    assert.equal(found.seen.filter((s) => s.path === "bot-order" && s.body.action === "PLACE_LIMIT" && s.body.order_id === places[0].body.order_id).length, 1, "not placed again");
+    assert.equal(found.r.state.ledgerCheck.status, "OK");
+  });
+});
