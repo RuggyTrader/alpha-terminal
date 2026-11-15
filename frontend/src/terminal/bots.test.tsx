@@ -2,7 +2,7 @@ import { fixtureLifetime } from "./test-fixtures";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import { botPhase, botState, groupTotals, pipelineLine, type Bot } from "./bots";
+import { botPhase, botState, engineStatus, groupTotals, pipelineLine, type Bot } from "./bots";
 import { BotCard, fleetSetupPlan } from "./pages/Bots";
 import { botLevels, candleBucket, chartDataMatches, chartFigures, chartMarkersInCandles, tradeMatchesChart } from "./pages/BotChart";
 import { answer, findBot, UNKNOWN } from "./assistant";
@@ -206,5 +206,18 @@ describe("full automation: one fleet setup, no routine per-bot controls", () => 
     expect(p.mainAfter).toBeCloseTo(39.968321, 6);
     expect(p.affordable).toBe(true);
     expect(fleetSetupPlan({ ...f, main: { available_usd: 10, profit_received_usd: 0 } }, 20).affordable).toBe(false);
+  });
+});
+
+describe("a position only the engine holds (warm-up history, production ALPHA-03 2026-11-15) is never shown as a PAPER position", () => {
+  it("bot ledger: badge scanning, phase waiting, no 'Position open'", () => {
+    const b = bot({ bot_id: "ALPHA-03", name: "ALPHA 03", symbol: "BTCUSD", timeframe: "1m", ledger_api: "bot",
+      engine: { received_at: "2026-11-12T05:59:30Z", last_candle_time: "2026-11-12T05:58:00Z", ledger_check: { status: "OK" }, position: { side: "LONG", qty: 0.0003 },
+        strategy_state: { direction: "LONG", leg_start: 1, leg_end: 2, setup_bars: 109, max_age_bars: 85, pending_order: null, current_stop: null, break_even_done: false, trailing: false } } as never });
+    expect(engineStatus(b, NOW).key).toBe("SCANNING");
+    expect(botPhase(b, NOW).phase).toBe("Waiting for the next setup");
+    const out = html(b);
+    expect(out).not.toContain("Position open");
+    expect(out).toContain("warm-up history (not a PAPER trade)");
   });
 });

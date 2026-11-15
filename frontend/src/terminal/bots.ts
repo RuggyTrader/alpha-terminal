@@ -130,6 +130,8 @@ export function botPhase(b: Bot, nowMs: number): { phase: string; detail: string
   if (s === "OFFLINE") return { phase: "Offline", detail: b.engine?.received_at ? `last report ${b.engine.received_at.slice(11, 16)} UTC` : null, live: false };
   const pos = b.open_positions[0];
   if (pos) return { phase: `Managing ${pos.side}`, detail: `${pos.qty} @ ${pos.entry_price}${pos.stop ? ` · stop ${pos.stop}` : ""}`, live: s === "ONLINE" };
+  // Bot ledger: a position only the engine holds comes from its warm-up history (never sent, never a PAPER trade).
+  if (b.ledger_api === "bot" && b.engine?.position) return { phase: "Waiting for the next setup", detail: "the strategy is finishing a trade from its warm-up history (not a PAPER trade)", live: s === "ONLINE" };
   const st = b.engine?.strategy_state;
   if (st?.pending_order) {
     const o = st.pending_order;
@@ -183,7 +185,8 @@ export function engineStatus(b: Bot, nowMs: number, pendingFromLedger = false): 
   if (!Number.isFinite(candleClose) || nowMs - candleClose > (3 * tf * 60 + 120) * 1000) return mk("MARKET_DATA_STALE", `last completed candle ${hhmm(e?.last_candle_time)}; heartbeat ${hhmm(e?.received_at)}`);
   if (e?.ledger_check?.status === "UNVERIFIED") return mk("BACKEND_DISCONNECTED", e.ledger_check.issues?.[0] ?? "the engine could not reach the PAPER ledger");
   if (s === "PAUSED") return mk("PAUSED", "new entries paused by the owner; open positions are still managed");
-  const pos = b.open_positions[0] ?? (e?.position ? { side: e.position.side, qty: e.position.qty } : null);
+  // Bot ledger: only a real PAPER position counts (the engine may still carry one from its warm-up history).
+  const pos = b.open_positions[0] ?? (b.ledger_api !== "bot" && e?.position ? { side: e.position.side, qty: e.position.qty } : null);
   if (pos) return mk("POSITION_OPEN", `${pos.side} ${pos.qty} · last candle ${hhmm(e?.last_candle_time)}`);
   if (pendingFromLedger || e?.strategy_state?.pending_order) return mk("PENDING_ORDER", `last candle ${hhmm(e?.last_candle_time)}`);
   return mk("SCANNING", `last candle ${hhmm(e?.last_candle_time)} · heartbeat ${hhmm(e?.received_at)}`);
