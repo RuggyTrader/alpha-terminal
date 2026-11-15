@@ -1,0 +1,3096 @@
+[
+ {
+  "candidate": "atr",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 65,
+  "dev_gross": 1.6087,
+  "dev_net20": -3.023,
+  "oos_trades": 32,
+  "oos_gross": 0.8401,
+  "oos_net20": -1.5807,
+  "oos_net40": -3.782,
+  "oos_pf20": 0.327,
+  "oos_win20": 0.344,
+  "oos_avg20": -0.0494,
+  "oos_dd20": 1.5807,
+  "oos_fees20": 2.396,
+  "full_net20": -4.233,
+  "full_trades": 97,
+  "be_full": 0.0655,
+  "be_oos": 0.0674,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 29,
+    "net": -1.1876
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 57,
+    "net": -2.4313
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 4,
+    "net": -0.5223
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 7,
+    "net": -0.0917
+   }
+  }
+ },
+ {
+  "candidate": "atr",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 5,
+  "dev_gross": 0.394,
+  "dev_net20": -0.0055,
+  "oos_trades": 2,
+  "oos_gross": 0.0209,
+  "oos_net20": -0.1378,
+  "oos_net40": -0.2951,
+  "oos_pf20": 0,
+  "oos_win20": 0,
+  "oos_avg20": -0.0689,
+  "oos_dd20": 0.1378,
+  "oos_fees20": 0.1586,
+  "full_net20": -0.1417,
+  "full_trades": 7,
+  "be_full": 0.1489,
+  "be_oos": 0.0263,
+  "regimes_pos20": "1/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 2,
+    "net": 0.1797
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": -0.1351
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 4,
+    "net": -0.1864
+   }
+  }
+ },
+ {
+  "candidate": "base",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 619,
+  "dev_gross": -1.7955,
+  "dev_net20": -14.0557,
+  "oos_trades": 418,
+  "oos_gross": -0.5157,
+  "oos_net20": -15.1045,
+  "oos_net40": -15.7429,
+  "oos_pf20": 0.047,
+  "oos_win20": 0.102,
+  "oos_avg20": -0.0429,
+  "oos_dd20": 15.1045,
+  "oos_fees20": 14.0167,
+  "full_net20": -14.5497,
+  "full_trades": 1037,
+  "be_full": -0.0084,
+  "be_oos": -0.0039,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 189,
+    "net": -9.0423
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 165,
+    "net": -5.4666
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 2,
+    "net": -0.0408
+   }
+  }
+ },
+ {
+  "candidate": "base",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 230,
+  "dev_gross": 0.6405,
+  "dev_net20": -11.211,
+  "oos_trades": 145,
+  "oos_gross": 1.6583,
+  "oos_net20": -7.4559,
+  "oos_net40": -12.966,
+  "oos_pf20": 0.124,
+  "oos_win20": 0.179,
+  "oos_avg20": -0.0514,
+  "oos_dd20": 7.4559,
+  "oos_fees20": 8.6869,
+  "full_net20": -13.9022,
+  "full_trades": 375,
+  "be_full": 0.0156,
+  "be_oos": 0.0312,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 134,
+    "net": -5.9626
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 190,
+    "net": -6.1406
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 21,
+    "net": -1.2385
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 26,
+    "net": -0.5605
+   }
+  }
+ },
+ {
+  "candidate": "base",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 552,
+  "dev_gross": 1.2089,
+  "dev_net20": -14.9158,
+  "oos_trades": 339,
+  "oos_gross": 0.9212,
+  "oos_net20": -14.2257,
+  "oos_net40": -15.3695,
+  "oos_pf20": 0.041,
+  "oos_win20": 0.056,
+  "oos_avg20": -0.042,
+  "oos_dd20": 14.2257,
+  "oos_fees20": 14.5072,
+  "full_net20": -15.0594,
+  "full_trades": 891,
+  "be_full": 0.0069,
+  "be_oos": 0.0077,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 137,
+    "net": -6.7528
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 121,
+    "net": -4.3587
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 129,
+    "net": -3.9478
+   }
+  }
+ },
+ {
+  "candidate": "base",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 136,
+  "dev_gross": 0.6176,
+  "dev_net20": -7.8599,
+  "oos_trades": 85,
+  "oos_gross": 2.0669,
+  "oos_net20": -4.0097,
+  "oos_net40": -8.5846,
+  "oos_pf20": 0.203,
+  "oos_win20": 0.212,
+  "oos_avg20": -0.0472,
+  "oos_dd20": 4.0097,
+  "oos_fees20": 5.8124,
+  "full_net20": -10.1631,
+  "full_trades": 221,
+  "be_full": 0.0305,
+  "be_oos": 0.063,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 69,
+    "net": -3.0813
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 35,
+    "net": -2.0065
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 92,
+    "net": -4.4347
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 25,
+    "net": -0.6407
+   }
+  }
+ },
+ {
+  "candidate": "base_slip05",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 614,
+  "dev_gross": -8.7489,
+  "dev_net20": -14.4832,
+  "oos_trades": 418,
+  "oos_gross": -6.4627,
+  "oos_net20": -15.468,
+  "oos_net40": -15.7309,
+  "oos_pf20": 0.024,
+  "oos_win20": 0.072,
+  "oos_avg20": -0.0528,
+  "oos_dd20": 15.468,
+  "oos_fees20": 11.6362,
+  "full_net20": -15.0323,
+  "full_trades": 804,
+  "be_full": -0.0569,
+  "be_oos": -0.056,
+  "regimes_pos20": "0/2",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 158,
+    "net": -9.8825
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 141,
+    "net": -5.1498
+   }
+  }
+ },
+ {
+  "candidate": "base_slip05",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 230,
+  "dev_gross": -3.141,
+  "dev_net20": -12.9166,
+  "oos_trades": 145,
+  "oos_gross": -0.988,
+  "oos_net20": -9.1393,
+  "oos_net40": -13.9174,
+  "oos_pf20": 0.071,
+  "oos_win20": 0.124,
+  "oos_avg20": -0.063,
+  "oos_dd20": 9.1393,
+  "oos_fees20": 8.2145,
+  "full_net20": -14.5815,
+  "full_trades": 375,
+  "be_full": -0.035,
+  "be_oos": -0.0195,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 110,
+    "net": -6.6955
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 157,
+    "net": -6.2832
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 21,
+    "net": -1.2769
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 15,
+    "net": -0.3259
+   }
+  }
+ },
+ {
+  "candidate": "base_slip05",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 552,
+  "dev_gross": -6.7602,
+  "dev_net20": -15.1463,
+  "oos_trades": 339,
+  "oos_gross": -4.6372,
+  "oos_net20": -15.2191,
+  "oos_net40": -15.4197,
+  "oos_pf20": 0.023,
+  "oos_win20": 0.033,
+  "oos_avg20": -0.0499,
+  "oos_dd20": 15.2191,
+  "oos_fees20": 12.2756,
+  "full_net20": -15.2746,
+  "full_trades": 891,
+  "be_full": -0.0433,
+  "be_oos": -0.0432,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 135,
+    "net": -7.7972
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 61,
+    "net": -3.5429
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 117,
+    "net": -3.9345
+   }
+  }
+ },
+ {
+  "candidate": "base_slip05",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 136,
+  "dev_gross": -1.8717,
+  "dev_net20": -9.3984,
+  "oos_trades": 85,
+  "oos_gross": 0.4086,
+  "oos_net20": -5.2907,
+  "oos_net40": -9.5168,
+  "oos_pf20": 0.125,
+  "oos_win20": 0.153,
+  "oos_avg20": -0.0622,
+  "oos_dd20": 5.2907,
+  "oos_fees20": 5.6211,
+  "full_net20": -12.0823,
+  "full_trades": 221,
+  "be_full": -0.0207,
+  "be_oos": 0.0128,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 69,
+    "net": -3.7519
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 35,
+    "net": -2.4333
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 92,
+    "net": -5.1477
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 25,
+    "net": -0.7494
+   }
+  }
+ },
+ {
+  "candidate": "ema200",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 289,
+  "dev_gross": -2.5128,
+  "dev_net20": -13.5098,
+  "oos_trades": 210,
+  "oos_gross": -0.1237,
+  "oos_net20": -11.2015,
+  "oos_net40": -15.6656,
+  "oos_pf20": 0.052,
+  "oos_win20": 0.086,
+  "oos_avg20": -0.0533,
+  "oos_dd20": 11.2015,
+  "oos_fees20": 10.979,
+  "full_net20": -14.8713,
+  "full_trades": 499,
+  "be_full": -0.0175,
+  "be_oos": -0.0016,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 122,
+    "net": -6.3921
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 155,
+    "net": -6.6837
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 40,
+    "net": -1.5665
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 13,
+    "net": -0.229
+   }
+  }
+ },
+ {
+  "candidate": "ema200",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 115,
+  "dev_gross": 1.5431,
+  "dev_net20": -5.9872,
+  "oos_trades": 76,
+  "oos_gross": 0.7756,
+  "oos_net20": -4.5008,
+  "oos_net40": -8.5384,
+  "oos_pf20": 0.14,
+  "oos_win20": 0.184,
+  "oos_avg20": -0.0592,
+  "oos_dd20": 4.5008,
+  "oos_fees20": 5.1372,
+  "full_net20": -8.7885,
+  "full_trades": 191,
+  "be_full": 0.0325,
+  "be_oos": 0.0269,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 64,
+    "net": -3.2374
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 104,
+    "net": -4.1034
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 10,
+    "net": -0.7906
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 13,
+    "net": -0.6571
+   }
+  }
+ },
+ {
+  "candidate": "ema200",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 219,
+  "dev_gross": 0.4233,
+  "dev_net20": -11.3585,
+  "oos_trades": 138,
+  "oos_gross": 0.2323,
+  "oos_net20": -8.248,
+  "oos_net40": -13.2399,
+  "oos_pf20": 0.031,
+  "oos_win20": 0.058,
+  "oos_avg20": -0.0598,
+  "oos_dd20": 8.248,
+  "oos_fees20": 8.4383,
+  "full_net20": -14.8168,
+  "full_trades": 357,
+  "be_full": 0.0049,
+  "be_oos": 0.0044,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 107,
+    "net": -5.3885
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 48,
+    "net": -2.5313
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 149,
+    "net": -5.7233
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 53,
+    "net": -1.1736
+   }
+  }
+ },
+ {
+  "candidate": "ema200",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 79,
+  "dev_gross": -0.0633,
+  "dev_net20": -5.3921,
+  "oos_trades": 49,
+  "oos_gross": 1.3356,
+  "oos_net20": -2.3336,
+  "oos_net40": -5.4465,
+  "oos_pf20": 0.232,
+  "oos_win20": 0.224,
+  "oos_avg20": -0.0476,
+  "oos_dd20": 2.3336,
+  "oos_fees20": 3.5702,
+  "full_net20": -7.0484,
+  "full_trades": 128,
+  "be_full": 0.0243,
+  "be_oos": 0.0698,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 43,
+    "net": -2.3293
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 22,
+    "net": -1.5096
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 49,
+    "net": -2.6652
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 14,
+    "net": -0.5443
+   }
+  }
+ },
+ {
+  "candidate": "ema200_netrr10",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 95,
+  "dev_gross": -1.7985,
+  "dev_net20": -7.4422,
+  "oos_trades": 58,
+  "oos_gross": -0.7417,
+  "oos_net20": -4.6886,
+  "oos_net40": -7.8542,
+  "oos_pf20": 0.044,
+  "oos_win20": 0.121,
+  "oos_avg20": -0.0808,
+  "oos_dd20": 4.6886,
+  "oos_fees20": 3.9729,
+  "full_net20": -10.2362,
+  "full_trades": 153,
+  "be_full": -0.047,
+  "be_oos": -0.0341,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 46,
+    "net": -2.7429
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 88,
+    "net": -6.4716
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 7,
+    "net": -0.4496
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 12,
+    "net": -0.5722
+   }
+  }
+ },
+ {
+  "candidate": "ema200_netrr10",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 0,
+  "dev_gross": 0,
+  "dev_net20": 0,
+  "oos_trades": 1,
+  "oos_gross": -0.0768,
+  "oos_net20": -0.1563,
+  "oos_net40": -0.2354,
+  "oos_pf20": 0,
+  "oos_win20": 0,
+  "oos_avg20": -0.1563,
+  "oos_dd20": 0.1563,
+  "oos_fees20": 0.0796,
+  "full_net20": -0.1563,
+  "full_trades": 1,
+  "be_full": -0.1926,
+  "be_oos": -0.1926,
+  "regimes_pos20": "0/1",
+  "regimes": {
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.1563
+   }
+  }
+ },
+ {
+  "candidate": "ema200_netrr10",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 24,
+  "dev_gross": 0.2393,
+  "dev_net20": -1.5988,
+  "oos_trades": 13,
+  "oos_gross": -0.0911,
+  "oos_net20": -1.0945,
+  "oos_net40": -2.0496,
+  "oos_pf20": 0.05,
+  "oos_win20": 0.231,
+  "oos_avg20": -0.0842,
+  "oos_dd20": 1.0945,
+  "oos_fees20": 1.0039,
+  "full_net20": -2.6021,
+  "full_trades": 37,
+  "be_full": 0.0103,
+  "be_oos": -0.0178,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 12,
+    "net": -0.7644
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": -0.1438
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 19,
+    "net": -1.3326
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 5,
+    "net": -0.3614
+   }
+  }
+ },
+ {
+  "candidate": "ema200_netrr10",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 10,
+  "dev_gross": 0.0005,
+  "dev_net20": -0.7797,
+  "oos_trades": 10,
+  "oos_gross": 0.6532,
+  "oos_net20": -0.1343,
+  "oos_net40": -0.9026,
+  "oos_pf20": 0.748,
+  "oos_win20": 0.4,
+  "oos_avg20": -0.0134,
+  "oos_dd20": 0.5265,
+  "oos_fees20": 0.7839,
+  "full_net20": -0.9084,
+  "full_trades": 20,
+  "be_full": 0.082,
+  "be_oos": 0.1652,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 9,
+    "net": -0.4762
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 2,
+    "net": -0.1498
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 8,
+    "net": -0.2182
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": -0.0642
+   }
+  }
+ },
+ {
+  "candidate": "netrr05",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 383,
+  "dev_gross": -1.1213,
+  "dev_net20": -12.801,
+  "oos_trades": 245,
+  "oos_gross": -0.4025,
+  "oos_net20": -12.1931,
+  "oos_net40": -15.6858,
+  "oos_pf20": 0.084,
+  "oos_win20": 0.139,
+  "oos_avg20": -0.0498,
+  "oos_dd20": 12.1931,
+  "oos_fees20": 11.3145,
+  "full_net20": -13.8421,
+  "full_trades": 628,
+  "be_full": -0.0085,
+  "be_oos": -0.005,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 114,
+    "net": -4.6085
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 170,
+    "net": -7.4714
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 40,
+    "net": -1.4563
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 8,
+    "net": -0.3059
+   }
+  }
+ },
+ {
+  "candidate": "netrr05",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 32,
+  "dev_gross": 1.4434,
+  "dev_net20": -0.9979,
+  "oos_trades": 13,
+  "oos_gross": 0.6166,
+  "oos_net20": -0.3989,
+  "oos_net40": -1.3803,
+  "oos_pf20": 0.601,
+  "oos_win20": 0.385,
+  "oos_avg20": -0.0307,
+  "oos_dd20": 0.5192,
+  "oos_fees20": 1.0075,
+  "full_net20": -1.3478,
+  "full_trades": 45,
+  "be_full": 0.1168,
+  "be_oos": 0.1206,
+  "regimes_pos20": "1/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 8,
+    "net": -0.1336
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 27,
+    "net": -0.7362
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 4,
+    "net": -0.6322
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 6,
+    "net": 0.1543
+   }
+  }
+ },
+ {
+  "candidate": "netrr05",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 168,
+  "dev_gross": 1.0245,
+  "dev_net20": -8.9204,
+  "oos_trades": 106,
+  "oos_gross": 1.1926,
+  "oos_net20": -5.8661,
+  "oos_net40": -10.6825,
+  "oos_pf20": 0.129,
+  "oos_win20": 0.132,
+  "oos_avg20": -0.0553,
+  "oos_dd20": 5.8661,
+  "oos_fees20": 6.8315,
+  "full_net20": -11.905,
+  "full_trades": 274,
+  "be_full": 0.0213,
+  "be_oos": 0.0301,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 97,
+    "net": -4.132
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 23,
+    "net": -1.6629
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 129,
+    "net": -5.5159
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 25,
+    "net": -0.5941
+   }
+  }
+ },
+ {
+  "candidate": "netrr05",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 59,
+  "dev_gross": 0.6142,
+  "dev_net20": -3.6194,
+  "oos_trades": 42,
+  "oos_gross": 1.2467,
+  "oos_net20": -1.9084,
+  "oos_net40": -4.6808,
+  "oos_pf20": 0.306,
+  "oos_win20": 0.214,
+  "oos_avg20": -0.0454,
+  "oos_dd20": 1.914,
+  "oos_fees20": 3.0934,
+  "full_net20": -5.1137,
+  "full_trades": 101,
+  "be_full": 0.0468,
+  "be_oos": 0.0763,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 34,
+    "net": -1.3696
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 12,
+    "net": -0.6529
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 44,
+    "net": -2.5812
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 11,
+    "net": -0.51
+   }
+  }
+ },
+ {
+  "candidate": "netrr10",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 211,
+  "dev_gross": -1.6683,
+  "dev_net20": -11.4884,
+  "oos_trades": 129,
+  "oos_gross": 0.0754,
+  "oos_net20": -7.7024,
+  "oos_net40": -12.6357,
+  "oos_pf20": 0.13,
+  "oos_win20": 0.194,
+  "oos_avg20": -0.0597,
+  "oos_dd20": 7.7024,
+  "oos_fees20": 7.4478,
+  "full_net20": -13.6618,
+  "full_trades": 340,
+  "be_full": -0.0168,
+  "be_oos": 0.0017,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 91,
+    "net": -3.7784
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 179,
+    "net": -7.8202
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 18,
+    "net": -1.0618
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 29,
+    "net": -1.0013
+   }
+  }
+ },
+ {
+  "candidate": "netrr10",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 1,
+  "dev_gross": -0.0377,
+  "dev_net20": -0.117,
+  "oos_trades": 1,
+  "oos_gross": -0.0768,
+  "oos_net20": -0.1563,
+  "oos_net40": -0.2354,
+  "oos_pf20": 0,
+  "oos_win20": 0,
+  "oos_avg20": -0.1563,
+  "oos_dd20": 0.1563,
+  "oos_fees20": 0.0796,
+  "full_net20": -0.2724,
+  "full_trades": 2,
+  "be_full": -0.1438,
+  "be_oos": -0.1926,
+  "regimes_pos20": "0/2",
+  "regimes": {
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 1,
+    "net": -0.117
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.1553
+   }
+  }
+ },
+ {
+  "candidate": "netrr10",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 65,
+  "dev_gross": 1.3122,
+  "dev_net20": -3.3968,
+  "oos_trades": 43,
+  "oos_gross": 0.9382,
+  "oos_net20": -2.2588,
+  "oos_net40": -5.0203,
+  "oos_pf20": 0.263,
+  "oos_win20": 0.209,
+  "oos_avg20": -0.0525,
+  "oos_dd20": 2.3431,
+  "oos_fees20": 3.1375,
+  "full_net20": -5.1783,
+  "full_trades": 108,
+  "be_full": 0.0539,
+  "be_oos": 0.0566,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 47,
+    "net": -2.7779
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 4,
+    "net": -0.1971
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 47,
+    "net": -1.9195
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 10,
+    "net": -0.2837
+   }
+  }
+ },
+ {
+  "candidate": "netrr10",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 17,
+  "dev_gross": 0.5129,
+  "dev_net20": -0.8139,
+  "oos_trades": 12,
+  "oos_gross": 0.6321,
+  "oos_net20": -0.3091,
+  "oos_net40": -1.22,
+  "oos_pf20": 0.562,
+  "oos_win20": 0.333,
+  "oos_avg20": -0.0258,
+  "oos_dd20": 0.5355,
+  "oos_fees20": 0.9342,
+  "full_net20": -1.1047,
+  "full_trades": 29,
+  "be_full": 0.0998,
+  "be_oos": 0.1337,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 13,
+    "net": -0.1966
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 2,
+    "net": -0.1486
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 12,
+    "net": -0.6843
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 2,
+    "net": -0.0751
+   }
+  }
+ },
+ {
+  "candidate": "netrr10slip",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 180,
+  "dev_gross": -1.3071,
+  "dev_net20": -10.3531,
+  "oos_trades": 109,
+  "oos_gross": -0.4335,
+  "oos_net20": -7.1385,
+  "oos_net40": -11.6708,
+  "oos_pf20": 0.121,
+  "oos_win20": 0.193,
+  "oos_avg20": -0.0655,
+  "oos_dd20": 7.1385,
+  "oos_fees20": 6.501,
+  "full_net20": -13.2092,
+  "full_trades": 289,
+  "be_full": -0.0188,
+  "be_oos": -0.0113,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 84,
+    "net": -3.2557
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 162,
+    "net": -7.5691
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 17,
+    "net": -1.1582
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 26,
+    "net": -1.2263
+   }
+  }
+ },
+ {
+  "candidate": "netrr10slip",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 0,
+  "dev_gross": 0,
+  "dev_net20": 0,
+  "oos_trades": 1,
+  "oos_gross": -0.0768,
+  "oos_net20": -0.1563,
+  "oos_net40": -0.2354,
+  "oos_pf20": 0,
+  "oos_win20": 0,
+  "oos_avg20": -0.1563,
+  "oos_dd20": 0.1563,
+  "oos_fees20": 0.0796,
+  "full_net20": -0.1563,
+  "full_trades": 1,
+  "be_full": -0.1926,
+  "be_oos": -0.1926,
+  "regimes_pos20": "0/1",
+  "regimes": {
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.1563
+   }
+  }
+ },
+ {
+  "candidate": "netrr10slip",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 58,
+  "dev_gross": 1.2577,
+  "dev_net20": -2.9994,
+  "oos_trades": 36,
+  "oos_gross": 0.9523,
+  "oos_net20": -1.7596,
+  "oos_net40": -4.1679,
+  "oos_pf20": 0.317,
+  "oos_win20": 0.25,
+  "oos_avg20": -0.0489,
+  "oos_dd20": 1.9108,
+  "oos_fees20": 2.6626,
+  "full_net20": -4.4274,
+  "full_trades": 94,
+  "be_full": 0.0604,
+  "be_oos": 0.0684,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 39,
+    "net": -2.3179
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 4,
+    "net": -0.2004
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 42,
+    "net": -1.6356
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 9,
+    "net": -0.2736
+   }
+  }
+ },
+ {
+  "candidate": "netrr10slip",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 11,
+  "dev_gross": 0.0033,
+  "dev_net20": -0.8529,
+  "oos_trades": 12,
+  "oos_gross": 0.6321,
+  "oos_net20": -0.3091,
+  "oos_net40": -1.22,
+  "oos_pf20": 0.562,
+  "oos_win20": 0.333,
+  "oos_avg20": -0.0258,
+  "oos_dd20": 0.5355,
+  "oos_fees20": 0.9342,
+  "full_net20": -1.1481,
+  "full_trades": 23,
+  "be_full": 0.0694,
+  "be_oos": 0.1337,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 9,
+    "net": -0.3848
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": -0.0728
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 11,
+    "net": -0.6142
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 2,
+    "net": -0.0763
+   }
+  }
+ },
+ {
+  "candidate": "netrr15",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 89,
+  "dev_gross": 0.0853,
+  "dev_net20": -5.5746,
+  "oos_trades": 50,
+  "oos_gross": -0.6007,
+  "oos_net20": -4.0504,
+  "oos_net40": -6.9362,
+  "oos_pf20": 0.134,
+  "oos_win20": 0.24,
+  "oos_avg20": -0.081,
+  "oos_dd20": 4.0504,
+  "oos_fees20": 3.4406,
+  "full_net20": -8.1398,
+  "full_trades": 139,
+  "be_full": -0.0086,
+  "be_oos": -0.0325,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 34,
+    "net": -1.8324
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 87,
+    "net": -4.5887
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 6,
+    "net": -0.6155
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 12,
+    "net": -1.1031
+   }
+  }
+ },
+ {
+  "candidate": "netrr15",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 0,
+  "dev_gross": 0,
+  "dev_net20": 0,
+  "oos_trades": 0,
+  "oos_gross": 0,
+  "oos_net20": 0,
+  "oos_net40": 0,
+  "oos_pf20": null,
+  "oos_win20": null,
+  "oos_avg20": null,
+  "oos_dd20": 0,
+  "oos_fees20": 0,
+  "full_net20": 0,
+  "full_trades": 0,
+  "be_full": null,
+  "be_oos": null,
+  "regimes_pos20": "0/0",
+  "regimes": {}
+ },
+ {
+  "candidate": "netrr15",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 22,
+  "dev_gross": 0.5713,
+  "dev_net20": -1.1121,
+  "oos_trades": 13,
+  "oos_gross": 1.1002,
+  "oos_net20": 0.0753,
+  "oos_net40": -0.9195,
+  "oos_pf20": 1.102,
+  "oos_win20": 0.462,
+  "oos_avg20": 0.0058,
+  "oos_dd20": 0.6539,
+  "oos_fees20": 1.0056,
+  "full_net20": -1.0434,
+  "full_trades": 35,
+  "be_full": 0.1207,
+  "be_oos": 0.2157,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 15,
+    "net": -0.6223
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 17,
+    "net": -0.4098
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 3,
+    "net": -0.0113
+   }
+  }
+ },
+ {
+  "candidate": "netrr15",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 3,
+  "dev_gross": 0.1991,
+  "dev_net20": -0.0402,
+  "oos_trades": 2,
+  "oos_gross": -0.1502,
+  "oos_net20": -0.3082,
+  "oos_net40": -0.4649,
+  "oos_pf20": 0,
+  "oos_win20": 0,
+  "oos_avg20": -0.1541,
+  "oos_dd20": 0.3082,
+  "oos_fees20": 0.1583,
+  "full_net20": -0.3471,
+  "full_trades": 5,
+  "be_full": 0.0246,
+  "be_oos": -0.189,
+  "regimes_pos20": "0/2",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 2,
+    "net": -0.2176
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 3,
+    "net": -0.1294
+   }
+  }
+ },
+ {
+  "candidate": "netrr20",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 28,
+  "dev_gross": -0.8563,
+  "dev_net20": -2.8594,
+  "oos_trades": 15,
+  "oos_gross": -0.2736,
+  "oos_net20": -1.4129,
+  "oos_net40": -2.4964,
+  "oos_pf20": 0.158,
+  "oos_win20": 0.4,
+  "oos_avg20": -0.0942,
+  "oos_dd20": 1.4129,
+  "oos_fees20": 1.1419,
+  "full_net20": -4.0443,
+  "full_trades": 43,
+  "be_full": -0.0701,
+  "be_oos": -0.0471,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 8,
+    "net": -0.5181
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 31,
+    "net": -2.9281
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.1768
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 3,
+    "net": -0.4214
+   }
+  }
+ },
+ {
+  "candidate": "netrr20",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 0,
+  "dev_gross": 0,
+  "dev_net20": 0,
+  "oos_trades": 0,
+  "oos_gross": 0,
+  "oos_net20": 0,
+  "oos_net40": 0,
+  "oos_pf20": null,
+  "oos_win20": null,
+  "oos_avg20": null,
+  "oos_dd20": 0,
+  "oos_fees20": 0,
+  "full_net20": 0,
+  "full_trades": 0,
+  "be_full": null,
+  "be_oos": null,
+  "regimes_pos20": "0/0",
+  "regimes": {}
+ },
+ {
+  "candidate": "netrr20",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 6,
+  "dev_gross": 0.7361,
+  "dev_net20": 0.2574,
+  "oos_trades": 7,
+  "oos_gross": 0.1954,
+  "oos_net20": -0.3553,
+  "oos_net40": -0.8945,
+  "oos_pf20": 0.255,
+  "oos_win20": 0.429,
+  "oos_avg20": -0.0508,
+  "oos_dd20": 0.3936,
+  "oos_fees20": 0.5472,
+  "full_net20": -0.093,
+  "full_trades": 13,
+  "be_full": 0.1812,
+  "be_oos": 0.0708,
+  "regimes_pos20": "2/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 6,
+    "net": -0.268
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 6,
+    "net": 0.0825
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": 0.0925
+   }
+  }
+ },
+ {
+  "candidate": "netrr20",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 0,
+  "dev_gross": 0,
+  "dev_net20": 0,
+  "oos_trades": 0,
+  "oos_gross": 0,
+  "oos_net20": 0,
+  "oos_net40": 0,
+  "oos_pf20": null,
+  "oos_win20": null,
+  "oos_avg20": null,
+  "oos_dd20": 0,
+  "oos_fees20": 0,
+  "full_net20": 0,
+  "full_trades": 0,
+  "be_full": null,
+  "be_oos": null,
+  "regimes_pos20": "0/0",
+  "regimes": {}
+ },
+ {
+  "candidate": "score2",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 364,
+  "dev_gross": -1.9822,
+  "dev_net20": -13.7628,
+  "oos_trades": 226,
+  "oos_gross": 1.1861,
+  "oos_net20": -11.0464,
+  "oos_net40": -15.7062,
+  "oos_pf20": 0.075,
+  "oos_win20": 0.124,
+  "oos_avg20": -0.0489,
+  "oos_dd20": 11.0464,
+  "oos_fees20": 11.6373,
+  "full_net20": -14.6951,
+  "full_trades": 590,
+  "be_full": -0.0074,
+  "be_oos": 0.0147,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 144,
+    "net": -6.8836
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 144,
+    "net": -5.881
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 50,
+    "net": -1.6734
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 11,
+    "net": -0.257
+   }
+  }
+ },
+ {
+  "candidate": "score2",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 97,
+  "dev_gross": -0.4528,
+  "dev_net20": -6.6378,
+  "oos_trades": 64,
+  "oos_gross": 1.1686,
+  "oos_net20": -3.4647,
+  "oos_net40": -7.1903,
+  "oos_pf20": 0.163,
+  "oos_win20": 0.172,
+  "oos_avg20": -0.0541,
+  "oos_dd20": 3.4647,
+  "oos_fees20": 4.5393,
+  "full_net20": -8.8522,
+  "full_trades": 161,
+  "be_full": 0.0098,
+  "be_oos": 0.0471,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 52,
+    "net": -2.554
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 85,
+    "net": -4.988
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 13,
+    "net": -1.1457
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 11,
+    "net": -0.1645
+   }
+  }
+ },
+ {
+  "candidate": "score2",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 335,
+  "dev_gross": 0.9388,
+  "dev_net20": -14.0961,
+  "oos_trades": 215,
+  "oos_gross": 0.0674,
+  "oos_net20": -11.2704,
+  "oos_net40": -15.3796,
+  "oos_pf20": 0.037,
+  "oos_win20": 0.037,
+  "oos_avg20": -0.0524,
+  "oos_dd20": 11.2704,
+  "oos_fees20": 11.221,
+  "full_net20": -14.8481,
+  "full_trades": 550,
+  "be_full": 0.0055,
+  "be_oos": 0.0009,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 117,
+    "net": -5.5047
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 72,
+    "net": -3.3652
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 172,
+    "net": -5.7871
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 10,
+    "net": -0.1911
+   }
+  }
+ },
+ {
+  "candidate": "score2",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 62,
+  "dev_gross": 0.884,
+  "dev_net20": -3.6164,
+  "oos_trades": 38,
+  "oos_gross": 0.3186,
+  "oos_net20": -2.5057,
+  "oos_net40": -4.9581,
+  "oos_pf20": 0.087,
+  "oos_win20": 0.105,
+  "oos_avg20": -0.0659,
+  "oos_dd20": 2.5057,
+  "oos_fees20": 2.8031,
+  "full_net20": -5.6004,
+  "full_trades": 100,
+  "be_full": 0.031,
+  "be_oos": 0.0214,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 30,
+    "net": -1.6672
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 16,
+    "net": -0.8999
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 44,
+    "net": -2.5905
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 10,
+    "net": -0.4429
+   }
+  }
+ },
+ {
+  "candidate": "score2_netrr10",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 128,
+  "dev_gross": -2.0647,
+  "dev_net20": -9.0747,
+  "oos_trades": 66,
+  "oos_gross": 0.2321,
+  "oos_net20": -4.3371,
+  "oos_net40": -7.9573,
+  "oos_pf20": 0.137,
+  "oos_win20": 0.212,
+  "oos_avg20": -0.0657,
+  "oos_dd20": 4.3371,
+  "oos_fees20": 4.4475,
+  "full_net20": -11.2326,
+  "full_trades": 194,
+  "be_full": -0.0303,
+  "be_oos": 0.0094,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 62,
+    "net": -3.0756
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 102,
+    "net": -6.2844
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 11,
+    "net": -0.8757
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 19,
+    "net": -0.997
+   }
+  }
+ },
+ {
+  "candidate": "score2_netrr10",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 1,
+  "dev_gross": -0.0377,
+  "dev_net20": -0.117,
+  "oos_trades": 0,
+  "oos_gross": 0,
+  "oos_net20": 0,
+  "oos_net40": 0,
+  "oos_pf20": null,
+  "oos_win20": null,
+  "oos_avg20": null,
+  "oos_dd20": 0,
+  "oos_fees20": 0,
+  "full_net20": -0.117,
+  "full_trades": 1,
+  "be_full": -0.0948,
+  "be_oos": null,
+  "regimes_pos20": "0/1",
+  "regimes": {
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 1,
+    "net": -0.117
+   }
+  }
+ },
+ {
+  "candidate": "score2_netrr10",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 49,
+  "dev_gross": 0.7546,
+  "dev_net20": -2.8421,
+  "oos_trades": 30,
+  "oos_gross": 0.5015,
+  "oos_net20": -1.7541,
+  "oos_net40": -3.7898,
+  "oos_pf20": 0.221,
+  "oos_win20": 0.167,
+  "oos_avg20": -0.0585,
+  "oos_dd20": 1.823,
+  "oos_fees20": 2.2339,
+  "full_net20": -4.2928,
+  "full_trades": 79,
+  "be_full": 0.041,
+  "be_oos": 0.0431,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 32,
+    "net": -2.3734
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 4,
+    "net": -0.2339
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 34,
+    "net": -1.4766
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 9,
+    "net": -0.2089
+   }
+  }
+ },
+ {
+  "candidate": "score2_netrr10",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 9,
+  "dev_gross": 0.3969,
+  "dev_net20": -0.3154,
+  "oos_trades": 6,
+  "oos_gross": 0.3768,
+  "oos_net20": -0.0984,
+  "oos_net40": -0.5656,
+  "oos_pf20": 0.648,
+  "oos_win20": 0.333,
+  "oos_avg20": -0.0164,
+  "oos_dd20": 0.1626,
+  "oos_fees20": 0.4724,
+  "full_net20": -0.4112,
+  "full_trades": 15,
+  "be_full": 0.13,
+  "be_oos": 0.1585,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 8,
+    "net": -0.0548
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": -0.0782
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 5,
+    "net": -0.2649
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": -0.0133
+   }
+  }
+ },
+ {
+  "candidate": "tf15",
+  "bot": "ALPHA-02",
+  "tf": "15m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 63,
+  "dev_gross": -0.985,
+  "dev_net20": -5.1439,
+  "oos_trades": 50,
+  "oos_gross": -1.0001,
+  "oos_net20": -4.3729,
+  "oos_net40": -7.2194,
+  "oos_pf20": 0.162,
+  "oos_win20": 0.2,
+  "oos_avg20": -0.0875,
+  "oos_dd20": 4.3729,
+  "oos_fees20": 3.4652,
+  "full_net20": -8.2173,
+  "full_trades": 113,
+  "be_full": -0.0467,
+  "be_oos": -0.0536,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 47,
+    "net": -3.7068
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 50,
+    "net": -3.537
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 7,
+    "net": -0.4018
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 9,
+    "net": -0.5717
+   }
+  }
+ },
+ {
+  "candidate": "tf15",
+  "bot": "ALPHA-04",
+  "tf": "15m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 42,
+  "dev_gross": -0.4295,
+  "dev_net20": -3.4169,
+  "oos_trades": 26,
+  "oos_gross": -0.6964,
+  "oos_net20": -2.5958,
+  "oos_net40": -4.3075,
+  "oos_pf20": 0.031,
+  "oos_win20": 0.077,
+  "oos_avg20": -0.0998,
+  "oos_dd20": 2.6614,
+  "oos_fees20": 1.9273,
+  "full_net20": -5.5148,
+  "full_trades": 68,
+  "be_full": -0.0422,
+  "be_oos": -0.0689,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 23,
+    "net": -1.8135
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 14,
+    "net": -1.1743
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 18,
+    "net": -1.2686
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 13,
+    "net": -1.2585
+   }
+  }
+ },
+ {
+  "candidate": "tf15_netrr10",
+  "bot": "ALPHA-02",
+  "tf": "15m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 2,
+  "dev_gross": 0.0471,
+  "dev_net20": -0.1118,
+  "oos_trades": 0,
+  "oos_gross": 0,
+  "oos_net20": 0,
+  "oos_net40": 0,
+  "oos_pf20": null,
+  "oos_win20": null,
+  "oos_avg20": null,
+  "oos_dd20": 0,
+  "oos_fees20": 0,
+  "full_net20": -0.1118,
+  "full_trades": 2,
+  "be_full": 0.0591,
+  "be_oos": null,
+  "regimes_pos20": "0/1",
+  "regimes": {
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 2,
+    "net": -0.1118
+   }
+  }
+ },
+ {
+  "candidate": "tf15_netrr10",
+  "bot": "ALPHA-04",
+  "tf": "15m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 19,
+  "dev_gross": -0.2115,
+  "dev_net20": -1.6415,
+  "oos_trades": 14,
+  "oos_gross": -0.4732,
+  "oos_net20": -1.5322,
+  "oos_net40": -2.5337,
+  "oos_pf20": 0.055,
+  "oos_win20": 0.143,
+  "oos_avg20": -0.1094,
+  "oos_dd20": 1.6018,
+  "oos_fees20": 1.0666,
+  "full_net20": -3.0223,
+  "full_trades": 33,
+  "be_full": -0.0526,
+  "be_oos": -0.0865,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 14,
+    "net": -1.0929
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 3,
+    "net": -0.1522
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 10,
+    "net": -0.9109
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 6,
+    "net": -0.8663
+   }
+  }
+ },
+ {
+  "candidate": "tf30",
+  "bot": "ALPHA-02",
+  "tf": "30m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 26,
+  "dev_gross": -0.1543,
+  "dev_net20": -2.0797,
+  "oos_trades": 29,
+  "oos_gross": -0.6275,
+  "oos_net20": -2.7068,
+  "oos_net40": -4.5943,
+  "oos_pf20": 0.216,
+  "oos_win20": 0.172,
+  "oos_avg20": -0.0933,
+  "oos_dd20": 2.7068,
+  "oos_fees20": 2.0979,
+  "full_net20": -4.3924,
+  "full_trades": 55,
+  "be_full": -0.0366,
+  "be_oos": -0.0572,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 19,
+    "net": -1.1684
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 26,
+    "net": -2.4517
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 4,
+    "net": -0.2202
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 6,
+    "net": -0.5522
+   }
+  }
+ },
+ {
+  "candidate": "tf30",
+  "bot": "ALPHA-04",
+  "tf": "30m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 22,
+  "dev_gross": -0.3691,
+  "dev_net20": -2.0157,
+  "oos_trades": 12,
+  "oos_gross": 0.2292,
+  "oos_net20": -0.7128,
+  "oos_net40": -1.6132,
+  "oos_pf20": 0.036,
+  "oos_win20": 0.167,
+  "oos_avg20": -0.0594,
+  "oos_dd20": 0.7394,
+  "oos_fees20": 0.9421,
+  "full_net20": -2.8698,
+  "full_trades": 34,
+  "be_full": -0.0303,
+  "be_oos": 0.048,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 14,
+    "net": -1.3125
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 5,
+    "net": -0.5391
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 11,
+    "net": -0.8082
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 4,
+    "net": -0.21
+   }
+  }
+ },
+ {
+  "candidate": "tf30_netrr10",
+  "bot": "ALPHA-02",
+  "tf": "30m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 4,
+  "dev_gross": 0.5298,
+  "dev_net20": 0.2085,
+  "oos_trades": 1,
+  "oos_gross": -0.0113,
+  "oos_net20": -0.0907,
+  "oos_net40": -0.1699,
+  "oos_pf20": 0,
+  "oos_win20": 0,
+  "oos_avg20": -0.0907,
+  "oos_dd20": 0.0907,
+  "oos_fees20": 0.0795,
+  "full_net20": 0.1188,
+  "full_trades": 5,
+  "be_full": 0.2615,
+  "be_oos": -0.0284,
+  "regimes_pos20": "1/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 1,
+    "net": 0.4419
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 3,
+    "net": -0.2334
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.0897
+   }
+  }
+ },
+ {
+  "candidate": "tf30_netrr10",
+  "bot": "ALPHA-04",
+  "tf": "30m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 17,
+  "dev_gross": -0.2388,
+  "dev_net20": -1.531,
+  "oos_trades": 10,
+  "oos_gross": 0.2203,
+  "oos_net20": -0.5675,
+  "oos_net40": -1.3265,
+  "oos_pf20": 0.045,
+  "oos_win20": 0.2,
+  "oos_avg20": -0.0568,
+  "oos_dd20": 0.5942,
+  "oos_fees20": 0.788,
+  "full_net20": -2.2768,
+  "full_trades": 27,
+  "be_full": -0.0262,
+  "be_oos": 0.0554,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 11,
+    "net": -0.9848
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 4,
+    "net": -0.5372
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 9,
+    "net": -0.6103
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 3,
+    "net": -0.1446
+   }
+  }
+ },
+ {
+  "candidate": "tf60",
+  "bot": "ALPHA-02",
+  "tf": "60m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 13,
+  "dev_gross": -0.8178,
+  "dev_net20": -1.782,
+  "oos_trades": 10,
+  "oos_gross": 0.0724,
+  "oos_net20": -0.6964,
+  "oos_net40": -1.4414,
+  "oos_pf20": 0.523,
+  "oos_win20": 0.2,
+  "oos_avg20": -0.0696,
+  "oos_dd20": 1.1509,
+  "oos_fees20": 0.7734,
+  "full_net20": -2.3934,
+  "full_trades": 23,
+  "be_full": -0.0876,
+  "be_oos": 0.0184,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 7,
+    "net": -0.1363
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 10,
+    "net": -1.6906
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 4,
+    "net": -0.3458
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 2,
+    "net": -0.2206
+   }
+  }
+ },
+ {
+  "candidate": "tf60",
+  "bot": "ALPHA-04",
+  "tf": "60m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 9,
+  "dev_gross": 0.6278,
+  "dev_net20": -0.0807,
+  "oos_trades": 10,
+  "oos_gross": -0.6053,
+  "oos_net20": -1.3622,
+  "oos_net40": -2.0912,
+  "oos_pf20": 0.122,
+  "oos_win20": 0.1,
+  "oos_avg20": -0.1362,
+  "oos_dd20": 1.3622,
+  "oos_fees20": 0.7706,
+  "full_net20": -1.379,
+  "full_trades": 19,
+  "be_full": 0.0053,
+  "be_oos": -0.1548,
+  "regimes_pos20": "1/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 9,
+    "net": -0.3798
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": 0.0769
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 5,
+    "net": -0.5613
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 4,
+    "net": -0.5148
+   }
+  }
+ },
+ {
+  "candidate": "tf60_ema200_netrr10",
+  "bot": "ALPHA-02",
+  "tf": "60m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 3,
+  "dev_gross": -0.1436,
+  "dev_net20": -0.381,
+  "oos_trades": 3,
+  "oos_gross": 0.5361,
+  "oos_net20": 0.296,
+  "oos_net40": 0.0574,
+  "oos_pf20": 2.867,
+  "oos_win20": 0.333,
+  "oos_avg20": 0.0987,
+  "oos_dd20": 0.1586,
+  "oos_fees20": 0.2391,
+  "full_net20": -0.0983,
+  "full_trades": 6,
+  "be_full": 0.1583,
+  "be_oos": 0.447,
+  "regimes_pos20": "1/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 3,
+    "net": 0.8748
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 1,
+    "net": -0.4205
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.4767
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.0759
+   }
+  }
+ },
+ {
+  "candidate": "tf60_ema200_netrr10",
+  "bot": "ALPHA-04",
+  "tf": "60m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 3,
+  "dev_gross": -0.1399,
+  "dev_net20": -0.3756,
+  "oos_trades": 5,
+  "oos_gross": 0.1284,
+  "oos_net20": -0.266,
+  "oos_net40": -0.6546,
+  "oos_pf20": 0.418,
+  "oos_win20": 0.2,
+  "oos_avg20": -0.0532,
+  "oos_dd20": 0.3899,
+  "oos_fees20": 0.3938,
+  "full_net20": -0.6357,
+  "full_trades": 8,
+  "be_full": -0.0043,
+  "be_oos": 0.0648,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 5,
+    "net": -0.2652
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 1,
+    "net": -0.0656
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 2,
+    "net": -0.3049
+   }
+  }
+ },
+ {
+  "candidate": "tf60_netrr10",
+  "bot": "ALPHA-02",
+  "tf": "60m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 5,
+  "dev_gross": -0.9197,
+  "dev_net20": -1.2997,
+  "oos_trades": 4,
+  "oos_gross": 0.1636,
+  "oos_net20": -0.1509,
+  "oos_net40": -0.4623,
+  "oos_pf20": 0.751,
+  "oos_win20": 0.25,
+  "oos_avg20": -0.0377,
+  "oos_dd20": 0.6055,
+  "oos_fees20": 0.3172,
+  "full_net20": -1.437,
+  "full_trades": 9,
+  "be_full": -0.2241,
+  "be_oos": 0.1027,
+  "regimes_pos20": "1/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 4,
+    "net": 0.3452
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 3,
+    "net": -1.2451
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.4648
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 1,
+    "net": -0.0723
+   }
+  }
+ },
+ {
+  "candidate": "tf60_netrr10",
+  "bot": "ALPHA-04",
+  "tf": "60m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 8,
+  "dev_gross": 0.6707,
+  "dev_net20": 0.0394,
+  "oos_trades": 10,
+  "oos_gross": -0.6053,
+  "oos_net20": -1.3622,
+  "oos_net40": -2.0912,
+  "oos_pf20": 0.122,
+  "oos_win20": 0.1,
+  "oos_avg20": -0.1362,
+  "oos_dd20": 1.3622,
+  "oos_fees20": 0.7706,
+  "full_net20": -1.2667,
+  "full_trades": 18,
+  "be_full": 0.0116,
+  "be_oos": -0.1548,
+  "regimes_pos20": "1/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 8,
+    "net": -0.2614
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 1,
+    "net": 0.0774
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 5,
+    "net": -0.5647
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 4,
+    "net": -0.518
+   }
+  }
+ },
+ {
+  "candidate": "tp100",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 576,
+  "dev_gross": -1.5936,
+  "dev_net20": -13.7509,
+  "oos_trades": 401,
+  "oos_gross": -1.2413,
+  "oos_net20": -14.7686,
+  "oos_net40": -15.6454,
+  "oos_pf20": 0.067,
+  "oos_win20": 0.104,
+  "oos_avg20": -0.044,
+  "oos_dd20": 14.7686,
+  "oos_fees20": 13.4867,
+  "full_net20": -14.2629,
+  "full_trades": 977,
+  "be_full": -0.0098,
+  "be_oos": -0.01,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 186,
+    "net": -8.6878
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 156,
+    "net": -5.4455
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 5,
+    "net": -0.1296
+   }
+  }
+ },
+ {
+  "candidate": "tp100",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 205,
+  "dev_gross": -0.2908,
+  "dev_net20": -10.7358,
+  "oos_trades": 130,
+  "oos_gross": 1.2139,
+  "oos_net20": -6.8379,
+  "oos_net40": -12.0352,
+  "oos_pf20": 0.207,
+  "oos_win20": 0.154,
+  "oos_avg20": -0.0526,
+  "oos_dd20": 6.8379,
+  "oos_fees20": 7.8587,
+  "full_net20": -13.2697,
+  "full_trades": 335,
+  "be_full": 0.0056,
+  "be_oos": 0.0257,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 123,
+    "net": -5.5129
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 168,
+    "net": -6.2751
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 20,
+    "net": -1.1386
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 23,
+    "net": -0.3431
+   }
+  }
+ },
+ {
+  "candidate": "tp100",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 508,
+  "dev_gross": 1.1127,
+  "dev_net20": -14.8921,
+  "oos_trades": 297,
+  "oos_gross": 0.4049,
+  "oos_net20": -13.4543,
+  "oos_net40": -15.4251,
+  "oos_pf20": 0.045,
+  "oos_win20": 0.067,
+  "oos_avg20": -0.0453,
+  "oos_dd20": 13.4543,
+  "oos_fees20": 13.5799,
+  "full_net20": -15.0131,
+  "full_trades": 805,
+  "be_full": 0.0058,
+  "be_oos": 0.0038,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 127,
+    "net": -6.5368
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 118,
+    "net": -4.3833
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 132,
+    "net": -4.093
+   }
+  }
+ },
+ {
+  "candidate": "tp100",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 132,
+  "dev_gross": 0.9979,
+  "dev_net20": -7.3094,
+  "oos_trades": 82,
+  "oos_gross": 1.9426,
+  "oos_net20": -3.8981,
+  "oos_net40": -8.3097,
+  "oos_pf20": 0.225,
+  "oos_win20": 0.171,
+  "oos_avg20": -0.0475,
+  "oos_dd20": 3.8981,
+  "oos_fees20": 5.6198,
+  "full_net20": -9.5605,
+  "full_trades": 214,
+  "be_full": 0.0351,
+  "be_oos": 0.0616,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 67,
+    "net": -2.869
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 33,
+    "net": -2.0538
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 91,
+    "net": -4.0244
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 23,
+    "net": -0.6133
+   }
+  }
+ },
+ {
+  "candidate": "tp162",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 543,
+  "dev_gross": -1.2387,
+  "dev_net20": -13.2995,
+  "oos_trades": 384,
+  "oos_gross": -0.9593,
+  "oos_net20": -14.3963,
+  "oos_net40": -15.5483,
+  "oos_pf20": 0.091,
+  "oos_win20": 0.116,
+  "oos_avg20": -0.0427,
+  "oos_dd20": 14.3963,
+  "oos_fees20": 13.4216,
+  "full_net20": -13.7505,
+  "full_trades": 927,
+  "be_full": -0.0083,
+  "be_oos": -0.0082,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 178,
+    "net": -8.2666
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 143,
+    "net": -5.3474
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 5,
+    "net": -0.1365
+   }
+  }
+ },
+ {
+  "candidate": "tp162",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 201,
+  "dev_gross": -0.1717,
+  "dev_net20": -10.6138,
+  "oos_trades": 128,
+  "oos_gross": 0.9765,
+  "oos_net20": -6.9012,
+  "oos_net40": -11.9612,
+  "oos_pf20": 0.202,
+  "oos_win20": 0.148,
+  "oos_avg20": -0.0539,
+  "oos_dd20": 6.9012,
+  "oos_fees20": 7.7283,
+  "full_net20": -13.277,
+  "full_trades": 329,
+  "be_full": 0.0052,
+  "be_oos": 0.0211,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 118,
+    "net": -5.4769
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 169,
+    "net": -6.3427
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 19,
+    "net": -1.1595
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 23,
+    "net": -0.2979
+   }
+  }
+ },
+ {
+  "candidate": "tp162",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 456,
+  "dev_gross": 1.8999,
+  "dev_net20": -14.6159,
+  "oos_trades": 273,
+  "oos_gross": 0.3556,
+  "oos_net20": -12.8143,
+  "oos_net40": -15.3762,
+  "oos_pf20": 0.058,
+  "oos_win20": 0.088,
+  "oos_avg20": -0.0469,
+  "oos_dd20": 12.8143,
+  "oos_fees20": 13.0353,
+  "full_net20": -14.7676,
+  "full_trades": 729,
+  "be_full": 0.0098,
+  "be_oos": 0.0037,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 111,
+    "net": -5.7171
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 107,
+    "net": -4.2751
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 151,
+    "net": -4.7754
+   }
+  }
+ },
+ {
+  "candidate": "tp162",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 129,
+  "dev_gross": 1.209,
+  "dev_net20": -6.9906,
+  "oos_trades": 80,
+  "oos_gross": 2.0188,
+  "oos_net20": -3.7067,
+  "oos_net40": -8.0736,
+  "oos_pf20": 0.245,
+  "oos_win20": 0.188,
+  "oos_avg20": -0.0463,
+  "oos_dd20": 3.7067,
+  "oos_fees20": 5.5047,
+  "full_net20": -9.1728,
+  "full_trades": 209,
+  "be_full": 0.0396,
+  "be_oos": 0.0657,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 66,
+    "net": -3.043
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 31,
+    "net": -1.8987
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 90,
+    "net": -3.7616
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 22,
+    "net": -0.4695
+   }
+  }
+ },
+ {
+  "candidate": "tp162_netrr10",
+  "bot": "ALPHA-01",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 448,
+  "dev_gross": -1.2798,
+  "dev_net20": -12.902,
+  "oos_trades": 314,
+  "oos_gross": -0.7056,
+  "oos_net20": -13.6991,
+  "oos_net40": -15.4371,
+  "oos_pf20": 0.113,
+  "oos_win20": 0.124,
+  "oos_avg20": -0.0436,
+  "oos_dd20": 13.6991,
+  "oos_fees20": 12.779,
+  "full_net20": -13.3012,
+  "full_trades": 762,
+  "be_full": -0.0097,
+  "be_oos": -0.0073,
+  "regimes_pos20": "0/3",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 142,
+    "net": -6.1402
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 131,
+    "net": -6.0407
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 38,
+    "net": -1.1204
+   }
+  }
+ },
+ {
+  "candidate": "tp162_netrr10",
+  "bot": "ALPHA-02",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 193,
+  "dev_gross": -0.1963,
+  "dev_net20": -10.3437,
+  "oos_trades": 126,
+  "oos_gross": 0.9785,
+  "oos_net20": -6.8016,
+  "oos_net40": -11.8384,
+  "oos_pf20": 0.205,
+  "oos_win20": 0.151,
+  "oos_avg20": -0.054,
+  "oos_dd20": 6.8016,
+  "oos_fees20": 7.6326,
+  "full_net20": -13.0592,
+  "full_trades": 319,
+  "be_full": 0.0052,
+  "be_oos": 0.0214,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 6,
+    "trades": 110,
+    "net": -4.9481
+   },
+   "trending + high volatility": {
+    "weeks": 7,
+    "trades": 168,
+    "net": -6.5487
+   },
+   "trending + low volatility": {
+    "weeks": 1,
+    "trades": 18,
+    "net": -1.2531
+   },
+   "sideways + high volatility": {
+    "weeks": 1,
+    "trades": 23,
+    "net": -0.3094
+   }
+  }
+ },
+ {
+  "candidate": "tp162_netrr10",
+  "bot": "ALPHA-03",
+  "tf": "1m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 232,
+  "dev_gross": 1.6541,
+  "dev_net20": -10.7782,
+  "oos_trades": 149,
+  "oos_gross": 0.5817,
+  "oos_net20": -8.3776,
+  "oos_net40": -13.5507,
+  "oos_pf20": 0.101,
+  "oos_win20": 0.141,
+  "oos_avg20": -0.0562,
+  "oos_dd20": 8.3776,
+  "oos_fees20": 8.7834,
+  "full_net20": -13.7789,
+  "full_trades": 381,
+  "be_full": 0.0173,
+  "be_oos": 0.0108,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 110,
+    "net": -4.2355
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 39,
+    "net": -2.32
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 168,
+    "net": -6.1941
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 46,
+    "net": -1.0293
+   }
+  }
+ },
+ {
+  "candidate": "tp162_netrr10",
+  "bot": "ALPHA-04",
+  "tf": "5m",
+  "data": "2026-08-01..2026-11-11",
+  "split": "2026-10-02",
+  "dev_trades": 108,
+  "dev_gross": 1.276,
+  "dev_net20": -5.848,
+  "oos_trades": 67,
+  "oos_gross": 2.05,
+  "oos_net20": -2.8494,
+  "oos_net40": -6.7916,
+  "oos_pf20": 0.303,
+  "oos_win20": 0.224,
+  "oos_avg20": -0.0425,
+  "oos_dd20": 2.8494,
+  "oos_fees20": 4.7355,
+  "full_net20": -7.6774,
+  "full_trades": 175,
+  "be_full": 0.0488,
+  "be_oos": 0.0795,
+  "regimes_pos20": "0/4",
+  "regimes": {
+   "sideways + low volatility": {
+    "weeks": 5,
+    "trades": 54,
+    "net": -2.4514
+   },
+   "trending + low volatility": {
+    "weeks": 2,
+    "trades": 22,
+    "net": -1.3163
+   },
+   "trending + high volatility": {
+    "weeks": 6,
+    "trades": 80,
+    "net": -3.4914
+   },
+   "sideways + high volatility": {
+    "weeks": 2,
+    "trades": 19,
+    "net": -0.4183
+   }
+  }
+ }
+]
