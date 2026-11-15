@@ -1,0 +1,26 @@
+// Final-test equity curves (daily) for the report: candidates, $100 portfolios and benchmarks.
+import { readFileSync, writeFileSync } from "node:fs";
+import { buyHold, metrics, simulate } from "../final-wt/engine/src/research/r2.mjs";
+const DIR = "C:/Users/hujhj/Documents/Codex/2026-10-18/ok-should-i-make-a-completly/outputs/alpha-terminal/engine/data/research2";
+const A = Date.parse("2025-07-01"), B = Date.parse("2026-11-15");
+const K = { BTC: JSON.parse(readFileSync(`${DIR}/BTC-USD-86400.json`, "utf8")).candles, SOL: JSON.parse(readFileSync(`${DIR}/SOL-USD-86400.json`, "utf8")).candles };
+const sim = (asset, p, capital, o = {}) => simulate({ K: K[asset], barMs: 86_400_000, family: "ma", p, capital, asset, fee: 0.2, slip: 0.05, riskPct: o.risk ?? 2, fromMs: A, toMs: B, borrow4h: o.borrow ?? 0 });
+const day = (t) => new Date(t).toISOString().slice(0, 10);
+const series = {};
+const add = (name, eq) => { series[name] = eq.map(([t, v]) => [day(t), +v.toFixed(2)]); };
+const btcL = sim("BTC", { n: 50, k: 3, trail: 3, short: false }, 100);
+const btcLS = sim("BTC", { n: 50, k: 3, trail: 3, short: true }, 100, { borrow: 0.02 });
+const pb = sim("BTC", { n: 50, k: 3, trail: 3, short: false }, 50), ps = sim("SOL", { n: 50, k: 3, trail: 3, short: false }, 50);
+add("BTC MA-50 long only ($100)", btcL.equity);
+add("BTC MA-50 LONG+SHORT ($100, short borrowing 0.02%/4h)", btcLS.equity);
+const m = new Map(); for (const r of [pb, ps]) for (const [t, v] of r.equity) m.set(t, (m.get(t) ?? 0) + v);
+add("$50 BTC + $50 SOL MA-50 long only", [...m.entries()].sort((a, b) => a[0] - b[0]));
+add("Buy and hold BTC ($100)", buyHold(K.BTC, { capital: 100, fee: 0.2, slip: 0.05, fromMs: A, toMs: B }).equity);
+add("Buy and hold SOL ($100)", buyHold(K.SOL, { capital: 100, fee: 0.2, slip: 0.05, fromMs: A, toMs: B }).equity);
+add("SMA-200 trend, long only, fully invested BTC", simulate({ K: K.BTC, barMs: 86_400_000, family: "ma", p: { n: 200, k: 50, trail: 0, short: false }, capital: 100, asset: "BTC", fee: 0.2, slip: 0.05, riskPct: 100, fromMs: A, toMs: B }).equity);
+series["Cash"] = series["Buy and hold BTC ($100)"].map(([d]) => [d, 100]);
+const stats = {};
+for (const [n, r, c] of [["BTC MA-50 long only ($100)", btcL, 100], ["BTC MA-50 LONG+SHORT ($100, short borrowing 0.02%/4h)", btcLS, 100], ["BTC MA-50 long only ($50 leg)", pb, 50], ["SOL MA-50 long only ($50 leg)", ps, 50]]) stats[n] = metrics(r, c);
+writeFileSync(new URL("./curves.json", import.meta.url), JSON.stringify({ series, stats }));
+for (const [n, s] of Object.entries(series)) console.log(n.padEnd(56), s[0][0], s.at(-1)[0], "end", s.at(-1)[1], "min", Math.min(...s.map((x) => x[1])));
+for (const [n, s] of Object.entries(stats)) console.log(n, JSON.stringify(s));

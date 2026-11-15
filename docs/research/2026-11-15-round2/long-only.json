@@ -1,0 +1,558 @@
+{
+ "BTC": {
+  "periods": {
+   "dev": {
+    "trades": 30,
+    "long": 30,
+    "short": 0,
+    "gross": 23.29,
+    "fees": 2.18,
+    "net": 21.1,
+    "return_pct": 21.1,
+    "win_rate": 0.333,
+    "profit_factor": 2.55,
+    "avg_net": 0.703,
+    "avg_net_ci95": [
+     -0.286,
+     2.04
+    ],
+    "max_dd": 12.29,
+    "max_dd_pct": 11.5,
+    "avg_hold_h": 338.4,
+    "longest_losing_streak": 8,
+    "skipped_min_size": 0
+   },
+   "val": {
+    "trades": 25,
+    "long": 25,
+    "short": 0,
+    "gross": 15.22,
+    "fees": 1.79,
+    "net": 13.43,
+    "return_pct": 13.4,
+    "win_rate": 0.2,
+    "profit_factor": 2.48,
+    "avg_net": 0.537,
+    "avg_net_ci95": [
+     -0.395,
+     1.67
+    ],
+    "max_dd": 7.34,
+    "max_dd_pct": 6.7,
+    "avg_hold_h": 317.8,
+    "longest_losing_streak": 9,
+    "skipped_min_size": 0
+   },
+   "test": {
+    "trades": 19,
+    "long": 19,
+    "short": 0,
+    "gross": 5.88,
+    "fees": 1.76,
+    "net": 4.12,
+    "return_pct": 4.1,
+    "win_rate": 0.211,
+    "profit_factor": 1.57,
+    "avg_net": 0.217,
+    "avg_net_ci95": [
+     -0.419,
+     1.187
+    ],
+    "max_dd": 6.73,
+    "max_dd_pct": 6.5,
+    "avg_hold_h": 301.9,
+    "longest_losing_streak": 6,
+    "skipped_min_size": 0
+   }
+  },
+  "costs": {
+   "dev": [
+    {
+     "fee": 0,
+     "slip": 0,
+     "net": 24.32
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.05,
+     "net": 21.1
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.15,
+     "net": 19.84
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.05,
+     "net": 18.59
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.15,
+     "net": 17.35
+    }
+   ],
+   "val": [
+    {
+     "fee": 0,
+     "slip": 0,
+     "net": 15.85
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.05,
+     "net": 13.43
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.15,
+     "net": 12.48
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.05,
+     "net": 11.53
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.15,
+     "net": 10.59
+    }
+   ],
+   "test": [
+    {
+     "fee": 0,
+     "slip": 0,
+     "net": 6.45
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.05,
+     "net": 4.12
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.15,
+     "net": 3.2
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.05,
+     "net": 2.29
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.15,
+     "net": 1.39
+    }
+   ]
+  },
+  "risk": {
+   "dev": [
+    {
+     "risk": 1,
+     "net": 10.45,
+     "dd": 5.9
+    },
+    {
+     "risk": 2,
+     "net": 21.1,
+     "dd": 11.5
+    },
+    {
+     "risk": 3,
+     "net": 31.92,
+     "dd": 16.7
+    }
+   ],
+   "val": [
+    {
+     "risk": 1,
+     "net": 6.73,
+     "dd": 3.5
+    },
+    {
+     "risk": 2,
+     "net": 13.43,
+     "dd": 6.7
+    },
+    {
+     "risk": 3,
+     "net": 20.07,
+     "dd": 9.7
+    }
+   ],
+   "test": [
+    {
+     "risk": 1,
+     "net": 2.13,
+     "dd": 3.3
+    },
+    {
+     "risk": 2,
+     "net": 4.12,
+     "dd": 6.5
+    },
+    {
+     "risk": 3,
+     "net": 5.98,
+     "dd": 9.6
+    }
+   ]
+  },
+  "capital": {
+   "dev": [
+    {
+     "cap": 20,
+     "net": 4.47,
+     "trades": 29
+    },
+    {
+     "cap": 50,
+     "net": 10.55,
+     "trades": 30
+    },
+    {
+     "cap": 100,
+     "net": 21.1,
+     "trades": 30
+    }
+   ],
+   "val": [
+    {
+     "cap": 20,
+     "net": 2.92,
+     "trades": 17
+    },
+    {
+     "cap": 50,
+     "net": 6.72,
+     "trades": 25
+    },
+    {
+     "cap": 100,
+     "net": 13.43,
+     "trades": 25
+    }
+   ],
+   "test": [
+    {
+     "cap": 20,
+     "net": 1.63,
+     "trades": 12
+    },
+    {
+     "cap": 50,
+     "net": 2.06,
+     "trades": 19
+    },
+    {
+     "cap": 100,
+     "net": 4.12,
+     "trades": 19
+    }
+   ]
+  },
+  "regimes": {
+   "bull": {
+    "trades": 27,
+    "net": 46.38
+   },
+   "high vol": {
+    "trades": 40,
+    "net": 7.02
+   },
+   "sideways": {
+    "trades": 38,
+    "net": 2.46
+   },
+   "bear": {
+    "trades": 8,
+    "net": -4.85
+   },
+   "low vol": {
+    "trades": 33,
+    "net": 36.97
+   }
+  }
+ },
+ "SOL": {
+  "periods": {
+   "dev": {
+    "trades": 24,
+    "long": 24,
+    "short": 0,
+    "gross": 93.06,
+    "fees": 1.3,
+    "net": 91.76,
+    "return_pct": 91.8,
+    "win_rate": 0.333,
+    "profit_factor": 9.09,
+    "avg_net": 3.823,
+    "avg_net_ci95": [
+     -0.29,
+     10.913
+    ],
+    "max_dd": 17.09,
+    "max_dd_pct": 11.1,
+    "avg_hold_h": 373,
+    "longest_losing_streak": 8,
+    "skipped_min_size": 31
+   },
+   "val": {
+    "trades": 18,
+    "long": 18,
+    "short": 0,
+    "gross": 3.95,
+    "fees": 0.74,
+    "net": 3.21,
+    "return_pct": 3.2,
+    "win_rate": 0.389,
+    "profit_factor": 1.42,
+    "avg_net": 0.179,
+    "avg_net_ci95": [
+     -0.512,
+     0.981
+    ],
+    "max_dd": 7.34,
+    "max_dd_pct": 7.1,
+    "avg_hold_h": 362.7,
+    "longest_losing_streak": 6,
+    "skipped_min_size": 19
+   },
+   "test": {
+    "trades": 22,
+    "long": 22,
+    "short": 0,
+    "gross": 3.83,
+    "fees": 1.28,
+    "net": 2.55,
+    "return_pct": 2.6,
+    "win_rate": 0.182,
+    "profit_factor": 1.21,
+    "avg_net": 0.116,
+    "avg_net_ci95": [
+     -0.643,
+     1.252
+    ],
+    "max_dd": 11.54,
+    "max_dd_pct": 11,
+    "avg_hold_h": 241.1,
+    "longest_losing_streak": 10,
+    "skipped_min_size": 0
+   }
+  },
+  "costs": {
+   "dev": [
+    {
+     "fee": 0,
+     "slip": 0,
+     "net": 94.17
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.05,
+     "net": 91.76
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.15,
+     "net": 90.8
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.05,
+     "net": 89.85
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.15,
+     "net": 88.9
+    }
+   ],
+   "val": [
+    {
+     "fee": 0,
+     "slip": 0,
+     "net": 4.17
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.05,
+     "net": 3.21
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.15,
+     "net": 2.42
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.05,
+     "net": 2.03
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.15,
+     "net": 2.11
+    }
+   ],
+   "test": [
+    {
+     "fee": 0,
+     "slip": 0,
+     "net": 4.24
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.05,
+     "net": 2.55
+    },
+    {
+     "fee": 0.2,
+     "slip": 0.15,
+     "net": 1.89
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.05,
+     "net": 1.22
+    },
+    {
+     "fee": 0.4,
+     "slip": 0.15,
+     "net": 0.56
+    }
+   ]
+  },
+  "risk": {
+   "dev": [
+    {
+     "risk": 1,
+     "net": 42,
+     "dd": 6.8
+    },
+    {
+     "risk": 2,
+     "net": 91.76,
+     "dd": 11.1
+    },
+    {
+     "risk": 3,
+     "net": 145.89,
+     "dd": 15.3
+    }
+   ],
+   "val": [
+    {
+     "risk": 1,
+     "net": 0.16,
+     "dd": 1.2
+    },
+    {
+     "risk": 2,
+     "net": 3.21,
+     "dd": 7.1
+    },
+    {
+     "risk": 3,
+     "net": 0.49,
+     "dd": 11.8
+    }
+   ],
+   "test": [
+    {
+     "risk": 1,
+     "net": 1.37,
+     "dd": 3.9
+    },
+    {
+     "risk": 2,
+     "net": 2.55,
+     "dd": 11
+    },
+    {
+     "risk": 3,
+     "net": 3.42,
+     "dd": 15.9
+    }
+   ]
+  },
+  "capital": {
+   "dev": [
+    {
+     "cap": 20,
+     "net": 11.18,
+     "trades": 17
+    },
+    {
+     "cap": 50,
+     "net": 44.74,
+     "trades": 21
+    },
+    {
+     "cap": 100,
+     "net": 91.76,
+     "trades": 24
+    }
+   ],
+   "val": [
+    {
+     "cap": 20,
+     "net": 0,
+     "trades": 0
+    },
+    {
+     "cap": 50,
+     "net": 0.16,
+     "trades": 2
+    },
+    {
+     "cap": 100,
+     "net": 3.21,
+     "trades": 18
+    }
+   ],
+   "test": [
+    {
+     "cap": 20,
+     "net": 1.86,
+     "trades": 3
+    },
+    {
+     "cap": 50,
+     "net": 1.26,
+     "trades": 16
+    },
+    {
+     "cap": 100,
+     "net": 2.55,
+     "trades": 22
+    }
+   ]
+  },
+  "regimes": {
+   "bull": {
+    "trades": 30,
+    "net": 121.7
+   },
+   "high vol": {
+    "trades": 28,
+    "net": 86.86
+   },
+   "bear": {
+    "trades": 17,
+    "net": -14.85
+   },
+   "sideways": {
+    "trades": 22,
+    "net": -15.2
+   },
+   "low vol": {
+    "trades": 41,
+    "net": 4.79
+   }
+  }
+ }
+}
