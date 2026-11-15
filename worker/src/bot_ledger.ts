@@ -472,11 +472,11 @@ export async function handleBotLedger(request: Request, env: BotLedgerEnv): Prom
   }
   const w = await env.DB.prepare(`SELECT available_micro, reserved_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number; reserved_micro: number }>();
   const acct = await accountExposure(env.DB);
-  const po = await env.DB.prepare(`SELECT order_id, side, limit_price, accepted_qty, placed_at, expires_at FROM bot_pending_orders WHERE bot_id = ? AND status = 'PENDING'`).bind(botId)
-    .first<{ order_id: string; side: string; limit_price: number; accepted_qty: number | null; placed_at: string; expires_at: string | null }>();
+  const po = await env.DB.prepare(`SELECT order_id, side, limit_price, accepted_qty, placed_at, expires_at, received_at FROM bot_pending_orders WHERE bot_id = ? AND status = 'PENDING'`).bind(botId)
+    .first<{ order_id: string; side: string; limit_price: number; accepted_qty: number | null; placed_at: string; expires_at: string | null; received_at: string }>();
   return json({
     ok: true, mode: "PAPER", read_only: true, symbol: bot.symbol, bot_id: botId, alerts,
-    pending_order: po ? { order_id: po.order_id, side: po.side, limit: po.limit_price, accepted_qty: po.accepted_qty, placed_at: po.placed_at, expires_at: po.expires_at } : null,
+    pending_order: po ? { order_id: po.order_id, side: po.side, limit: po.limit_price, accepted_qty: po.accepted_qty, placed_at: po.placed_at, expires_at: po.expires_at, received_at: po.received_at } : null,
     position: p ? { symbol: p.symbol, side: p.side.toLowerCase(), status: p.status, qty: p.qty, avg_entry_price: p.entry_price, open_alert_id: p.trade_id, opened_at: p.opened_at } : null,
     balance: w ? {
       wallet: bot.wallet, available_usd: fromMicro(w.available_micro), reserved_usd: fromMicro(w.reserved_micro), bot_id: botId, bot_available_usd: fromMicro(w.available_micro),

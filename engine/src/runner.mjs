@@ -861,6 +861,15 @@ export class EngineRunner {
       // Durable pending order: the ledger's PENDING record must be the engine's live order (once delivered).
       const lo = S.liveOrder ? S.outbox.find((x) => x.id === S.liveOrder.id) : null;
       const lpo = L.pendingOrder;
+      // Strict timing: an order accepted before strict mode was switched on (or whose acceptance reply was lost) takes
+      // its acceptance time from the ledger's own record, so it stays fillable under exactly the ledger's rule.
+      const br = S.strategy.broker;
+      if (this.cfg.strictFill && lo && lpo && lpo.order_id === lo.id && lpo.received_at && br.entry && !Number.isFinite(br.entry.acceptedAtMs)) {
+        br.entry.acceptedAtMs = Date.parse(lpo.received_at);
+        lo.acceptedAt ??= lpo.received_at;
+        this.audit({ type: "pending_order", event: "ACCEPTANCE_FROM_LEDGER", id: lo.id, accepted_at: lpo.received_at });
+        this.save();
+      }
       if (lo && lo.status === "accepted" && (!lpo || lpo.order_id !== lo.id)) issues.push(`the engine's pending order ${lo.id} is ${lpo ? `not the ledger's (${lpo.order_id})` : "not pending in the ledger"}`);
       if (!lo && lpo) {
         issues.push(`the ledger has a pending order ${lpo.order_id} that the engine is not working; cancelling it`);

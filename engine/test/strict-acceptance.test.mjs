@@ -17,7 +17,7 @@ const temps = []; after(() => { for (const t of temps) { try { rmSync(t, { recur
 
 function harness({ strict, dataDir = null }) {
   const dir = dataDir ?? (temps.push(mkdtempSync(join(tmpdir(), "alpha-strict-"))), temps.at(-1));
-  const L = { orders: new Map(), pending: null, position: null, opens: [], refusedEarly: 0, early: 0, cancels: [], clock: { now: SOL1[300].t + 70_000 } };
+  const L = { strictLedger: strict, orders: new Map(), pending: null, position: null, opens: [], refusedEarly: 0, early: 0, cancels: [], clock: { now: SOL1[300].t + 70_000 } };
   const http = async (url, init) => {
     const path = String(url).replace(/^.*\/webhook\//, ""), b = JSON.parse(init.body);
     const ok = (code, data = {}) => new Response(JSON.stringify({ ok: true, code, data }), { status: 200 });
@@ -32,7 +32,7 @@ function harness({ strict, dataDir = null }) {
     if (/^OPEN_/.test(b.action)) {
       const o = L.orders.get(b.pending_order_id);
       const early = o && Date.parse(b.fill.candle.t) < Date.parse(o.received_at);
-      if (early) { L.early++; if (strict) { L.refusedEarly++; return new Response(JSON.stringify({ ok: false, code: "FILL_BEFORE_ORDER" }), { status: 422 }); } }
+      if (early) { L.early++; if (L.strictLedger) { L.refusedEarly++; return new Response(JSON.stringify({ ok: false, code: "FILL_BEFORE_ORDER" }), { status: 422 }); } }
       L.opens.push({ b, o }); L.pending = null;
       L.position = { symbol: "SOLUSD", side: b.action === "OPEN_LONG" ? "long" : "short", status: "OPEN", qty: b.qty, avg_entry_price: b.fill.price, open_alert_id: b.order_id };
       return ok("DRY_RUN_ACCEPTED", { qty: b.qty });
@@ -40,8 +40,8 @@ function harness({ strict, dataDir = null }) {
     if (b.action === "CLOSE") { L.position = null; return ok("DRY_RUN_ACCEPTED"); }
     return ok("OK");
   };
-  const mk = () => {
-    const [{ cfg }] = loadBotConfigs(["ALPHA-01"], { ENGINE_ENV_FILE: "none", ENGINE_DATA_DIR: dir, ENGINE_SYNC: "on", ALPHA_API_BASE: "http://127.0.0.1:9", ALPHA_WEBHOOK_SECRET: "s", ENGINE_MIRROR: "off", ENGINE_STRICT_FILL: strict ? "on" : "off" }, ENGINE, { allowProposed: true });
+  const mk = (strictEngine = strict) => {
+    const [{ cfg }] = loadBotConfigs(["ALPHA-01"], { ENGINE_ENV_FILE: "none", ENGINE_DATA_DIR: dir, ENGINE_SYNC: "on", ALPHA_API_BASE: "http://127.0.0.1:9", ALPHA_WEBHOOK_SECRET: "s", ENGINE_MIRROR: "off", ENGINE_STRICT_FILL: strictEngine ? "on" : "off" }, ENGINE, { allowProposed: true });
     return new EngineRunner(cfg, { fetchCandles: async ({ sinceMs }) => SOL1.filter((k) => k.t + 60_000 <= L.clock.now && (sinceMs === null || k.t > sinceMs)), http, now: () => L.clock.now, log: () => {} });
   };
   return { L, mk, dir };
@@ -77,5 +77,23 @@ describe("strict acceptance timing (engine = ledger rule)", () => {
     assert.ok(h.L.opens.length >= 3);
     assert.ok(!JSON.stringify(r.state.strategy.broker).includes("acceptedAtMs"), "nothing new in the saved state when off");
     console.log(`current rule: ${h.L.early} of ${h.L.opens.length} fills used a candle that began before acceptance (the backtest over Aug-Nov found 2-4 %)`);
+  });
+
+  it("upgrade: an order accepted BEFORE strict mode takes its acceptance time from the ledger and stays fillable; no refusal", async () => {
+    const h = harness({ strict: false });
+    let r = h.mk(false); await r.tick();
+    let i = 0;
+    for (; i < 2000 && !(h.L.pending && r.state.liveOrder); i++) { h.L.clock.now += 60_000; await r.tick(); }
+    assert.ok(h.L.pending && r.state.liveOrder, "precondition: an accepted order is pending under the old rule");
+    assert.equal(r.state.strategy.broker.entry?.acceptedAtMs, undefined, "the old engine stored no acceptance time");
+    // graceful upgrade: strict engine (the ledger switches to strict too, as in the release plan)
+    h.L.strictLedger = true;
+    r = h.mk(true); await r.tick();
+    const id = r.state.liveOrder?.id;
+    assert.ok(id && h.L.pending?.order_id === id, "precondition: the order carried over the upgrade is still pending");
+    assert.equal(r.state.strategy.broker.entry.acceptedAtMs, Date.parse(h.L.orders.get(id).received_at), "adopted from the ledger's record");
+    for (let k = 0; k < 1500; k++) { h.L.clock.now += 60_000; await r.tick(); }
+    assert.equal(h.L.refusedEarly, 0);
+    assert.ok(h.L.opens.length >= 1, "orders still fill after the upgrade");
   });
 });
