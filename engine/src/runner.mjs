@@ -416,6 +416,7 @@ export class EngineRunner {
       return { processed: 0, error: S.lastError };
     }
     S.lastPollAt = iso(nowMs);
+    this.dropWarmupPosition();
 
     // A hole in the candle history cannot be filled truthfully: start a fresh warm-up from what Kraken has.
     if (S.strategy.lastTime !== null && candles.length && candles[0].t > S.strategy.lastTime + this.step) {
@@ -497,6 +498,7 @@ export class EngineRunner {
     }
     if (this.cfg.mirror) this.stepMirror(all, nowMs);
     if (warmup) S.warmedUpAt = iso(nowMs);
+    this.dropWarmupPosition();
     this.trimOutbox();
     S.lastError = null;
     this.save();
@@ -627,6 +629,27 @@ export class EngineRunner {
         this.audit({ type: "pending_order", event: "PLACED", id, side, limit: live.limit, qty: fmtQty(live.qty), expires_at: expiresAt });
       }
     }
+  }
+
+  /**
+   * A position the strategy holds from its WARM-UP history was never sent (history never is), so no PAPER trade exists.
+   * Kept, it would block every genuine live setup until it exits (the strategy takes no new setup while in a trade;
+   * production ALPHA-03, 2026-11-15). Release ONLY that position, exactly like a refused entry: no trade, no P&L, no
+   * exit sent. Market structure, swings and zones are untouched; the strategy logic is unchanged.
+   */
+  dropWarmupPosition() {
+    const S = this.state;
+    if (this.cfg.ledgerApi !== "bot" || !S?.strategy?.broker?.pos || !S.openEntryId || S.warmedUpAt === null) return false;
+    const item = S.outbox.find((x) => x.id === S.openEntryId);
+    if (!item || item.status !== "historical") return false;
+    const pos = abandonPosition(S.strategy);
+    S.openEntryId = null;
+    if (!pos) return false;
+    item.positionDropped = true;
+    this.audit({ type: "warmup_position_released", id: item.id, side: pos.side === 1 ? "LONG" : "SHORT", qty: pos.qty, engine_price: pos.avg,
+      reason: "opened in warm-up history (never sent, no PAPER trade); released so live setups are not blocked" });
+    this.log(`[engine] warm-up position from ${item.id} released (never a PAPER trade); scanning for live setups`);
+    return true;
   }
 
   /**

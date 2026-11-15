@@ -496,3 +496,55 @@ describe("an order carried out of warm-up history (production 2026-11-15, ALPHA-
     assert.equal(found.r.state.ledgerCheck.status, "OK");
   });
 });
+
+describe("a position the strategy holds from warm-up history (production ALPHA-03 2026-11-15)", () => {
+  it("is released at go-live (never sent, no trade, no P&L); market structure kept; live setups are no longer blocked", async () => {
+    const mk = (startIdx, { fix = true } = {}) => {
+      const seen = [];
+      const http = async (url, init) => {
+        const path = String(url).replace(/^.*\/webhook\//, ""); const body = JSON.parse(init.body); seen.push({ path, body });
+        if (path === "bot-ledger") return new Response(JSON.stringify({ ok: true, position: null, alerts: {}, pending_order: null, balance: { available_usd: 20, bot_available_usd: 20, max_order_notional_usd: 5000 } }), { status: 200 });
+        if (path === "bot-order") return new Response(JSON.stringify({ ok: true, code: body.action === "PLACE_LIMIT" ? "ORDER_PENDING" : body.action === "CANCEL_ORDER" ? "ORDER_CANCELLED" : "DRY_RUN_ACCEPTED", data: {} }), { status: 200 });
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      };
+      const [{ cfg }] = loadBotConfigs(["ALPHA-03"], env0({ ENGINE_SYNC: "on", ALPHA_API_BASE: "http://127.0.0.1:9", ALPHA_WEBHOOK_SECRET: "s", ENGINE_MIRROR: "off" }), ENGINE, { allowProposed: true });
+      const clock = { now: BTC1[startIdx].t + 70_000 };
+      const r = new EngineRunner(cfg, { fetchCandles: async ({ sinceMs }) => BTC1.filter((k) => k.t + 60_000 <= clock.now && (sinceMs === null || k.t > sinceMs)), http, now: () => clock.now, log: () => {} });
+      if (!fix) r.dropWarmupPosition = () => false;
+      return { r, seen, clock };
+    };
+    let i = 300, found = null;
+    for (; i < 2000 && !found; i += 5) {
+      const twin = mk(i, { fix: false }); await twin.r.tick();
+      if (twin.r.state.strategy.broker.pos) found = i;
+    }
+    assert.ok(found, "precondition: a warm-up on real BTC candles that ends inside a trade");
+    const twin = mk(found, { fix: false }); await twin.r.tick();
+    const main = mk(found); await main.r.tick();
+    const S = main.r.state;
+    assert.ok(twin.r.state.strategy.broker.pos && twin.r.state.strategy.triggered, "without the release the strategy sits in an untracked trade");
+    assert.equal(S.strategy.broker.pos, null, "released");
+    assert.equal(S.strategy.triggered, false);
+    assert.equal(S.openEntryId, null);
+    assert.equal(S.strategy.lastHigh, twin.r.state.strategy.lastHigh, "market structure kept");
+    assert.equal(S.strategy.lastLow, twin.r.state.strategy.lastLow);
+    assert.equal(S.strategy.bar, twin.r.state.strategy.bar, "same candles processed");
+    assert.ok(!main.seen.some((x) => x.path === "bot-order" && /^(OPEN_|CLOSE)/.test(x.body.action)), "nothing about it was ever sent");
+    // Live: the twin stays blocked while in its warm-up trade; the released bot may take genuine setups meanwhile, and
+    // never sends a CLOSE for the warm-up entry.
+    let liveSetupWhileTwinBlocked = false;
+    for (let k = 0; k < 400; k++) {
+      main.clock.now += 60_000; twin.clock.now += 60_000;
+      await main.r.tick(); await twin.r.tick();
+      const twinBlocked = Boolean(twin.r.state.strategy.triggered);
+      if (twinBlocked && main.seen.some((x) => x.path === "bot-order" && x.body.action === "PLACE_LIMIT")) liveSetupWhileTwinBlocked = true;
+      if (!twinBlocked) break;
+    }
+    assert.ok(liveSetupWhileTwinBlocked, "a genuine live setup was placed while the unreleased strategy would still be blocked");
+    const opens = new Set(main.seen.filter((x) => x.path === "bot-order" && /^OPEN_/.test(x.body.action)).map((x) => x.body.order_id));
+    assert.ok(!main.seen.some((x) => x.path === "bot-order" && x.body.action === "CLOSE" && !opens.has(x.body.entry_order_id ?? x.body.open_order_id ?? [...opens][0])), "a CLOSE only after a live OPEN");
+    assert.ok(!main.seen.some((x) => x.path === "bot-order" && x.body.action === "CLOSE") || opens.size > 0);
+    assert.ok(S.strategy.broker.pos === null || main.r.state.openEntryId !== null, "any later position is a live, tracked entry");
+    assert.equal(main.r.state.ledgerCheck.status, "OK");
+  });
+});
