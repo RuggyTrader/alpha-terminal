@@ -174,7 +174,10 @@ export function lifecycleEvents(prev: Obj | null, next: Obj, bot: { bot_id: stri
   const base = { bot_name: bot.name, timeframe: bot.timeframe };
   const po = (st.pending_order && typeof st.pending_order === "object" ? st.pending_order : null) as Obj | null;
   const ppo = (ps?.pending_order && typeof ps.pending_order === "object" ? ps.pending_order : null) as Obj | null;
-  const orderKey = (o: Obj, s: Obj | null) => `${bot.bot_id}:${String(o.side)}:${numOr(s?.leg_start)}:${numOr(s?.leg_end)}:${numOr(o.limit)}:${numOr(o.stop)}`;
+  // An order's identity: side, swing and limit (as the durable ledger order). NOT the stop: the strategy recomputes its
+  // ATR-buffered stop every candle (71.25837 -> 71.25799), which is the same order, not a cancel plus a new one
+  // (found in production 2026-11-15: a cancel/pending pair every 5 minutes for one unchanged order).
+  const orderKey = (o: Obj, s: Obj | null) => `${bot.bot_id}:${String(o.side)}:${numOr(s?.leg_start)}:${numOr(s?.leg_end)}:${numOr(o.limit)}`;
   if (po && (!ppo || orderKey(po, st) !== orderKey(ppo, ps))) {
     out.push({ key: `BOTPEND:${orderKey(po, st)}`, kind: "ORDER_PENDING", side: String(po.side), qty: numOr(po.qty), price: numOr(po.limit), occurred_at: at,
       detail: { ...base, stop: numOr(po.stop), tp: numOr(po.tp) } });

@@ -252,6 +252,7 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.equal((await report(S())).ok, true);
     await report(S({ pending_order: pend }));
     await report(S({ pending_order: pend }), { t: "2026-11-12T10:01:00Z" }); // the same order reported again: no second event
+    await report(S({ pending_order: { ...pend, stop: 98899.7731 } }), { t: "2026-11-12T10:01:30Z" }); // same order, stop recomputed by the strategy: no event (production 2026-11-15)
     await report(S(), { t: "2026-11-12T10:02:00Z" }); // gone without a fill
     await report(S({ pending_order: pend }), { t: "2026-11-12T10:03:00Z" }); // the same setup again: the key already exists, still one event
     const pos = { side: "LONG", qty: 0.00009, entry: 99590, stop: 98900, tp2: 101500 };
