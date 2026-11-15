@@ -64,12 +64,17 @@ export function processBar(br, bar) {
   // Options (research variants; defaults = TradingView's documented emulator, the behaviour above):
   //   limitPrice "requested": a limit order that the open gaps through fills at its own price, not the open.
   //   exitDelayTicks 1: an exit bracket can fill only from the next tick (path point) after its entry filled.
-  //   entryDelayBars 1 (STRICT acceptance timing): an order placed at a bar's close reaches the ledger seconds AFTER the
-  //     next bar opened, so that bar cannot prove a fill after acceptance; the entry is worked from the bar after it.
+  //   acceptanceTiming (STRICT, live engine): an entry can fill only on a bar that STARTS at or after the moment the
+  //     PAPER ledger accepted the order (entry.acceptedAtMs, the ledger's own received_at): the same rule the ledger
+  //     enforces. Not yet accepted = not fillable.
+  //   entryDelayBars 1 (STRICT, backtests without a ledger): acceptance happens seconds into the next bar, so the
+  //     entry is worked from the bar after it.
   const opt = br.opts ?? {};
-  // Only tracked when the option is on, so the saved state is byte-identical to earlier releases when it is off.
+  // Only tracked when an option is on, so the saved state is byte-identical to earlier releases when both are off.
   if (br.entry && opt.entryDelayBars >= 1) br.entry.age = (br.entry.age ?? 0) + 1; // bars since this exact order was placed
-  const entryEligible = !br.entry || !(opt.entryDelayBars >= 1) || br.entry.age > opt.entryDelayBars;
+  const entryEligible = !br.entry
+    || (opt.acceptanceTiming ? Number.isFinite(br.entry.acceptedAtMs) && bar.t >= br.entry.acceptedAtMs
+      : !(opt.entryDelayBars >= 1) || br.entry.age > opt.entryDelayBars);
   let entrySeg = -1;
   if (entryEligible && br.entry && br.entry.limit === null && !br.pos) { fillEntry(br, bar.o, bar, events); entrySeg = 0; } // market entry: next open
   const pts = path(bar);
@@ -112,7 +117,9 @@ export function placeEntry(br, order) {
   // entryAgeKey "limit": a size-only change keeps the order (the ledger fills at most the size it accepted).
   const sameSize = (br.opts?.entryAgeKey === "limit") || (br.entry && br.entry.qty === order.qty);
   const same = br.entry && br.entry.id === order.id && br.entry.side === order.side && sameSize && br.entry.limit === (order.limit ?? null);
-  br.entry = { id: order.id, side: order.side, qty: order.qty, limit: order.limit ?? null, ...(br.opts?.entryDelayBars >= 1 ? { age: same ? br.entry.age ?? 0 : 0 } : {}) };
+  br.entry = { id: order.id, side: order.side, qty: order.qty, limit: order.limit ?? null,
+    ...(br.opts?.entryDelayBars >= 1 ? { age: same ? br.entry.age ?? 0 : 0 } : {}),
+    ...(br.opts?.acceptanceTiming && same && Number.isFinite(br.entry.acceptedAtMs) ? { acceptedAtMs: br.entry.acceptedAtMs } : {}) };
   return true;
 }
 

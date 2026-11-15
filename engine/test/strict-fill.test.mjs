@@ -30,3 +30,24 @@ test("strict: a changed order is a new order (its age restarts)", () => {
   placeEntry(br, { ...order, limit: 98.5 });
   assert.equal(processBar(br, bar(3, 99, 99.2, 98, 98.6)).filter((e) => e.type === "ENTRY_FILL").length, 1);
 });
+
+test("acceptanceTiming (live engine): not yet accepted = never fills; a bar that began before acceptance cannot fill; the next can", () => {
+  const br = fresh({ acceptanceTiming: true });
+  assert.equal(processBar(br, bar(1, 100, 100.5, 98.5, 100)).length, 0, "no acceptance recorded yet: no fill");
+  br.entry.acceptedAtMs = 2 * 60_000 + 3000; // the ledger accepted it 3 s into bar 2
+  placeEntry(br, order); // re-issued unchanged: acceptance kept
+  assert.equal(br.entry.acceptedAtMs, 2 * 60_000 + 3000);
+  assert.equal(processBar(br, bar(2, 100, 100.2, 98.5, 99.5)).length, 0, "bar 2 began 3 s before acceptance");
+  placeEntry(br, order);
+  assert.equal(processBar(br, bar(3, 99.5, 99.8, 98.7, 99.1)).filter((e) => e.type === "ENTRY_FILL").length, 1, "bar 3 began after acceptance");
+});
+
+test("acceptanceTiming: a replaced order (new limit) loses the old acceptance; options off store nothing new", () => {
+  const br = fresh({ acceptanceTiming: true });
+  br.entry.acceptedAtMs = 1000;
+  placeEntry(br, { ...order, limit: 98 });
+  assert.equal(br.entry.acceptedAtMs, undefined);
+  const off = fresh(undefined);
+  processBar(off, bar(1, 100, 100.5, 99.5, 100)); placeEntry(off, order);
+  assert.deepEqual(Object.keys(off.entry).sort(), ["id", "limit", "qty", "side"]);
+});
