@@ -138,6 +138,13 @@ export async function fleetSection(db: D1Database) {
           swept_micro / 1e6 AS swept, closed_at FROM bot_positions WHERE bot_id = ? AND status = 'CLOSED' ORDER BY closed_at, id`).bind(b.bot_id).all<never>()).results;
       open = (await db.prepare(`SELECT trade_id, symbol, side, qty, entry_price, stop, tp, collateral_micro / 1e6 AS collateral_usd, entry_fee_micro / 1e6 AS entry_fee_usd,
           opened_at, mark_price, mark_at, risk_usd FROM bot_positions WHERE bot_id = ? AND status = 'OPEN'`).bind(b.bot_id).all<Record<string, unknown>>()).results;
+      if (b.legacy_default) {
+        // The legacy bot after its stage-S1 switch: its closed trades from before the switch stay in its lifetime figures
+        // (each trade exists in exactly one ledger, so nothing is counted twice).
+        const before = (await db.prepare(`SELECT 'LONG' AS side, COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees, realized_pnl AS net, 0 AS swept, closed_at
+            FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER' ORDER BY closed_at, id`).bind(b.bot_id).all<never>()).results;
+        closed = [...before, ...closed].sort((x, y) => (String(x.closed_at) < String(y.closed_at) ? -1 : String(x.closed_at) > String(y.closed_at) ? 1 : 0));
+      }
     } else {
       closed = (await db.prepare(`SELECT 'LONG' AS side, COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees, realized_pnl AS net, 0 AS swept, closed_at
           FROM trades WHERE bot_id = ? AND source = 'ALPHA_PAPER' ORDER BY closed_at, id`).bind(b.bot_id).all<never>()).results;

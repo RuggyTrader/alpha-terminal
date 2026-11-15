@@ -42,3 +42,14 @@ describe("trade cards show the asset logo beside the market name (the reported g
     expect(html).not.toContain("◎");
   });
 });
+
+import { level } from "./fmt";
+describe("strategy levels are shown at the market tick", () => {
+  it("SOLUSD 0.01, BTCUSD 0.1, unknown 4 decimals; missing stays N/A", () => {
+    expect(level(71.25877671421814, "SOLUSD")).toBe("71.26");
+    expect(level(70.3075, "SOLUSD")).toBe("70.31");
+    expect(level(74012.3456, "BTCUSD")).toBe("74012.3");
+    expect(level(1.234567, "ETHUSD")).toBe("1.23");
+    expect(level(null, "SOLUSD")).toBe("N/A");
+  });
+});

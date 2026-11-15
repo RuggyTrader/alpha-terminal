@@ -44,8 +44,9 @@ export async function botTrades(db: D1Database, q: { bot?: string | null; signal
       net_usd: µ(p.net_pnl_micro), swept_usd: µ(p.swept_micro), stop: (p.stop as number) ?? null, tp: (p.tp as number) ?? null,
       proof_url: `/bots/trade/${encodeURIComponent(String(p.trade_id))}` });
   }
-  // Legacy bot (ALPHA-02 until stage S1): its closed trades in the original ledger, with the existing proof page.
-  const legacy = (await db.prepare(`SELECT bot_id FROM bots WHERE ledger_api = 'legacy'${where("bot_id")}`).bind(...args).all<{ bot_id: string }>()).results.map((r) => r.bot_id);
+  // The legacy bot's closed trades in the original ledger, with the existing proof page. Kept AFTER its stage-S1 switch
+  // to the bot ledger (legacy_default stays 1): history from before the switch must never disappear from the bot views.
+  const legacy = (await db.prepare(`SELECT bot_id FROM bots WHERE (ledger_api = 'legacy' OR legacy_default = 1)${where("bot_id")}`).bind(...args).all<{ bot_id: string }>()).results.map((r) => r.bot_id);
   for (const id of legacy) {
     // The legacy trades table's own columns (0001/0002/0004): entry_qty, entry_avg_price, exit_avg_price. Its ALPHA_PAPER
     // rows are written only when a position closes (paper_ledger.ts), so every row here is a closed trade. No silent

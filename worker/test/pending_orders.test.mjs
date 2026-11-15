@@ -199,5 +199,13 @@ describe("durable pending orders and reversal safety (TEST values, isolated D1)"
     assert.equal(f.code, "DRY_RUN_ACCEPTED"); assert.equal(f.data.side, "SHORT");
     assert.equal(sql(`SELECT side FROM bot_positions WHERE trade_id = 'ENG-SOLUSD-5-T-OPEN_SHORT' AND status = 'OPEN'`)[0].side, "SHORT");
     assert.ok(sql(`SELECT reserved_micro r FROM portfolio_wallets WHERE wallet = 'SOLUSD'`)[0].r > 0, "collateral reserved in ALPHA-02's own (SOLUSD) wallet");
+    // Regression (production, 2026-11-15): history from BEFORE the switch must stay in the bot's views and lifetime figures.
+    const dashGet = (path) => fetch(`${base}${path}`, { headers: { Cookie: cookie } }).then((r) => r.json());
+    const hist = await dashGet("/api/dashboard/bot-trades?bot=ALPHA-02&limit=50");
+    assert.ok(hist.data.trades.some((t) => t.ledger === "legacy" && t.trade_id === "ENG-SOLUSD-5-2026-11-14T20:05:00Z-BUY"), "the pre-switch legacy trade is still listed");
+    const all = await dashGet("/api/dashboard/bot-trades?limit=50");
+    assert.ok(all.data.trades.some((t) => t.ledger === "legacy"), "and in the all-bot history");
+    const fleet = await dashGet("/api/dashboard/bots");
+    assert.equal(fleet.data.bots.find((b) => b.bot_id === "ALPHA-02").paper.trades, sql(`SELECT COUNT(*) n FROM trades WHERE bot_id = 'ALPHA-02' AND source = 'ALPHA_PAPER'`)[0].n + sql(`SELECT COUNT(*) n FROM bot_positions WHERE bot_id = 'ALPHA-02' AND status = 'CLOSED'`)[0].n, "lifetime closed trades = legacy + bot ledger, each once");
   });
 });

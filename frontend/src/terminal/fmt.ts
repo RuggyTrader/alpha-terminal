@@ -86,3 +86,12 @@ export function costMoney(v: number | string | null | undefined): string {
   if (n === 0) return "$0.00";
   return `\u2212$${n < 1 ? n.toFixed(4) : n.toFixed(2)}`;
 }
+
+/** A strategy price level shown at the market's tick (Kraken: SOLUSD 0.01, BTCUSD 0.1); the engine's own unrounded
+ *  plan values (e.g. 71.25877671421814) are display-rounded here only; the ledger stores the order at the tick. */
+const TICK_DECIMALS: Record<string, number> = { SOLUSD: 2, BTCUSD: 1, XBTUSD: 1, ETHUSD: 2 };
+export function level(v: number | null | undefined, symbol?: string | null): string {
+  if (v === null || v === undefined || !Number.isFinite(v)) return "N/A";
+  const d = TICK_DECIMALS[String(symbol ?? "").toUpperCase()] ?? 4;
+  return Number(v.toFixed(d)).toString();
+}

@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { EmptyState, SectionHeader, StatusBadge } from "../components/ui";
-import { money, NA, signedMoney, stamp } from "../fmt";
+import { level, money, NA, signedMoney, stamp } from "../fmt";
 import { engineStatus, type Bot } from "../bots";
 import { useFleet } from "../fleetStore";
 import { fetchTradeProof } from "../api";
@@ -307,10 +307,10 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
         <section className="card">
           <SectionHeader title={lv.kind === "pending" ? "Pending limit order" : `Open PAPER ${lv.side}`} sub={`${bot.bot_id} · ${bot.profile} · config ${bot.inputs_hash}`} />
           <div className="sizing-grid">
-            <div><span>{lv.kind === "pending" ? "Planned limit" : "Actual PAPER entry"}</span><b>{lv.entry ?? NA}</b></div>
-            <div><span>{lv.kind === "position" ? "Stop (current)" : "Stop"}</span><b>{lv.stop ?? NA}</b></div>
-            {lv.kind === "position" ? <div><span>Initial stop</span><b>{lv.initialStop ?? NA}</b></div> : null}
-            <div><span>Target</span><b>{lv.tp ?? NA}</b></div>
+            <div><span>{lv.kind === "pending" ? "Planned limit" : "Actual PAPER entry"}</span><b>{level(lv.entry, bot.symbol)}</b></div>
+            <div><span>{lv.kind === "position" ? "Stop (current)" : "Stop"}</span><b>{level(lv.stop, bot.symbol)}</b></div>
+            {lv.kind === "position" ? <div><span>Initial stop</span><b>{level(lv.initialStop, bot.symbol)}</b></div> : null}
+            <div><span>Target</span><b>{level(lv.tp, bot.symbol)}</b></div>
             {lv.kind === "position" ? <div><span>Stop management</span><b>{st?.trailing ? "Trailing" : st?.break_even_done || (lv.stop !== null && lv.stop === lv.entry) ? "Break-even" : "Initial stop"}</b></div> : null}
             <div><span>Quantity</span><b>{lv.qty}</b></div>
             <div><span>Position value</span><b>{f.notional === null ? NA : money(f.notional)}</b></div>

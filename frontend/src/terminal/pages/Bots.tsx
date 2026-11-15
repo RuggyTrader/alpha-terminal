@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { newRequestId } from "../api";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
-import { money, NA, signedMoney, stamp, tone } from "../fmt";
+import { NA, level, money, signedMoney, stamp, tone } from "../fmt";
 import {
   allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused,
   type Bot, type Fleet,
@@ -106,7 +106,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
           <div><span>Max drawdown</span><b>{money(b.paper.max_drawdown_usd)}</b></div>
         </div>
         {st?.pending_order ? (
-          <p className="sizing-note">Pending {st.pending_order.side} limit {st.pending_order.limit ?? NA} · stop {st.pending_order.stop ?? NA} · target {st.pending_order.tp ?? NA} · qty {st.pending_order.qty}</p>
+          <p className="sizing-note">Pending {st.pending_order.side} limit {level(st.pending_order.limit, b.symbol)} · stop {level(st.pending_order.stop, b.symbol)} · target {level(st.pending_order.tp, b.symbol)} · qty {st.pending_order.qty}</p>
         ) : null}
         {b.open_positions.map((p) => (
           <p key={p.trade_id} className="sizing-note">

@@ -3,6 +3,7 @@
 // ledger rows, and the bot's own latest engine report. Hypothetical Strategy Mirror results are a separate field and are
 // never added to PAPER figures. Nothing is estimated here; missing data stays missing.
 
+import { level } from "./fmt";
 import { api, ApiError } from "../api/client";
 
 export interface StrategyState {
@@ -125,7 +126,7 @@ export function botPhase(b: Bot, nowMs: number): { phase: string; detail: string
   const st = b.engine?.strategy_state;
   if (st?.pending_order) {
     const o = st.pending_order;
-    return { phase: "Limit order pending", detail: `${o.side} ${o.limit ?? "market"}${o.stop ? ` · stop ${o.stop}` : ""}${o.tp ? ` · target ${o.tp}` : ""}`, live: s === "ONLINE" };
+    return { phase: "Limit order pending", detail: `${o.side} ${o.limit === null ? "market" : level(o.limit, b.symbol)}${o.stop ? ` · stop ${level(o.stop, b.symbol)}` : ""}${o.tp ? ` · target ${level(o.tp, b.symbol)}` : ""}`, live: s === "ONLINE" };
   }
   if (st?.direction) return { phase: `${st.direction} setup forming`, detail: st.setup_bars !== null && st.max_age_bars ? `${st.setup_bars}/${st.max_age_bars} bars` : null, live: s === "ONLINE" };
   return { phase: s === "STALE" ? "Stale report" : "Scanning", detail: b.engine?.last_candle_time ? `last candle ${b.engine.last_candle_time.slice(11, 16)} UTC` : null, live: s === "ONLINE" };
