@@ -169,9 +169,16 @@ describe("outages, restarts and data problems (TEST)", () => {
     assert.equal(JSON.stringify([acct(s.db).cash_micro, orders(s.db), positions(s.db)]), snap);
   });
   it("an overlapping run is refused by the lock", async () => {
+    const s = setup(); const { t2 } = await toEntry(s);
+    s.db.sql(`UPDATE trial_accounts SET lock_until = ?`, t2 + 10 * MIN);
+    assert.equal((await s.run(t2 + 5 * MIN)).reason, "another run is in progress");
+  });
+  it("an idle minute (flat, nothing pending, no close due) only reads: no write, no market-data request", async () => {
     const s = setup(); await s.run(D0 + DAY + 30_000);
-    s.db.sql(`UPDATE trial_accounts SET lock_until = ?`, D0 + DAY + 200_000);
-    assert.equal((await s.run(D0 + DAY + 60_000)).reason, "another run is in progress");
+    const writes = () => s.db.trace.filter((q) => /^\s*(INSERT|UPDATE|DELETE)/i.test(q)).length;
+    const w0 = writes(), c0 = s.m.calls.length;
+    for (let i = 1; i <= 30; i++) assert.match((await s.run(D0 + DAY + 30_000 + i * MIN)).reason, /idle/);
+    assert.equal(writes(), w0); assert.equal(s.m.calls.length, c0);
   });
   it("market data unavailable: nothing advances past unchecked time; the next run catches up", async () => {
     const s = setup(); const { t2 } = await toEntry(s);

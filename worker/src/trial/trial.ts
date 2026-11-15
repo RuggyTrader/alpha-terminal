@@ -69,6 +69,11 @@ export async function runTrial(env: TrialEnv, nowMs = Date.now(), ohlc: OhlcFn =
   if (!has) return { ran: false, reason: "not installed" };
   const acct0 = await db.prepare(`SELECT * FROM trial_accounts WHERE account_id = ? AND status = 'ACTIVE'`).bind(ACCOUNT_ID).first<Acct>();
   if (!acct0) return { ran: false, reason: "not active" };
+  // The common case costs only reads: flat, nothing pending, no daily close due -> nothing to do, nothing written.
+  if (acct0.last_daily_t !== null && nowMs < acct0.last_daily_t + 2 * DAY + MIN) {
+    const busy = await db.prepare(`SELECT (SELECT COUNT(*) FROM trial_positions WHERE account_id = ? AND status = 'OPEN') + (SELECT COUNT(*) FROM trial_orders WHERE account_id = ? AND status = 'PENDING') AS n`).bind(ACCOUNT_ID, ACCOUNT_ID).first<{ n: number }>();
+    if (!busy?.n) return { ran: false, reason: "idle (flat, nothing pending, no daily close due)" };
+  }
   const lock = await db.prepare(`UPDATE trial_accounts SET lock_until = ? WHERE account_id = ? AND (lock_until IS NULL OR lock_until < ?)`).bind(nowMs + 55_000, ACCOUNT_ID, nowMs).run();
   if (!lock.meta.changes) return { ran: false, reason: "another run is in progress" };
   const log: string[] = [];
@@ -127,10 +132,7 @@ async function intraday(db: D1Database, acct: Acct, horizon: number, nowMs: numb
   if (from >= horizon) return from;
   const pos0 = await db.prepare(`SELECT * FROM trial_positions WHERE account_id = ? AND status = 'OPEN'`).bind(ACCOUNT_ID).first<Pos>();
   const pend0 = (await db.prepare(`SELECT * FROM trial_orders WHERE account_id = ? AND status = 'PENDING' ORDER BY accepted_at`).bind(ACCOUNT_ID).all<Ord>()).results;
-  if (!pos0 && !pend0.length) { // nothing to execute or protect: just advance
-    await db.prepare(`UPDATE trial_accounts SET last_minute_t = ? WHERE account_id = ?`).bind(horizon, ACCOUNT_ID).run();
-    return horizon;
-  }
+  if (!pos0 && !pend0.length) return horizon; // nothing to execute or protect (a new order records where checking starts)
   const gapMin = (horizon - from) / MIN;
   const interval = gapMin <= 11 * 60 ? 1 : gapMin <= 7 * 1440 ? 15 : gapMin <= 29 * 1440 ? 60 : 1440;
   const r = await ohlc(interval, from);
@@ -234,7 +236,8 @@ async function dailyClose(db: D1Database, D: Candle[], i: number, nowMs: number,
   const equity = acct.cash_micro + µ(qty * k.c);
   stmts.push(
     db.prepare(`INSERT OR REPLACE INTO trial_equity (account_id, day_t, close, cash_micro, position_qty, equity_micro) VALUES (?, ?, ?, ?, ?, ?)`).bind(ACCOUNT_ID, k.t, k.c, acct.cash_micro, qty, equity),
-    db.prepare(`UPDATE trial_accounts SET last_daily_t = ? WHERE account_id = ?`).bind(k.t, ACCOUNT_ID),
+    // Intraday checking resumes from this close (a new order or a held position is watched from here on).
+    db.prepare(`UPDATE trial_accounts SET last_daily_t = ?, last_minute_t = MAX(COALESCE(last_minute_t, 0), ?) WHERE account_id = ?`).bind(k.t, closeAt, ACCOUNT_ID),
   );
   await db.batch(stmts);
 }
