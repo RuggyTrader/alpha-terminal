@@ -1,3 +1,4 @@
+import { AssetLogo } from "./AssetLogo";
 import { marketType } from "../classify";
 import { NA, pct, price, qty, signedMoney, tone, upper, when } from "../fmt";
 import { AnimatedNumber, useFlash } from "../motion";
@@ -33,7 +34,7 @@ export function AlphaPaperPositionCard({ p }: { p: AlphaPaperPosition }) {
       <div className="ap-label">ALPHA PAPER POSITION · simulated, not a broker position</div>
       <div className="pc-top">
         <div className="pc-sym">
-          <span className="sym-chip" aria-hidden>{p.symbol.slice(0, 1)}</span>
+          <AssetLogo of={p.symbol} size={28} />
           <div>
             <b>{p.symbol}</b>
             <div className="pc-tags">

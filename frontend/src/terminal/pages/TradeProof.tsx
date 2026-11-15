@@ -1,3 +1,4 @@
+import { AssetLogo } from "../components/AssetLogo";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
@@ -57,7 +58,7 @@ export function ProofView({ proof }: { proof: TradeProof & { story?: TradeStory 
       <section className="card dark-card proof-head" aria-label="Trade summary">
         <div className="proof-top">
           <div>
-            <div className="proof-sym">{t.symbol}</div>
+            <div className="proof-sym"><AssetLogo of={t.symbol} size={24} className="inline-logo" />{t.symbol}</div>
             <div className="proof-tags">
               {mt ? <StatusBadge tone="muted">{mt}</StatusBadge> : null}
               <StatusBadge tone="muted">{upper(t.direction)}</StatusBadge>

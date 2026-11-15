@@ -1,3 +1,4 @@
+import { AssetLogo } from "./AssetLogo";
 import { marketType } from "../classify";
 import { fractionPct, money, price, qty, signedMoney, tone, upper } from "../fmt";
 import { AnimatedNumber, useFlash } from "../motion";
@@ -13,7 +14,7 @@ export function PositionCard({ p }: { p: PaperPosition }) {
     <article className="card pos-card m-lift">
       <div className="pc-top">
         <div className="pc-sym">
-          <span className="sym-chip" aria-hidden>{p.symbol.slice(0, 1)}</span>
+          <AssetLogo of={p.symbol} size={28} />
           <div>
             <b>{p.symbol}</b>
             <div className="pc-tags">

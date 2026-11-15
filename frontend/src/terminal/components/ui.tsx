@@ -18,11 +18,11 @@ export function LabelBadge({ label }: { label: Label | null }) {
   return label ? <StatusBadge tone={label.tone} className={changed ? "m-pop" : ""}>{label.text}</StatusBadge> : null;
 }
 
-export function SectionHeader({ title, right, sub }: { title: string; right?: ReactNode; sub?: ReactNode }) {
+export function SectionHeader({ title, right, sub, icon }: { title: string; right?: ReactNode; sub?: ReactNode; icon?: ReactNode }) {
   return (
     <div className="sh">
       <div className="sh-l">
-        <h2>{title}</h2>
+        <h2>{icon ? <span className="sh-icon">{icon}</span> : null}{title}</h2>
         {sub ? <div className="sh-sub">{sub}</div> : null}
       </div>
       {right ? <div className="sh-r">{right}</div> : null}

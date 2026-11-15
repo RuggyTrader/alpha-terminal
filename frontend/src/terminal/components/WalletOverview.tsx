@@ -2,6 +2,7 @@
 // A crypto group is the SUM of its bots' wallets (never extra money); MAIN is counted once; profit swept to MAIN is
 // already inside MAIN's balance (it is not added again on top of trading P&L). Unrealized P&L is shown separately.
 
+import { AssetLogo } from "./AssetLogo";
 import { Link } from "react-router-dom";
 import { money, NA, signedMoney, tone } from "../fmt";
 import { ValuationNotice } from "./ValuationNotice";
@@ -43,8 +44,8 @@ export function WalletOverview({ portfolio, paper, feedStale = false }: { portfo
         <div><span>Economic realized P&amp;L</span><b>{signedMoney(s.economicNet)}</b><i>includes unpaid trading losses</i></div>
         <div><span>Unpaid shortfall</span><b className={s.shortfall ? "t-neg" : ""}>{s.shortfall === null ? NA : money(s.shortfall)}</b><i>MAIN does not cover this liability automatically</i></div>
         <div><span>MAIN available</span><b>{s.main === null ? NA : money(s.main)}</b><i>includes profit transferred from bots</i></div>
-        <div><span>SOL allocation</span><b>{money(s.sol)}</b><i>{s.solWallets} wallet{s.solWallets === 1 ? "" : "s"} · part of the total</i></div>
-        <div><span>BTC allocation</span><b>{money(s.btc)}</b><i>{s.btcWallets} wallet{s.btcWallets === 1 ? "" : "s"} · part of the total</i></div>
+        <div><span><AssetLogo of="SOL" size={14} className="inline-logo" />SOL allocation</span><b>{money(s.sol)}</b><i>{s.solWallets} wallet{s.solWallets === 1 ? "" : "s"} · part of the total</i></div>
+        <div><span><AssetLogo of="BTC" size={14} className="inline-logo" />BTC allocation</span><b>{money(s.btc)}</b><i>{s.btcWallets} wallet{s.btcWallets === 1 ? "" : "s"} · part of the total</i></div>
         <div><span>Reserved in positions</span><b>{money(s.reserved)}</b></div>
         <div><span>Unrealized P&amp;L</span><b className={s.unrealized === null ? "" : `t-${tone(s.unrealized)}`}>{s.unrealized === null ? NA : signedMoney(s.unrealized)}</b></div>
       </div>

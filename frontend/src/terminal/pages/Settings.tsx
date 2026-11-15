@@ -3,6 +3,7 @@
 // Editable values say so and link to where they are changed (with the passphrase); everything else is read-only.
 // Broker configuration, infrastructure and diagnostics live under Advanced. No credential is ever shown.
 
+import { AssetLogo } from "../components/AssetLogo";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../../components/icons";
@@ -86,7 +87,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
         <Row k="Account equity">{t ? money(t.book_balance_usd) : NA}</Row>
         {fleet?.available && fleet.main ? <Row k="MAIN wallet (unallocated)">{money(fleet.main.available_usd)}</Row> : null}
         {bots.filter((b) => b.ledger_api === "bot" || b.status === "ACTIVE").map((b) => (
-          <Row key={b.bot_id} k={`${b.name} wallet`}>{money(b.balances.available_usd + b.balances.reserved_usd)}</Row>
+          <div key={b.bot_id} className="li"><span><AssetLogo of={b.symbol} size={16} className="inline-logo" />{b.name} wallet</span><b>{money(b.balances.available_usd + b.balances.reserved_usd)}</b></div>
         ))}
         <Row k="Net realized P&L">{t ? signedMoney(t.net_realized_pnl_usd ?? t.realized_pnl_usd) : NA}</Row>
         <div className="li"><span>Add PAPER capital, allocate to bots, history<i className="sg-edit"> · editable</i></span><Link className="link" to="/portfolio">Wallets →</Link></div>
@@ -97,7 +98,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
           const es = engineStatus(b, now);
           return (
             <div key={b.bot_id} className="li li-wrap">
-              <span><b>{b.name}</b> · {b.symbol.replace(/USD$/, "")} {b.timeframe} · risk {money(b.risk_usd)}<i className="sg-edit"> · editable</i>
+              <span><AssetLogo of={b.symbol} size={16} className="inline-logo" /><b>{b.name}</b> · {b.symbol.replace(/USD$/, "")} {b.timeframe} · risk {money(b.risk_usd)}<i className="sg-edit"> · editable</i>
                 {" · "}{b.ledger_api === "bot" ? "LONG + simulated SHORT" : "legacy ledger: LONG only until switched"}</span>
               <StatusBadge tone={es.tone} dot>{es.label}</StatusBadge>
             </div>

@@ -3,6 +3,7 @@
 // Kraken; the forming candle is drawn separately and labelled; nothing is interpolated between refreshes. Refreshes only
 // while the page is visible. Charts: TradingView Lightweight Charts™ (Apache-2.0), attribution below the chart.
 
+import { AssetLogo } from "../components/AssetLogo";
 import { createChart, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -282,7 +283,7 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
   const f = lv ? chartFigures(lv, fresh === "FRESH" ? lastClose : null) : null;
   return (
     <div className="page-narrow bots-page">
-      <SectionHeader title={bot ? `${bot.name} · ${bot.symbol} ${bot.timeframe}` : id} sub={<Link className="link" to="/bots">← Bots</Link>}
+      <SectionHeader icon={<AssetLogo of={bot?.symbol ?? sym ?? id} size={22} />} title={bot ? `${bot.name} · ${bot.symbol} ${bot.timeframe}` : id} sub={<Link className="link" to="/bots">← Bots</Link>}
         right={bot ? <StatusBadge tone={engineStatus(bot, now).tone} dot>{engineStatus(bot, now).label}</StatusBadge> : null} />
       {err ? <EmptyState title="Trade details unavailable" tone="bad">{err}</EmptyState> : null}
       {marketError ? <EmptyState title={data ? "Market refresh failed — last snapshot" : "Chart unavailable"} tone="bad">{marketError}</EmptyState> : null}

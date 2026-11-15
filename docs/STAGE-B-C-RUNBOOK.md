@@ -79,6 +79,29 @@ The copy is deleted after each run, and production was not contacted after the e
    - the legacy engine's next heartbeat is accepted.
 6. **Rollback:** the Worker needs none. A database restore to the bookmark is a **separate decision**, because it discards anything written after the bookmark; it is never a routine step.
 
+## B. RESULT: applied to production on 2026-11-15 (owner-approved)
+
+**What was run:**
+
+| Item | Value |
+|---|---|
+| Source | Clean checkout of `0a1bc32951f01dd2138f3090b92a36c743f7a0dc`; `0007_bots.sql` SHA-256 `5bc830ba…a6adf`, containing the push-delivery fix |
+| Worker | `f8e31d52` at 100% |
+| Pre-checks | schema 6; database `40741873-…`; only 0007 pending; ALPHA-02 flat; heartbeat 06:24:53 UTC; no pending setup ("Waiting for a swing") |
+| Backup bookmark (06:25:36 UTC) | `00000049-00000858-00005124-5474e9abe7acbc1c72e952a9cc8b1034` |
+| Applied | 06:25:44 UTC, 47 statements; `d1_migrations` id 7 at 06:25:45 |
+
+**Verification, row by row against a private pre-migration snapshot** (stored outside the repository):
+- **Unchanged:** trades 1, alerts 18, orders 6, risk decisions 16, paper fills 2, paper positions 1, portfolio entries 6, trade events 22, **push deliveries 18**, push subscriptions 2, activity events 20, Mirror trades 18, Mirror entries 18, Mirror accounts 1, strategy settings 1.
+  - Only the documented ownership columns were added.
+  - The wallets gained the new `shortfall_micro` column, set to 0.
+- **Integrity:** schema 7; FK check empty; no leftover hold table.
+- **Bots:** the four bots with the original hashes. ALPHA-02 is ACTIVE on the legacy ledger with the SOLUSD wallet; the others are PROPOSED.
+- **Wallets:** new wallets ALPHA-01…04 at $0. The `ALPHA-02` wallet row is created but unused, because ALPHA-02 keeps SOLUSD. MAIN 90.000000 and SOLUSD 9.968321 unchanged.
+- **New tables:** bot positions and pending orders exist and are empty, so no test records.
+- **Engine:** the next heartbeat (06:27:09 UTC) was accepted and is stored per bot (`engine_status:ALPHA-02`).
+- **Website:** Bots shows SOLANA (ALPHA-01 *Not active*, ALPHA-02 *Online — scanning*) and BITCOIN (ALPHA-03 and ALPHA-04 *Not active*).
+
 ## C. ALPHA-02 to the bot ledger: LONG and SHORT (approval: "Stage C")
 
 **Prepared and verified on 2026-11-15** (nothing activated):
@@ -96,7 +119,12 @@ The copy is deleted after each run, and production was not contacted after the e
    - Stage B is verified;
    - ALPHA-02 has no open position (Worker ledger, and engine `position: null`);
    - the engine status is *not* "ORDER PLACED – waiting fill". If it is, wait until the strategy cancels the order or it fills and later closes; a pending order never moves across the switch.
-2. **Stop the old engine.** In Task Scheduler, right-click *ALPHA TERMINAL Engine* → **End**. Then I confirm that no `node … src\cli\run.mjs` and no `run-release.ps1` supervisor process remains, and stop any leftover by its pid. Nothing can submit an order from here on.
+2. **Stop the old engine, with no scheduled restart possible.**
+   - In Task Scheduler, right-click *ALPHA TERMINAL Engine* → **Disable**, then → **End**. Disabling is reversible and changes no trigger or setting.
+   - Then I confirm that no `node … src\cliun.mjs` and no `run-release.ps1` supervisor process remains, and stop any leftover by its pid.
+   - I also confirm that the engine's outbox has **0 pending** items (no undelivered legacy order) and no live order or position.
+   - Nothing can submit an order from here on.
+   - (Original wording follows.) In Task Scheduler, right-click *ALPHA TERMINAL Engine* → **End**. Then I confirm that no `node … src\cli\run.mjs` and no `run-release.ps1` supervisor process remains, and stop any leftover by its pid. Nothing can submit an order from here on.
 3. **Back up the engine state:** copy `%USERPROFILE%\AlphaTerminal\engine-state` to `engine-state-backup-<UTC time>`. The original stays in place and is never reset.
 4. **Switch the Worker route.** In the app: **Bots → ALPHA 02 → Settings → passphrase → "Move to the bot ledger (LONG + SHORT)"**.
    - It is refused if a legacy position is open.
@@ -111,7 +139,7 @@ The copy is deleted after each run, and production was not contacted after the e
    node <checkout>\engine\deploy\release.mjs activate --root %USERPROFILE%\AlphaTerminal\engine-prod --release 0a1bc32951f0 --expect-profile solusd-5m
    ```
    Optionally also run `install-launcher` (same ref), so `bin\release.mjs` carries the startup-trigger guard.
-7. **Start.** In Task Scheduler: right-click → **Run**. This is the first launch under the saved **S4U** setting ("run whether logged on or not"), so it also tests that setting short of a reboot.
+7. **Start.** In Task Scheduler: right-click → **Enable**, then → **Run**. This is the first launch under the saved **S4U** setting ("run whether logged on or not"), so it also tests that setting short of a reboot.
 8. **Verify:**
    - exactly one engine process;
    - `supervisor.log` shows the release `0a1bc32951f0` verified;

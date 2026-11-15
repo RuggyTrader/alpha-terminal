@@ -2,6 +2,7 @@
 // why it exited, the original plan, and actions (chart, full proof, ask ALPHA). Engine ids, payloads and fee
 // arithmetic live on the proof page. Every figure is the ledger's; explanations come only from recorded fields.
 
+import { AssetLogo } from "./AssetLogo";
 import { Link } from "react-router-dom";
 import { costMoney, money, NA, signedMoney, stamp, tone } from "../fmt";
 import { PAPER_FILL_DISCLOSURE } from "../disclosures";
@@ -9,7 +10,6 @@ import { askAlpha } from "../askAlpha";
 import { explainEntry, explainExit, hypotheticalFees, planFigures, type TradeView } from "../tradeStory";
 import { Expandable, StatusBadge } from "./ui";
 
-const GLYPH: Record<string, string> = { SOLUSD: "◎", BTCUSD: "₿", ETHUSD: "Ξ" };
 const px = (v: number | null) => (v === null ? NA : v >= 1000 ? v.toFixed(1) : v.toFixed(2));
 
 export function duration(a: string | null, b: string | null): string | null {
@@ -36,7 +36,7 @@ export function TradeStoryCard({ v, defaultOpen = false }: { v: TradeView; defau
       defaultOpen={defaultOpen}
       head={
         <div className="tc-head">
-          <span className="tc-coin" aria-hidden="true">{GLYPH[v.symbol] ?? "α"}</span>
+          <AssetLogo of={v.symbol} size={30} className="tc-coin" />
           <div className="tc-main">
             <div className="tc-l1"><b>{v.symbol}</b><span className="tc-bot">{v.botLabel}{v.timeframe ? ` · ${v.timeframe}` : ""}</span>
               <span className={`tc-side ${v.side === "LONG" ? "is-long" : "is-short"}`}>{v.side}</span>{!closed ? <StatusBadge tone="info">OPEN</StatusBadge> : null}

@@ -1,3 +1,4 @@
+import { AssetLogo } from "./AssetLogo";
 import { actionLabel, alertLabel, alertTone, duplicateLabel } from "../classify";
 import { qty, stamp, text, upper, when } from "../fmt";
 import type { AlertRow } from "../types";
@@ -14,7 +15,7 @@ export function AlertCard({ a, defaultOpen = false }: { a: AlertRow; defaultOpen
       head={
         <>
           <div className="row-a">
-            <b className="sym">{text(a.symbol)}</b>
+            <AssetLogo of={a.symbol} size={18} className="inline-logo" /><b className="sym">{text(a.symbol)}</b>
             <span className={`act t-${act.tone}`}>{act.text}</span>
             {a.strategy ? <span className="strat">{a.strategy}</span> : null}
             <span className="time">{when(a.received_at)}</span>

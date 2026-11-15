@@ -538,3 +538,11 @@ h1, h2, h3, p { margin: 0; }
 .bot-chart-btn { display: flex; justify-content: center; width: 100%; margin: 10px 0 4px; color: #fff; }
 .bot-details > summary { cursor: pointer; padding: 8px 0; font-size: 13px; font-weight: 650; color: var(--ink-2); }
 details.sizing-note > summary { cursor: pointer; font-weight: 650; }
+
+/* ---- Asset identity (components/AssetLogo.tsx): the real logo beside the market or bot name ---- */
+.asset-logo { display: inline-flex; flex: none; align-items: center; justify-content: center; border-radius: 999px; overflow: hidden; vertical-align: middle; line-height: 0; }
+.asset-logo svg { display: block; width: 100%; height: 100%; }
+.asset-logo-fallback { background: var(--surface-2); color: var(--muted); font-weight: 750; letter-spacing: 0.02em; line-height: 1; box-shadow: inset 0 0 0 1px var(--line-strong); }
+.inline-logo { margin-right: 6px; position: relative; top: -1px; }
+.sh-icon { display: inline-flex; vertical-align: middle; margin-right: 8px; position: relative; top: -2px; }
+.bot-ic.asset-logo, .tc-coin.asset-logo, .bp-ic.asset-logo { background: none; box-shadow: none; }

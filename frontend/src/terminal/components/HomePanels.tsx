@@ -1,3 +1,4 @@
+import { AssetLogo } from "./AssetLogo";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { SOURCE_LABEL, type ActivityItem, type ActivityState } from "../activity";
@@ -61,7 +62,7 @@ export function ActivityRowView({ e }: { e: ActivityItem }) {
         <span className={`ac-src ac-src-${e.source}`}>{SOURCE_LABEL[e.source] ?? e.source.toUpperCase()}</span>
         {e.classification && e.classification !== "live" ? <span className="ac-cls">{e.classification === "catch_up" ? "catch-up" : e.classification}</span> : null}
       </div>
-      <div className="ac-title">{e.title}</div>
+      <div className="ac-title">{e.symbol ? <AssetLogo of={e.symbol} size={16} className="inline-logo" /> : null}{e.title}</div>
       {e.outcome ? <div className="ac-out">{e.outcome}</div> : null}
     </>
   );

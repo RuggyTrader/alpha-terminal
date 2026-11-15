@@ -6,6 +6,7 @@
 //   Rejected  orders the ledger refused, and rejected legacy signals, in plain language with the original code kept
 // Filters: market, timeframe, direction. Funded PAPER only: Strategy Mirror (hypothetical) trades are never listed here.
 
+import { AssetLogo } from "./AssetLogo";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useBotTrades, type BotOrderRow, type BotTrades, type SignalRow } from "../botTrades";
@@ -149,7 +150,7 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
           <div className="card list-card" aria-label="Pending orders">
             {r.pending.map((p) => (
               <div key={p.bot.bot_id} className="li">
-                <span><b>{label(p.bot, null)} · {p.side} limit {p.limit ?? NA}</b> · stop {p.stop ?? NA} · target {p.tp ?? NA} · qty {p.qty}{p.durable && p.durable.requested_qty !== p.qty ? ` of ${p.durable.requested_qty} requested` : ""}
+                <span><AssetLogo of={p.bot.symbol} size={18} className="inline-logo" /><b>{label(p.bot, null)} · {p.side} limit {p.limit ?? NA}</b> · stop {p.stop ?? NA} · target {p.tp ?? NA} · qty {p.qty}{p.durable && p.durable.requested_qty !== p.qty ? ` of ${p.durable.requested_qty} requested` : ""}
                   {p.durable?.actual_risk_usd != null ? ` · risk $${p.durable.actual_risk_usd.toFixed(2)}` : ""}{p.placedAt ? ` · placed ${stamp(p.placedAt)}` : ""}{p.durable?.expires_at ? ` · expires ${stamp(p.durable.expires_at)}` : ""}
                   {p.durable ? null : <i> · from the engine report (no ledger record on this backend)</i>}</span>
                 <Link className="btn btn-ghost" to={`/bots/${p.bot.bot_id}/chart`}>View chart</Link>
@@ -166,7 +167,7 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
             {r.legacyOpen.map(({ bot, p }) => (
               <div key={`lo-${p.trade_id}`} className="card list-card">
                 <div className="li">
-                  <span><b>{label(bot, null)} · {p.side} {p.qty} @ {p.entry_price}</b> · opened {stamp(p.opened_at)} · legacy ledger (its trade record and proof are written at the close)</span>
+                  <span><AssetLogo of={bot.symbol} size={18} className="inline-logo" /><b>{label(bot, null)} · {p.side} {p.qty} @ {p.entry_price}</b> · opened {stamp(p.opened_at)} · legacy ledger (its trade record and proof are written at the close)</span>
                   <Link className="btn btn-ghost" to={`/bots/${bot.bot_id}/chart`}>View chart</Link>
                 </div>
               </div>
@@ -191,7 +192,7 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
           <div className="card list-card" aria-label="Rejected and cancelled">
             {r.rejected.map((x) => (
               <div key={x.key} className="li">
-                <span><b>{label(x.botId ? bots.find((b) => b.bot_id === x.botId) : undefined, x.botId)}{x.side ? ` · ${x.side}` : ""}</b> · {x.text} · {stamp(x.at)}
+                <span><AssetLogo of={x.symbol || x.botId} size={18} className="inline-logo" /><b>{label(x.botId ? bots.find((b) => b.bot_id === x.botId) : undefined, x.botId)}{x.side ? ` · ${x.side}` : ""}</b> · {x.text} · {stamp(x.at)}
                   <details><summary>Details</summary><code>{x.code}</code> · <code>{x.ref}</code></details></span>
                 <StatusBadge tone={x.kind && x.kind !== "REJECTED" ? "muted" : "bad"}>{x.kind ?? "REJECTED"}</StatusBadge>
               </div>

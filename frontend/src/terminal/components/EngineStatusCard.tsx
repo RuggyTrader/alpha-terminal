@@ -1,3 +1,4 @@
+import { AssetLogo } from "./AssetLogo";
 import { Link } from "react-router-dom";
 import { fleetEngineStatus } from "../bots";
 import { useFleet } from "../fleetStore";
@@ -21,7 +22,7 @@ export function EngineStatusCard({ now = Date.now() }: { now?: number }) {
           <div className="es-list">
             {byBot.map(({ bot, status }) => (
               <Link key={bot.bot_id} to={`/bots/${bot.bot_id}/chart`} className="es-row">
-                <span><b>{bot.name}</b> {bot.symbol.replace(/USD$/, "")} {bot.timeframe}</span>
+                <span><AssetLogo of={bot.symbol} size={18} className="inline-logo" /><b>{bot.name}</b> {bot.symbol.replace(/USD$/, "")} {bot.timeframe}</span>
                 <StatusBadge tone={status.tone} dot>{status.label}</StatusBadge>
                 <i>{status.detail}</i>
               </Link>

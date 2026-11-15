@@ -2,19 +2,19 @@
 // /api/dashboard/bots). Several bots show at once; nothing rotates through inactive bots; a stale or offline bot stops
 // animating; a proposed bot is shown as not running. Reads the shared fleet snapshot (fleetStore.ts).
 
+import { AssetLogo } from "./AssetLogo";
 import { Link } from "react-router-dom";
 import { botPhase, botState, STATE_TONE, type Bot } from "../bots";
 import { useFleet } from "../fleetStore";
 import { SectionHeader, StatusBadge } from "./ui";
 import { stamp } from "../fmt";
-import { COIN } from "../pages/Bots";
 
 export function BotPipelineRow({ b, nowMs }: { b: Bot; nowMs: number }) {
   const s = botState(b, nowMs);
   const p = botPhase(b, nowMs);
   return (
     <li className="bp-row" aria-label={`${b.name} ${b.symbol} ${b.timeframe}`}>
-      <span className="bot-ic bp-ic" aria-hidden="true">{COIN[b.symbol]?.glyph ?? "α"}</span>
+      <AssetLogo of={b.symbol} size={26} className="bp-ic" />
       <div className="bp-main">
         <b>{b.name} · {b.symbol} {b.timeframe}</b>
         <span className={`bot-phase ${p.live ? "is-live" : ""}`}>{p.phase}{p.detail ? <span> · {p.detail}</span> : null}</span>

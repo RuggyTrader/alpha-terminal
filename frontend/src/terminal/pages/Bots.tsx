@@ -3,6 +3,7 @@
 // actions (allocate from MAIN, dollar risk, pause/resume NEW entries) need the passphrase and are recorded server-side.
 // There is no long-only/short-only selector: every bot always evaluates both directions.
 
+import { AssetLogo } from "../components/AssetLogo";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { newRequestId } from "../api";
@@ -17,7 +18,6 @@ import { backendErrorMessage, humanReason } from "../tradeStory";
 
 const pct = (v: number | null) => (v === null ? NA : `${(v * 100).toFixed(0)}%`);
 const pf = (v: number | null) => (v === null ? NA : v.toFixed(2));
-export const COIN: Record<string, { glyph: string; name: string }> = { SOLUSD: { glyph: "◎", name: "Solana" }, BTCUSD: { glyph: "₿", name: "Bitcoin" }, ETHUSD: { glyph: "Ξ", name: "Ethereum" } };
 
 function Passphrase({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return <input className="input" type="password" autoComplete="current-password" placeholder="Passphrase" aria-label="Passphrase" value={value} onChange={(e) => onChange(e.target.value)} />;
@@ -75,7 +75,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
   return (
     <section className="card bot-card" aria-label={`${b.name} ${b.symbol} ${b.timeframe}`}>
       <div className="bot-h">
-        <span className="bot-ic" aria-hidden="true">{COIN[b.symbol]?.glyph ?? "α"}</span>
+        <AssetLogo of={b.symbol} size={34} className="bot-ic" />
         <div>
           <b>{b.name} <span className="bot-id">{b.timeframe}</span></b>
           <span className="bot-sub">KRAKEN:{b.symbol}</span>
@@ -85,7 +85,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
       {b.status === "PROPOSED" ? <p className="sizing-note">Exact settings registered; not approved and not running. No activity is shown for it.</p> : null}
       <p className={`bot-phase ${phase.live ? "is-live" : ""}`}>{phase.phase}{phase.detail ? <span> · {phase.detail}</span> : null}</p>
       <div className="sizing-grid bot-key">
-        <div><span>Last scan</span><b>{e?.last_candle_time ? stamp(e.last_candle_time) : NA}</b></div>
+        <div><span>Last scan (candle, UTC)</span><b>{e?.last_candle_time ? `${e.last_candle_time.slice(5, 10)} ${e.last_candle_time.slice(11, 16)}` : NA}</b></div>
         <div><span>Allocated</span><b>{money(b.funding.allocated_usd + b.funding.transferred_in_usd)}</b></div>
         <div><span>Net PAPER P&amp;L</span><b className={`t-${tone(b.paper.net_usd)}`}>{signedMoney(b.paper.net_usd)}</b></div>
       </div>
@@ -217,7 +217,7 @@ export function BotsPage() {
             const t = groupTotals(bots);
             return (
               <section key={g.group_id} className="bot-group" aria-label={`${g.name} bots`}>
-                <SectionHeader title={`${COIN[g.symbol]?.glyph ?? ""} ${g.name.toUpperCase()}`} sub={`${bots.length} bots · net PAPER ${signedMoney(t.net_usd)} · available ${money(t.available_usd)} · in positions ${money(t.reserved_usd)}`} />
+                <SectionHeader icon={<AssetLogo of={g.symbol} size={22} />} title={g.name.toUpperCase()} sub={`${bots.length} bots · net PAPER ${signedMoney(t.net_usd)} · available ${money(t.available_usd)} · in positions ${money(t.reserved_usd)}`} />
                 {bots.map((b) => <BotCard key={b.bot_id} b={b} nowMs={now} onChanged={load} />)}
               </section>
             );

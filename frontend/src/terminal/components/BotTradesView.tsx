@@ -1,6 +1,7 @@
 // The Trades / Performance filtered views (?bot=ALPHA-NN, ?signal=<id>): the bot's OWN records from the ledger, each
 // linked to its trade proof. A filter that matches nothing says so; nothing is estimated. Bot chips switch the filter.
 
+import { AssetLogo } from "./AssetLogo";
 import { Link } from "react-router-dom";
 import { useBotTrades, RECENT_TRADE_LIMIT, type BotTradeRow, type BotTradesPage } from "../botTrades";
 import { useFleet } from "../fleetStore";
@@ -50,7 +51,7 @@ export function BotChips({ base, active }: { base: "/trades" | "/performance"; a
   return (
     <nav className="bot-chips" aria-label="Filter by bot">
       <Link className={`chip ${active ? "" : "on"}`} to={base}>All</Link>
-      {bots.map((b) => <Link key={b.bot_id} className={`chip ${active === b.bot_id ? "on" : ""}`} to={`${base}?bot=${b.bot_id}`}>{b.name} · {b.symbol} {b.timeframe}</Link>)}
+      {bots.map((b) => <Link key={b.bot_id} className={`chip ${active === b.bot_id ? "on" : ""}`} to={`${base}?bot=${b.bot_id}`}><AssetLogo of={b.symbol} size={14} decorative className="inline-logo" />{b.name} · {b.symbol} {b.timeframe}</Link>)}
     </nav>
   );
 }
@@ -123,7 +124,7 @@ export function BotLifetimePanel({ b }: { b: Bot }) {
   const p = b.paper;
   const rate = (v: number | null) => v === null ? NA : `${(v * 100).toFixed(1)}%`;
   return <section className="card dark-card" aria-label={`${b.bot_id} funded performance`}>
-    <SectionHeader title={`${b.name} · ${b.symbol} ${b.timeframe}`} sub="Lifetime · all closed trades" right={<StatusBadge tone="ok">FUNDED PAPER</StatusBadge>} />
+    <SectionHeader icon={<AssetLogo of={b.symbol} size={20} />} title={`${b.name} · ${b.symbol} ${b.timeframe}`} sub="Lifetime · all closed trades" right={<StatusBadge tone="ok">FUNDED PAPER</StatusBadge>} />
     <div className="pm-grid">
       <div className="pm"><span className="pm-k">NET P&amp;L</span><b className={`pm-v t-${tone(p.net_usd)}`}>{signedMoney(p.net_usd)}</b><i className="pm-n">after fees</i></div>
       <div className="pm"><span className="pm-k">GROSS</span><b className="pm-v">{signedMoney(p.gross_usd)}</b><i className="pm-n">fees {money(p.fees_usd)}</i></div>
