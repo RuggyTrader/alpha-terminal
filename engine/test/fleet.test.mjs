@@ -294,6 +294,32 @@ describe("stage D: owner-approved activation of registered PROPOSED bots", () =>
   });
 });
 
+describe("pending-order reconciliation (production 2026-11-15)", () => {
+  it("a pending order the ledger holds but the engine no longer works is cancelled, with the ledger's own id", async () => {
+    const seen = [];
+    let ledgerPending = { order_id: "ENG-ALPHA-01-SOLUSD-1-ORPHAN-PLACE_SHORT", side: "SHORT", limit: 70.87, accepted_qty: 0.14, placed_at: "x", expires_at: null };
+    const http = async (url, init) => {
+      const path = String(url).replace(/^.*\/webhook\//, ""); const body = JSON.parse(init.body); seen.push({ path, body });
+      if (path === "bot-ledger") return new Response(JSON.stringify({ ok: true, position: null, alerts: {}, pending_order: ledgerPending, balance: { available_usd: 20, bot_available_usd: 20, max_order_notional_usd: 5000 } }), { status: 200 });
+      if (path === "bot-order" && body.action === "CANCEL_ORDER") { ledgerPending = null; return new Response(JSON.stringify({ ok: true, code: "ORDER_CANCELLED", data: {} }), { status: 200 }); }
+      if (path === "bot-order") return new Response(JSON.stringify({ ok: true, code: body.action === "PLACE_LIMIT" ? "ORDER_PENDING" : "DRY_RUN_ACCEPTED" }), { status: 200 });
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+    const [{ cfg }] = loadBotConfigs(["ALPHA-01"], env0({ ENGINE_SYNC: "on", ALPHA_API_BASE: "http://127.0.0.1:9", ALPHA_WEBHOOK_SECRET: "s", ENGINE_MIRROR: "off" }), ENGINE, { allowProposed: true });
+    const clock = { now: SOL1[300].t + 70_000 };
+    const r = new EngineRunner(cfg, { fetchCandles: async ({ sinceMs }) => SOL1.filter((k) => k.t + 60_000 <= clock.now && (sinceMs === null || k.t > sinceMs)), http, now: () => clock.now, log: () => {} });
+    await r.tick();
+    assert.equal(r.state.liveOrder ?? null, null, "precondition: the engine itself works no order at this candle");
+    clock.now += 60_000; await r.tick();
+    const cancel = seen.find((s) => s.path === "bot-order" && s.body.action === "CANCEL_ORDER");
+    assert.ok(cancel, "a reconciliation cancel was sent");
+    assert.equal(cancel.body.target_order_id, "ENG-ALPHA-01-SOLUSD-1-ORPHAN-PLACE_SHORT");
+    clock.now += 60_000; await r.tick();
+    assert.equal(seen.filter((s) => s.path === "bot-order" && s.body.action === "CANCEL_ORDER").length, 1, "sent once");
+    assert.equal(r.state.ledgerCheck.status, "OK", "reconciled");
+  });
+});
+
 describe("four independent bots in one process", () => {
   it("one market-data request per market and timeframe per round", async () => {
     let calls = 0;

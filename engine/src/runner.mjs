@@ -571,6 +571,16 @@ export class EngineRunner {
     const sideOf = (n) => (n === 1 ? "LONG" : "SHORT");
     const status = warmup ? "historical" : "pending";
     if (prev && (!live || live.limit !== prev.limit || sideOf(live.side) !== prev.side || live.qty !== prev.qtyRaw)) {
+      if (live) {
+        // Replaced by a new strategy order: cancel the old one explicitly, so the ledger never keeps an order the engine
+        // no longer works even when the replacement itself cannot be sent (too late after an outage).
+        const id = `${this.idPrefix}-${iso(k.t)}-CANCEL-REPLACED`;
+        if (!S.outbox.some((x) => x.id === id)) {
+          S.outbox.push({ id, action: "CANCEL_ORDER", kind: "ORDER", targetId: prev.id, reasonCode: "CANCELLED", cancelReason: "replaced by a newer strategy order",
+            barTime: iso(k.t), barClose: iso(closeMs), createdAt: iso(nowMs), status, code: null, reason: warmup ? "warm-up history" : null, attempts: 0 });
+        }
+        this.audit({ type: "pending_order", event: "REPLACED", id: prev.id });
+      }
       if (!live) {
         const sc = events.find((e) => e.type === "SETUP_CANCELLED");
         const sk = events.find((e) => e.type === "ORDER_SKIPPED");
@@ -640,7 +650,9 @@ export class EngineRunner {
       const ageMs = this.now() - Date.parse(item.barClose);
 
       if (item.kind === "ORDER") {
-        if (item.action === "CANCEL_ORDER") {
+        if (item.action === "CANCEL_ORDER" && item.reconcile) {
+          // reconciliation: the ledger itself reported this order as pending; nothing to check here
+        } else if (item.action === "CANCEL_ORDER") {
           const target = box.find((x) => x.id === item.targetId);
           if (target && target.status === "pending") return; // keep order
           if (!target || target.status !== "accepted") {
@@ -806,7 +818,17 @@ export class EngineRunner {
       const lo = S.liveOrder ? S.outbox.find((x) => x.id === S.liveOrder.id) : null;
       const lpo = L.pendingOrder;
       if (lo && lo.status === "accepted" && (!lpo || lpo.order_id !== lo.id)) issues.push(`the engine's pending order ${lo.id} is ${lpo ? `not the ledger's (${lpo.order_id})` : "not pending in the ledger"}`);
-      if (!lo && lpo) issues.push(`the ledger has a pending order ${lpo.order_id} that the engine is not working`);
+      if (!lo && lpo) {
+        issues.push(`the ledger has a pending order ${lpo.order_id} that the engine is not working; cancelling it`);
+        const id = `${this.idPrefix}-RECONCILE-CANCEL-${lpo.order_id}`.slice(0, 160);
+        if (!S.outbox.some((x) => x.id === id)) {
+          S.outbox.push({ id, action: "CANCEL_ORDER", kind: "ORDER", targetId: lpo.order_id, reconcile: true, reasonCode: "CANCELLED",
+            cancelReason: "reconciliation: the engine is not working this order (its strategy setup ended or was replaced)",
+            barTime: at, barClose: at, createdAt: at, status: "pending", code: null, reason: null, attempts: 0 });
+          this.audit({ type: "pending_order", event: "RECONCILE_CANCEL", id: lpo.order_id });
+          this.save();
+        }
+      }
     }
     S.ledgerCheck = {
       status: issues.length ? "DIVERGED" : "OK", at, issues: issues.slice(0, 5),

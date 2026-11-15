@@ -1,0 +1,1088 @@
+{
+ "label": "RESEARCH (recorded Kraken candles; not production results)",
+ "wallet_per_bot": 20,
+ "variant": {},
+ "fee_levels_pct_per_fill": [
+  0,
+  0.02,
+  0.05,
+  0.1,
+  0.2
+ ],
+ "bots": {
+  "ALPHA-02": {
+   "symbol": "SOLUSD",
+   "timeframe": "5m",
+   "profile": "solusd-5m",
+   "data": {
+    "from": "2026-06-12T00:00:00.000Z",
+    "to": "2026-11-08T23:55:00.000Z",
+    "candles": 43188,
+    "warmup_until": "2026-06-14T00:00:00.000Z",
+    "split": "2026-09-10T19:09:00.000Z"
+   },
+   "periods": {
+    "development": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 364,
+       "long": 194,
+       "short": 170,
+       "gross": 0.8581,
+       "fees": 0,
+       "net": 0.8581,
+       "turnover": 11452.73,
+       "win_rate": 0.368,
+       "profit_factor": 1.119,
+       "expectancy": 0.0024,
+       "max_drawdown": 0.8973,
+       "gross_per_turnover_pct": 0.0075
+      },
+      "0.02%": {
+       "trades": 364,
+       "long": 194,
+       "short": 170,
+       "gross": 0.8153,
+       "fees": 2.1942,
+       "net": -1.3789,
+       "turnover": 10970.8,
+       "win_rate": 0.321,
+       "profit_factor": 0.836,
+       "expectancy": -0.0038,
+       "max_drawdown": 2.2727,
+       "gross_per_turnover_pct": 0.0074
+      },
+      "0.05%": {
+       "trades": 364,
+       "long": 194,
+       "short": 170,
+       "gross": 0.7527,
+       "fees": 5.1253,
+       "net": -4.3726,
+       "turnover": 10250.6,
+       "win_rate": 0.266,
+       "profit_factor": 0.565,
+       "expectancy": -0.012,
+       "max_drawdown": 4.6139,
+       "gross_per_turnover_pct": 0.0073
+      },
+      "0.1%": {
+       "trades": 364,
+       "long": 194,
+       "short": 170,
+       "gross": 0.6592,
+       "fees": 9.1111,
+       "net": -8.4518,
+       "turnover": 9111.08,
+       "win_rate": 0.209,
+       "profit_factor": 0.321,
+       "expectancy": -0.0232,
+       "max_drawdown": 8.4874,
+       "gross_per_turnover_pct": 0.0072
+      },
+      "0.2%": {
+       "trades": 320,
+       "long": 168,
+       "short": 152,
+       "gross": 0.4909,
+       "fees": 13.5711,
+       "net": -13.0802,
+       "turnover": 6785.55,
+       "win_rate": 0.119,
+       "profit_factor": 0.128,
+       "expectancy": -0.0409,
+       "max_drawdown": 13.0929,
+       "gross_per_turnover_pct": 0.0072
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 320,
+      "long": 169,
+      "short": 151,
+      "gross": 0.5254,
+      "fees": 13.801,
+      "net": -13.2756,
+      "turnover": 6900.5,
+      "win_rate": 0.122,
+      "profit_factor": 0.114,
+      "expectancy": -0.0415,
+      "max_drawdown": 13.3119,
+      "gross_per_turnover_pct": 0.0076
+     },
+     "break_even_fee_pct_per_fill": 0.0075,
+     "check_at_0_20": {
+      "gross": 0.4909,
+      "fees": 13.5711,
+      "net": -13.0802
+     }
+    },
+    "out_of_sample": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 211,
+       "long": 114,
+       "short": 97,
+       "gross": 0.9981,
+       "fees": 0,
+       "net": 0.9981,
+       "turnover": 7284.56,
+       "win_rate": 0.384,
+       "profit_factor": 1.229,
+       "expectancy": 0.0047,
+       "max_drawdown": 0.742,
+       "gross_per_turnover_pct": 0.0137
+      },
+      "0.02%": {
+       "trades": 211,
+       "long": 114,
+       "short": 97,
+       "gross": 0.9407,
+       "fees": 1.4195,
+       "net": -0.4788,
+       "turnover": 7097.58,
+       "win_rate": 0.351,
+       "profit_factor": 0.907,
+       "expectancy": -0.0023,
+       "max_drawdown": 1.5587,
+       "gross_per_turnover_pct": 0.0133
+      },
+      "0.05%": {
+       "trades": 211,
+       "long": 114,
+       "short": 97,
+       "gross": 0.8539,
+       "fees": 3.4058,
+       "net": -2.5519,
+       "turnover": 6811.62,
+       "win_rate": 0.313,
+       "profit_factor": 0.6,
+       "expectancy": -0.0121,
+       "max_drawdown": 2.7352,
+       "gross_per_turnover_pct": 0.0125
+      },
+      "0.1%": {
+       "trades": 211,
+       "long": 114,
+       "short": 97,
+       "gross": 0.7165,
+       "fees": 6.3503,
+       "net": -5.6338,
+       "turnover": 6350.34,
+       "win_rate": 0.27,
+       "profit_factor": 0.317,
+       "expectancy": -0.0267,
+       "max_drawdown": 5.6338,
+       "gross_per_turnover_pct": 0.0113
+      },
+      "0.2%": {
+       "trades": 211,
+       "long": 114,
+       "short": 97,
+       "gross": 0.4647,
+       "fees": 10.9261,
+       "net": -10.4614,
+       "turnover": 5463.06,
+       "win_rate": 0.152,
+       "profit_factor": 0.094,
+       "expectancy": -0.0496,
+       "max_drawdown": 10.4614,
+       "gross_per_turnover_pct": 0.0085
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 211,
+      "long": 114,
+      "short": 97,
+      "gross": 0.2195,
+      "fees": 10.8513,
+      "net": -10.6317,
+      "turnover": 5425.63,
+      "win_rate": 0.152,
+      "profit_factor": 0.102,
+      "expectancy": -0.0504,
+      "max_drawdown": 10.6317,
+      "gross_per_turnover_pct": 0.004
+     },
+     "break_even_fee_pct_per_fill": 0.0137,
+     "check_at_0_20": {
+      "gross": 0.4647,
+      "fees": 10.9261,
+      "net": -10.4614
+     }
+    },
+    "full": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 575,
+       "long": 308,
+       "short": 267,
+       "gross": 1.4948,
+       "fees": 0,
+       "net": 1.4948,
+       "turnover": 16100.04,
+       "win_rate": 0.374,
+       "profit_factor": 1.149,
+       "expectancy": 0.0026,
+       "max_drawdown": 0.8973,
+       "gross_per_turnover_pct": 0.0093
+      },
+      "0.02%": {
+       "trades": 575,
+       "long": 308,
+       "short": 267,
+       "gross": 1.3611,
+       "fees": 3.0178,
+       "net": -1.6567,
+       "turnover": 15088.96,
+       "win_rate": 0.332,
+       "profit_factor": 0.855,
+       "expectancy": -0.0029,
+       "max_drawdown": 2.6382,
+       "gross_per_turnover_pct": 0.009
+      },
+      "0.05%": {
+       "trades": 575,
+       "long": 308,
+       "short": 267,
+       "gross": 1.1775,
+       "fees": 6.8194,
+       "net": -5.642,
+       "turnover": 13638.88,
+       "win_rate": 0.283,
+       "profit_factor": 0.573,
+       "expectancy": -0.0098,
+       "max_drawdown": 5.9681,
+       "gross_per_turnover_pct": 0.0086
+      },
+      "0.1%": {
+       "trades": 554,
+       "long": 299,
+       "short": 255,
+       "gross": 0.8753,
+       "fees": 11.3245,
+       "net": -10.4492,
+       "turnover": 11324.47,
+       "win_rate": 0.229,
+       "profit_factor": 0.318,
+       "expectancy": -0.0189,
+       "max_drawdown": 10.4848,
+       "gross_per_turnover_pct": 0.0077
+      },
+      "0.2%": {
+       "trades": 349,
+       "long": 183,
+       "short": 166,
+       "gross": 0.5523,
+       "fees": 14.1157,
+       "net": -13.5634,
+       "turnover": 7057.84,
+       "win_rate": 0.126,
+       "profit_factor": 0.127,
+       "expectancy": -0.0389,
+       "max_drawdown": 13.5634,
+       "gross_per_turnover_pct": 0.0078
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 349,
+      "long": 185,
+      "short": 164,
+      "gross": 0.5873,
+      "fees": 14.3467,
+      "net": -13.7594,
+      "turnover": 7173.35,
+      "win_rate": 0.129,
+      "profit_factor": 0.115,
+      "expectancy": -0.0394,
+      "max_drawdown": 13.7594,
+      "gross_per_turnover_pct": 0.0082
+     },
+     "break_even_fee_pct_per_fill": 0.0093,
+     "check_at_0_20": {
+      "gross": 0.5523,
+      "fees": 14.1157,
+      "net": -13.5634
+     }
+    }
+   },
+   "regimes_full_at_0_20": {
+    "trending + high volatility": {
+     "weeks": 10,
+     "trades": 126,
+     "long": 65,
+     "short": 61,
+     "gross": 1.1302,
+     "fees": 4.8998,
+     "net": -3.7695,
+     "turnover": 2449.88,
+     "win_rate": 0.198,
+     "profit_factor": 0.277,
+     "expectancy": -0.0299,
+     "max_drawdown": 3.7695,
+     "gross_per_turnover_pct": 0.0461
+    },
+    "sideways + high volatility": {
+     "weeks": 1,
+     "trades": 26,
+     "long": 18,
+     "short": 8,
+     "gross": -0.3613,
+     "fees": 1.7522,
+     "net": -2.1136,
+     "turnover": 876.11,
+     "win_rate": 0.154,
+     "profit_factor": 0.082,
+     "expectancy": -0.0813,
+     "max_drawdown": 2.1136,
+     "gross_per_turnover_pct": -0.0412
+    },
+    "trending + low volatility": {
+     "weeks": 1,
+     "trades": 34,
+     "long": 19,
+     "short": 15,
+     "gross": 0.065,
+     "fees": 1.8008,
+     "net": -1.7357,
+     "turnover": 900.38,
+     "win_rate": 0.147,
+     "profit_factor": 0.079,
+     "expectancy": -0.0511,
+     "max_drawdown": 1.7357,
+     "gross_per_turnover_pct": 0.0072
+    },
+    "sideways + low volatility": {
+     "weeks": 10,
+     "trades": 163,
+     "long": 81,
+     "short": 82,
+     "gross": -0.2816,
+     "fees": 5.6629,
+     "net": -5.9445,
+     "turnover": 2831.47,
+     "win_rate": 0.061,
+     "profit_factor": 0.033,
+     "expectancy": -0.0365,
+     "max_drawdown": 5.9445,
+     "gross_per_turnover_pct": -0.0099
+    }
+   }
+  },
+  "ALPHA-03": {
+   "symbol": "BTCUSD",
+   "timeframe": "1m",
+   "profile": "btcusd-1m",
+   "data": {
+    "from": "2026-08-01T00:00:00.000Z",
+    "to": "2026-11-11T23:59:00.000Z",
+    "candles": 148194,
+    "warmup_until": "2026-08-03T00:00:00.000Z",
+    "split": "2026-10-02T14:23:24.000Z"
+   },
+   "periods": {
+    "development": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 552,
+       "long": 268,
+       "short": 284,
+       "gross": 1.2089,
+       "fees": 0,
+       "net": 1.2089,
+       "turnover": 18605.06,
+       "win_rate": 0.371,
+       "profit_factor": 1.192,
+       "expectancy": 0.0022,
+       "max_drawdown": 0.5515,
+       "gross_per_turnover_pct": 0.0065
+      },
+      "0.02%": {
+       "trades": 552,
+       "long": 268,
+       "short": 284,
+       "gross": 1.1454,
+       "fees": 3.4789,
+       "net": -2.3335,
+       "turnover": 17394.32,
+       "win_rate": 0.303,
+       "profit_factor": 0.714,
+       "expectancy": -0.0042,
+       "max_drawdown": 2.3491,
+       "gross_per_turnover_pct": 0.0066
+      },
+      "0.05%": {
+       "trades": 552,
+       "long": 268,
+       "short": 284,
+       "gross": 1.0443,
+       "fees": 7.8023,
+       "net": -6.758,
+       "turnover": 15604.52,
+       "win_rate": 0.232,
+       "profit_factor": 0.368,
+       "expectancy": -0.0122,
+       "max_drawdown": 6.758,
+       "gross_per_turnover_pct": 0.0067
+      },
+      "0.1%": {
+       "trades": 552,
+       "long": 268,
+       "short": 284,
+       "gross": 0.8693,
+       "fees": 12.8826,
+       "net": -12.0134,
+       "turnover": 12882.62,
+       "win_rate": 0.147,
+       "profit_factor": 0.146,
+       "expectancy": -0.0218,
+       "max_drawdown": 12.0134,
+       "gross_per_turnover_pct": 0.0067
+      },
+      "0.2%": {
+       "trades": 378,
+       "long": 185,
+       "short": 193,
+       "gross": 0.6401,
+       "fees": 15.5559,
+       "net": -14.9158,
+       "turnover": 7777.94,
+       "win_rate": 0.061,
+       "profit_factor": 0.034,
+       "expectancy": -0.0395,
+       "max_drawdown": 14.9158,
+       "gross_per_turnover_pct": 0.0082
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 376,
+      "long": 184,
+      "short": 192,
+      "gross": 0.5578,
+      "fees": 15.5086,
+      "net": -14.9507,
+      "turnover": 7754.28,
+      "win_rate": 0.059,
+      "profit_factor": 0.032,
+      "expectancy": -0.0398,
+      "max_drawdown": 14.9507,
+      "gross_per_turnover_pct": 0.0072
+     },
+     "break_even_fee_pct_per_fill": 0.0065,
+     "check_at_0_20": {
+      "gross": 0.6401,
+      "fees": 15.5559,
+      "net": -14.9158
+     }
+    },
+    "out_of_sample": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 339,
+       "long": 172,
+       "short": 167,
+       "gross": 0.9212,
+       "fees": 0,
+       "net": 0.9212,
+       "turnover": 12036.27,
+       "win_rate": 0.401,
+       "profit_factor": 1.222,
+       "expectancy": 0.0027,
+       "max_drawdown": 0.8,
+       "gross_per_turnover_pct": 0.0077
+      },
+      "0.02%": {
+       "trades": 339,
+       "long": 172,
+       "short": 167,
+       "gross": 0.8455,
+       "fees": 2.3067,
+       "net": -1.4613,
+       "turnover": 11533.6,
+       "win_rate": 0.327,
+       "profit_factor": 0.732,
+       "expectancy": -0.0043,
+       "max_drawdown": 1.991,
+       "gross_per_turnover_pct": 0.0073
+      },
+      "0.05%": {
+       "trades": 339,
+       "long": 172,
+       "short": 167,
+       "gross": 0.7273,
+       "fees": 5.3626,
+       "net": -4.6353,
+       "turnover": 10725.18,
+       "win_rate": 0.227,
+       "profit_factor": 0.378,
+       "expectancy": -0.0137,
+       "max_drawdown": 4.6474,
+       "gross_per_turnover_pct": 0.0068
+      },
+      "0.1%": {
+       "trades": 339,
+       "long": 172,
+       "short": 167,
+       "gross": 0.5461,
+       "fees": 9.4218,
+       "net": -8.8757,
+       "turnover": 9421.8,
+       "win_rate": 0.145,
+       "profit_factor": 0.153,
+       "expectancy": -0.0262,
+       "max_drawdown": 8.8757,
+       "gross_per_turnover_pct": 0.0058
+      },
+      "0.2%": {
+       "trades": 339,
+       "long": 172,
+       "short": 167,
+       "gross": 0.2814,
+       "fees": 14.5072,
+       "net": -14.2257,
+       "turnover": 7253.58,
+       "win_rate": 0.056,
+       "profit_factor": 0.041,
+       "expectancy": -0.042,
+       "max_drawdown": 14.2257,
+       "gross_per_turnover_pct": 0.0039
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 339,
+      "long": 172,
+      "short": 167,
+      "gross": 0.3458,
+      "fees": 14.5567,
+      "net": -14.2109,
+      "turnover": 7278.34,
+      "win_rate": 0.062,
+      "profit_factor": 0.041,
+      "expectancy": -0.0419,
+      "max_drawdown": 14.2109,
+      "gross_per_turnover_pct": 0.0048
+     },
+     "break_even_fee_pct_per_fill": 0.0077,
+     "check_at_0_20": {
+      "gross": 0.2814,
+      "fees": 14.5072,
+      "net": -14.2257
+     }
+    },
+    "full": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 891,
+       "long": 440,
+       "short": 451,
+       "gross": 1.8405,
+       "fees": 0,
+       "net": 1.8405,
+       "turnover": 26856.98,
+       "win_rate": 0.383,
+       "profit_factor": 1.202,
+       "expectancy": 0.0021,
+       "max_drawdown": 0.7344,
+       "gross_per_turnover_pct": 0.0069
+      },
+      "0.02%": {
+       "trades": 891,
+       "long": 440,
+       "short": 451,
+       "gross": 1.6465,
+       "fees": 4.8459,
+       "net": -3.1994,
+       "turnover": 24229.44,
+       "win_rate": 0.312,
+       "profit_factor": 0.719,
+       "expectancy": -0.0036,
+       "max_drawdown": 3.5134,
+       "gross_per_turnover_pct": 0.0068
+      },
+      "0.05%": {
+       "trades": 891,
+       "long": 440,
+       "short": 451,
+       "gross": 1.3827,
+       "fees": 10.2979,
+       "net": -8.9152,
+       "turnover": 20595.7,
+       "win_rate": 0.23,
+       "profit_factor": 0.37,
+       "expectancy": -0.01,
+       "max_drawdown": 8.9208,
+       "gross_per_turnover_pct": 0.0067
+      },
+      "0.1%": {
+       "trades": 677,
+       "long": 334,
+       "short": 343,
+       "gross": 0.875,
+       "fees": 14.1718,
+       "net": -13.2968,
+       "turnover": 14171.81,
+       "win_rate": 0.139,
+       "profit_factor": 0.146,
+       "expectancy": -0.0196,
+       "max_drawdown": 13.2968,
+       "gross_per_turnover_pct": 0.0062
+      },
+      "0.2%": {
+       "trades": 387,
+       "long": 188,
+       "short": 199,
+       "gross": 0.658,
+       "fees": 15.7173,
+       "net": -15.0594,
+       "turnover": 7858.66,
+       "win_rate": 0.065,
+       "profit_factor": 0.034,
+       "expectancy": -0.0389,
+       "max_drawdown": 15.0594,
+       "gross_per_turnover_pct": 0.0084
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 384,
+      "long": 184,
+      "short": 200,
+      "gross": 0.5732,
+      "fees": 15.6517,
+      "net": -15.0785,
+      "turnover": 7825.86,
+      "win_rate": 0.06,
+      "profit_factor": 0.032,
+      "expectancy": -0.0393,
+      "max_drawdown": 15.0785,
+      "gross_per_turnover_pct": 0.0073
+     },
+     "break_even_fee_pct_per_fill": 0.0069,
+     "check_at_0_20": {
+      "gross": 0.658,
+      "fees": 15.7173,
+      "net": -15.0594
+     }
+    }
+   },
+   "regimes_full_at_0_20": {
+    "sideways + low volatility": {
+     "weeks": 5,
+     "trades": 137,
+     "long": 66,
+     "short": 71,
+     "gross": 0.123,
+     "fees": 6.8758,
+     "net": -6.7528,
+     "turnover": 3437.91,
+     "win_rate": 0.058,
+     "profit_factor": 0.039,
+     "expectancy": -0.0493,
+     "max_drawdown": 6.7528,
+     "gross_per_turnover_pct": 0.0036
+    },
+    "trending + low volatility": {
+     "weeks": 2,
+     "trades": 121,
+     "long": 56,
+     "short": 65,
+     "gross": 0.0301,
+     "fees": 4.3889,
+     "net": -4.3587,
+     "turnover": 2194.43,
+     "win_rate": 0.066,
+     "profit_factor": 0.017,
+     "expectancy": -0.036,
+     "max_drawdown": 4.3587,
+     "gross_per_turnover_pct": 0.0014
+    },
+    "trending + high volatility": {
+     "weeks": 6,
+     "trades": 129,
+     "long": 66,
+     "short": 63,
+     "gross": 0.5049,
+     "fees": 4.4527,
+     "net": -3.9478,
+     "turnover": 2226.32,
+     "win_rate": 0.07,
+     "profit_factor": 0.043,
+     "expectancy": -0.0306,
+     "max_drawdown": 3.9478,
+     "gross_per_turnover_pct": 0.0227
+    },
+    "sideways + high volatility": {
+     "weeks": 2,
+     "trades": 0,
+     "long": 0,
+     "short": 0,
+     "gross": 0,
+     "fees": 0,
+     "net": 0,
+     "turnover": 0,
+     "win_rate": null,
+     "profit_factor": null,
+     "expectancy": null,
+     "max_drawdown": 0,
+     "gross_per_turnover_pct": null
+    }
+   }
+  },
+  "ALPHA-04": {
+   "symbol": "BTCUSD",
+   "timeframe": "5m",
+   "profile": "btcusd-5m",
+   "data": {
+    "from": "2026-08-01T00:00:00.000Z",
+    "to": "2026-11-11T23:55:00.000Z",
+    "candles": 29652,
+    "warmup_until": "2026-08-03T00:00:00.000Z",
+    "split": "2026-10-02T14:21:00.000Z"
+   },
+   "periods": {
+    "development": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 136,
+       "long": 70,
+       "short": 66,
+       "gross": 0.6176,
+       "fees": 0,
+       "net": 0.6176,
+       "turnover": 5115.78,
+       "win_rate": 0.426,
+       "profit_factor": 1.27,
+       "expectancy": 0.0045,
+       "max_drawdown": 0.3713,
+       "gross_per_turnover_pct": 0.0121
+      },
+      "0.02%": {
+       "trades": 136,
+       "long": 70,
+       "short": 66,
+       "gross": 0.5992,
+       "fees": 1.0051,
+       "net": -0.4059,
+       "turnover": 5025.76,
+       "win_rate": 0.316,
+       "profit_factor": 0.86,
+       "expectancy": -0.003,
+       "max_drawdown": 0.7322,
+       "gross_per_turnover_pct": 0.0119
+      },
+      "0.05%": {
+       "trades": 136,
+       "long": 70,
+       "short": 66,
+       "gross": 0.5695,
+       "fees": 2.4404,
+       "net": -1.8709,
+       "turnover": 4880.76,
+       "win_rate": 0.265,
+       "profit_factor": 0.516,
+       "expectancy": -0.0138,
+       "max_drawdown": 2.0665,
+       "gross_per_turnover_pct": 0.0117
+      },
+      "0.1%": {
+       "trades": 136,
+       "long": 70,
+       "short": 66,
+       "gross": 0.5196,
+       "fees": 4.6333,
+       "net": -4.1137,
+       "turnover": 4633.31,
+       "win_rate": 0.184,
+       "profit_factor": 0.251,
+       "expectancy": -0.0302,
+       "max_drawdown": 4.1592,
+       "gross_per_turnover_pct": 0.0112
+      },
+      "0.2%": {
+       "trades": 136,
+       "long": 70,
+       "short": 66,
+       "gross": 0.4252,
+       "fees": 8.2851,
+       "net": -7.8599,
+       "turnover": 4142.54,
+       "win_rate": 0.088,
+       "profit_factor": 0.077,
+       "expectancy": -0.0578,
+       "max_drawdown": 7.8599,
+       "gross_per_turnover_pct": 0.0103
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 136,
+      "long": 70,
+      "short": 66,
+      "gross": 0.6452,
+      "fees": 8.3346,
+      "net": -7.6894,
+      "turnover": 4167.29,
+      "win_rate": 0.081,
+      "profit_factor": 0.081,
+      "expectancy": -0.0565,
+      "max_drawdown": 7.6894,
+      "gross_per_turnover_pct": 0.0155
+     },
+     "break_even_fee_pct_per_fill": 0.0121,
+     "check_at_0_20": {
+      "gross": 0.4252,
+      "fees": 8.2851,
+      "net": -7.8599
+     }
+    },
+    "out_of_sample": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 85,
+       "long": 38,
+       "short": 47,
+       "gross": 2.0669,
+       "fees": 0,
+       "net": 2.0669,
+       "turnover": 3283.28,
+       "win_rate": 0.529,
+       "profit_factor": 2.962,
+       "expectancy": 0.0243,
+       "max_drawdown": 0.2363,
+       "gross_per_turnover_pct": 0.063
+      },
+      "0.02%": {
+       "trades": 85,
+       "long": 38,
+       "short": 47,
+       "gross": 2.046,
+       "fees": 0.6507,
+       "net": 1.3953,
+       "turnover": 3253.56,
+       "win_rate": 0.435,
+       "profit_factor": 2.011,
+       "expectancy": 0.0164,
+       "max_drawdown": 0.2743,
+       "gross_per_turnover_pct": 0.0629
+      },
+      "0.05%": {
+       "trades": 85,
+       "long": 38,
+       "short": 47,
+       "gross": 2.0088,
+       "fees": 1.6004,
+       "net": 0.4084,
+       "turnover": 3200.77,
+       "win_rate": 0.341,
+       "profit_factor": 1.21,
+       "expectancy": 0.0048,
+       "max_drawdown": 0.3787,
+       "gross_per_turnover_pct": 0.0628
+      },
+      "0.1%": {
+       "trades": 85,
+       "long": 38,
+       "short": 47,
+       "gross": 1.9407,
+       "fees": 3.1033,
+       "net": -1.1627,
+       "turnover": 3103.35,
+       "win_rate": 0.282,
+       "profit_factor": 0.609,
+       "expectancy": -0.0137,
+       "max_drawdown": 1.2189,
+       "gross_per_turnover_pct": 0.0625
+      },
+      "0.2%": {
+       "trades": 85,
+       "long": 38,
+       "short": 47,
+       "gross": 1.8027,
+       "fees": 5.8124,
+       "net": -4.0097,
+       "turnover": 2906.21,
+       "win_rate": 0.212,
+       "profit_factor": 0.203,
+       "expectancy": -0.0472,
+       "max_drawdown": 4.0097,
+       "gross_per_turnover_pct": 0.062
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 85,
+      "long": 38,
+      "short": 47,
+      "gross": 1.1028,
+      "fees": 5.7377,
+      "net": -4.6349,
+      "turnover": 2868.85,
+      "win_rate": 0.188,
+      "profit_factor": 0.165,
+      "expectancy": -0.0545,
+      "max_drawdown": 4.6349,
+      "gross_per_turnover_pct": 0.0384
+     },
+     "break_even_fee_pct_per_fill": 0.063,
+     "check_at_0_20": {
+      "gross": 1.8027,
+      "fees": 5.8124,
+      "net": -4.0097
+     }
+    },
+    "full": {
+     "strategy_fills": {
+      "0%": {
+       "trades": 221,
+       "long": 108,
+       "short": 113,
+       "gross": 2.4479,
+       "fees": 0,
+       "net": 2.4479,
+       "turnover": 8023.22,
+       "win_rate": 0.466,
+       "profit_factor": 1.76,
+       "expectancy": 0.0111,
+       "max_drawdown": 0.3713,
+       "gross_per_turnover_pct": 0.0305
+      },
+      "0.02%": {
+       "trades": 221,
+       "long": 108,
+       "short": 113,
+       "gross": 2.3494,
+       "fees": 1.5618,
+       "net": 0.7876,
+       "turnover": 7808.81,
+       "win_rate": 0.362,
+       "profit_factor": 1.193,
+       "expectancy": 0.0036,
+       "max_drawdown": 0.7322,
+       "gross_per_turnover_pct": 0.0301
+      },
+      "0.05%": {
+       "trades": 221,
+       "long": 108,
+       "short": 113,
+       "gross": 2.19,
+       "fees": 3.7314,
+       "net": -1.5414,
+       "turnover": 7462.83,
+       "win_rate": 0.294,
+       "profit_factor": 0.716,
+       "expectancy": -0.007,
+       "max_drawdown": 2.1555,
+       "gross_per_turnover_pct": 0.0293
+      },
+      "0.1%": {
+       "trades": 221,
+       "long": 108,
+       "short": 113,
+       "gross": 1.9277,
+       "fees": 6.8849,
+       "net": -4.9573,
+       "turnover": 6884.94,
+       "win_rate": 0.222,
+       "profit_factor": 0.352,
+       "expectancy": -0.0224,
+       "max_drawdown": 4.9981,
+       "gross_per_turnover_pct": 0.028
+      },
+      "0.2%": {
+       "trades": 221,
+       "long": 108,
+       "short": 113,
+       "gross": 1.4607,
+       "fees": 11.6238,
+       "net": -10.1631,
+       "turnover": 5811.89,
+       "win_rate": 0.136,
+       "profit_factor": 0.109,
+       "expectancy": -0.046,
+       "max_drawdown": 10.1631,
+       "gross_per_turnover_pct": 0.0251
+      }
+     },
+     "candle_close_fills_at_0_20": {
+      "trades": 221,
+      "long": 108,
+      "short": 113,
+      "gross": 1.2864,
+      "fees": 11.6711,
+      "net": -10.3847,
+      "turnover": 5835.57,
+      "win_rate": 0.122,
+      "profit_factor": 0.104,
+      "expectancy": -0.047,
+      "max_drawdown": 10.3847,
+      "gross_per_turnover_pct": 0.022
+     },
+     "break_even_fee_pct_per_fill": 0.0305,
+     "check_at_0_20": {
+      "gross": 1.4607,
+      "fees": 11.6238,
+      "net": -10.1631
+     }
+    }
+   },
+   "regimes_full_at_0_20": {
+    "sideways + low volatility": {
+     "weeks": 5,
+     "trades": 69,
+     "long": 33,
+     "short": 36,
+     "gross": 0.6425,
+     "fees": 3.7238,
+     "net": -3.0813,
+     "turnover": 1861.9,
+     "win_rate": 0.159,
+     "profit_factor": 0.127,
+     "expectancy": -0.0447,
+     "max_drawdown": 3.0813,
+     "gross_per_turnover_pct": 0.0345
+    },
+    "trending + low volatility": {
+     "weeks": 2,
+     "trades": 35,
+     "long": 20,
+     "short": 15,
+     "gross": 0.1874,
+     "fees": 2.1939,
+     "net": -2.0065,
+     "turnover": 1096.95,
+     "win_rate": 0.057,
+     "profit_factor": 0.038,
+     "expectancy": -0.0573,
+     "max_drawdown": 2.0065,
+     "gross_per_turnover_pct": 0.0171
+    },
+    "trending + high volatility": {
+     "weeks": 6,
+     "trades": 92,
+     "long": 42,
+     "short": 50,
+     "gross": 0.3036,
+     "fees": 4.7383,
+     "net": -4.4347,
+     "turnover": 2369.13,
+     "win_rate": 0.13,
+     "profit_factor": 0.12,
+     "expectancy": -0.0482,
+     "max_drawdown": 4.4347,
+     "gross_per_turnover_pct": 0.0128
+    },
+    "sideways + high volatility": {
+     "weeks": 2,
+     "trades": 25,
+     "long": 13,
+     "short": 12,
+     "gross": 0.3272,
+     "fees": 0.9678,
+     "net": -0.6407,
+     "turnover": 483.91,
+     "win_rate": 0.2,
+     "profit_factor": 0.141,
+     "expectancy": -0.0256,
+     "max_drawdown": 0.6445,
+     "gross_per_turnover_pct": 0.0676
+    }
+   }
+  }
+ }
+}

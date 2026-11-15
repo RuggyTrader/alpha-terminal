@@ -44,7 +44,14 @@ export function stats(nets) {
  * allocations: [{ group, amountUsd }] made at the start (owner-approved allocations in the simulation)
  * fromMs: trades entering before this time are warm-up (excluded from the reports; the strategy still runs)
  */
-export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.2, slippagePct = 0, limits = { maxOrderNotional: 5000, maxTotalExposure: 25000, maxOpenPositions: 5 }, fromMs = null, priceBufferPct = 0.5 }) {
+/**
+ * fillModel:
+ *   "close"     (original research model) entries and exits at the candle close.
+ *   "strategy"  the PRODUCTION model (Stage C): the ledger fills at the strategy's own fill price on the completed candle,
+ *               validated by worker/src/paper_fill.ts (a limit never worse than its limit, stops at the stop or the gap open,
+ *               targets at the limit), from the broker emulator's TradingView intrabar rules. Same sizing, wallets and fees.
+ */
+export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.2, slippagePct = 0, limits = { maxOrderNotional: 5000, maxTotalExposure: 25000, maxOpenPositions: 5 }, fromMs = null, toMs = null, priceBufferPct = 0.5, fillModel = "close" }) {
   const ledger = new FleetLedgerSim({ bots: bots.map((b) => ({ id: b.id, group: b.group, priority: b.priority })), main, feePct, slippagePct, ...limits });
   for (const a of allocations) { const r = ledger.allocate(a.group, a.amountUsd); if (!r.ok) throw new Error(`allocation refused: ${r.code}`); }
   const run = bots.map((b) => {
@@ -60,7 +67,7 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
   let simultaneous = { sameSymbol: 0, opposing: 0, allFour: 0 };
   for (const { r, k } of timeline) {
     const { b, S } = r;
-    const live = fromMs === null || k.t >= fromMs;
+    const live = (fromMs === null || k.t >= fromMs) && (toMs === null || k.t < toMs);
     S.capital = ledger.available(b.id);
     S.sizing.exposure = { position: 0, total: fromMicro(ledger.totalReservedMicro()), openPositions: ledger.positions.size };
     for (const e of onBar(S, k)) {
@@ -68,7 +75,8 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
       if (e.type === "ORDER_PLACED") r.lastOrder = { ...e, capital: S.capital, sizing: S.lastSizing ?? null };
       if (e.type === "ENTRY_FILL") {
         const side = e.side === 1 ? "LONG" : "SHORT";
-        const code = live ? ledger.open(b.id, side, e.qty, k.c, { openTime: k.t, symbol: b.symbol, riskUSD: b.riskUSD, instrument: getInstrument(b.symbol) }) : "WARMUP";
+        const entryPx = fillModel === "strategy" ? e.price : k.c;
+        const code = live ? ledger.open(b.id, side, e.qty, entryPx, { openTime: k.t, symbol: b.symbol, riskUSD: b.riskUSD, instrument: getInstrument(b.symbol) }) : "WARMUP";
         if (code && live) {
           // Full evidence for every refusal: the planned order (sizing at placement) against the ledger's fill.
           const w = ledger.wallet[b.id], o = r.lastOrder, notional = e.qty * k.c * (1 + (side === "LONG" ? 1 : -1) * slippagePct / 100);
@@ -79,7 +87,7 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
         }
         if (code) { if (S.broker.pos) abandonPosition(S); if (live) r.refused[code] = (r.refused[code] ?? 0) + 1; }
       }
-      if (e.type === "EXIT_FILL" && ledger.positions.has(b.id)) ledger.close(b.id, k.c, { closeTime: k.t, exitKind: e.kind });
+      if (e.type === "EXIT_FILL" && ledger.positions.has(b.id)) ledger.close(b.id, fillModel === "strategy" ? e.price : k.c, { closeTime: k.t, exitKind: e.kind });
     }
     onBar(r.M, k);
     while (r.mirrorClosed < r.M.broker.closed.length) {
