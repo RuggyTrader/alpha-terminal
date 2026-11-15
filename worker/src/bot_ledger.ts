@@ -554,6 +554,57 @@ export async function handleBotOwnerAction(env: BotLedgerEnv, pathname: string, 
     return json({ ok: true, group, amount_usd: amount, split: split.map((s) => ({ ...s, amount_usd: fromMicro(s.amount_micro) })) });
   }
 
+  // One owner approval (one passphrase) for the whole fleet: activate every registered PROPOSED bot with its registered
+  // profile and top every bot's wallet up to the same target from MAIN. ONE transaction: everything or nothing. It is
+  // naturally idempotent: a bot already at the target receives nothing, so running it again moves no money. Transfers
+  // are recorded exactly like allocations (never profit). Positions and pending orders are never resized.
+  if (pathname === "/api/paper/fleet-setup") {
+    const t = body.target_usd;
+    const target = typeof t === "number" && Number.isFinite(t) && t >= 1 && t <= 1_000_000 && Math.abs(t * 100 - Math.round(t * 100)) < 1e-6 ? t : null;
+    if (target === null) return json({ ok: false, code: "INVALID_AMOUNT", message: "target_usd must be a dollar amount in cents between $1 and $1,000,000" }, 400);
+    const prior = await db.prepare(`SELECT COUNT(*) AS n FROM allocation_events WHERE request_key LIKE ?`).bind(`FLEET:${requestId}:%`).first<{ n: number }>();
+    if (Number(prior?.n ?? 0) > 0) return json({ ok: true, duplicate: true, message: "already applied; nothing changed" });
+    const bots = (await db.prepare(`SELECT * FROM bots WHERE status IN ('ACTIVE', 'PROPOSED') ORDER BY priority, bot_id`).all<BotRow>()).results;
+    const unready = bots.filter((b) => b.status === "PROPOSED" && (!b.profile || !b.inputs_hash));
+    if (unready.length) return json({ ok: false, code: "BOT_PROFILE_MISSING", message: `${unready.map((b) => b.bot_id).join(", ")} has no registered strategy profile; nothing changed` }, 422);
+    const wallets = new Map((await db.prepare(`SELECT wallet, available_micro, reserved_micro FROM portfolio_wallets`).all<{ wallet: string; available_micro: number; reserved_micro: number }>()).results.map((w) => [w.wallet, w]));
+    const targetMicro = toMicro(target);
+    const plan = bots.map((b) => {
+      const w = wallets.get(b.wallet);
+      const value = Number(w?.available_micro ?? 0) + Number(w?.reserved_micro ?? 0);
+      return { bot: b, before: value, amount: Math.max(0, targetMicro - value) };
+    });
+    const total = plan.reduce((s, p) => s + p.amount, 0);
+    const stmts: D1PreparedStatement[] = [];
+    for (const p of plan) if (p.bot.status === "PROPOSED") stmts.push(db.prepare(`UPDATE bots SET status = 'ACTIVE', updated_at = ? WHERE bot_id = ? AND status = 'PROPOSED'`).bind(now, p.bot.bot_id));
+    if (total > 0) stmts.push(db.prepare(`UPDATE portfolio_wallets SET available_micro = available_micro - ?, net_funding_micro = net_funding_micro - ?, updated_at = ? WHERE wallet = 'MAIN'`).bind(total, total, now));
+    for (const p of plan.filter((x) => x.amount > 0)) {
+      const key = `FLEET:${requestId}:${p.bot.bot_id}`, wallet = p.bot.wallet;
+      stmts.push(
+        db.prepare(`INSERT INTO allocation_events (request_key, group_id, amount_micro, split_json, created_at, note) VALUES (?, ?, ?, ?, ?, ?)`)
+          .bind(key, p.bot.group_id, p.amount, JSON.stringify([{ bot_id: p.bot.bot_id, amount_micro: p.amount }]), now, `owner fleet setup: ${p.bot.bot_id} topped up to $${target}`),
+        db.prepare(`INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, counterparty, ref, note)
+                    VALUES (?, ?, ?, 'TRANSFER_OUT', 'MAIN', ?, 0, ?, ?, ?)`).bind(`${key}:OUT`, `FLEET:${requestId}`, now, -p.amount, wallet, requestId, `fleet setup → ${p.bot.bot_id}`),
+        db.prepare(`INSERT INTO portfolio_entries (entry_key, group_key, created_at, kind, wallet, available_change_micro, reserved_change_micro, counterparty, ref, note)
+                    VALUES (?, ?, ?, 'TRANSFER_IN', ?, ?, 0, 'MAIN', ?, ?)`).bind(`${key}:IN`, `FLEET:${requestId}`, now, wallet, p.amount, requestId, `fleet setup (top-up to $${target})`),
+        db.prepare(`UPDATE portfolio_wallets SET available_micro = available_micro + ?, net_funding_micro = net_funding_micro + ?, updated_at = ? WHERE wallet = ?`).bind(p.amount, p.amount, now, wallet),
+      );
+    }
+    if (stmts.length) {
+      try { await db.batch(stmts); } catch (e) {
+        const msg = String(e instanceof Error ? e.message : e);
+        if (/CHECK constraint failed/i.test(msg)) return json({ ok: false, code: "INSUFFICIENT_MAIN", message: `MAIN does not have $${fromMicro(total)} of unreserved money; nothing changed (no bot was activated)` }, 422);
+        if (/UNIQUE/i.test(msg)) return json({ ok: false, code: "DUPLICATE_REQUEST" }, 409);
+        throw e;
+      }
+    }
+    const main = await db.prepare(`SELECT available_micro FROM portfolio_wallets WHERE wallet = 'MAIN'`).first<{ available_micro: number }>();
+    return json({ ok: true, target_usd: target,
+      activated: plan.filter((p) => p.bot.status === "PROPOSED").map((p) => p.bot.bot_id),
+      transfers: plan.map((p) => ({ bot_id: p.bot.bot_id, wallet: p.bot.wallet, amount_usd: fromMicro(p.amount), balance_after_usd: fromMicro(p.before + p.amount) })),
+      total_usd: fromMicro(total), main_available_usd: fromMicro(main?.available_micro ?? 0) });
+  }
+
   const botId = typeof body.bot_id === "string" ? body.bot_id : "";
   const bot = BOT_ID_RE.test(botId) ? await db.prepare(`SELECT * FROM bots WHERE bot_id = ?`).bind(botId).first<BotRow>() : null;
   if (!bot) return json({ ok: false, code: "UNKNOWN_BOT" }, 400);

@@ -232,4 +232,34 @@ describe("durable pending orders and reversal safety (TEST values, isolated D1)"
     assert.equal(sql(`SELECT group_id FROM allocation_events ORDER BY id DESC LIMIT 1`)[0].group_id, "SOLANA");
     assert.equal((await act("allocate", { group: "ALPHA-03", amount_usd: 1 })).code, "NO_ACTIVE_BOTS", "a PROPOSED bot cannot receive capital");
   });
+
+  it("fleet setup (one passphrase): activates every PROPOSED bot and tops each wallet up to the target, all or nothing, idempotent", async () => {
+    sql(`UPDATE bots SET status = 'PROPOSED' WHERE bot_id IN ('ALPHA-01', 'ALPHA-03')`);
+    const value = () => Object.fromEntries(sql(`SELECT b.bot_id id, w.available_micro + w.reserved_micro v FROM bots b JOIN portfolio_wallets w ON w.wallet = b.wallet`).map((r) => [r.id, r.v]));
+    const main = () => sql(`SELECT available_micro a, realized_pnl_micro p FROM portfolio_wallets WHERE wallet = 'MAIN'`)[0];
+    const m0 = main(), v0 = value();
+    // More than MAIN holds: NOTHING changes (no activation either).
+    const big = await act("fleet-setup", { target_usd: 1_000_000 });
+    assert.equal(big.code, "INSUFFICIENT_MAIN");
+    assert.equal(sql(`SELECT status FROM bots WHERE bot_id = 'ALPHA-03'`)[0].status, "PROPOSED");
+    assert.deepEqual(value(), v0); assert.equal(main().a, m0.a);
+    // A target MAIN can cover.
+    const target = Math.max(...Object.values(v0)) / 1e6 + 1.25;
+    const r = await act("fleet-setup", { target_usd: Math.round(target * 100) / 100 });
+    assert.equal(r.ok, true, JSON.stringify(r));
+    assert.deepEqual(r.activated.sort(), ["ALPHA-01", "ALPHA-03"]);
+    assert.equal(sql(`SELECT COUNT(*) n FROM bots WHERE status = 'ACTIVE'`)[0].n, 4);
+    const tm = Math.round(r.target_usd * 1e6), v1 = value();
+    for (const id of Object.keys(v1)) assert.equal(v1[id], Math.max(v0[id], tm), `${id} topped up to exactly the target`);
+    const moved = Object.keys(v1).reduce((s, id) => s + v1[id] - v0[id], 0);
+    assert.equal(m0.a - main().a, moved, "MAIN paid exactly what the bots received");
+    assert.equal(main().p, m0.p, "a transfer, never profit");
+    assert.equal(Math.round(r.total_usd * 1e6), moved);
+    // Again (new request): everyone is at the target, so nothing moves. Same request id: duplicate.
+    const again = await act("fleet-setup", { target_usd: r.target_usd });
+    assert.equal(again.ok, true); assert.equal(again.total_usd, 0); assert.deepEqual(value(), v1);
+    const noPass = await fetch(`${base}/api/paper/fleet-setup`, { method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie }, body: JSON.stringify({ request_id: secret(), target_usd: 50 }) });
+    assert.ok(noPass.status >= 400, "the passphrase is required");
+    assert.deepEqual(value(), v1);
+  });
 });

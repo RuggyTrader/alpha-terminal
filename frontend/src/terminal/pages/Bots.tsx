@@ -1,6 +1,7 @@
 // Bots control center: the fleet grouped by cryptocurrency. Every number is the bot's own (its wallet, positions and
 // ledger results) or its own latest engine report; the hypothetical Strategy Mirror is separate and labelled. Owner
-// actions (allocate from MAIN, dollar risk, pause/resume NEW entries) need the passphrase and are recorded server-side.
+// actions (fleet setup, allocate from MAIN, and the rarely needed per-bot risk / pause) need the passphrase and are recorded
+// server-side. Normal operation needs no per-bot control: every approved bot runs automatically, LONG and SHORT.
 // There is no long-only/short-only selector: every bot always evaluates both directions.
 
 import { AssetLogo } from "../components/AssetLogo";
@@ -10,7 +11,7 @@ import { newRequestId } from "../api";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { NA, level, money, signedMoney, stamp, tone } from "../fmt";
 import {
-  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused, activateBot,
+  allocate, botPhase, engineStatus, fleetSetup, groupTotals, previewAllocation, setBotRisk, setEntriesPaused,
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
@@ -55,22 +56,80 @@ function RiskEditor({ b, onDone }: { b: Bot; onDone: () => void }) {
   );
 }
 
-/** Owner action for a PROPOSED bot: activate it (passphrase). It then trades LONG and SHORT automatically once it has
- *  capital and the engine includes it. */
-function ActivateBot({ b, onDone }: { b: Bot; onDone: () => void }) {
-  const [open, setOpen] = useState(false);
+/** The exact transfers a fleet setup would make: each bot's wallet (cash + money in positions) topped up to the target. */
+export function fleetSetupPlan(fleet: Fleet, target: number) {
+  const bots = fleet.bots.filter((b) => b.status === "ACTIVE" || b.status === "PROPOSED");
+  const rows = bots.map((b) => {
+    const value = b.balances.available_usd + b.balances.reserved_usd;
+    return { b, value, amount: Math.max(0, Math.round((target - value) * 1e6) / 1e6) };
+  });
+  const total = rows.reduce((s, r) => s + r.amount, 0);
+  const main = fleet.main?.available_usd ?? 0;
+  return { rows, total, main, mainAfter: main - total, affordable: total <= main + 1e-9 };
+}
+
+/** One-time fleet setup: one passphrase activates every registered bot and funds each one from MAIN. Shown only while
+ *  a bot still waits for it; afterwards the fleet runs on its own. */
+function FleetSetup({ fleet, onDone }: { fleet: Fleet; onDone: () => void }) {
+  const [target, setTarget] = useState("20");
   const [pass, setPass] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
-  if (!open) return <button className="btn btn-ghost" onClick={() => setOpen(true)}>Activate {b.name}</button>;
+  const [busy, setBusy] = useState(false);
+  const [rid] = useState(newRequestId());
+  const t = Number(target);
+  const valid = t >= 1 && Math.abs(t * 100 - Math.round(t * 100)) < 1e-6;
+  const plan = valid ? fleetSetupPlan(fleet, t) : null;
+  const waiting = fleet.bots.filter((b) => b.status === "PROPOSED");
+  const confirm = async () => {
+    setBusy(true);
+    try {
+      const r = await fleetSetup(t, rid, pass);
+      setMsg(r.ok ? `Done: ${waiting.map((b) => b.name).join(", ")} active; ${money(Number(r.total_usd ?? 0))} moved from MAIN. The engine picks the new bots up automatically.` : backendErrorMessage(r));
+      if (r.ok) { setPass(""); onDone(); }
+    } catch (e) { setMsg(backendErrorMessage(e)); } finally { setBusy(false); }
+  };
   return (
-    <div className="bot-settings">
-      <Passphrase value={pass} onChange={setPass} />
-      <button className="btn" disabled={!pass} onClick={async () => {
-        try { const r = await activateBot(b.bot_id, newRequestId(), pass); setMsg(r.ok ? `${b.name} is active. Allocate capital to its group, then the engine picks it up at its next restart.` : backendErrorMessage(r)); if (r.ok) { setPass(""); onDone(); } }
-        catch (err) { setMsg(backendErrorMessage(err)); }
-      }}>Confirm activation</button>
-      <p className="sizing-note">Uses its registered profile ({b.profile ?? "N/A"} · {b.inputs_hash ?? "N/A"}). Trades LONG and SHORT automatically from its own wallet.</p>
+    <section className="card" aria-label="Start the full fleet">
+      <SectionHeader title="Start the full fleet" sub="One-time · one passphrase · then every bot runs on its own, LONG and SHORT" />
+      <p className="sizing-note">Activates {waiting.map((b) => b.name).join(", ")} with their registered strategy profiles and tops every bot's PAPER wallet up to the same amount from MAIN. A transfer, never profit; nothing is deposited. All or nothing.</p>
+      <div className="bot-alloc">
+        <label>Each bot's wallet (USD $)
+          <input className="input" inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} aria-label="Wallet per bot in dollars" />
+        </label>
+      </div>
+      {plan ? (
+        <div className="bot-alloc-preview">
+          {plan.rows.map((r) => <p key={r.b.bot_id} className="sizing-note">{r.b.name}: {money(r.value)} → {money(r.value + r.amount)}{r.amount > 0 ? ` (+${money(r.amount)})` : " (already there)"}{r.b.status === "PROPOSED" ? " · activated" : ""}</p>)}
+          <p className="sizing-note">MAIN {money(plan.main)} → <b>{money(plan.mainAfter)}</b>{plan.affordable ? "" : " · not enough in MAIN: nothing would change"}</p>
+          {plan.affordable ? <div className="bot-alloc"><Passphrase value={pass} onChange={setPass} /><button className="btn btn-primary" disabled={busy || !pass} onClick={confirm}>Start the fleet</button></div> : null}
+        </div>
+      ) : <p className="sizing-note t-warn">Enter a dollar amount in cents, at least $1.</p>}
       {msg ? <p className="sizing-note" role="status">{msg}</p> : null}
+    </section>
+  );
+}
+
+/** Rarely needed per-bot owner controls (risk target, pause new entries), kept out of normal operation. */
+function BotOwnerControls({ b, onDone }: { b: Bot; onDone: () => void }) {
+  const [pass, setPass] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+  const togglePause = async () => {
+    try {
+      const r = await setEntriesPaused(b.bot_id, !b.entries_paused, newRequestId(), pass);
+      setMsg(r.ok ? (b.entries_paused ? "New entries resumed." : "New entries paused; the open position keeps its exits.") : backendErrorMessage(r));
+      if (r.ok) { setPass(""); onDone(); }
+    } catch (err) { setMsg(backendErrorMessage(err)); }
+  };
+  return (
+    <div className="bot-settings" aria-label={`${b.name} owner controls`}>
+      <b>{b.name}</b>
+      <RiskEditor b={b} onDone={onDone} />
+      <div className="bot-pause">
+        <Passphrase value={pass} onChange={setPass} />
+        <button className="btn" disabled={!pass} onClick={togglePause}>{b.entries_paused ? "Resume new entries" : "Pause new entries"}</button>
+        <p className="sizing-note">Pausing stops NEW entries only; an open position keeps its stop, target and exit.</p>
+        {msg ? <p className="sizing-note" role="status">{msg}</p> : null}
+      </div>
     </div>
   );
 }
@@ -80,16 +139,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
   const e = b.engine;
   const st = e?.strategy_state ?? null;
   const last = e?.sizing?.last ?? null;
-  const [open, setOpen] = useState(false);
-  const [pass, setPass] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
-  const togglePause = async () => {
-    try {
-      const r = await setEntriesPaused(b.bot_id, !b.entries_paused, newRequestId(), pass);
-      setMsg(r.ok ? (b.entries_paused ? "New entries resumed." : "New entries paused; the open position keeps its exits.") : backendErrorMessage(r));
-      if (r.ok) { setPass(""); onChanged?.(); }
-    } catch (err) { setMsg(backendErrorMessage(err)); }
-  };
+  void onChanged;
   const canChart = b.status !== "DISABLED"; // every bot: scanning, pending order, open position (real Kraken candles)
   const es = engineStatus(b, nowMs);
   return (
@@ -102,8 +152,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
         </div>
         <StatusBadge tone={es.tone} dot>{es.label}</StatusBadge>
       </div>
-      {b.status === "PROPOSED" ? <p className="sizing-note">Exact settings registered; not approved and not running. No activity is shown for it.</p> : null}
-      {b.status === "PROPOSED" ? <ActivateBot b={b} onDone={() => onChanged?.()} /> : null}
+      {b.status === "PROPOSED" ? <p className="sizing-note">Exact settings registered; it starts with the one-time fleet setup above. No activity is shown for it yet.</p> : null}
       <p className={`bot-phase ${phase.live ? "is-live" : ""}`}>{phase.phase}{phase.detail ? <span> · {phase.detail}</span> : null}</p>
       <div className="sizing-grid bot-key">
         <div><span>Last scan (candle, UTC)</span><b>{e?.last_candle_time ? `${e.last_candle_time.slice(5, 10)} ${e.last_candle_time.slice(11, 16)}` : NA}</b></div>
@@ -152,19 +201,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
       <div className="bot-actions">
         <Link className="btn btn-ghost" to={`/trades?bot=${b.bot_id}`}>Trades</Link>
         <Link className="btn btn-ghost" to={`/performance?bot=${b.bot_id}`}>Performance</Link>
-        {b.status === "ACTIVE" ? <button className="btn btn-ghost" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? "Close settings" : "Settings"}</button> : null}
       </div>
-      {open ? (
-        <div className="bot-settings">
-          <RiskEditor b={b} onDone={() => onChanged?.()} />
-          <div className="bot-pause">
-            <Passphrase value={pass} onChange={setPass} />
-            <button className="btn" disabled={!pass} onClick={togglePause}>{b.entries_paused ? "Resume new entries" : "Pause new entries"}</button>
-            <p className="sizing-note">Pausing stops NEW entries only; an open position keeps its stop, target and exit.</p>
-            {msg ? <p className="sizing-note" role="status">{msg}</p> : null}
-          </div>
-        </div>
-      ) : null}
     </section>
   );
 }
@@ -234,6 +271,7 @@ export function BotsPage() {
       {fleet && !fleet.available ? <EmptyState title="No bot registry yet">The ledger has no bot registry (migration 0007 is not applied).</EmptyState> : null}
       {fleet?.available ? (
         <>
+          {fleet.bots.some((b) => b.status === "PROPOSED") ? <FleetSetup fleet={fleet} onDone={load} /> : null}
           {groups.map((g) => {
             const bots = fleet.bots.filter((b) => b.group === g.group_id && b.status !== "DISABLED").sort((a, b) => a.bot_id.localeCompare(b.bot_id));
             const t = groupTotals(bots);
@@ -245,6 +283,13 @@ export function BotsPage() {
             );
           })}
           <details className="bot-details"><summary>Allocate capital from MAIN</summary><AllocationPanel fleet={fleet} onDone={load} /></details>
+          {fleet.bots.some((b) => b.status === "ACTIVE") ? (
+            <details className="bot-details">
+              <summary>Advanced owner controls (not needed for normal operation)</summary>
+              <p className="sizing-note">Every bot runs automatically. These are rarely needed: a per-bot risk target, or pausing one bot's NEW entries. The emergency stop for everything is in Settings.</p>
+              {fleet.bots.filter((b) => b.status === "ACTIVE").map((b) => <BotOwnerControls key={b.bot_id} b={b} onDone={load} />)}
+            </details>
+          ) : null}
           <p className="sizing-note">PAPER figures are simulated: limit fills from completed Kraken candles, Ndax-equivalent 0.20% fee per fill, SHORTs fully collateralised from the bot's own wallet.</p>
         </>
       ) : null}

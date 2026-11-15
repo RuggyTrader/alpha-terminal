@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { botPhase, botState, groupTotals, pipelineLine, type Bot } from "./bots";
-import { BotCard } from "./pages/Bots";
+import { BotCard, fleetSetupPlan } from "./pages/Bots";
 import { botLevels, candleBucket, chartDataMatches, chartFigures, chartMarkersInCandles, tradeMatchesChart } from "./pages/BotChart";
 import { answer, findBot, UNKNOWN } from "./assistant";
 import { isFleetQuestion } from "./tradeAssistant";
@@ -39,7 +39,8 @@ describe("bot state comes from the bot's own telemetry only", () => {
     expect(botState(p, NOW)).toBe("PROPOSED");
     expect(pipelineLine(p, NOW)).toBe("ALPHA 01 · SOLUSD 1m · Proposed, not running");
     const out = html(p);
-    expect(out).toContain("not approved and not running");
+    expect(out).toContain("it starts with the one-time fleet setup above");
+    expect(out).not.toContain("Activate");
     expect(out).not.toContain("Waiting for a swing");
   });
   it("pipeline phase comes from structured state: position, pending order, scanning", () => {
@@ -182,5 +183,28 @@ describe("chart trade ownership", () => {
     expect(tradeMatchesChart({ botId: null, symbol: "BTCUSD", timeframe: null }, "ALPHA-02", "SOLUSD", "5m")).toBe(false);
     expect(tradeMatchesChart({ botId: null, symbol: "SOLUSD", timeframe: "1m" }, "ALPHA-02", "SOLUSD", "5m")).toBe(false);
     expect(tradeMatchesChart({ botId: null, symbol: "SOL/USD", timeframe: "5m" }, "ALPHA-02", "SOLUSD", "5m")).toBe(true);
+  });
+});
+
+describe("full automation: one fleet setup, no routine per-bot controls", () => {
+  it("bot cards carry no activation, settings or pause control (performance, chart, trades only)", () => {
+    const out = html(bot());
+    for (const t of ["Activate", ">Settings<", "Pause new entries", "Confirm activation"]) expect(out).not.toContain(t);
+    expect(out).toContain("View chart");
+  });
+  it("the fleet setup plan tops every wallet (cash + money in positions) up to the target and says what MAIN keeps", () => {
+    const f = fleet([
+      bot({ bot_id: "ALPHA-02", balances: { available_usd: 9.968321, reserved_usd: 0, shortfall_usd: 0 } }),
+      bot({ bot_id: "ALPHA-01", status: "PROPOSED", balances: { available_usd: 0, reserved_usd: 0, shortfall_usd: 0 } }),
+      bot({ bot_id: "ALPHA-03", status: "PROPOSED", balances: { available_usd: 0, reserved_usd: 0, shortfall_usd: 0 } }),
+      bot({ bot_id: "ALPHA-04", status: "PROPOSED", balances: { available_usd: 15, reserved_usd: 10, shortfall_usd: 0 } }),
+      bot({ bot_id: "ALPHA-09", status: "DISABLED" }),
+    ]);
+    const p = fleetSetupPlan({ ...f, main: { available_usd: 90, profit_received_usd: 0 } }, 20);
+    expect(p.rows.map((r) => [r.b.bot_id, r.amount])).toEqual([["ALPHA-02", 10.031679], ["ALPHA-01", 20], ["ALPHA-03", 20], ["ALPHA-04", 0]]);
+    expect(p.total).toBeCloseTo(50.031679, 6);
+    expect(p.mainAfter).toBeCloseTo(39.968321, 6);
+    expect(p.affordable).toBe(true);
+    expect(fleetSetupPlan({ ...f, main: { available_usd: 10, profit_received_usd: 0 } }, 20).affordable).toBe(false);
   });
 });

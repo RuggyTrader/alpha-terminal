@@ -20,6 +20,7 @@ $config = Join-Path $Root "config\engine.env"
 New-Item -ItemType Directory -Force $logs | Out-Null
 $log = Join-Path $logs "engine.log"
 $supLog = Join-Path $logs "supervisor.log"
+$stopFile = Join-Path $Root "control\stop.request"
 $node = if ($Node) { $Node } elseif ($env:ALPHA_NODE) { $env:ALPHA_NODE } else { (Get-Command node -ErrorAction Stop).Source }
 
 function Write-Log($msg) {
@@ -49,6 +50,18 @@ function Get-VerifiedRelease {
   return (Join-Path $Root "releases\$($v.release)")
 }
 
+# A graceful stop request (release.mjs stop / upgrade). Fresh: honour it. Older than 15 minutes: stale, remove it.
+function Test-StopRequest {
+  if (-not (Test-Path $stopFile)) { return $false }
+  $age = (Get-Date) - (Get-Item $stopFile).LastWriteTime
+  if ($age.TotalMinutes -gt 15) {
+    Remove-Item -Force $stopFile -ErrorAction SilentlyContinue
+    Write-Log "stale stop request ($([int]$age.TotalMinutes) min old) removed; starting normally"
+    return $false
+  }
+  return $true
+}
+
 $mutexName = "Local\ALPHA-TERMINAL-release-" + ($Root -replace '[^A-Za-z0-9]', '_')
 $mutex = New-Object System.Threading.Mutex -ArgumentList $false, $mutexName
 $owned = $false
@@ -58,6 +71,7 @@ if (-not $owned) { Write-Log "another supervisor already runs the engine for $Ro
 Write-Log "started (pid $PID); root $Root"
 while ($true) {
   foreach ($f in $log, $supLog) { if ((Test-Path $f) -and (Get-Item $f).Length -gt 20MB) { Move-Item -Force $f "$f.1" } }
+  if (Test-StopRequest) { Write-Log "stop requested; the supervisor exits without starting the engine"; exit 0 }
   $release = Get-VerifiedRelease
   if (-not $release) { if ($Once) { exit 4 }; Start-Sleep -Seconds 60; continue }
   $other = Get-LockedEngine
@@ -70,6 +84,7 @@ while ($true) {
   Get-ChildItem $script:data -Filter "engine-*.lock" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
   $env:ENGINE_ENV_FILE = $config
   $env:ENGINE_DATA_DIR = $script:data
+  $env:ENGINE_STOP_FILE = $stopFile
   $engineArgs = if ($Once) { "src\cli\run.mjs --once" } else { "src\cli\run.mjs" }
   Write-Log "starting engine from $release"
   $p = Start-Process -FilePath "$env:SystemRoot\System32\cmd.exe" -WorkingDirectory $release -NoNewWindow -PassThru `
@@ -78,6 +93,7 @@ while ($true) {
   $p.WaitForExit()
   Write-Log "engine exited (code $($p.ExitCode))"
   if ($Once) { exit $p.ExitCode }
+  if (Test-StopRequest) { Write-Log "engine stopped on request; the supervisor exits (no restart)"; exit 0 }
   Write-Log "restarting in 30 s"
   Start-Sleep -Seconds 30
 }

@@ -27,6 +27,10 @@ const fleet = new FleetRunner(bots, { log: (m) => console.log(`${stamp()} ${m}`)
 console.log(`${stamp()} [fleet] PAPER only, no broker orders. bots ${fleet.bots.map((b) => `${b.id} ${b.bot.symbol} ${b.bot.intervalMin}m`).join(", ")}; config ${JSON.stringify(redacted({ ...bots[0].cfg, botId: "(per bot)", symbol: "(per bot)" }))}`);
 for (const b of fleet.bots) b.runner.audit({ type: "process_start", pid: process.pid, node: process.version, bot_id: b.id, profile: b.runner.cfg.profile, symbol: b.bot.symbol, timeframe: `${b.bot.intervalMin}m`, mode: "fleet", resumed: b.runner.state !== null });
 
+// Graceful stop (release.mjs stop / upgrade): the supervisor names a request file; the engine finishes the round in
+// progress, saves, releases its locks and exits 0. Checked between rounds and every second while waiting.
+const stopFile = process.env.ENGINE_STOP_FILE || null;
+const stopRequested = () => Boolean(stopFile) && existsSync(stopFile);
 let stopping = false;
 const stop = (sig) => {
   if (stopping) return;
@@ -48,7 +52,11 @@ if (process.argv.includes("--once")) {
   const pollMs = Math.max(5, bots[0].cfg.pollSeconds) * 1000;
   for (;;) {
     if (stopping) break;
+    if (stopRequested()) stop("STOP_REQUEST");
     await fleet.round();
-    await new Promise((r) => setTimeout(r, pollMs));
+    for (let waited = 0; waited < pollMs && !stopping; waited += 1000) {
+      if (stopRequested()) stop("STOP_REQUEST");
+      await new Promise((r) => setTimeout(r, Math.min(1000, pollMs - waited)));
+    }
   }
 }

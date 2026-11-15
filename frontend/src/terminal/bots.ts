@@ -93,6 +93,10 @@ export const switchToBotLedger = (botId: string, requestId: string, passphrase: 
 /** Stage D (owner approval): activate a PROPOSED bot with its registered profile (LONG + SHORT by default). */
 export const activateBot = (botId: string, requestId: string, passphrase: string) =>
   api.post<ActionResult>("/api/paper/bot-activate", { bot_id: botId, request_id: requestId, passphrase });
+/** One owner approval for the whole fleet: activate every PROPOSED bot and top every bot's wallet up to target_usd from
+ *  MAIN, in one transaction (a bot already at the target receives nothing). */
+export const fleetSetup = (targetUsd: number, requestId: string, passphrase: string) =>
+  api.post<ActionResult>("/api/paper/fleet-setup", { target_usd: targetUsd, request_id: requestId, passphrase });
 export const setEntriesPaused = (botId: string, paused: boolean, requestId: string, passphrase: string) =>
   api.post<ActionResult>("/api/paper/bot-entries", { bot_id: botId, paused, request_id: requestId, passphrase });
 

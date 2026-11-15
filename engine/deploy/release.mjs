@@ -27,6 +27,11 @@
 //   migrate-state    --root <dir> --old-engine <dev checkout>\engine --state <absolute shared state folder>
 //   revert-state     --root <dir>                            (undo migrate-state, carrying the LATEST state back)
 //   task-xml         --root <dir> [--node <node.exe>]        (writes task\original.xml + task\pinned.xml; registers nothing)
+//   stop             --root <dir> [--timeout 180] [--force]  (graceful: request file; the engine finishes its round and exits)
+//   start            --root <dir>                            (removes the request, enables and runs the scheduled task)
+//   upgrade          --root <dir> --repo <checkout> --ref <commit|tag> [--force] [--expect-profile ...]
+//                    (prepare + validate, graceful stop, activate + launcher, start; the engine always restarts)
+// stop/start/upgrade use the scheduled task "ALPHA TERMINAL Engine" (--task-name) with the signed-in user's own rights.
 // State is never copied into a second live location: migrate-state MOVES it to one shared folder that the old
 // setup (via a relative ENGINE_DATA_DIR in its .env) and the pinned setup (absolute, in config) both use, so any
 // switch in either direction resumes from the latest state, and the engine's lock file there keeps one engine.
@@ -611,6 +616,87 @@ export function taskXml({ root, node = null, taskName = "ALPHA TERMINAL Engine" 
   };
 }
 
+// ---------------------------------------------------------------- graceful stop / start / upgrade
+
+const sleepMs = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+const stopFileOf = (P) => join(P.root, "control", "stop.request");
+/** Every engine lock in a state folder whose pid is alive. EPERM (a process in another session, e.g. the scheduled
+ *  task's session 0) is ALIVE: it exists, we just may not signal it. */
+export function liveLocks(dir) {
+  if (!dir || !existsSync(dir)) return [];
+  const out = [];
+  for (const f of readdirSync(dir).filter((x) => /^engine-.*\.lock$/.test(x))) {
+    const pid = Number(readFileSync(join(dir, f), "utf8"));
+    if (!pid) continue;
+    try { process.kill(pid, 0); out.push({ lock: f, pid }); } catch (e) { if (e.code === "EPERM") out.push({ lock: f, pid }); }
+  }
+  return out;
+}
+const ps = (cmd) => spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", cmd], { encoding: "utf8" });
+const taskQ = (n) => `'${String(n).replace(/'/g, "''")}'`;
+function taskState(taskName) {
+  const r = ps(`(Get-ScheduledTask -TaskName ${taskQ(taskName)} -ErrorAction Stop).State`);
+  return r.status === 0 ? r.stdout.trim() : `unknown (${(r.stderr || r.stdout).trim().split("\n")[0]})`;
+}
+
+export function stopEngine({ root, taskName = "ALPHA TERMINAL Engine", timeout = null, force = false }) {
+  const P = paths(root);
+  const dir = stateDirOf(P.root).dir ?? P.data;
+  const limit = Number(timeout ?? 180) * 1000;
+  mkdirSync(dirname(stopFileOf(P)), { recursive: true });
+  writeFileSync(stopFileOf(P), JSON.stringify({ requested_at: new Date().toISOString(), by: "release.mjs stop" }) + "\n");
+  log(P, { action: "stop-request" });
+  const t0 = Date.now();
+  const done = () => liveLocks(dir).length === 0 && taskState(taskName) !== "Running";
+  while (!done() && Date.now() - t0 < limit) sleepMs(2000);
+  if (done()) return { result: "stopped gracefully", waited_s: Math.round((Date.now() - t0) / 1000), task: taskState(taskName) };
+  if (!force) fail(`the engine did not stop within ${limit / 1000} s (locks: ${JSON.stringify(liveLocks(dir))}; task ${taskState(taskName)}); an older supervisor may not know the stop request: rerun with --force`);
+  // --force: end the scheduled task (the task's own user may), then wait for its engine to go.
+  const r = ps(`Stop-ScheduledTask -TaskName ${taskQ(taskName)} -ErrorAction Stop`);
+  const t1 = Date.now();
+  while (liveLocks(dir).length && Date.now() - t1 < 60000) sleepMs(2000);
+  const left = liveLocks(dir);
+  log(P, { action: "stop-force", ended: r.status === 0, left });
+  if (left.length) fail(`ended the task (${r.status === 0 ? "ok" : (r.stderr || "").trim()}) but engine pid ${left.map((x) => x.pid).join(",")} still runs; only an administrator can stop it`);
+  return { result: "stopped (task ended; the engine resumes from its saved state)", graceful: false, task: taskState(taskName) };
+}
+
+export function startEngine({ root, taskName = "ALPHA TERMINAL Engine", timeout = null }) {
+  const P = paths(root);
+  const dir = stateDirOf(P.root).dir ?? P.data;
+  rmSync(stopFileOf(P), { force: true });
+  const already = liveLocks(dir);
+  if (already.length) return { result: "already running", engine: already };
+  const en = ps(`Enable-ScheduledTask -TaskName ${taskQ(taskName)} -ErrorAction Stop | Out-Null; Start-ScheduledTask -TaskName ${taskQ(taskName)} -ErrorAction Stop`);
+  if (en.status !== 0) fail(`could not start the scheduled task: ${(en.stderr || en.stdout).trim()}`);
+  log(P, { action: "start" });
+  const t0 = Date.now(), limit = Number(timeout ?? 180) * 1000;
+  while (!liveLocks(dir).length && Date.now() - t0 < limit) sleepMs(2000);
+  const now = liveLocks(dir);
+  if (!now.length) fail(`the task started but no engine lock appeared within ${limit / 1000} s; see ${join(P.logs, "supervisor.log")}`);
+  return { result: "started", engine: now, task: taskState(taskName), waited_s: Math.round((Date.now() - t0) / 1000) };
+}
+
+/** Prepare + validate the new release BEFORE stopping anything; then stop gracefully, activate it (and the launcher of
+ *  the same commit) and start again. The engine is started again whatever happens after the stop. */
+export function upgrade({ root, repo, ref, taskName = "ALPHA TERMINAL Engine", force = false, expectProfile = null, timeout = null }) {
+  const P = paths(root);
+  const r = resolveRef(repo, ref);
+  const id = r.commit.slice(0, 12);
+  const prepared = existsSync(join(P.releases, id)) ? { result: "already prepared", release: id } : prepare({ repo, ref, root });
+  const v = validate({ root, release: id, expectProfile });
+  if (!v.ok) fail(`release ${id} does not validate; nothing was stopped: ${v.problems.join("; ")}`);
+  const stopped = stopEngine({ root, taskName, timeout, force });
+  let activated = null, launcher = null, error = null;
+  try {
+    activated = activate({ root, release: id, expectProfile });
+    launcher = installLauncher({ repo, ref, root });
+  } catch (e) { error = e instanceof Error ? e.message : String(e); }
+  const started = startEngine({ root, taskName, timeout });
+  log(P, { action: "upgrade", release: id, error });
+  return { ok: error === null, release: id, prepared, stopped, activated, launcher, started, error };
+}
+
 // ---------------------------------------------------------------- CLI
 
 const isMain = process.argv[1] && resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1]);
@@ -618,12 +704,13 @@ if (isMain) {
   const [cmd, ...rest] = process.argv.slice(2);
   const opt = (n) => { const i = rest.indexOf(`--${n}`); return i === -1 ? null : rest[i + 1]; };
   const common = { root: opt("root"), repo: opt("repo"), ref: opt("ref"), release: opt("release"), expectProfile: opt("expect-profile"), expectRisk: opt("expect-risk"), krakenBase: opt("kraken-base"),
-    dir: opt("dir"), oldEngine: opt("old-engine"), state: opt("state"), node: opt("node"), taskName: opt("task-name") ?? undefined };
-  const cmds = { prepare, "install-launcher": installLauncher, validate, activate, rollback, status, selftest, "state-check": stateCheck, "migrate-state": migrateState, "revert-state": revertState, "task-xml": taskXml };
+    dir: opt("dir"), oldEngine: opt("old-engine"), state: opt("state"), node: opt("node"), taskName: opt("task-name") ?? undefined,
+    timeout: opt("timeout"), force: rest.includes("--force") };
+  const cmds = { prepare, "install-launcher": installLauncher, validate, activate, rollback, status, selftest, "state-check": stateCheck, "migrate-state": migrateState, "revert-state": revertState, "task-xml": taskXml, stop: stopEngine, start: startEngine, upgrade };
   try {
     if (!cmds[cmd]) fail(`usage: release.mjs <${Object.keys(cmds).join("|")}> --root <dir> [...]`);
     if (!common.root && cmd !== "state-check") fail("--root is required");
-    if ((cmd === "prepare" || cmd === "install-launcher") && !common.repo) fail("--repo is required");
+    if ((cmd === "prepare" || cmd === "install-launcher" || cmd === "upgrade") && !common.repo) fail("--repo is required");
     const out = cmds[cmd](common);
     console.log(JSON.stringify(out, null, 1));
     process.exit(out.ok === false ? 1 : 0);
