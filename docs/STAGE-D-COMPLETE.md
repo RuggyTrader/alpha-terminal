@@ -108,3 +108,41 @@ The emergency stop is in Settings.
 - `d78603b`: badge and phase.
 - `54ffd95`: Worker. Stop events are recorded only while the ledger holds the bot's position.
 - Tests: website 230/230. Worker: the new test fails without the fix and passes with it.
+
+## Execution corrections, deployed and verified (21:32 UTC)
+
+**1. ALPHA-03 warm-up position (engine `02b3759`, release `02b37590a8d8`)**
+- **Root cause:** the strategy takes no new setup while it is in a trade. ALPHA-03's warm-up trade, which was never sent to the ledger, blocked genuine live entries from 20:35 to 21:06. It then exited on its own; its CLOSE was skipped (`ENTRY_NOT_IN_LEDGER`), and nothing reached the ledger.
+- **Fix:**
+  - At go-live, a position that came from warm-up history is released exactly like a refused entry: no trade, no P&L, nothing sent.
+  - Market structure and the strategy logic are unchanged.
+- **Test:** on real BTC candles, the released bot placed a live setup while an unreleased twin was still blocked. The test fails without the fix.
+
+**2. Website and Activity (Worker `54ffd95`, `6c3fbfe`)**
+- "Position open" comes only from the ledger.
+- Stop and break-even events are recorded only while the ledger holds the position.
+- Charts draw positions from the ledger only.
+
+**3. The five recorded ALPHA-03 stop events**
+- There were five, not four: one more was recorded at 21:05, before the fix went live.
+- They are relabelled in place: classification `historical`, plus a warm-up note. They were not deleted.
+- Activity shows them as "Audit record · warm-up history, no PAPER position … not an execution, not counted anywhere".
+- No performance figure reads these events.
+
+**4. Orders carried over from warm-up (ALPHA-01, ALPHA-04; engine `d9891d9`)**
+- An order is placed only when the strategy still works it at the first timely live candle (setup not expired, not late). It gets a new id and a new placement time.
+- The ledger records both times:
+  - `placed_at`: the candle close at which the strategy issued the order;
+  - `received_at`: when the ledger accepted it, 2–16 s later.
+- A fill requires a candle starting at or after `placed_at`.
+- Warm-up entries are never sent (`historical`), and late entries are skipped (`SIGNAL_EXPIRED`).
+- ALPHA-01's order was later replaced by the strategy. ALPHA-04's is still pending. No fills so far.
+
+**Production at 21:32 UTC:**
+- **Engine:** all four heartbeats fresh with ledger checks OK, no engine positions.
+- **Settings:** profile hashes unchanged.
+- **Capital:** each wallet $20.000000 and reconciles; MAIN $19.968321; funding $100.000000.
+- **Orders and positions:** 3 pending orders, 0 open positions.
+- **History:** trade #1 recorded once.
+- **Activity:** no stop events since the fix.
+- **Scheduled task:** enabled, S4U, boot and logon triggers, release `02b37590a8d8`.
