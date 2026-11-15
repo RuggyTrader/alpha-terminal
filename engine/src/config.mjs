@@ -179,7 +179,13 @@ export function botList(env = process.env, baseDir = process.cwd()) {
 }
 
 export function loadBotConfigs(ids, env = process.env, baseDir = process.cwd(), { list = BOTS, allowProposed = false } = {}) {
-  return selectBots(ids, { list, allowProposed }).map((registered) => {
+  // Stage D (owner approval): ENGINE_APPROVED_BOTS=ALPHA-01,ALPHA-03 lets those registered PROPOSED bots run with their
+  // registered profiles. The Worker independently refuses orders from a bot the owner has not activated there.
+  const approvedRaw = String(env.ENGINE_APPROVED_BOTS ?? loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env")).ENGINE_APPROVED_BOTS ?? "");
+  const approved = new Set(approvedRaw.split(",").map((x) => x.trim()).filter(Boolean));
+  const chosen = ids.map((id) => selectBots([id], { list, allowProposed: allowProposed || approved.has(id) })[0]);
+  if (new Set(ids).size !== ids.length) throw new Error("a bot is listed twice");
+  return chosen.map((registered) => {
     let bot = registered;
     if (!bot.profile) throw new Error(`${bot.id}: no strategy profile; the owner's inputs for ${bot.symbol} ${bot.intervalMin}m are required`);
     // Strategy inputs come ONLY from the bot's own profile file: STRAT_* in the environment or env file are ignored

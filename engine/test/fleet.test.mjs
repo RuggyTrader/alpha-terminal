@@ -279,6 +279,21 @@ describe("stage S1: the legacy bot can be switched to the bot ledger (explicit s
   });
 });
 
+describe("stage D: owner-approved activation of registered PROPOSED bots", () => {
+  it("ENGINE_APPROVED_BOTS lets exactly the listed bots run with their registered profiles; others stay refused", () => {
+    assert.throws(() => loadBotConfigs(["ALPHA-02", "ALPHA-01"], env0({ ENGINE_LEDGER_ALPHA_02: "bot" }), ENGINE), /PROPOSED/);
+    const all = loadBotConfigs(["ALPHA-02", "ALPHA-01", "ALPHA-03", "ALPHA-04"], env0({ ENGINE_LEDGER_ALPHA_02: "bot", ENGINE_APPROVED_BOTS: "ALPHA-01,ALPHA-03,ALPHA-04" }), ENGINE);
+    assert.deepEqual(all.map(({ cfg }) => [cfg.botId, cfg.symbol, cfg.intervalMin, cfg.ledgerApi, inputsHash(cfg), cfg.sizing.mode, cfg.sizing.simulatedShort]), [
+      ["ALPHA-02", "SOLUSD", 5, "bot", "c826d785d58a4a39", "dollar", true],
+      ["ALPHA-01", "SOLUSD", 1, "bot", "0932a1a0cfac03f9", "dollar", true],
+      ["ALPHA-03", "BTCUSD", 1, "bot", "d828caa44611ad73", "dollar", true],
+      ["ALPHA-04", "BTCUSD", 5, "bot", "a6336dad6ffaed70", "dollar", true],
+    ]);
+    assert.throws(() => loadBotConfigs(["ALPHA-03"], env0({ ENGINE_APPROVED_BOTS: "ALPHA-01" }), ENGINE), /PROPOSED/, "approval is per bot");
+    assert.throws(() => loadBotConfigs(["ALPHA-01", "ALPHA-01"], env0({ ENGINE_APPROVED_BOTS: "ALPHA-01" }), ENGINE), /twice/);
+  });
+});
+
 describe("four independent bots in one process", () => {
   it("one market-data request per market and timeframe per round", async () => {
     let calls = 0;

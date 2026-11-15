@@ -10,7 +10,7 @@ import { newRequestId } from "../api";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { NA, level, money, signedMoney, stamp, tone } from "../fmt";
 import {
-  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused,
+  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused, activateBot,
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
@@ -55,6 +55,26 @@ function RiskEditor({ b, onDone }: { b: Bot; onDone: () => void }) {
   );
 }
 
+/** Owner action for a PROPOSED bot: activate it (passphrase). It then trades LONG and SHORT automatically once it has
+ *  capital and the engine includes it. */
+function ActivateBot({ b, onDone }: { b: Bot; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [pass, setPass] = useState("");
+  const [msg, setMsg] = useState<string | null>(null);
+  if (!open) return <button className="btn btn-ghost" onClick={() => setOpen(true)}>Activate {b.name}</button>;
+  return (
+    <div className="bot-settings">
+      <Passphrase value={pass} onChange={setPass} />
+      <button className="btn" disabled={!pass} onClick={async () => {
+        try { const r = await activateBot(b.bot_id, newRequestId(), pass); setMsg(r.ok ? `${b.name} is active. Allocate capital to its group, then the engine picks it up at its next restart.` : backendErrorMessage(r)); if (r.ok) { setPass(""); onDone(); } }
+        catch (err) { setMsg(backendErrorMessage(err)); }
+      }}>Confirm activation</button>
+      <p className="sizing-note">Uses its registered profile ({b.profile ?? "N/A"} · {b.inputs_hash ?? "N/A"}). Trades LONG and SHORT automatically from its own wallet.</p>
+      {msg ? <p className="sizing-note" role="status">{msg}</p> : null}
+    </div>
+  );
+}
+
 export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChanged?: () => void }) {
   const phase = botPhase(b, nowMs);
   const e = b.engine;
@@ -83,6 +103,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
         <StatusBadge tone={es.tone} dot>{es.label}</StatusBadge>
       </div>
       {b.status === "PROPOSED" ? <p className="sizing-note">Exact settings registered; not approved and not running. No activity is shown for it.</p> : null}
+      {b.status === "PROPOSED" ? <ActivateBot b={b} onDone={() => onChanged?.()} /> : null}
       <p className={`bot-phase ${phase.live ? "is-live" : ""}`}>{phase.phase}{phase.detail ? <span> · {phase.detail}</span> : null}</p>
       <div className="sizing-grid bot-key">
         <div><span>Last scan (candle, UTC)</span><b>{e?.last_candle_time ? `${e.last_candle_time.slice(5, 10)} ${e.last_candle_time.slice(11, 16)}` : NA}</b></div>

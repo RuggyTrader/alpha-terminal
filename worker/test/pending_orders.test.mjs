@@ -208,4 +208,15 @@ describe("durable pending orders and reversal safety (TEST values, isolated D1)"
     const fleet = await dashGet("/api/dashboard/bots");
     assert.equal(fleet.data.bots.find((b) => b.bot_id === "ALPHA-02").paper.trades, sql(`SELECT COUNT(*) n FROM trades WHERE bot_id = 'ALPHA-02' AND source = 'ALPHA_PAPER'`)[0].n + sql(`SELECT COUNT(*) n FROM bot_positions WHERE bot_id = 'ALPHA-02' AND status = 'CLOSED'`)[0].n, "lifetime closed trades = legacy + bot ledger, each once");
   });
+
+  it("stage D: a PROPOSED bot is activated by the owner action only (profile kept), idempotently", async () => {
+    sql(`UPDATE bots SET status = 'PROPOSED' WHERE bot_id = 'ALPHA-04'`);
+    const r = await act("bot-activate", { bot_id: "ALPHA-04" });
+    assert.equal(r.ok, true); assert.equal(r.status, "ACTIVE"); assert.equal(r.inputs_hash, "a6336dad6ffaed70"); assert.equal(r.ledger_api, "bot");
+    assert.equal((await act("bot-activate", { bot_id: "ALPHA-04" })).duplicate, true);
+    assert.equal(sql(`SELECT status FROM bots WHERE bot_id = 'ALPHA-04'`)[0].status, "ACTIVE");
+    const noPass = await fetch(`${base}/api/paper/bot-activate`, { method: "POST", headers: { "Content-Type": "application/json", "X-Alpha-Terminal": "1", Cookie: cookie }, body: JSON.stringify({ request_id: secret(), bot_id: "ALPHA-03" }) });
+    assert.ok(noPass.status >= 400, "the passphrase is required");
+    assert.equal(sql(`SELECT status FROM bots WHERE bot_id = 'ALPHA-03'`)[0].status, "PROPOSED");
+  });
 });

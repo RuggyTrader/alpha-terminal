@@ -217,7 +217,7 @@ export async function handlePaperApi(request: Request, env: PortfolioEnv, pathna
   if (pathname === "/api/paper/transfer") return transfer(env, body);
   if (pathname === "/api/paper/risk") return applyRisk(env, body);
   // Fleet bots (bot_ledger.ts): equal-split group allocation, per-bot dollar risk, pause/resume new entries.
-  if (pathname === "/api/paper/allocate" || pathname === "/api/paper/bot-risk" || pathname === "/api/paper/bot-entries" || pathname === "/api/paper/bot-ledger") {
+  if (pathname === "/api/paper/allocate" || pathname === "/api/paper/bot-risk" || pathname === "/api/paper/bot-entries" || pathname === "/api/paper/bot-ledger" || pathname === "/api/paper/bot-activate") {
     return handleBotOwnerAction(env as never, pathname, body);
   }
   return json({ ok: false, code: "NOT_FOUND" }, 404);

@@ -587,6 +587,16 @@ export async function handleBotOwnerAction(env: BotLedgerEnv, pathname: string, 
     return json({ ok: true, bot_id: botId, ledger_api: "bot", wallet: bot.wallet,
       note: "the Worker now accepts this bot only on /webhook/bot-order; set ENGINE_LEDGER_" + botId.replace("-", "_") + "=bot in the engine config and restart the engine" });
   }
+  // Stage D (owner approval): activate a PROPOSED bot with its registered profile. It trades on the bot ledger, LONG and
+  // SHORT by default; it still needs capital in its own wallet and the engine must include it (ENGINE_BOTS).
+  if (pathname === "/api/paper/bot-activate") {
+    if (bot.status === "ACTIVE") return json({ ok: true, duplicate: true, bot_id: botId, status: "ACTIVE" });
+    if (bot.status !== "PROPOSED") return json({ ok: false, code: "BOT_NOT_PROPOSED", message: `${botId} is ${bot.status}` }, 422);
+    if (!bot.inputs_hash || !bot.profile) return json({ ok: false, code: "BOT_PROFILE_MISSING", message: `${botId} has no registered strategy profile` }, 422);
+    await db.prepare(`UPDATE bots SET status = 'ACTIVE', updated_at = ? WHERE bot_id = ? AND status = 'PROPOSED'`).bind(now, botId).run();
+    return json({ ok: true, bot_id: botId, status: "ACTIVE", ledger_api: bot.ledger_api, profile: bot.profile, inputs_hash: bot.inputs_hash,
+      note: `next: allocate capital to ${bot.group_id} and add ${botId} to ENGINE_BOTS, then restart the engine once` });
+  }
   if (pathname === "/api/paper/bot-entries") {
     if (typeof body.paused !== "boolean") return json({ ok: false, code: "INVALID_REQUEST", message: "paused must be true or false" }, 400);
     if (!body.paused) {
