@@ -1,3 +1,4 @@
+import { runTrial, type TrialEnv } from "./trial/trial";
 import { handleBotLedger, handleBotOrder } from "./bot_ledger";
 import { handleNotificationsApi, processEvents } from "./events";
 import { meterD1, meterHeader } from "./d1meter";
@@ -549,6 +550,11 @@ async function handleEngineControl(
 // ============================================================
 
 const worker = {
+  // Every minute (wrangler.jsonc "triggers"): the isolated forward PAPER trial (worker/src/trial/trial.ts). It does
+  // nothing until the owner activates it, and it never touches the portfolio.
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(runTrial(env as unknown as TrialEnv).then(() => undefined, () => undefined));
+  },
   async fetch(
     request: Request,
     env: Env,

@@ -1,4 +1,5 @@
 import { handleCandles } from "./candles";
+import { trialReport } from "./trial/report";
 import { lifetimePerformance } from "./performance";
 import { allocationPreview, botPendingOrders } from "./bot_ledger";
 import { fleetSection } from "./bots";
@@ -1296,6 +1297,10 @@ export async function handleDashboardApi(
     }
     // The bot fleet (bots.ts): every registered bot with its own ledger figures, engine report and, separately, its
     // hypothetical Strategy Mirror results. Read-only.
+    // Forward PAPER trial (isolated research account, never part of the portfolio). Read-only.
+    if (pathname === "/api/dashboard/trial") {
+      return json({ ok: true, data: await trialReport(env.DB) });
+    }
     if (pathname === "/api/dashboard/bots") {
       return json({ ok: true, data: await fleetSection(env.DB) });
     }

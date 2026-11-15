@@ -19,9 +19,15 @@
       "/health",
       "/engine/*",
       "/kill",
-      "/kill/*"
+      "/kill/*",
+      // Local tests fire the scheduled job with `wrangler dev --test-scheduled` at /__scheduled; listing it here keeps
+      // the static-site router from answering it. In production the Worker answers it with 404 (nothing runs).
+      "/__scheduled"
     ]
   },
+
+  // The forward PAPER trial's scheduled job (worker/src/trial/trial.ts): every minute; idle until activated.
+  "triggers": { "crons": ["* * * * *"] },
 
   "vars": {
     "ENABLE_TRADING": "false",

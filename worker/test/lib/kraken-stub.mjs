@@ -21,11 +21,28 @@ const KEYS = { SOLUSD: "SOLUSD", XBTUSD: "XXBTZUSD", ETHUSD: "XETHZUSD", HYPEUSD
 
 export const TEST_QUOTES = Object.freeze({ XBTUSD: 100000, ETHUSD: 3500, HYPEUSD: 40, KAITOUSD: 1.5 }); // TEST values, not market data
 
+/** TEST OHLC for XBTUSD (TEST values, not market data): a steady uptrend of daily candles ending yesterday and flat
+ *  intraday candles, so the forward-trial job has something to process. Rows as Kraken returns them. */
+function testOhlc(interval, nowMs) {
+  const step = interval * 60_000, end = Math.floor(nowMs / step) * step, rows = [];
+  for (let t = end - 720 * step; t <= end; t += step) {
+    const days = (t - end) / 86_400_000, p = 100000 * Math.pow(1.002, days);
+    rows.push([t / 1000, String(p), String(p * 1.01), String(p * 0.99), String(p * 1.0005), String(p), "1.0", 10]);
+  }
+  return rows;
+}
+
 export async function startKrakenStub({ sol = SOL.at(-1).c } = {}) {
   const quotes = { SOLUSD: sol, ...TEST_QUOTES };
   let failing = false;
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, "http://127.0.0.1");
+    if (req.method === "GET" && url.pathname === "/0/public/OHLC") {
+      if (failing) { res.writeHead(503, { "Content-Type": "application/json" }).end("{}"); return; }
+      const interval = Number(url.searchParams.get("interval") ?? 1);
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ error: [], result: { XXBTZUSD: testOhlc(interval, Date.now()), last: Math.floor(Date.now() / 1000) } }));
+      return;
+    }
     if (req.method !== "GET" || url.pathname !== "/0/public/Ticker") { res.writeHead(404).end(); return; }
     if (failing) { res.writeHead(503, { "Content-Type": "application/json" }).end("{}"); return; }
     const result = {};

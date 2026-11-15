@@ -1,3 +1,4 @@
+import { TrialPanel } from "../components/TrialPanel";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { BotChips, BotPerformanceView } from "../components/BotTradesView";
@@ -145,6 +146,7 @@ export function PerformancePage({ now = Date.now() }: { now?: number }) {
             <span><b>{t.symbol}</b> · {t.strategy} · {when(t.closed_at)}</span><b className={`t-${tone(t.realized_pnl)}`}>{signedMoney(t.realized_pnl)}</b></Link>)}</div>
             : <EmptyState title="No loaded closed trades">Lifetime totals above remain independent of the loaded history.</EmptyState>}
         </section>
+        <TrialPanel />
         <section className="card note-card" aria-label="What is excluded"><b>Evidence and scope</b><p>{v.data!.verification}</p>
           <p>Strategy Mirror, engine simulations, open trades and internal profit transfers are excluded from lifetime closed-trade profit.</p>
           {v.data!.excluded_closed_trades > 0 ? <p>{v.data!.excluded_closed_trades} closed trade(s) from other sources are excluded.</p> : null}

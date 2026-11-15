@@ -14,6 +14,7 @@
 // cannot spend money that does not exist. "Active" (first deposit) only changes what the dashboard shows.
 
 import { handleBotOwnerAction } from "./bot_ledger";
+import { activateTrial } from "./trial/report";
 import { authorizePaperAction } from "./auth_session";
 import { getInstrument } from "./instruments";
 import { secureEqual } from "./trade_core";
@@ -214,6 +215,8 @@ export async function handlePaperApi(request: Request, env: PortfolioEnv, pathna
   const denied = await authorizePaperAction(request, env, body.passphrase);
   if (denied) return denied;
   if (pathname === "/api/paper/fund") return fund(env, body);
+  // One-time owner activation of the isolated forward PAPER trial (it never touches the portfolio).
+  if (pathname === "/api/paper/trial-activate") { const r = await activateTrial(env.DB); return json(r, r.ok ? 200 : 422); }
   if (pathname === "/api/paper/transfer") return transfer(env, body);
   if (pathname === "/api/paper/risk") return applyRisk(env, body);
   // Fleet bots (bot_ledger.ts): equal-split group allocation, per-bot dollar risk, pause/resume new entries.
