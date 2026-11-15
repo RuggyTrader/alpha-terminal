@@ -123,6 +123,12 @@ export function message(e: EventRow, p: Prefs): { title: string; body: string; u
     if (e.kind === "ORDER_CANCELLED") {
       return { ...base, title: head, body: `${String(e.side)} pending order cancelled before a fill${amounts && e.price !== null ? ` · limit was $${px(e.price)}` : ""}${d.reason ? ` · ${String(d.reason)}` : ""}` };
     }
+    // Audit records kept from before the ledger-position check (production ALPHA-03, 2026-11-15): the engine's warm-up
+    // trade, never a PAPER position. Shown for the record, never as an execution.
+    if ((e.kind === "STOP_TO_BREAK_EVEN" || e.kind === "TRAILING_STOP_MOVED") && d.warmup_history === true) {
+      const what = e.kind === "STOP_TO_BREAK_EVEN" ? "stop moved to break-even" : "trailing stop moved";
+      return { ...base, title: head, body: `Audit record · warm-up history, no PAPER position: ${String(e.side)} ${what}${amounts && e.price !== null ? ` ($${px(e.price)})` : ""} · not an execution, not counted anywhere` };
+    }
     if (e.kind === "STOP_TO_BREAK_EVEN") {
       return { ...base, title: head, body: `${String(e.side)} stop moved to break-even${amounts && e.price !== null ? ` · stop $${px(e.price)}` : ""}` };
     }
@@ -416,7 +422,9 @@ export async function activityFeed(db: D1Database, limit = 30): Promise<{ items:
     for (const e of (await db.prepare(`SELECT e.*, ${srcLegacy} AS src_alert, ${srcBot} AS src_order FROM trade_events e WHERE e.kind <> 'TEST' ORDER BY e.id DESC LIMIT ?`)
       .bind(n).all<EventRow & { src_alert: string | null; src_order: string | null }>()).results) {
       const m = message(e, DEFAULT_PREFS);
-      const tone = e.pnl === null ? "info" : e.pnl > 0 ? "ok" : e.pnl < 0 ? "bad" : "muted";
+      let warm = false;
+      try { warm = Boolean(e.detail_json && JSON.parse(e.detail_json)?.warmup_history === true); } catch { warm = false; }
+      const tone = warm ? "muted" : e.pnl === null ? "info" : e.pnl > 0 ? "ok" : e.pnl < 0 ? "bad" : "muted";
       const refs = [e.src_alert, e.src_order].filter((x): x is string => typeof x === "string" && x !== "");
       refs.forEach((r) => presented.add(r));
       items.push({ id: `E${e.id}`, at: e.occurred_at, source: e.source as FeedItem["source"], symbol: e.symbol, title: m.title, outcome: m.body, tone, url: e.url, classification: e.classification,

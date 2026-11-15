@@ -273,6 +273,16 @@ describe("bot fleet ledger (migration 0007)", () => {
     assert.deepEqual(ev(), [["ORDER_PENDING", "LONG", 99590, "ALPHA-03", u], ["ORDER_CANCELLED", "LONG", 99590, "ALPHA-03", u], ["STOP_TO_BREAK_EVEN", "LONG", 99590, "ALPHA-03", u],
       ["TRAILING_STOP_MOVED", "LONG", 99800, "ALPHA-03", u], ["TRAILING_STOP_MOVED", "LONG", 100100, "ALPHA-03", u]]);
     sql(`DELETE FROM bot_positions WHERE trade_id = 'TEST-LIFECYCLE-ALPHA-03'`);
+    // Events recorded before this check existed are relabelled in place (audit kept, never deleted): warm-up history.
+    sql(`INSERT INTO trade_events (event_key, kind, source, symbol, side, qty, price, classification, url, occurred_at, created_at, bot_id, detail_json)
+         VALUES ('BOTTRAIL:ALPHA-03:LONG:77777:77800', 'TRAILING_STOP_MOVED', 'funded', 'BTCUSD', 'LONG', 0.0003, 77800, 'historical', '/bots/ALPHA-03/chart', '2026-11-12T10:09:00Z', '2026-11-12T10:09:01Z', 'ALPHA-03',
+                 '{"bot_name":"ALPHA 03","timeframe":"1m","entry":77777,"warmup_history":true,"audit_note":"engine warm-up trade; no PAPER position"}')`);
+    const feed2 = (await dash("/api/dashboard/events?limit=50")).data.items;
+    const w = feed2.find((i) => /77,?800/.test(i.outcome));
+    assert.ok(w, "kept in the feed for the record");
+    assert.match(w.outcome, /^Audit record · warm-up history, no PAPER position: LONG trailing stop moved/);
+    assert.match(w.outcome, /not an execution, not counted anywhere/);
+    assert.equal(w.tone, "muted"); assert.equal(w.classification, "historical");
     const feed = await dash("/api/dashboard/events?limit=50");
     const titles = JSON.stringify(feed);
     assert.ok(/ALPHA 03 \| BTCUSD 1m/.test(titles) && /limit order pending/.test(titles) && /stop moved to break-even/.test(titles) && /trailing stop moved/.test(titles), titles.slice(0, 400));
