@@ -14,9 +14,27 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 to 0007 (no staged or irreversible migration)", () => {
+  it("are exactly 0001 to 0008 (no staged or irreversible migration)", () => {
     assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
-      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql"]);
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql"]);
+  });
+
+  it("0008 (forward trial) is purely additive: every existing table and index is unchanged; it adds only trial_* objects", () => {
+    const db = new DatabaseSync(":memory:");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql"]) db.exec(sql(f));
+    const schema = () => db.prepare("SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name").all().map((r) => ({ ...r }));
+    const before = schema();
+    const rows = () => Object.fromEntries(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all().map((r) => [r.name, db.prepare(`SELECT COUNT(*) AS n FROM "${r.name}"`).get().n]));
+    const rowsBefore = rows();
+    db.exec(sql("0008_trial.sql"));
+    const after = schema();
+    for (const o of before) assert.deepEqual(after.find((x) => x.type === o.type && x.name === o.name), o, `${o.type} ${o.name} unchanged`);
+    const added = after.filter((x) => !before.some((o) => o.type === x.type && o.name === x.name));
+    assert.ok(added.length > 0);
+    for (const x of added) assert.match(x.tbl_name, /^trial_/, `${x.type} ${x.name} belongs to the trial`);
+    const rowsAfter = rows();
+    for (const [t, n] of Object.entries(rowsBefore)) assert.equal(rowsAfter[t], n, `${t} rows unchanged`);
+    assert.equal(db.prepare("SELECT status FROM trial_accounts").get().status, "PROPOSED", "the trial starts PROPOSED (inactive)");
   });
 
   it("0007 keeps every existing index, so today's Worker (and a rollback to it) keeps working on schema 7", () => {
