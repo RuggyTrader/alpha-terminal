@@ -395,6 +395,10 @@ export class EngineRunner {
     const nowMs = this.now();
     if (!this.state) this.fresh();
     const S = this.state;
+    // Strict acceptance timing (ENGINE_STRICT_FILL=on; REVIEW, off in production): applied to the live broker each
+    // round, so a resumed state follows the current setting. It changes only WHEN a new order may fill, not settings.
+    { const o = { ...(S.strategy.broker.opts ?? {}) }; if (this.cfg.strictFill) o.entryDelayBars = 1; else delete o.entryDelayBars;
+      S.strategy.broker.opts = Object.keys(o).length ? o : undefined; }
     await this.prepareSizing();
     // The first batch after a (re)start from scratch is warm-up history: processed, never sent.
     const warmup = S.warmedUpAt === null;

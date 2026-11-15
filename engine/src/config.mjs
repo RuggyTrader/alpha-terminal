@@ -70,6 +70,8 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
   }
 
   const sync = get("ENGINE_SYNC", "off") === "on";
+  // REVIEW (not enabled in production): strict acceptance timing, see broker.mjs entryDelayBars.
+  const strictFill = get("ENGINE_STRICT_FILL", "off") === "on";
   const apiBase = get("ALPHA_API_BASE", "").replace(/\/+$/, "");
   const webhookSecret = get("ALPHA_WEBHOOK_SECRET", "");
   if (sync && (!apiBase || !webhookSecret)) throw new Error("ENGINE_SYNC=on needs ALPHA_API_BASE and ALPHA_WEBHOOK_SECRET");
@@ -111,7 +113,7 @@ export function loadConfig(env = process.env, baseDir = process.cwd()) {
 
   return {
     sizing, localCapital: localCapital === "" ? null : Number(localCapital),
-    profile: profile ?? "default", symbol, intervalMin, inputs, sync, apiBase, webhookSecret,
+    profile: profile ?? "default", symbol, intervalMin, inputs, sync, apiBase, webhookSecret, strictFill,
     dataDir: resolve(baseDir, get("ENGINE_DATA_DIR", "data")),
     pollSeconds: Number(get("ENGINE_POLL_SECONDS", "20")),
     lateBars: Number(get("ENGINE_LATE_BARS", "2")),

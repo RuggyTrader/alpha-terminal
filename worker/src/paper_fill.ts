@@ -44,7 +44,7 @@ export function checkStrategyFill(o: {
   const openMs = Date.parse(c.t), closeMs = openMs + c.tf_min * 60_000;
   if (closeMs > o.nowMs + 5_000) return { ok: false, code: "FILL_FROM_INCOMPLETE_CANDLE", message: `the candle ${c.t} has not closed yet; only completed candles can fill` };
   if (o.notBeforeMs !== null && openMs < o.notBeforeMs) {
-    return { ok: false, code: "FILL_BEFORE_ORDER", message: `the candle ${c.t} opened before the order was placed; it cannot fill it` };
+    return { ok: false, code: "FILL_BEFORE_ORDER", message: `the candle ${c.t} opened before the order existed (placed / accepted ${new Date(o.notBeforeMs).toISOString()}); it cannot fill it` };
   }
   const px = o.price;
   const tol = Math.max(1e-9, px * 1e-9);

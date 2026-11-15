@@ -54,6 +54,8 @@ export interface BotLedgerEnv extends MarketDataConfig {
   MAX_ORDER_NOTIONAL?: string;
   MAX_TOTAL_EXPOSURE?: string;
   MAX_OPEN_POSITIONS?: string;
+  /** REVIEW (absent = off): "true" = a fill's candle must open at or after the order's ACCEPTANCE by this ledger. */
+  STRICT_FILL_TIMING?: string;
 }
 
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -158,7 +160,10 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     const exitKind = String(fillIn.kind ?? "");
     const lim = pending ? pending.limit_price : action === "CLOSE" && open && exitKind === "TP" && open.tp ? open.tp : null;
     const chk = checkStrategyFill({ side: isBuy ? "BUY" : "SELL", price: fillIn.price, candle: parseCandle(fillIn.candle, bot.timeframe_min), limit: lim, nowMs,
-      notBeforeMs: pending ? Date.parse(pending.placed_at) : null });
+      // Default: the candle must open at or after the strategy's order time (placed_at, the close it was issued at).
+      // Strict (STRICT_FILL_TIMING, review): also at or after this ledger ACCEPTED it (received_at, seconds later), so
+      // a candle that began before the order existed can never establish its fill.
+      notBeforeMs: pending ? (env.STRICT_FILL_TIMING === "true" ? Math.max(Date.parse(pending.placed_at), Date.parse(pending.received_at)) : Date.parse(pending.placed_at)) : null });
     if (!chk.ok) return reject(db, { ...ctx, code: chk.code, message: chk.message });
     px = chk.price; priceAt = chk.candleClose; fillAt = parseCandle(fillIn.candle, bot.timeframe_min)?.t ?? null;
     priceSource = pending ? "PAPER_LIMIT_FILL (strategy candle, simulated)" : `PAPER_STRATEGY_FILL ${exitKind || "fill"} (strategy candle, simulated)`;
