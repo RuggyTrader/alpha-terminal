@@ -1,0 +1,160 @@
+<title>Research Round 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: a single reading column (research memo) with full-width chart and tables in their own scroll boxes. */
+:root {
+  --bg: #f6f7f5; --panel: #ffffff; --fg: #1b2420; --muted: #5d6a63; --line: #d9dfdb;
+  --accent: #1f6f5c; --good: #1d7a3a; --bad: #b3261e; --warn: #9a6200;
+  --c1: #1f6f5c; --c2: #6a4bb3; --c3: #c06a00; --c4: #8f9894; --c5: #b3261e; --c6: #3a7ab8; --c7: #444c48;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif; --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121815; --panel: #19211d; --fg: #e4ebe7; --muted: #9aa8a0; --line: #2c3631;
+  --accent: #5cc3a6; --good: #5bc77a; --bad: #f08a80; --warn: #e3b05c;
+  --c1: #5cc3a6; --c2: #a48ef0; --c3: #f0a24a; --c4: #7d8782; --c5: #f08a80; --c6: #79b2ea; --c7: #c9d2cd; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121815; --panel: #19211d; --fg: #e4ebe7; --muted: #9aa8a0; --line: #2c3631;
+  --accent: #5cc3a6; --good: #5bc77a; --bad: #f08a80; --warn: #e3b05c;
+  --c1: #5cc3a6; --c2: #a48ef0; --c3: #f0a24a; --c4: #7d8782; --c5: #f08a80; --c6: #79b2ea; --c7: #c9d2cd; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15px/1.6 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 30px; } h2 { font-size: 20px; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+section { display: grid; gap: 12px; min-width: 0; }
+.verdict { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 6px; padding: 16px 18px; display: grid; gap: 8px; }
+.verdict b { color: var(--fg); }
+.chart { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0; }
+.chart svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.tbl { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; min-width: 210px; }
+th { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .03em; }
+tr:last-child td { border-bottom: 0; }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+.pill { font: 500 11px var(--mono); padding: 2px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.pill.no { color: var(--bad); border-color: currentColor; } .pill.hyp { color: var(--warn); border-color: currentColor; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+.small { font-size: 13px; color: var(--muted); }
+code { font-family: var(--mono); font-size: 12.5px; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <div class="eyebrow">ALPHA TERMINAL · research only · not PAPER results</div>
+    <h1>Can a rule-based strategy grow $100 after fees?</h1>
+    <p class="small">SOLUSD and BTCUSD, June 2021 to November 2026. Coinbase candles, cross-checked against Kraken (median close difference 0.014%). Development Jul 2021–Dec 2023, validation Jan 2024–Jun 2025, untouched final test Jul 2025–Nov 2026.</p>
+  </header>
+
+  <div class="verdict">
+    <b>No candidate meets every acceptance criterion, so I recommend no production change.</b>
+    <p>Of the 13 settings that passed validation, 9 lost money on the untouched final test. The most consistent rule, BTC daily 50-day trend long only, was positive in all three periods (+$21.10, +$13.43, +$4.12). It was not the protocol's own pick, and its final test has 19 trades, so it is a hypothesis to trial in PAPER, not a proven edge.</p>
+  </div>
+
+  <section>
+    <h2>Final test: $100 from July 2025</h2>
+    <p class="small">Daily equity, marked to market, after 0.20% fees and 0.05% slippage on every fill. BTC fell 40% and SOL 55% over this period.</p>
+    <div class="chart"><svg id="eq" viewBox="0 0 960 360" role="img" aria-label="Equity curves of candidates and benchmarks over the final test period"></svg></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section>
+    <h2>The candidates</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Candidate</th><th>Dev net</th><th>Val net</th><th>Test net</th><th>Test trades</th><th>PF</th><th>Max DD</th><th>Avg/trade (95% CI)</th><th>Status</th></tr></thead>
+      <tbody id="cands"></tbody>
+    </table></div>
+    <p class="small">$100, 2% of equity at risk per trade, 0.20% fee + 0.05% slippage. LONG+SHORT includes short borrowing at 0.02% per 4 hours, which is what a real spot short costs on margin. Its SHORT side lost money in development (−$1.03) and validation (−$5.81).</p>
+  </section>
+
+  <section>
+    <h2>What the validation gate predicted</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Setting that passed validation</th><th>Validation net</th><th>Final test net</th><th>Test trades</th><th>Test PF</th></tr></thead>
+      <tbody id="gate"></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Fee and parameter sensitivity: BTC 50-day trend, long only</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>Fee / slippage per fill</th><th>Development</th><th>Validation</th><th>Final test</th></tr></thead>
+      <tbody id="costs"></tbody>
+    </table></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Moving average · stop · trail</th><th>Development</th><th>Validation</th><th>Final test</th></tr></thead>
+      <tbody id="grid"></tbody>
+    </table></div>
+    <p class="small">The 50-day variants hold up in every period. The 100- and 200-day variants turn slightly negative in the final test, so the result depends on the faster average in a falling market.</p>
+  </section>
+
+  <section>
+    <h2>Benchmarks over the final test</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>$100 held from July 2025</th><th>Net</th><th>Max drawdown</th></tr></thead>
+      <tbody id="bench"></tbody>
+    </table></div>
+    <p class="small">In the earlier periods buy and hold won easily: BTC made +152% in validation against +13% for the trend rule. The rule protects capital in falls and gives up most of a bull market.</p>
+  </section>
+
+  <section>
+    <h2>Fill timing, prepared for review</h2>
+    <p>A stricter rule now exists on branch <code>review/strict-fill-timing</code> and is off by default. A candle that started before the ledger accepted an order can no longer fill it. On the original four strategies it removes 2–4% of fills and changes net by −$0.01 to +$0.28, so the current rule has not been flattering the results. Nothing is deployed.</p>
+  </section>
+
+  <section>
+    <h2>What this cannot show</h2>
+    <ul>
+      <li>Daily rules trade about 15–25 times a year per market, so five years still gives only about 100 trades per market. Every 95% interval above includes zero.</li>
+      <li>Bar data does not show the order of prices within a bar. Stops are assumed to fill before targets.</li>
+      <li>A real spot short needs margin borrowing or derivatives. A collateralised PAPER short does not prove that real shorting is available.</li>
+      <li>SOL positions under about $50 often fall below Kraken's 0.05 SOL minimum and are skipped.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const DATA = __DATA__;
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + "$" + Math.abs(v).toFixed(2);
+const cls = (v) => (v > 0 ? "pos" : v < 0 ? "neg" : "");
+const td = (v, money = true) => `<td class="${money ? cls(v) : ""}">${money ? fmt(v) : v}</td>`;
+
+function chart() {
+  const svg = document.getElementById("eq"), W = 960, H = 360, L = 52, R = 16, T = 14, B = 34;
+  const S = DATA.series, names = Object.keys(S);
+  const colors = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6", "--c7"].map(css);
+  const all = names.flatMap((n) => S[n].map((p) => p[1]));
+  const lo = Math.floor(Math.min(...all) / 10) * 10, hi = Math.ceil(Math.max(...all) / 10) * 10;
+  const days = S[names[0]].map((p) => p[0]), t0 = Date.parse(days[0]), t1 = Date.parse(days.at(-1));
+  const x = (d) => L + ((Date.parse(d) - t0) / (t1 - t0)) * (W - L - R), y = (v) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+  let g = "";
+  for (let v = lo; v <= hi; v += 10) g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${css("--line")}" stroke-width="1"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="${css("--muted")}" font-family="${css("--mono")}">$${v}</text>`;
+  for (const d of days.filter((d) => d.endsWith("-01") && ["01", "04", "07", "10"].includes(d.slice(5, 7)))) g += `<text x="${x(d)}" y="${H - 12}" text-anchor="middle" font-size="11" fill="${css("--muted")}" font-family="${css("--mono")}">${d.slice(0, 7)}</text>`;
+  names.forEach((n, i) => {
+    const pts = S[n].map((p) => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+    const dash = n === "Cash" ? ' stroke-dasharray="4 4"' : "";
+    g += `<polyline points="${pts}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="${i < 3 ? 2.2 : 1.4}"${dash}/>`;
+    const last = S[n].at(-1);
+    g += `<circle cx="${x(last[0])}" cy="${y(last[1])}" r="${i < 3 ? 3.2 : 2.4}" fill="${colors[i % colors.length]}"/>`;
+  });
+  svg.innerHTML = g;
+  document.getElementById("legend").innerHTML = names.map((n, i) => `<span><i style="background:${colors[i % colors.length]}"></i>${n} · $${S[n].at(-1)[1].toFixed(2)}</span>`).join("");
+}
+function tables() {
+  document.getElementById("cands").innerHTML = DATA.candidates.map((c) => `<tr><td>${c.name}</td>${td(c.dev)}${td(c.val)}${td(c.test)}${td(c.trades, false)}${td(c.pf.toFixed(2), false)}${td(c.dd + "%", false)}<td>${fmt(c.avg)} (${fmt(c.ci[0])} to ${fmt(c.ci[1])})</td><td><span class="pill ${c.status === "hypothesis" ? "hyp" : "no"}">${c.status}</span></td></tr>`).join("");
+  document.getElementById("gate").innerHTML = DATA.gate.map((g) => `<tr><td>${g.name}</td>${td(g.val)}${td(g.test)}${td(g.trades, false)}${td(g.pf ?? "–", false)}</tr>`).join("");
+  document.getElementById("costs").innerHTML = DATA.costs.map((c) => `<tr><td>${c.label}</td>${td(c.dev)}${td(c.val)}${td(c.test)}</tr>`).join("");
+  document.getElementById("grid").innerHTML = DATA.grid.map((c) => `<tr><td>${c.label}</td>${td(c.dev)}${td(c.val)}${td(c.test)}</tr>`).join("");
+  document.getElementById("bench").innerHTML = DATA.bench.map((b) => `<tr><td>${b.name}</td>${td(b.net)}${td(b.dd + "%", false)}</tr>`).join("");
+}
+chart(); tables();
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", chart);
+new MutationObserver(chart).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>
