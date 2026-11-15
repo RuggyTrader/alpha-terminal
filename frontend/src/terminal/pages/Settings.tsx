@@ -99,7 +99,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
           return (
             <div key={b.bot_id} className="li li-wrap">
               <span><AssetLogo of={b.symbol} size={16} className="inline-logo" /><b>{b.name}</b> · {b.symbol.replace(/USD$/, "")} {b.timeframe} · risk {money(b.risk_usd)}<i className="sg-edit"> · editable</i>
-                {" · "}{b.ledger_api === "bot" ? "LONG + simulated SHORT" : "legacy ledger: LONG only until switched"}</span>
+                {" · "}{b.ledger_api === "bot" ? "LONG + SHORT" : "LONG only (upgrade pending)"}</span>
               <StatusBadge tone={es.tone} dot>{es.label}</StatusBadge>
             </div>
           );

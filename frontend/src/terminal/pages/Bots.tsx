@@ -10,7 +10,7 @@ import { newRequestId } from "../api";
 import { EmptyState, SectionHeader, SkeletonCards, StatusBadge } from "../components/ui";
 import { money, NA, signedMoney, stamp, tone } from "../fmt";
 import {
-  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused, switchToBotLedger,
+  allocate, botPhase, engineStatus, groupTotals, previewAllocation, setBotRisk, setEntriesPaused,
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
@@ -120,7 +120,7 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
           <p className="sizing-note">Last sizing: {last.status}{last.code ? ` (${last.code})` : ""}{last.qty ? ` · qty ${last.qty}` : ""}{last.risk_actual_usd !== null && last.risk_actual_usd !== undefined ? ` · stop risk ${money(last.risk_actual_usd)}` : ""}{last.notional_usd ? ` · notional ${money(last.notional_usd)}` : ""}{last.explanation ? ` · ${last.explanation}` : ""}</p>
         ) : null}
         {e?.last_error?.message ? <p className="sizing-note t-warn">Last error: {e.last_error.message}</p> : null}
-        <p className="sizing-note">{b.bot_id} · profile {b.profile ?? NA} · config {b.inputs_hash ?? NA} · wallet {b.wallet} · {b.ledger_api === "legacy" ? "legacy ledger (long-only until its approved switch to the bot ledger)" : "bot ledger: LONG and simulated, fully collateralised SHORT"}</p>
+        <p className="sizing-note">{b.bot_id} · profile {b.profile ?? NA} · config {b.inputs_hash ?? NA} · wallet {b.wallet} · {b.ledger_api === "legacy" ? "LONG only until its one-time upgrade" : "LONG + SHORT (the strategy chooses the direction; SHORTs fully collateralised)"}</p>
       </details>
       <div className="bot-actions">
         <Link className="btn btn-ghost" to={`/trades?bot=${b.bot_id}`}>Trades</Link>
@@ -134,15 +134,6 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
             <Passphrase value={pass} onChange={setPass} />
             <button className="btn" disabled={!pass} onClick={togglePause}>{b.entries_paused ? "Resume new entries" : "Pause new entries"}</button>
             <p className="sizing-note">Pausing stops NEW entries only; an open position keeps its stop, target and exit.</p>
-            {b.ledger_api === "legacy" ? (
-              <>
-                <button className="btn" disabled={!pass} onClick={async () => {
-                  try { const r = await switchToBotLedger(b.bot_id, newRequestId(), pass); setMsg(r.ok ? `${b.name} now trades on the bot ledger (LONG and simulated SHORT). Set ${String(r.note ?? "").replace(/^.*set /, "set ")}` : backendErrorMessage(r)); if (r.ok) { setPass(""); onChanged?.(); } }
-                  catch (err) { setMsg(backendErrorMessage(err)); }
-                }}>Move to the bot ledger (LONG + SHORT)</button>
-                <p className="sizing-note">Today this bot uses the legacy long-only ledger, so its SHORT setups are refused. Moving it is one-way, needs it to be flat, and must be followed by the matching engine setting (see the rollout plan).</p>
-              </>
-            ) : null}
             {msg ? <p className="sizing-note" role="status">{msg}</p> : null}
           </div>
         </div>
