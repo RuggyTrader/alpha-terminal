@@ -495,6 +495,9 @@ export function splitEqual(amountMicro: number, botIds: string[]): { bot_id: str
 }
 
 async function groupBots(db: D1Database, group: string) {
+  // A single ACTIVE bot (e.g. "ALPHA-01") is a valid target too: the whole amount goes to that bot's own wallet. Used for
+  // exact per-bot amounts and for reinvesting MAIN's accumulated PAPER profit into one bot (owner action, passphrase).
+  if (BOT_ID_RE.test(group)) return (await db.prepare(`SELECT * FROM bots WHERE bot_id = ? AND status = 'ACTIVE'`).bind(group).all<BotRow>()).results;
   return (await db.prepare(`SELECT * FROM bots WHERE group_id = ? AND status = 'ACTIVE' ORDER BY priority, bot_id`).bind(group).all<BotRow>()).results;
 }
 
@@ -528,7 +531,7 @@ export async function handleBotOwnerAction(env: BotLedgerEnv, pathname: string, 
     const split = splitEqual(amountMicro, bots.map((b) => b.bot_id));
     const stmts: D1PreparedStatement[] = [
       db.prepare(`INSERT INTO allocation_events (request_key, group_id, amount_micro, split_json, created_at, note) VALUES (?, ?, ?, ?, ?, ?)`)
-        .bind(requestId, group, amountMicro, JSON.stringify(split), now, `owner allocation MAIN → ${group}`),
+        .bind(requestId, bots[0].group_id, amountMicro, JSON.stringify(split), now, `owner allocation MAIN → ${group}`),
       // CHECK (available_micro >= 0) on MAIN fails the whole transaction if MAIN cannot cover it (only unreserved money).
       db.prepare(`UPDATE portfolio_wallets SET available_micro = available_micro - ?, net_funding_micro = net_funding_micro - ?, updated_at = ? WHERE wallet = 'MAIN'`).bind(amountMicro, amountMicro, now),
     ];

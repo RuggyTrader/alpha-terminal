@@ -1,0 +1,314 @@
+{
+ "label": "Small-capital evaluation (research, recorded Kraken candles; not production results)",
+ "from": "2026-11-01T00:00:00Z",
+ "candles": {
+  "ALPHA-01": 20099,
+  "ALPHA-02": 4023,
+  "ALPHA-03": 15840,
+  "ALPHA-04": 3168
+ },
+ "fee_model": "Ndax-equivalent 0.20% per fill",
+ "fill_model": "funded model fills at the candle close (conservative); reference = zero-fee TradingView model with limit fills",
+ "results": [
+  {
+   "per_bot_usd": 10,
+   "combined": {
+    "trades": 285,
+    "net": -7.708564999999998,
+    "wins": 48,
+    "losses": 237,
+    "win_rate": 0.16842105263157894,
+    "profit_factor": 0.12322196179379649,
+    "expectancy": -0.027047596491228065,
+    "max_drawdown": 7.708564999999998,
+    "fees": 9.718438999999993,
+    "swept_to_main": 1.0833580000000003,
+    "main_end": 1.083358
+   },
+   "bots": {
+    "ALPHA-01": {
+     "funded": {
+      "trades": 114,
+      "long": 62,
+      "short": 52,
+      "gross": 0.635244,
+      "fees": 3.659891000000002,
+      "net": -3.024647000000002,
+      "win_rate": 0.16666666666666666,
+      "max_drawdown": 3.024647000000002,
+      "median_notional": 7.918927,
+      "skipped": {
+       "BELOW_MIN_QTY": 3
+      }
+     },
+     "reference_zero_fee": {
+      "net": 375.3065521551308,
+      "modelled_net_after_fees": -1919.2870409605055,
+      "break_even_fee_per_fill_pct": 0.032712246149483364
+     }
+    },
+    "ALPHA-02": {
+     "funded": {
+      "trades": 47,
+      "long": 18,
+      "short": 29,
+      "gross": 0.613495,
+      "fees": 1.7336370000000008,
+      "net": -1.120142,
+      "win_rate": 0.2553191489361702,
+      "max_drawdown": 1.140978,
+      "median_notional": 9.248125,
+      "skipped": {
+       "BELOW_MIN_QTY": 1
+      }
+     },
+     "reference_zero_fee": {
+      "net": 120.21033334803991,
+      "modelled_net_after_fees": -562.3652306020482,
+      "break_even_fee_per_fill_pct": 0.03522257159408949
+     }
+    },
+    "ALPHA-03": {
+     "funded": {
+      "trades": 95,
+      "long": 42,
+      "short": 53,
+      "gross": 0.565274,
+      "fees": 3.2325959999999996,
+      "net": -2.6673219999999995,
+      "win_rate": 0.11578947368421053,
+      "max_drawdown": 2.6673219999999995,
+      "median_notional": 8.510524,
+      "skipped": {
+       "BELOW_MIN_QTY": 3
+      }
+     },
+     "reference_zero_fee": {
+      "net": 284.4040941765956,
+      "modelled_net_after_fees": -3576.554376873554,
+      "break_even_fee_per_fill_pct": 0.014732305271299125
+     }
+    },
+    "ALPHA-04": {
+     "funded": {
+      "trades": 29,
+      "long": 13,
+      "short": 16,
+      "gross": 0.19586099999999998,
+      "fees": 1.092315,
+      "net": -0.8964539999999999,
+      "win_rate": 0.20689655172413793,
+      "max_drawdown": 0.8964539999999999,
+      "median_notional": 9.37412,
+      "skipped": {}
+     },
+     "reference_zero_fee": {
+      "net": 189.113778981087,
+      "modelled_net_after_fees": -327.9244720841808,
+      "break_even_fee_per_fill_pct": 0.07315272268210361
+     }
+    }
+   }
+  },
+  {
+   "per_bot_usd": 20,
+   "combined": {
+    "trades": 285,
+    "net": -15.417282000000013,
+    "wins": 48,
+    "losses": 237,
+    "win_rate": 0.16842105263157894,
+    "profit_factor": 0.12322144512096185,
+    "expectancy": -0.054095726315789516,
+    "max_drawdown": 15.417282000000013,
+    "fees": 19.43702299999999,
+    "swept_to_main": 2.1667270000000007,
+    "main_end": 2.166727
+   },
+   "bots": {
+    "ALPHA-01": {
+     "funded": {
+      "trades": 114,
+      "long": 62,
+      "short": 52,
+      "gross": 1.2704799999999996,
+      "fees": 7.319778,
+      "net": -6.049298000000001,
+      "win_rate": 0.16666666666666666,
+      "max_drawdown": 6.049298000000001,
+      "median_notional": 15.837852,
+      "skipped": {
+       "BELOW_MIN_QTY": 3
+      }
+     },
+     "reference_zero_fee": {
+      "net": 375.3065521551308,
+      "modelled_net_after_fees": -1919.2870409605055,
+      "break_even_fee_per_fill_pct": 0.032712246149483364
+     }
+    },
+    "ALPHA-02": {
+     "funded": {
+      "trades": 47,
+      "long": 18,
+      "short": 29,
+      "gross": 1.2269830000000002,
+      "fees": 3.4672689999999995,
+      "net": -2.2402859999999998,
+      "win_rate": 0.2553191489361702,
+      "max_drawdown": 2.281958,
+      "median_notional": 18.496252,
+      "skipped": {
+       "BELOW_MIN_QTY": 1
+      }
+     },
+     "reference_zero_fee": {
+      "net": 120.21033334803991,
+      "modelled_net_after_fees": -562.3652306020482,
+      "break_even_fee_per_fill_pct": 0.03522257159408949
+     }
+    },
+    "ALPHA-03": {
+     "funded": {
+      "trades": 95,
+      "long": 42,
+      "short": 53,
+      "gross": 1.1305499999999997,
+      "fees": 6.465298000000001,
+      "net": -5.334748,
+      "win_rate": 0.11578947368421053,
+      "max_drawdown": 5.334748,
+      "median_notional": 17.021808,
+      "skipped": {
+       "BELOW_MIN_QTY": 3
+      }
+     },
+     "reference_zero_fee": {
+      "net": 284.4040941765956,
+      "modelled_net_after_fees": -3576.554376873554,
+      "break_even_fee_per_fill_pct": 0.014732305271299125
+     }
+    },
+    "ALPHA-04": {
+     "funded": {
+      "trades": 29,
+      "long": 13,
+      "short": 16,
+      "gross": 0.39172799999999997,
+      "fees": 2.1846779999999995,
+      "net": -1.79295,
+      "win_rate": 0.20689655172413793,
+      "max_drawdown": 1.79295,
+      "median_notional": 18.748241,
+      "skipped": {}
+     },
+     "reference_zero_fee": {
+      "net": 189.113778981087,
+      "modelled_net_after_fees": -327.9244720841808,
+      "break_even_fee_per_fill_pct": 0.07315272268210361
+     }
+    }
+   }
+  },
+  {
+   "per_bot_usd": 50,
+   "combined": {
+    "trades": 285,
+    "net": -38.54336000000003,
+    "wins": 48,
+    "losses": 237,
+    "win_rate": 0.16842105263157894,
+    "profit_factor": 0.12322163891441,
+    "expectancy": -0.1352398596491229,
+    "max_drawdown": 38.54336000000003,
+    "fees": 48.59279199999999,
+    "swept_to_main": 5.416849,
+    "main_end": 5.416849
+   },
+   "bots": {
+    "ALPHA-01": {
+     "funded": {
+      "trades": 114,
+      "long": 62,
+      "short": 52,
+      "gross": 3.17621,
+      "fees": 18.299443000000007,
+      "net": -15.123232999999992,
+      "win_rate": 0.16666666666666666,
+      "max_drawdown": 15.123232999999992,
+      "median_notional": 39.594629,
+      "skipped": {
+       "BELOW_MIN_QTY": 3
+      }
+     },
+     "reference_zero_fee": {
+      "net": 375.3065521551308,
+      "modelled_net_after_fees": -1919.2870409605055,
+      "break_even_fee_per_fill_pct": 0.032712246149483364
+     }
+    },
+    "ALPHA-02": {
+     "funded": {
+      "trades": 47,
+      "long": 18,
+      "short": 29,
+      "gross": 3.067455,
+      "fees": 8.668168999999997,
+      "net": -5.600714000000001,
+      "win_rate": 0.2553191489361702,
+      "max_drawdown": 5.704893000000001,
+      "median_notional": 46.240627,
+      "skipped": {
+       "BELOW_MIN_QTY": 1
+      }
+     },
+     "reference_zero_fee": {
+      "net": 120.21033334803991,
+      "modelled_net_after_fees": -562.3652306020482,
+      "break_even_fee_per_fill_pct": 0.03522257159408949
+     }
+    },
+    "ALPHA-03": {
+     "funded": {
+      "trades": 95,
+      "long": 42,
+      "short": 53,
+      "gross": 2.8264299999999993,
+      "fees": 16.16342,
+      "net": -13.336989999999997,
+      "win_rate": 0.11578947368421053,
+      "max_drawdown": 13.336989999999997,
+      "median_notional": 42.555657,
+      "skipped": {
+       "BELOW_MIN_QTY": 3
+      }
+     },
+     "reference_zero_fee": {
+      "net": 284.4040941765956,
+      "modelled_net_after_fees": -3576.554376873554,
+      "break_even_fee_per_fill_pct": 0.014732305271299125
+     }
+    },
+    "ALPHA-04": {
+     "funded": {
+      "trades": 29,
+      "long": 13,
+      "short": 16,
+      "gross": 0.9793369999999999,
+      "fees": 5.46176,
+      "net": -4.482422999999999,
+      "win_rate": 0.20689655172413793,
+      "max_drawdown": 4.482422999999999,
+      "median_notional": 46.870602,
+      "skipped": {}
+     },
+     "reference_zero_fee": {
+      "net": 189.113778981087,
+      "modelled_net_after_fees": -327.9244720841808,
+      "break_even_fee_per_fill_pct": 0.07315272268210361
+     }
+    }
+   }
+  }
+ ]
+}

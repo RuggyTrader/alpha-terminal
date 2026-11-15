@@ -219,4 +219,17 @@ describe("durable pending orders and reversal safety (TEST values, isolated D1)"
     assert.ok(noPass.status >= 400, "the passphrase is required");
     assert.equal(sql(`SELECT status FROM bots WHERE bot_id = 'ALPHA-03'`)[0].status, "PROPOSED");
   });
+
+  it("allocation to ONE active bot moves the exact amount into its own wallet (a transfer, not profit); preview first", async () => {
+    const before = sql(`SELECT wallet, available_micro a, realized_pnl_micro p FROM portfolio_wallets WHERE wallet IN ('MAIN', 'ALPHA-01') ORDER BY wallet`);
+    const pv = await fetch(`${base}/api/dashboard/allocation-preview?group=ALPHA-01&amount=3.33`, { headers: { Cookie: cookie } }).then((r) => r.json());
+    assert.deepEqual(pv.data.split.map((s) => [s.bot_id, s.amount_usd]), [["ALPHA-01", 3.33]]);
+    const r = await act("allocate", { group: "ALPHA-01", amount_usd: 3.33 });
+    assert.equal(r.ok, true);
+    const after = sql(`SELECT wallet, available_micro a, realized_pnl_micro p FROM portfolio_wallets WHERE wallet IN ('MAIN', 'ALPHA-01') ORDER BY wallet`);
+    assert.equal(after[0].a - before[0].a, 3_330_000); assert.equal(before[1].a - after[1].a, 3_330_000);
+    assert.equal(after[0].p, before[0].p, "no profit recorded"); assert.equal(after[1].p, before[1].p);
+    assert.equal(sql(`SELECT group_id FROM allocation_events ORDER BY id DESC LIMIT 1`)[0].group_id, "SOLANA");
+    assert.equal((await act("allocate", { group: "ALPHA-03", amount_usd: 1 })).code, "NO_ACTIVE_BOTS", "a PROPOSED bot cannot receive capital");
+  });
 });

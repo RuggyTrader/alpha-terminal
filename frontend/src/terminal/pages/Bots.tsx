@@ -110,6 +110,12 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
         <div><span>Allocated</span><b>{money(b.funding.allocated_usd + b.funding.transferred_in_usd)}</b></div>
         <div><span>Net PAPER P&amp;L</span><b className={`t-${tone(b.paper.net_usd)}`}>{signedMoney(b.paper.net_usd)}</b></div>
       </div>
+      {b.status === "ACTIVE" ? (
+        <p className="sizing-note">
+          Next position: up to <b>{money(b.balances.available_usd)}</b> (its own wallet, no leverage) · risk target {money(b.risk_usd)}, capped by capital:
+          actual risk ≈ position × stop distance (e.g. {money(b.balances.available_usd * 0.005)} at a 0.5% stop) · fees 0.20% per fill.
+        </p>
+      ) : null}
       {b.balances.shortfall_usd > 0 ? <p className="sizing-note t-bad">Recorded shortfall {money(b.balances.shortfall_usd)}: a loss beyond this bot's collateral and cash. Entries are paused; MAIN did not cover it.</p> : null}
       {canChart ? <Link className="btn btn-primary bot-chart-btn" to={`/bots/${b.bot_id}/chart`}>View chart</Link> : null}
       <details className="bot-details">
@@ -164,7 +170,11 @@ export function BotCard({ b, nowMs, onChanged }: { b: Bot; nowMs: number; onChan
 }
 
 function AllocationPanel({ fleet, onDone }: { fleet: Fleet; onDone: () => void }) {
-  const groups = fleet.groups.filter((g) => fleet.bots.some((b) => b.group === g.group_id && b.status === "ACTIVE"));
+  // Targets: a group (equal split between its active bots) or ONE active bot (exact amount, e.g. reinvesting MAIN's profit).
+  const groups = [
+    ...fleet.groups.filter((g) => fleet.bots.some((b) => b.group === g.group_id && b.status === "ACTIVE")).map((g) => ({ group_id: g.group_id, name: `${g.name} (equal split)` })),
+    ...fleet.bots.filter((b) => b.status === "ACTIVE").map((b) => ({ group_id: b.bot_id, name: `${b.name} only` })),
+  ];
   const [group, setGroup] = useState(groups[0]?.group_id ?? "");
   const [amount, setAmount] = useState("");
   const [pass, setPass] = useState("");
@@ -185,9 +195,9 @@ function AllocationPanel({ fleet, onDone }: { fleet: Fleet; onDone: () => void }
   if (!groups.length) return null;
   return (
     <section className="card" aria-label="Allocate from MAIN">
-      <SectionHeader title="Allocate from MAIN" sub="Split equally between the group's active bots, to the cent" />
+      <SectionHeader title="Allocate from MAIN" sub="To one bot, or split equally between a group's active bots · a transfer, never profit" />
       <div className="bot-alloc">
-        <select className="input" value={group} onChange={(e) => { setGroup(e.target.value); setPreview(null); }} aria-label="Cryptocurrency group">
+        <select className="input" value={group} onChange={(e) => { setGroup(e.target.value); setPreview(null); }} aria-label="Allocation target">
           {groups.map((g) => <option key={g.group_id} value={g.group_id}>{g.name}</option>)}
         </select>
         <input className="input" inputMode="decimal" placeholder="Amount (USD)" value={amount} onChange={(e) => { setAmount(e.target.value); setPreview(null); }} aria-label="Amount in dollars" />
