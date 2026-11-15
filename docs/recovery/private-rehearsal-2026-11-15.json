@@ -1,0 +1,252 @@
+{
+ "label": "PRIVATE production-copy rehearsal (local only; production not contacted after the export)",
+ "export_file": "outside the repository (path not recorded)",
+ "at": "2026-11-15T06:17:03.529Z",
+ "passed": 44,
+ "failed": 0,
+ "counts_before": {
+  "activity_events": 20,
+  "alerts": 18,
+  "app_meta": 3,
+  "backtest_results": 1,
+  "engine_state": 1,
+  "event_cursors": 4,
+  "mirror_accounts": 1,
+  "mirror_entries": 18,
+  "mirror_open_events": 7,
+  "mirror_trades": 18,
+  "orders": 6,
+  "paper_fills": 2,
+  "paper_positions": 1,
+  "portfolio_entries": 6,
+  "portfolio_wallets": 6,
+  "push_deliveries": 18,
+  "push_subscriptions": 2,
+  "risk_decisions": 16,
+  "strategy_settings": 1,
+  "trade_events": 22,
+  "trades": 1
+ },
+ "results": [
+  {
+   "name": "export imported into an isolated local D1 (schema 6)",
+   "ok": true,
+   "detail": "{\"activity_events\":20,\"alerts\":18,\"app_meta\":3,\"backtest_results\":1,\"engine_state\":1,\"event_cursors\":4,\"mirror_accounts\":1,\"mirror_entries\":18,\"mirror_open_events\":7,\"mirror_trades\":18,\"orders\":6,\"paper_fills\":2,\"paper_positions\":1,\"portfolio_entries\":6,\"portfolio_wallets\":6,\"push_deliveries\":18,\"push_subscriptions\":2,\"risk_decisions\":16,\"strategy_settings\":1,\"trade_events\":22,\"trades\":1}"
+  },
+  {
+   "name": "exactly one pending migration: 0007_bots.sql",
+   "ok": true,
+   "detail": "0007_bots.sql"
+  },
+  {
+   "name": "migration ledger has 0001–0006 applied",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "activity_events: all 20 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "alerts: all 18 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "app_meta: all 2 rows and values unchanged (other than schema_version)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "backtest_results: all 1 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "engine_state: all 1 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "event_cursors: all 4 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "mirror_accounts: all 1 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "mirror_entries: all 18 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "mirror_open_events: all 7 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "mirror_trades: all 18 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "orders: all 6 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "paper_fills: all 2 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "paper_positions: all 1 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "portfolio_entries: all 6 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "portfolio_wallets: all 6 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "push_deliveries: all 18 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "push_subscriptions: all 2 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "risk_decisions: all 16 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "strategy_settings: all 1 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "trade_events: all 22 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "trades: all 1 rows and values unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "app_meta.schema_version changed exactly 6 → 7",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "no row removed from any table",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "schema 7",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "foreign keys consistent (push deliveries still point at their events)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "the four bots with the original profile hashes; only ALPHA-02 ACTIVE (legacy ledger, SOLUSD wallet)",
+   "ok": true,
+   "detail": "[{\"bot_id\":\"ALPHA-01\",\"inputs_hash\":\"0932a1a0cfac03f9\",\"status\":\"PROPOSED\",\"ledger_api\":\"bot\",\"wallet\":\"ALPHA-01\"},{\"bot_id\":\"ALPHA-02\",\"inputs_hash\":\"c826d785d58a4a39\",\"status\":\"ACTIVE\",\"ledger_api\":\"legacy\",\"wallet\":\"SOLUSD\"},{\"bot_id\":\"ALPHA-03\",\"inputs_hash\":\"d828caa44611ad73\",\"status\":\"PROPOSED\",\"ledger_api\":\"bot\",\"wallet\":\"ALPHA-03\"},{\"bot_id\":\"ALPHA-04\",\"inputs_hash\":\"a6336dad6ffaed70\",\"status\":\"PROPOSED\",\"ledger_api\":\"bot\",\"wallet\":\"ALPHA-04\"}]"
+  },
+  {
+   "name": "new bot wallets empty (no capital created)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "durable pending-order table and one-PENDING-per-bot index created",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "existing records attributed to ALPHA-02 (engine alerts and the legacy position)",
+   "ok": true,
+   "detail": "8 ALPHA-02 alerts"
+  },
+  {
+   "name": "Worker answer unchanged after the migration: trades",
+   "ok": true,
+   "detail": "[{\"id\":1,\"symbol\":\"SOLUSD\",\"direction\":\"LONG\",\"status\":\"CLOSED\",\"strategy\":\"OTE Pro Strat (engine)\",\"open_alert_id\":\"ENG-SOLUSD-5-2026-11-13T00:30:00Z-BUY\",\"ope"
+  },
+  {
+   "name": "Worker answer unchanged after the migration: lifetime",
+   "ok": true,
+   "detail": "{\"scope\":\"all-funded-paper\",\"bot_id\":null,\"complete\":true,\"closed_trades\":1,\"wins\":0,\"losses\":1,\"break_even\":0,\"gross_usd\":-0.031679,\"fees_usd\":0,\"net_usd\":-0.0"
+  },
+  {
+   "name": "Worker answer unchanged after the migration: totals",
+   "ok": true,
+   "detail": "{\"book_balance_usd\":99.968321,\"shortfall_usd\":0,\"economic_net_realized_pnl_usd\":-0.031679,\"equity_usd\":99.968321,\"unallocated_usd\":90,\"available_usd\":99.968321,"
+  },
+  {
+   "name": "Worker answer unchanged after the migration: alerts_total",
+   "ok": true,
+   "detail": "{\"total\":18,\"dry_run\":4,\"rejected\":14,\"processing\":0,\"duplicates\":2}"
+  },
+  {
+   "name": "legacy trade #1 still served",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ALPHA-02 history and refusals served by the bot views",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "ALPHA-02 switched to the bot ledger (flat)",
+   "ok": true,
+   "detail": "{\"http\":200,\"ok\":true,\"bot_id\":\"ALPHA-02\",\"ledger_api\":\"bot\",\"wallet\":\"SOLUSD\",\"note\":\"the Worker now accepts this bot only on /webhook/bot-order; set ENGINE_LEDGER_ALPHA_02=bot in the engine config a"
+  },
+  {
+   "name": "the legacy route refuses ALPHA-02 after the switch (one route only)",
+   "ok": true,
+   "detail": "BOT_LEDGER_PATH"
+  },
+  {
+   "name": "SHORT: requested 33.3 (dollar risk) → accepted to fit ALPHA-02's own wallet; filled at its limit; closed at target",
+   "ok": true,
+   "detail": "{\"accepted\":0.14212034,\"msg\":\"accepted 0.14212034 of 33.3: reduced from 33.3 to 0.14212034 to fit the bot's available $9.97\",\"fill\":70,\"qty\":0.14212034,\"gross\":0.085272,\"fees\":0.039623,\"net\":0.045649,\"swept\":0.045649}"
+  },
+  {
+   "name": "LONG: filled at its limit, stopped out (a loss stays in ALPHA-02's wallet)",
+   "ok": true,
+   "detail": "{\"accepted\":0.14314279,\"qty\":0.14314279,\"gross\":-0.042943,\"fees\":0.039708,\"net\":-0.082651}"
+  },
+  {
+   "name": "reconciled: SOLUSD (ALPHA-02) = before + Σnet − Σswept; MAIN = before + Σswept; nothing reserved; fees once per fill",
+   "ok": true,
+   "detail": "{\"solusd_before\":9968321,\"solusd_after\":9885670,\"main_before\":90000000,\"main_after\":90045649,\"net\":-37002,\"swept\":45649}"
+  },
+  {
+   "name": "pending orders end FILLED; legacy trade #1 still served",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

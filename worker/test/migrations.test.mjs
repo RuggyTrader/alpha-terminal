@@ -89,8 +89,28 @@ describe("migrations from a fresh 0001", () => {
     assert.throws(() => bot.run("ALPHA-08", 15, "q", "ALPHA-01", 0, now, now), /UNIQUE/, "a wallet belongs to one bot");
     assert.throws(() => bot.run("ALPHA-09", 1, "solusd-1m", "W3", 0, now, now), /UNIQUE/, "the same profile twice on one market and timeframe");
     assert.throws(() => db.prepare("UPDATE bots SET risk_usd = 0 WHERE bot_id = 'ALPHA-01'").run(), /CHECK/);
-    db.exec(sql("0007_bots.sql").replace(/PRAGMA defer_foreign_keys[\s\S]*?RENAME TO trade_events;/, "").replace(/ALTER TABLE[^;]*;/g, "")); // re-running the idempotent parts is harmless
+    db.exec(sql("0007_bots.sql").replace(/PRAGMA defer_foreign_keys[\s\S]*?DROP TABLE push_deliveries_v7_hold;/, "").replace(/ALTER TABLE[^;]*;/g, "")); // re-running the idempotent parts is harmless
     assert.equal(db.prepare("SELECT COUNT(*) n FROM bots").get().n, 4);
+  });
+
+  it("0007 commits with FOREIGN KEYS ENFORCED (as D1 does) when push deliveries reference trade events (production shape)", () => {
+    // Regression: the private production-copy rehearsal (2026-11-15) found that rebuilding trade_events failed while
+    // push_deliveries rows referenced it. Every delivery and event must survive unchanged.
+    const db = new DatabaseSync(":memory:");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql"]) db.exec(sql(f));
+    db.exec("PRAGMA foreign_keys = ON");
+    const now = "2026-11-12T00:00:00Z";
+    const ev = db.prepare("INSERT INTO trade_events (event_key, kind, source, symbol, classification, ref, url, occurred_at, created_at) VALUES (?, 'FUNDED_ENTRY', 'funded', 'SOLUSD', 'live', ?, '/trades', ?, ?)");
+    for (let i = 1; i <= 22; i++) ev.run(`FILL:${i}`, String(i), now, now);
+    db.prepare("INSERT INTO push_subscriptions (endpoint, p256dh, auth, prefs_json, created_at, updated_at) VALUES ('https://push.example/1', 'k', 'a', '{}', ?, ?)").run(now, now);
+    const dl = db.prepare("INSERT INTO push_deliveries (event_id, subscription_id, status, created_at) VALUES (?, 1, 'sent', ?)");
+    for (let i = 1; i <= 18; i++) dl.run(i, now);
+    const before = { d: db.prepare("SELECT * FROM push_deliveries ORDER BY id").all(), e: db.prepare("SELECT id, event_key FROM trade_events ORDER BY id").all() };
+    db.exec("BEGIN"); db.exec(sql("0007_bots.sql")); db.exec("COMMIT");
+    assert.deepEqual(db.prepare("SELECT * FROM push_deliveries ORDER BY id").all(), before.d, "every delivery unchanged");
+    assert.deepEqual(db.prepare("SELECT id, event_key FROM trade_events ORDER BY id").all(), before.e, "every event unchanged");
+    assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(), []);
+    assert.equal(db.prepare("SELECT COUNT(*) n FROM sqlite_master WHERE name = 'push_deliveries_v7_hold'").get().n, 0, "no leftover table");
   });
 
   it("0006 (events and push) only adds tables; existing rows unchanged; cursors start at the current end (no backlog)", () => {

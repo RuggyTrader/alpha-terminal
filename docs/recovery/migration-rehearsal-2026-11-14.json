@@ -1,6 +1,6 @@
 {
  "label": "LOCAL REHEARSAL on a representative DEMO fixture (not production data)",
- "at": "2026-11-14T23:23:23.455Z",
+ "at": "2026-11-15T06:17:56.088Z",
  "migration": "0007_bots.sql",
  "passed": 31,
  "failed": 0,

@@ -202,6 +202,12 @@ CREATE INDEX IF NOT EXISTS idx_alerts_bot ON alerts(bot_id);
 -- from the authoritative ledger and mirror rows); no financial record lives in it. The wider CHECK is a superset, so the
 -- Worker running today keeps working against it.
 PRAGMA defer_foreign_keys = true;
+-- push_deliveries.event_id REFERENCES trade_events(id). D1 enforces foreign keys, and dropping a parent that still has
+-- child rows fails the transaction even when deferred (found by the private production-copy rehearsal, 2026-11-15:
+-- production has delivery rows). The deliveries are therefore set aside first and restored unchanged (same ids, same
+-- values, pointing at the same event ids, which the copy below keeps).
+CREATE TABLE push_deliveries_v7_hold AS SELECT * FROM push_deliveries;
+DELETE FROM push_deliveries;
 CREATE TABLE trade_events_v7 (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   event_key TEXT NOT NULL UNIQUE,
@@ -228,6 +234,8 @@ INSERT INTO trade_events_v7 (id, event_key, kind, source, symbol, side, qty, pri
   SELECT id, event_key, kind, source, symbol, side, qty, price, pnl, pnl_net, fees, classification, ref, account_id, url, occurred_at, created_at FROM trade_events;
 DROP TABLE trade_events;
 ALTER TABLE trade_events_v7 RENAME TO trade_events;
+INSERT INTO push_deliveries SELECT * FROM push_deliveries_v7_hold;
+DROP TABLE push_deliveries_v7_hold;
 CREATE INDEX IF NOT EXISTS idx_trade_events_bot ON trade_events(bot_id, id);
 INSERT OR IGNORE INTO event_cursors (name, last_id) VALUES ('bot_fills', (SELECT COALESCE(MAX(id), 0) FROM bot_fills));
 
