@@ -127,7 +127,9 @@ export async function handleEngineStatus(request: Request, env: EngineStatusEnv)
       await env.DB.prepare(`INSERT INTO app_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`).bind(`engine_status:${fleet.bot_id}`, JSON.stringify(rec)).run();
       const settings = await botSettingsExchange(env.DB, fleet, raw.bot_risk);
       const tf = `${fleet.timeframe_min}m`;
-      await recordLifecycle(env.DB, { bot_id: fleet.bot_id, name: fleet.name, symbol: fleet.symbol, timeframe: tf }, lifecycleEvents(prev, rec as unknown as Record<string, unknown>, { bot_id: fleet.bot_id, name: fleet.name, timeframe: tf }));
+      const open = await env.DB.prepare(`SELECT COUNT(*) AS n FROM bot_positions WHERE bot_id = ? AND status = 'OPEN'`).bind(fleet.bot_id).first<{ n: number }>().catch(() => null);
+      await recordLifecycle(env.DB, { bot_id: fleet.bot_id, name: fleet.name, symbol: fleet.symbol, timeframe: tf },
+        lifecycleEvents(prev, rec as unknown as Record<string, unknown>, { bot_id: fleet.bot_id, name: fleet.name, timeframe: tf }, { ledgerPosition: Number(open?.n ?? 0) > 0 }));
       return json({ ok: true, mode: "PAPER", broker_request_sent: false, settings });
     }
   }

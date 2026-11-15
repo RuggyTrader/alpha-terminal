@@ -164,7 +164,7 @@ const numOr = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v :
  * in its structured strategy_state; nothing is inferred from text. Keys are deterministic, so a repeated report never
  * creates a second event.
  */
-export function lifecycleEvents(prev: Obj | null, next: Obj, bot: { bot_id: string; name: string; timeframe: string }): LifecycleEvent[] {
+export function lifecycleEvents(prev: Obj | null, next: Obj, bot: { bot_id: string; name: string; timeframe: string }, opts: { ledgerPosition?: boolean } = {}): LifecycleEvent[] {
   const st = (next.strategy_state && typeof next.strategy_state === "object" ? next.strategy_state : null) as Obj | null;
   const ps = (prev?.strategy_state && typeof prev.strategy_state === "object" ? prev.strategy_state : null) as Obj | null;
   if (!st) return [];
@@ -186,7 +186,9 @@ export function lifecycleEvents(prev: Obj | null, next: Obj, bot: { bot_id: stri
     out.push({ key: `BOTCANCEL:${orderKey(ppo, ps)}`, kind: "ORDER_CANCELLED", side: String(ppo.side), qty: numOr(ppo.qty), price: numOr(ppo.limit), occurred_at: at,
       detail: { ...base, stop: numOr(ppo.stop), tp: numOr(ppo.tp), reason: po ? "replaced by a new setup" : "setup expired or invalidated (engine record)" } });
   }
-  if (pos && pos.side) {
+  // Stop changes are PAPER activity only while the ledger holds the bot's position. A position only the engine holds (its
+  // warm-up history, never sent) is not a PAPER trade (found in production 2026-11-15: ALPHA-03's warm-up trade).
+  if (pos && pos.side && opts.ledgerPosition !== false) {
     const tradeKey = `${bot.bot_id}:${String(pos.side)}:${numOr(pos.entry)}`;
     const stop = numOr(st.current_stop);
     if (st.break_even_done === true && ps?.break_even_done !== true) {

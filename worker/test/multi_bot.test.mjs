@@ -256,6 +256,14 @@ describe("bot fleet ledger (migration 0007)", () => {
     await report(S(), { t: "2026-11-12T10:02:00Z" }); // gone without a fill
     await report(S({ pending_order: pend }), { t: "2026-11-12T10:03:00Z" }); // the same setup again: the key already exists, still one event
     const pos = { side: "LONG", qty: 0.00009, entry: 99590, stop: 98900, tp2: 101500 };
+    // A position only the ENGINE holds (warm-up history; production ALPHA-03 2026-11-15): no stop events at all.
+    await report(S({ current_stop: 99590, break_even_done: true, trailing: true }), { t: "2026-11-12T09:58:00Z", position: { ...pos, entry: 88888 } });
+    await report(S({ current_stop: 99700, break_even_done: true, trailing: true }), { t: "2026-11-12T09:59:00Z", position: { ...pos, entry: 88888 } });
+    assert.equal(sql(`SELECT COUNT(*) n FROM trade_events WHERE bot_id = 'ALPHA-03' AND kind IN ('STOP_TO_BREAK_EVEN', 'TRAILING_STOP_MOVED')`)[0].n, 0, "not PAPER activity");
+    await report(S({ pending_order: pend }), { t: "2026-11-12T10:03:30Z" });
+    // From here the ledger holds the bot's position (test fixture row), so its stop changes are PAPER activity.
+    sql(`INSERT INTO bot_positions (trade_id, bot_id, symbol, side, status, qty, entry_price, entry_fee_micro, collateral_micro, fee_model, opened_at)
+         VALUES ('TEST-LIFECYCLE-ALPHA-03', 'ALPHA-03', 'BTCUSD', 'LONG', 'OPEN', 0.00009, 99590, 0, 8963100, 'test', '2026-11-12T10:04:00Z')`);
     await report(S({ current_stop: 98900 }), { t: "2026-11-12T10:04:00Z", position: pos });
     await report(S({ current_stop: 99590, break_even_done: true }), { t: "2026-11-12T10:05:00Z", position: pos });
     await report(S({ current_stop: 99800, break_even_done: true, trailing: true }), { t: "2026-11-12T10:06:00Z", position: pos });
@@ -264,6 +272,7 @@ describe("bot fleet ledger (migration 0007)", () => {
     const u = "/bots/ALPHA-03/chart";
     assert.deepEqual(ev(), [["ORDER_PENDING", "LONG", 99590, "ALPHA-03", u], ["ORDER_CANCELLED", "LONG", 99590, "ALPHA-03", u], ["STOP_TO_BREAK_EVEN", "LONG", 99590, "ALPHA-03", u],
       ["TRAILING_STOP_MOVED", "LONG", 99800, "ALPHA-03", u], ["TRAILING_STOP_MOVED", "LONG", 100100, "ALPHA-03", u]]);
+    sql(`DELETE FROM bot_positions WHERE trade_id = 'TEST-LIFECYCLE-ALPHA-03'`);
     const feed = await dash("/api/dashboard/events?limit=50");
     const titles = JSON.stringify(feed);
     assert.ok(/ALPHA 03 \| BTCUSD 1m/.test(titles) && /limit order pending/.test(titles) && /stop moved to break-even/.test(titles) && /trailing stop moved/.test(titles), titles.slice(0, 400));
