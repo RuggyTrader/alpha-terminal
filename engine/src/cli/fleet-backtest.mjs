@@ -56,10 +56,10 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
   for (const a of allocations) { const r = ledger.allocate(a.group, a.amountUsd); if (!r.ok) throw new Error(`allocation refused: ${r.code}`); }
   const run = bots.map((b) => {
     const instrument = b.instrument ?? getInstrument(b.symbol); // research may pass a verified spec for an extra market
-    const S = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs, fill,
+    const S = createState({ symbol: b.symbol, symProps: b.symProps, timeframeMin: b.intervalMin, inputs: b.inputs, fill,
       sizing: { mode: "dollar", riskUSD: b.riskUSD, feePct, priceBufferPct, simulatedShort: true, symbol: b.symbol, instrument, limits } });
     if (typeof b.gate === "function") S.researchGate = b.gate; // research-only market filter (round 4)
-    const M = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs }); // reference: fixed $10, TradingView semantics
+    const M = createState({ symbol: b.symbol, symProps: b.symProps, timeframeMin: b.intervalMin, inputs: b.inputs }); // reference: fixed $10, TradingView semantics
     return { b, S, M, step: b.intervalMin * 60_000, refused: {}, refusals: [], lastOrder: null, skipped: {}, mirrorClosed: 0, mirror: [] };
   });
   const timeline = [];

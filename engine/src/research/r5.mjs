@@ -52,7 +52,7 @@ FleetLedgerSim.prototype.close = function (...x) { const r = orig.apply(this, x)
 function run(a, tf, side, variant, gate, period, feePct = 0.2) {
   trades.length = 0;
   const inputs = { ...profileInputs(process.cwd(), A[a].profile), ...variant, allowLong: side === "LONG", allowShort: side === "SHORT" };
-  runFleetBacktest({ bots: [{ id: "R5", group: "R5", symbol: A[a].symbol, instrument: A[a].instrument, intervalMin: tf, priority: 1, profile: A[a].profile, candles: candles(a, tf), inputs, riskUSD: 2, gate: gate ? gate(tf) : undefined }],
+  runFleetBacktest({ bots: [{ id: "R5", group: "R5", symbol: A[a].symbol, instrument: A[a].instrument, symProps: A[a].instrument ? { mintick: A[a].instrument.tick, pointValue: 1, usdRate: 1, type: "crypto" } : undefined, intervalMin: tf, priority: 1, profile: A[a].profile, candles: candles(a, tf), inputs, riskUSD: 2, gate: gate ? gate(tf) : undefined }],
     main: 100, allocations: [{ group: "R5", amountUsd: 100 }], feePct, fillModel: "strategy", fromMs: period[0], toMs: period[1], slippagePct: 0.05, fill: { entryDelayBars: 1, entryAgeKey: "limit" } });
   return trades.map((t) => ({ side: t.side, openTime: t.openTime, closeTime: t.closeTime, gross: t.gross / 1e6, fees: (t.entryFee + t.exitFee) / 1e6, net: t.net / 1e6, collateral: t.collateral / 1e6 }));
 }

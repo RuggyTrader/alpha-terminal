@@ -43,8 +43,8 @@ export const SYMBOLS = Object.freeze({
 
 const HIST = 64; // bars of OHLC kept (largest lookback: pivots 2 × 8 + 1)
 
-export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, pivotTies, fill, sizing } = {}) {
-  const sym = SYMBOLS[symbol];
+export function createState({ symbol = "SOLUSD", timeframeMin = 5, inputs = {}, pivotTies, fill, sizing, symProps } = {}) {
+  const sym = SYMBOLS[symbol] ?? symProps; // symProps: research only, for markets outside SYMBOLS (never passed in production)
   if (!sym) throw new Error(`no symbol properties for ${symbol}`);
   return {
     symbol, timeframeMin, inputs: { ...DEFAULT_INPUTS, ...inputs }, sym,
