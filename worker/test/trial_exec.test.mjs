@@ -236,6 +236,18 @@ describe("scheduling guarantees (TEST)", () => {
     assert.equal(fetches(), f0, "no intraday market data while flat");
     assert.deepEqual(orders(s.db), []);
   });
+  it("a 10-day outage is caught up over several runs, each within Cloudflare's 50-queries-per-invocation limit", async () => {
+    const s = setup(); const { t2 } = await toEntry(s);
+    for (let d = 0; d < 10; d++) s.m.addDay(1.004); // ten closes while nothing ran (position held, stop below)
+    let now = t2 + 11 * DAY + 90_000, runs = 0, maxQ = 0;
+    while (acct(s.db).last_daily_t < D0 + 11 * DAY && runs < 20) {
+      const q0 = s.db.trace.length; await s.run(now); maxQ = Math.max(maxQ, s.db.trace.length - q0); now += MIN; runs++;
+    }
+    assert.equal(acct(s.db).last_daily_t, D0 + 11 * DAY, "every missed close processed");
+    assert.ok(runs >= 4, `spread over ${runs} runs`);
+    assert.ok(maxQ <= 50, `at most ${maxQ} queries in one run`);
+    assert.equal(s.db.sql(`SELECT COUNT(*) n FROM trial_equity`)[0].n, 11);
+  });
   it("two scheduled runs at the same moment cannot create a duplicate order or fill", async () => {
     const s = setup();
     await s.run(D0 + DAY + 30_000);

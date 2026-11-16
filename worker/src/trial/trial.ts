@@ -111,7 +111,9 @@ async function step(db: D1Database, nowMs: number, ohlc: OhlcFn, log: string[]) 
     log.push(`started; first decision at ${iso(last.t + 2 * DAY)}`);
     return { started: true };
   }
-  for (let guard = 0; guard < 40; guard++) {
+  // At most 3 daily closes per run: Cloudflare's free plan allows 50 D1 queries per invocation (each day needs about 9);
+  // after a long outage the next scheduled runs continue the catch-up minute by minute.
+  for (let guard = 0; guard < 3; guard++) {
     acct = (await db.prepare(`SELECT * FROM trial_accounts WHERE account_id = ?`).bind(ACCOUNT_ID).first<Acct>())!;
     const nextDay = acct.last_daily_t! + DAY, closeAt = nextDay + DAY;
     const dayDue = nowMs >= closeAt + MIN; // one minute of grace for the exchange to finalise the daily candle
@@ -133,8 +135,10 @@ async function intraday(db: D1Database, acct: Acct, horizon: number, nowMs: numb
   const pos0 = await db.prepare(`SELECT * FROM trial_positions WHERE account_id = ? AND status = 'OPEN'`).bind(ACCOUNT_ID).first<Pos>();
   const pend0 = (await db.prepare(`SELECT * FROM trial_orders WHERE account_id = ? AND status = 'PENDING' ORDER BY accepted_at`).bind(ACCOUNT_ID).all<Ord>()).results;
   if (!pos0 && !pend0.length) return horizon; // nothing to execute or protect (a new order records where checking starts)
-  const gapMin = (horizon - from) / MIN;
-  const interval = gapMin <= 11 * 60 ? 1 : gapMin <= 7 * 1440 ? 15 : gapMin <= 29 * 1440 ? 60 : 1440;
+  // Kraken keeps only its 720 most recent candles per interval: pick the finest interval whose history still reaches
+  // back to the first unchecked moment (measured from NOW, not from the horizon).
+  const backMin = (nowMs - from) / MIN;
+  const interval = backMin <= 11 * 60 ? 1 : backMin <= 7 * 1440 ? 15 : backMin <= 29 * 1440 ? 60 : 1440;
   const r = await ohlc(interval, from);
   if (!r.ok) { await event(db, nowMs, "MARKET_DATA_UNAVAILABLE", { interval: `${interval}m`, message: r.message }).run(); return from; }
   const step = interval * MIN;
