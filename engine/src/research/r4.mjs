@@ -45,12 +45,15 @@ function trendGate(asset, htfMin) { // T: higher-timeframe close vs its EMA50 (l
 const trades = [];
 const orig = FleetLedgerSim.prototype.close;
 FleetLedgerSim.prototype.close = function (...a) { const r = orig.apply(this, a); if (r?.trade) trades.push(r.trade); return r; };
-function run(asset, tfMin, side, variant = {}, gate = null, feePct = 0.2) {
+function run(asset, tfMin, side, variant = {}, gate = null, period = P.all, feePct = 0.2) {
   const A = ASSETS[asset], K = candles(asset, tfMin);
   trades.length = 0;
   const inputs = { ...profileInputs(process.cwd(), A.profile), ...variant, allowLong: side === "LONG", allowShort: side === "SHORT" };
   runFleetBacktest({ bots: [{ id: "R4", group: A.group, symbol: A.symbol, intervalMin: tfMin, priority: 1, profile: A.profile, candles: K, inputs, riskUSD: 2, gate: gate ? gate(tfMin) : undefined }],
-    main: 100, allocations: [{ group: A.group, amountUsd: 100 }], feePct, fillModel: "strategy", fromMs: P.all[0], toMs: P.all[1], slippagePct: 0.05, fill: { entryDelayBars: 1 } });
+    main: 100, allocations: [{ group: A.group, amountUsd: 100 }], feePct, fillModel: "strategy", fromMs: period[0], toMs: period[1], slippagePct: 0.05,
+    // Strict acceptance: fillable only from the bar after acceptance; an order is identified by side + limit (a size-only
+    // change keeps it and its acceptance, as the ledger fills at most the size it accepted).
+    fill: { entryDelayBars: 1, entryAgeKey: "limit" } });
   return trades.map((t) => ({ side: t.side, openTime: t.openTime, closeTime: t.closeTime, gross: t.gross / 1e6, fees: (t.entryFee + t.exitFee) / 1e6, net: t.net / 1e6, collateral: t.collateral / 1e6 }));
 }
 function metrics(T) {
@@ -64,7 +67,9 @@ function metrics(T) {
     avg: nets.length ? +(sum(nets) / nets.length).toFixed(3) : null, ci, max_dd: +dd.toFixed(2),
     hold_h: T.length ? +(sum(T.map((t) => (t.closeTime - t.openTime) / 3_600_000)) / T.length).toFixed(1) : null };
 }
-const byPeriod = (T) => Object.fromEntries(Object.entries(P).map(([k, [a, b]]) => [k, metrics(T.filter((t) => t.openTime >= a && t.openTime < b))]));
+// Each period is its own run with a fresh $100 wallet (earlier history is still used as warm-up), so losses in one period
+// can never starve the next of capital.
+const byPeriod = (runPeriod) => Object.fromEntries(Object.entries(P).map(([k, per]) => [k, metrics(runPeriod(per))]));
 
 // ---- candidates ----
 const R = regimeGate();
@@ -85,7 +90,7 @@ const gateFor = (g, asset) => (g === null ? null : typeof g === "function" ? g :
 
 const only = (arg("only", "C0,C1,C2,C3,C4,C5,C6,C7")).split(",");
 const out = { label: "RESEARCH ROUND 4 (hybrid OTE; Coinbase candles; production fleet backtest; strict acceptance; NOT PAPER results)", periods: P, results: [] };
-const doRun = (cand, c, asset, side) => { const t0 = Date.now(); const T = run(asset, c.tf, side, c.variant, gateFor(c.gate, asset)); const res = { candidate: cand, label: c.label, tf: c.tf, variant: c.variant, asset, side, periods: byPeriod(T), seconds: Math.round((Date.now() - t0) / 1000) };
+const doRun = (cand, c, asset, side) => { const t0 = Date.now(); const g = gateFor(c.gate, asset); const res = { candidate: cand, label: c.label, tf: c.tf, variant: c.variant, asset, side, periods: byPeriod((per) => run(asset, c.tf, side, c.variant, g, per)), seconds: Math.round((Date.now() - t0) / 1000) };
   out.results.push(res); const d = res.periods.development, v = res.periods.validation, a = res.periods.all;
   console.error(`${cand} ${c.label} ${JSON.stringify(c.variant)} ${asset} ${side}: dev ${d.net} (${d.trades}) | val ${v.net} (${v.trades}, pf ${v.pf}) | all@0.4 ${a.net_at_0_40} | ${res.seconds}s`); return res; };
 for (const cand of ["C0", "C1", "C2", "C3", "C4"]) if (only.includes(cand)) for (const c of CANDIDATES[cand]) for (const asset of Object.keys(ASSETS)) for (const side of ["LONG", "SHORT"]) doRun(cand, c, asset, side);
