@@ -10,6 +10,7 @@ export const MOTION = { fast: 160, normal: 250, slow: 480, flash: 900 } as const
 
 export function prefersReducedMotion(): boolean {
   try {
+    if (typeof document !== "undefined" && document.documentElement.getAttribute("data-motion") === "reduced") return true; // Settings → Appearance
     return typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   } catch {
     return false;

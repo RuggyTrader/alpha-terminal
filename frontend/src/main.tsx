@@ -7,11 +7,14 @@ import "./terminal/verified.css";
 import "./terminal/mirror.css";
 import "./terminal/theme.css";
 import "./terminal/home.css";
+import "./terminal/cc.css";
 import { applyTheme, readThemePref, watchSystemTheme } from "./terminal/theme";
+import { applyMotion } from "./terminal/prefs";
 
 // The theme was already set before first paint by the inline script in index.html; this keeps it in sync
 // with the stored choice and follows the device when the choice is "System".
 applyTheme(readThemePref());
+applyMotion();
 watchSystemTheme();
 
 // No service worker is registered at start-up. /sw.js is registered only when the user enables notifications

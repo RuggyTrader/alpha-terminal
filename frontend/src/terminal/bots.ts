@@ -4,6 +4,7 @@
 // never added to PAPER figures. Nothing is estimated here; missing data stays missing.
 
 import { level } from "./fmt";
+import { displayName } from "./botNames";
 import { api, ApiError } from "../api/client";
 
 export interface StrategyState {
@@ -75,7 +76,8 @@ export interface Fleet {
 export async function fetchBots(): Promise<Fleet> {
   const env = await api.get<{ ok: boolean; data?: Fleet; code?: string; message?: string }>("/api/dashboard/bots");
   if (!env?.ok || !env.data || !Array.isArray(env.data.bots)) throw new ApiError(502, env?.code ?? "BAD_RESPONSE", env?.message ?? "Unexpected bots response");
-  return env.data;
+  // Display names are a presentation alias (botNames.ts); bot_id, wallet and every record key are unchanged.
+  return { ...env.data, bots: env.data.bots.map((b) => ({ ...b, name: displayName(b.bot_id, b.name) })) };
 }
 
 // ---- owner actions (authenticated session + the passphrase typed again; each with a fresh request id) ----

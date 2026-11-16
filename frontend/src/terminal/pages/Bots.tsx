@@ -15,6 +15,7 @@ import {
   type Bot, type Fleet,
 } from "../bots";
 import { invalidateFleet, useFleet } from "../fleetStore";
+import { pairLabel } from "../botNames";
 import { backendErrorMessage, humanReason } from "../tradeStory";
 
 const pct = (v: number | null) => (v === null ? NA : `${(v * 100).toFixed(0)}%`);
@@ -110,7 +111,7 @@ function FleetSetup({ fleet, onDone }: { fleet: Fleet; onDone: () => void }) {
 }
 
 /** Rarely needed per-bot owner controls (risk target, pause new entries), kept out of normal operation. */
-function BotOwnerControls({ b, onDone }: { b: Bot; onDone: () => void }) {
+export function BotOwnerControls({ b, onDone }: { b: Bot; onDone: () => void }) {
   const [pass, setPass] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const togglePause = async () => {
@@ -252,6 +253,38 @@ function AllocationPanel({ fleet, onDone }: { fleet: Fleet; onDone: () => void }
   );
 }
 
+/** One compact fleet tile: the bot's identity, live status, its own wallet and its verified net PAPER result. Opens
+ *  the bot's own terminal (chart, setup, order or position, wallet, trades, owner controls). */
+export function BotTile({ b, nowMs }: { b: Bot; nowMs: number }) {
+  const es = engineStatus(b, nowMs);
+  const phase = botPhase(b, nowMs);
+  return (
+    <Link to={`/bots/${b.bot_id}/chart`} className="bt m-press" aria-label={`${b.name} ${pairLabel(b.symbol)} ${b.timeframe}, ${es.label}`}>
+      <AssetLogo of={b.symbol} size={30} />
+      <span className="bt-id"><b>{b.name}</b><span>{pairLabel(b.symbol)} · {b.timeframe}</span></span>
+      <StatusBadge tone={es.tone} dot>{es.label}</StatusBadge>
+      <span className="bt-phase">{phase.phase}{phase.detail ? ` · ${phase.detail}` : ""}</span>
+      <span className="bt-k"><span>Wallet</span><b>{money(b.balances.available_usd + b.balances.reserved_usd)}</b></span>
+      <span className="bt-k"><span>Net PAPER P&amp;L</span><b className={`t-${tone(b.paper.net_usd)}`}>{signedMoney(b.paper.net_usd)}</b></span>
+    </Link>
+  );
+}
+
+const STATUS_FILTERS = [
+  { id: "all", label: "All" }, { id: "position", label: "In a trade" }, { id: "pending", label: "Order pending" },
+  { id: "scanning", label: "Scanning" }, { id: "attention", label: "Needs attention" },
+] as const;
+type StatusFilter = (typeof STATUS_FILTERS)[number]["id"];
+export function matchesStatus(b: Bot, f: StatusFilter, nowMs: number): boolean {
+  const k = engineStatus(b, nowMs).key;
+  return f === "all" || (f === "position" && k === "POSITION_OPEN") || (f === "pending" && k === "PENDING_ORDER") || (f === "scanning" && k === "SCANNING")
+    || (f === "attention" && ["OFFLINE", "BACKEND_DISCONNECTED", "MARKET_DATA_STALE", "PAUSED"].includes(k));
+}
+export function matchesSearch(b: Bot, q: string): boolean {
+  const s = q.trim().toLowerCase();
+  return !s || [b.name, b.bot_id, b.symbol, pairLabel(b.symbol), b.timeframe, b.group].some((x) => String(x).toLowerCase().includes(s));
+}
+
 export function BotsPage() {
   // The shared fleet snapshot (fleetStore.ts): one poller for every view; owner actions invalidate it.
   const { fleet, error: fetchError, fetchedAt, stale } = useFleet();
@@ -262,9 +295,24 @@ export function BotsPage() {
   const GROUP_ORDER = ["SOLANA", "BITCOIN"];
   const rank = (id: string) => { const i = GROUP_ORDER.indexOf(id); return i < 0 ? GROUP_ORDER.length : i; };
   const groups = (fleet?.groups.filter((g) => fleet.bots.some((b) => b.group === g.group_id && b.status !== "DISABLED")) ?? []).sort((a, b) => rank(a.group_id) - rank(b.group_id));
+  const [q, setQ] = useState("");
+  const [market, setMarket] = useState<string | null>(null);
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const visible = (b: Bot) => b.status !== "DISABLED" && matchesSearch(b, q) && (!market || b.group === market) && matchesStatus(b, status, now);
   return (
     <div className="page-narrow m-stagger bots-page">
       <SectionHeader title="Bots" sub="One strategy per market and timeframe, each with its own PAPER wallet." />
+      {fleet?.available ? (
+        <div className="bf" role="search">
+          <input className="input bf-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search bots, markets, timeframes" aria-label="Search bots" />
+          <div className="bot-chips" role="group" aria-label="Market">
+            {groups.map((g) => <button key={g.group_id} type="button" className={`chip ${market === g.group_id ? "on" : ""}`} aria-pressed={market === g.group_id} onClick={() => setMarket(market === g.group_id ? null : g.group_id)}><AssetLogo of={g.symbol} size={14} /> {g.name}</button>)}
+          </div>
+          <div className="bot-chips" role="group" aria-label="Status">
+            {STATUS_FILTERS.map((x) => <button key={x.id} type="button" className={`chip ${status === x.id ? "on" : ""}`} aria-pressed={status === x.id} onClick={() => setStatus(x.id)}>{x.label}</button>)}
+          </div>
+        </div>
+      ) : null}
       {error ? <EmptyState title="Bots unavailable" tone="bad">{error}</EmptyState> : null}
       {!fleet && !error ? <SkeletonCards count={2} /> : null}
       {stale && fetchedAt ? <p className="sizing-note t-warn" role="status">STALE · showing the snapshot from {new Date(fetchedAt).toLocaleTimeString()} ({Math.round((Date.now() - fetchedAt) / 1000)} s old); the latest refresh failed: {fetchError}</p> : null}
@@ -273,15 +321,18 @@ export function BotsPage() {
         <>
           {fleet.bots.some((b) => b.status === "PROPOSED") ? <FleetSetup fleet={fleet} onDone={load} /> : null}
           {groups.map((g) => {
-            const bots = fleet.bots.filter((b) => b.group === g.group_id && b.status !== "DISABLED").sort((a, b) => a.bot_id.localeCompare(b.bot_id));
-            const t = groupTotals(bots);
+            const all = fleet.bots.filter((b) => b.group === g.group_id && b.status !== "DISABLED");
+            const bots = all.filter(visible).sort((a, b) => a.bot_id.localeCompare(b.bot_id));
+            if (!bots.length) return null;
+            const t = groupTotals(all);
             return (
               <section key={g.group_id} className="bot-group" aria-label={`${g.name} bots`}>
-                <SectionHeader icon={<AssetLogo of={g.symbol} size={22} />} title={g.name.toUpperCase()} sub={`${bots.length} bots · net PAPER ${signedMoney(t.net_usd)} · available ${money(t.available_usd)} · in positions ${money(t.reserved_usd)}`} />
-                {bots.map((b) => <BotCard key={b.bot_id} b={b} nowMs={now} onChanged={load} />)}
+                <SectionHeader icon={<AssetLogo of={g.symbol} size={22} />} title={g.name.toUpperCase()} sub={`${all.length} bot${all.length === 1 ? "" : "s"} · net PAPER ${signedMoney(t.net_usd)} · available ${money(t.available_usd)} · in positions ${money(t.reserved_usd)}`} />
+                <div className="bt-grid">{bots.map((b) => <BotTile key={b.bot_id} b={b} nowMs={now} />)}</div>
               </section>
             );
           })}
+          {fleet.bots.some((b) => b.status !== "DISABLED") && !fleet.bots.some(visible) ? <EmptyState title="No bot matches">Clear the search or filters to see every bot.</EmptyState> : null}
           <details className="bot-details"><summary>Allocate capital from MAIN</summary><AllocationPanel fleet={fleet} onDone={load} /></details>
           {fleet.bots.some((b) => b.status === "ACTIVE") ? (
             <details className="bot-details">

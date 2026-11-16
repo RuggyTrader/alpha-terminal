@@ -116,11 +116,13 @@ function FilterRow({ f, setF, markets, tfs }: { f: AllFilter; setF: (f: AllFilte
   );
 }
 
-export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
+/** `tab` (optional): controlled by the Trades & Performance section bar, which then replaces the inner tab row. */
+export function AllBotTrades({ initial = "completed", tab: controlled }: { initial?: AllTab; tab?: AllTab }) {
   const { fleet } = useFleet();
   const snap = useBotTrades({ bot: null, signal: null }, fleet);
   const ords = useBotOrders(fleet ?? null);
-  const [tab, setTab] = useState<AllTab>(initial);
+  const [own, setTab] = useState<AllTab>(initial);
+  const tab = controlled ?? own;
   const [f, setF] = useState<AllFilter>({ market: null, timeframe: null, side: null });
   const bots = fleet?.available ? fleet.bots : [];
   const markets = [...new Set(bots.map((b) => b.symbol))].map((m) => ({ v: m, label: m.replace(/USD$/, "") }));
@@ -132,17 +134,17 @@ export function AllBotTrades({ initial = "completed" }: { initial?: AllTab }) {
 
   return (
     <section aria-label="All bots" className="m-fade">
-      <SectionHeader title="All bots" sub="Executed PAPER records of every bot, each once · hypothetical research is under Settings → Advanced" right={<button className="btn btn-ghost" type="button" onClick={snap.refresh}>Refresh</button>} />
+      <SectionHeader title={controlled ? `${TABS.find((t) => t.id === tab)?.label ?? "Trades"} · ${count[tab]}` : "All bots"} sub="Executed PAPER records of every bot, each once · hypothetical research is under Settings → Advanced" right={<button className="btn btn-ghost" type="button" onClick={snap.refresh}>Refresh</button>} />
       <details className="sizing-note"><summary>How PAPER orders fill</summary>Bot-ledger orders are durable PAPER limit orders. A fill is simulated from the completed Kraken candle that reached the limit (a buy never above its limit, a sell never below); no exchange queue or partial fill is modelled, so it is not a guaranteed exchange fill. The legacy ALPHA-02 ledger fills at the Kraken reference price on arrival.</details>
       <FilterRow f={f} setF={setF} markets={markets} tfs={tfs} />
-      <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
+      {controlled ? null : <div className="seg" role="tablist" style={{ ["--i" as string]: idx }}>
         <span className="seg-pill" aria-hidden />
         {TABS.map((t) => (
           <button key={t.id} type="button" role="tab" className={`m-press${tab === t.id ? " on" : ""}`} aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
             {t.label} <span className="count">{count[t.id]}</span>
           </button>
         ))}
-      </div>
+      </div>}
       <RefreshNote fetchedAt={snap.fetchedAt} stale={snap.stale} error={snap.error} />
 
       {tab === "pending" ? (

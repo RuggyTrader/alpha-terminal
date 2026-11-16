@@ -21,7 +21,7 @@ const BOT_TEXT = { ONLINE: "ONLINE", STALE: "STALE", OFFLINE: "OFFLINE", NOT_RUN
 const BOT_CLS = { ONLINE: "hs-ok", STALE: "hs-warn", OFFLINE: "hs-bad", NOT_RUNNING: "hs-muted" } as const;
 
 /** The engine's real reported state; the feed's own failure takes precedence. */
-function HeroStatus({ state }: { state: FeedState }) {
+export function HeroStatus({ state }: { state: FeedState }) {
   const bot = state.data?.bot ?? null;
   // With a bot registry: the strategy engine's own status (most serious active bot), the same as Home's Strategy engine card.
   const { fleet } = useFleet();

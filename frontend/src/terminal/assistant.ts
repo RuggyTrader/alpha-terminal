@@ -6,6 +6,8 @@
 // executed or interpreted as instructions.
 
 import { botPhase, botState, type Bot, type Fleet } from "./bots";
+import { BOT_DISPLAY, displayName } from "./botNames";
+import type { ClosedCard } from "./recentClosed";
 
 export interface Evidence { label: string; value: string; link?: string }
 export interface Answer { text: string; evidence: Evidence[]; known: boolean }
@@ -20,6 +22,7 @@ export function findBot(q: string, bots: Bot[], context: string | null = null): 
   const s = q.toLowerCase();
   const id = /alpha[\s-]?0?(\d{1,2})/.exec(s);
   if (id) return bots.find((b) => b.bot_id === `ALPHA-${id[1].padStart(2, "0")}`) ?? null;
+  for (const [bid, d] of Object.entries(BOT_DISPLAY)) if (s.includes(d.name.toLowerCase())) return bots.find((b) => b.bot_id === bid) ?? null;
   const sym = /\b(sol|solana|solusd)\b/.test(s) ? "SOLUSD" : /\b(btc|bitcoin|xbt|btcusd)\b/.test(s) ? "BTCUSD" : null;
   const tf = /\b(1\s?-?\s?m(in(ute)?)?|one[\s-]minute)\b/.test(s) ? "1m" : /\b(5\s?-?\s?m(in(ute)?)?|five[\s-]minute)\b/.test(s) ? "5m" : null;
   if (sym && tf) return bots.find((b) => b.symbol === sym && b.timeframe === tf) ?? null;
@@ -32,7 +35,9 @@ const ev = (b: Bot): Evidence[] => [
   { label: "Engine report", value: b.engine?.received_at ?? "none" },
 ];
 
-export function answer(question: string, fleet: Fleet | null, nowMs: number, context: string | null = null): Answer {
+const groupTotalsOf = (bots: Bot[]) => bots.reduce((t, b) => ({ net: t.net + b.paper.net_usd, gross: t.gross + b.paper.gross_usd, fees: t.fees + b.paper.fees_usd, trades: t.trades + b.paper.trades }), { net: 0, gross: 0, fees: 0, trades: 0 });
+
+export function answer(question: string, fleet: Fleet | null, nowMs: number, context: string | null = null, extra: { closed?: ClosedCard[] } = {}): Answer {
   const q = question.trim();
   const s = q.toLowerCase();
   if (!q) return { text: "Ask about a bot, its trades, fees, capital or status.", evidence: [], known: false };
@@ -68,6 +73,40 @@ export function answer(question: string, fleet: Fleet | null, nowMs: number, con
     const top = ranked[0];
     return { text: byPf ? `${top.name} has the best profit factor (${top.paper.profit_factor?.toFixed(2) ?? "n/a"}) over ${top.paper.trades} trade${top.paper.trades === 1 ? "" : "s"}.` : `${top.name} has the highest net funded PAPER result: ${sgn(top.paper.net_usd)} after ${usd(top.paper.fees_usd)} of fees over ${top.paper.trades} trade${top.paper.trades === 1 ? "" : "s"}.`,
       evidence: ranked.map((b) => ({ label: b.bot_id, value: `net ${sgn(b.paper.net_usd)} · gross ${sgn(b.paper.gross_usd)} · fees ${usd(b.paper.fees_usd)} · PF ${b.paper.profit_factor?.toFixed(2) ?? "n/a"} · ${b.paper.trades} trades` })), known: true };
+  }
+
+  // Portfolio-level questions (funded PAPER, the bots' own ledger figures; mirror and research never included)
+  if (!bot && /\b(portfolio|account|overall|total|my p&l|my pnl)\b/.test(s) && /\b(down|up|losing|lost|negative|why|how)\b/.test(s) && !/offline|online|running|alive|stale/.test(s)) {
+    const t = groupTotalsOf(active);
+    if (!t.trades) return { text: "No funded trade has closed yet, so there is no verified result to explain.", evidence: [], known: true };
+    const dir = t.net < 0 ? "down" : t.net > 0 ? "up" : "flat";
+    const why = t.net < 0 && t.gross >= 0 ? ` The trades made ${sgn(t.gross)} before fees; fees of ${usd(t.fees)} turned that into a loss.`
+      : t.net < 0 ? ` The trades lost ${sgn(t.gross)} before fees, and fees added ${usd(t.fees)}.`
+      : ` Gross ${sgn(t.gross)}, fees ${usd(t.fees)}.`;
+    return { text: `Your funded PAPER result is ${dir} ${usd(Math.abs(t.net))} after fees over ${t.trades} closed trade${t.trades === 1 ? "" : "s"}.${why}`,
+      evidence: active.map((b) => ({ label: b.name, value: `net ${sgn(b.paper.net_usd)} · gross ${sgn(b.paper.gross_usd)} · fees ${usd(b.paper.fees_usd)} · ${b.paper.trades} trades`, link: "/trades?view=performance" })), known: true };
+  }
+  if (!bot && /\b(open|current)\b.*\bpositions?\b|\bpositions?\b.*\bopen\b/.test(s)) {
+    const open = active.flatMap((b) => b.open_positions.map((p) => ({ b, p })));
+    if (!open.length) return { text: "No funded PAPER position is open right now.", evidence: active.map((b) => ({ label: b.name, value: botPhase(b, nowMs).phase })), known: true };
+    return { text: open.map(({ b, p }) => `${b.name}: ${p.side} ${p.qty} @ ${p.entry_price}${p.stop !== null ? `, stop ${b.engine?.strategy_state?.current_stop ?? p.stop}` : ""}${p.tp !== null ? `, target ${p.tp}` : ""}.`).join(" "),
+      evidence: open.map(({ b, p }) => ({ label: b.name, value: `${p.trade_id} · opened ${p.opened_at}`, link: `/bots/trade/${encodeURIComponent(p.trade_id)}` })), known: true };
+  }
+  if (!bot && /\b(bots|fleet|everyone|all)\b/.test(s) && /\b(doing|status|up to|working)\b/.test(s)) {
+    return { text: active.map((b) => { const p = botPhase(b, nowMs); return `${b.name}: ${p.phase}${p.detail ? ` (${p.detail})` : ""}.`; }).join(" "),
+      evidence: active.map((b) => ({ label: b.name, value: `last report ${b.engine?.received_at ?? "none"}` })), known: true };
+  }
+  if (!bot && /\bfees?\b/.test(s)) {
+    const t = groupTotalsOf(active);
+    return { text: `Across all bots you have paid ${usd(t.fees)} in simulated PAPER fees over ${t.trades} closed trade${t.trades === 1 ? "" : "s"} (0.20% per fill).`,
+      evidence: active.map((b) => ({ label: b.name, value: `fees ${usd(b.paper.fees_usd)} · ${b.paper.trades} trades` })), known: true };
+  }
+  if (/\b(most recent|latest|last)\b.*\btrade\b/.test(s) && !bot) {
+    const last = extra.closed?.[0];
+    if (!extra.closed) return { text: `${UNKNOWN} The trade history has not loaded yet.`, evidence: [], known: false };
+    if (!last) return { text: "No funded trade has closed yet.", evidence: [], known: true };
+    return { text: `${displayName(last.botId)} closed a ${last.side} on ${last.symbol} at ${last.closedAt.slice(0, 16).replace("T", " ")} UTC for ${sgn(last.net)} after fees.`,
+      evidence: [{ label: "Trade", value: last.key, link: last.url }], known: true };
   }
 
   // Engine health

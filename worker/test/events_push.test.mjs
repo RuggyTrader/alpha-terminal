@@ -403,6 +403,29 @@ describe("activity feed", () => {
     assert.ok(items.some((i) => i.source === "funded" && /REJECTED/.test(i.title)));
     assert.equal(new Set(items.map((i) => i.id)).size, items.length);
   });
+
+  it("pages back through older history with ?before= (bounded, at or before the cursor); without it, unchanged", async () => {
+    const db = makeD1();
+    M.resetTableCache();
+    for (let i = 0; i < 70; i++) {
+      const at = new Date(Date.parse("2026-11-10T00:00:00Z") + i * 60_000).toISOString();
+      db.raw.prepare(`INSERT INTO alerts (alert_id, received_at, symbol, action, status, response_code, rejection_reason) VALUES (?, ?, 'SOLUSD', 'buy', 'rejected', 'RISK_REJECTED', 'test')`).run(`h${i}`, at);
+    }
+    const first = (await M.activityFeed(db, 30)).items;
+    const same = (await M.activityFeed(db, 30, null)).items;
+    assert.deepEqual(same.map((i) => i.id), first.map((i) => i.id), "no cursor: the same page as before");
+    assert.equal(first.length, 30);
+    const cursor = first.at(-1).at;
+    const older = (await M.activityFeed(db, 30, cursor)).items;
+    assert.ok(older.length > 0 && older.length <= 30);
+    assert.ok(older.every((i) => i.at <= cursor), "only items recorded at or before the cursor");
+    const fresh = older.filter((i) => !first.some((f) => f.id === i.id));
+    assert.equal(fresh.length, 29, "the next 29 older items (the cursor item itself is returned again and dropped by the client)");
+    let all = new Set(first.map((i) => i.id)), cur = cursor;
+    for (let k = 0; k < 5; k++) { const p = (await M.activityFeed(db, 30, cur)).items; p.forEach((i) => all.add(i.id)); cur = p.at(-1)?.at ?? cur; }
+    assert.equal(all.size, 70, "every recorded item is reachable, none invented");
+    assert.equal((await M.activityFeed(db, 30, "not-a-time")).items.length, 30, "a malformed cursor is ignored (newest page)");
+  });
 });
 
 describe("notifications API", () => {

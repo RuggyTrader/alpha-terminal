@@ -95,14 +95,13 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: "/", label: "Home", icon: "home", end: true },
   { to: "/bots", label: "Bots", icon: "bolt" },
   { to: "/trades", label: "Trades", icon: "trades" },
-  { to: "/activity", label: "Activity", icon: "activity" },
-  { to: "/performance", label: "Results", icon: "chart" },
   { to: "/settings", label: "Settings", icon: "settings" },
 ];
 
 function activeIndex(pathname: string): number {
   const first = pathname.split("/")[1] ?? "";
-  const seg = "/" + (["mirror", "research", "engine", "portfolio"].includes(first) ? "settings" : first); // advanced pages are reached from Settings
+  // Results and Activity now live inside Trades; advanced pages (mirror, research, engine, portfolio) under Settings.
+  const seg = "/" + (["mirror", "research", "engine", "portfolio"].includes(first) ? "settings" : ["performance", "activity"].includes(first) ? "trades" : first);
   const i = NAV.findIndex((n) => n.to === seg);
   return i < 0 ? 0 : i;
 }
@@ -148,8 +147,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     markPageEntry();
   }, [section]);
+  // Home is a fixed one-screen layout (only its activity feed scrolls); every other page scrolls normally.
+  const fixed = loc.pathname === "/";
   return (
-    <div className="shell">
+    <div className={`shell${fixed ? " shell-fixed" : ""}`}>
       <div className="shell-in">
         {DemoOverlay && demoHost ? (
           <Suspense fallback={null}>
@@ -161,7 +162,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="page" key={section}>
           {children}
         </main>
-        <footer className="foot">PAPER trading · simulated internal ledger · no real money and no broker orders</footer>
+        {fixed ? null : <footer className="foot">PAPER trading · simulated internal ledger · no real money and no broker orders</footer>}
       </div>
       <AssistantDrawer />
       <BottomNav />

@@ -2,6 +2,7 @@
 // their price source and fee, every wallet movement (cost/collateral, fees, release, P&L, transfer to MAIN), the events
 // it produced, and the Worker's arithmetic checks recomputed from those rows. PAPER only; no broker order exists.
 
+import { displayName } from "../botNames";
 import { AssetLogo } from "../components/AssetLogo";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -24,7 +25,7 @@ export function BotTradeProofView({ p }: { p: BotTradeProof }) {
     <>
       <StorySummary v={view} />
       <section className="card dark-card" aria-label="Trade">
-        <SectionHeader icon={<AssetLogo of={String(pos.symbol)} size={22} />} title={`${p.bot?.name ?? pos.bot_id} · ${pos.side} ${pos.qty} ${String(pos.symbol)}`}
+        <SectionHeader icon={<AssetLogo of={String(pos.symbol)} size={22} />} title={`${displayName(pos.bot_id, p.bot?.name)} · ${pos.side} ${pos.qty} ${String(pos.symbol)}`}
           sub={`${p.bot?.bot_id ?? pos.bot_id} · ${p.bot?.profile ?? ""} · config ${p.bot?.inputs_hash ?? NA}`}
           right={<StatusBadge tone={p.all_checks_ok ? "ok" : "bad"}>{p.all_checks_ok ? "CHECKS PASS" : "CHECK FAILED"}</StatusBadge>} />
         <div className="sizing-grid">

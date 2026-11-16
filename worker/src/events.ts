@@ -406,8 +406,12 @@ export interface FeedItem { id: string; at: string; source: "funded" | "mirror" 
   refs?: string[] }
 
 /** Recent genuine activity: trade events, funded signals and their outcomes, the engine heartbeat, observation gaps. */
-export async function activityFeed(db: D1Database, limit = 30): Promise<{ items: FeedItem[]; generated_at: string }> {
+/** `before` (optional, ISO time): older history. Each source returns its newest `n` rows recorded at or before it, so
+ *  the merged page is exactly the next `n` items; the caller drops ids it already holds. Without it: unchanged. */
+export const BEFORE_RE = /^\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(\.\d{1,6})?Z?$/;
+export async function activityFeed(db: D1Database, limit = 30, before: string | null = null): Promise<{ items: FeedItem[]; generated_at: string }> {
   const n = Math.min(Math.max(limit, 1), 50);
+  const b = before && BEFORE_RE.test(before) ? before : null;
   const items: FeedItem[] = [];
   const t = await tables(db);
   // ONE item per execution. A fill event (trade_events FILL:<paper_fills.id> / BOTFILL:<bot_fills.id>) and the accepted
@@ -419,8 +423,8 @@ export async function activityFeed(db: D1Database, limit = 30): Promise<{ items:
   if (t.has("trade_events")) {
     const srcLegacy = `CASE WHEN e.event_key LIKE 'FILL:%' THEN (SELECT pf.alert_id FROM paper_fills pf WHERE pf.id = CAST(substr(e.event_key, 6) AS INTEGER)) END`;
     const srcBot = t.has("bot_fills") ? `CASE WHEN e.event_key LIKE 'BOTFILL:%' THEN (SELECT bf.fill_id FROM bot_fills bf WHERE bf.id = CAST(substr(e.event_key, 9) AS INTEGER)) END` : "NULL";
-    for (const e of (await db.prepare(`SELECT e.*, ${srcLegacy} AS src_alert, ${srcBot} AS src_order FROM trade_events e WHERE e.kind <> 'TEST' ORDER BY e.id DESC LIMIT ?`)
-      .bind(n).all<EventRow & { src_alert: string | null; src_order: string | null }>()).results) {
+    for (const e of (await db.prepare(`SELECT e.*, ${srcLegacy} AS src_alert, ${srcBot} AS src_order FROM trade_events e WHERE e.kind <> 'TEST'${b ? " AND e.occurred_at <= ?" : ""} ORDER BY ${b ? "e.occurred_at DESC, e.id DESC" : "e.id DESC"} LIMIT ?`)
+      .bind(...(b ? [b, n] : [n])).all<EventRow & { src_alert: string | null; src_order: string | null }>()).results) {
       const m = message(e, DEFAULT_PREFS);
       let warm = false;
       try { warm = Boolean(e.detail_json && JSON.parse(e.detail_json)?.warmup_history === true); } catch { warm = false; }
@@ -431,7 +435,7 @@ export async function activityFeed(db: D1Database, limit = 30): Promise<{ items:
         ...(refs.length ? { refs } : {}) });
     }
   }
-  for (const a of (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason FROM alerts ORDER BY id DESC LIMIT ?`).bind(n).all<Obj>()).results) {
+  for (const a of (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason FROM alerts${b ? " WHERE received_at <= ?" : ""} ORDER BY ${b ? "received_at DESC, id DESC" : "id DESC"} LIMIT ?`).bind(...(b ? [b, n] : [n])).all<Obj>()).results) {
     // ONE status mapping, shared with the Trades page (signalState): processing and error are never shown as accepted.
     const st = signalState(String(a.status), a.response_code === null ? null : String(a.response_code));
     if (st.tone === "ok" && presented.has(String(a.alert_id))) continue; // shown once, as its fill event
@@ -441,7 +445,7 @@ export async function activityFeed(db: D1Database, limit = 30): Promise<{ items:
   }
   // Fleet bot orders (migration 0007), under the SAME order id the engine, the ledger and the trade proof use.
   if ((await tables(db)).has("bot_orders")) {
-    for (const o of (await db.prepare(`SELECT o.order_id, o.bot_id, o.action, o.symbol, o.status, o.code, o.message, o.received_at, b.name, b.timeframe_min FROM bot_orders o JOIN bots b ON b.bot_id = o.bot_id ORDER BY o.received_at DESC LIMIT ?`).bind(n).all<Obj>()).results) {
+    for (const o of (await db.prepare(`SELECT o.order_id, o.bot_id, o.action, o.symbol, o.status, o.code, o.message, o.received_at, b.name, b.timeframe_min FROM bot_orders o JOIN bots b ON b.bot_id = o.bot_id${b ? " WHERE o.received_at <= ?" : ""} ORDER BY o.received_at DESC LIMIT ?`).bind(...(b ? [b, n] : [n])).all<Obj>()).results) {
       const ok = o.status === "ACCEPTED";
       if (ok && presented.has(String(o.order_id))) continue; // shown once, as its fill event
       items.push({ id: `O${String(o.order_id)}`, at: String(o.received_at), source: "funded", symbol: String(o.symbol),
@@ -468,7 +472,8 @@ export async function activityFeed(db: D1Database, limit = 30): Promise<{ items:
     }
   }
   items.sort((x, y) => (x.at < y.at ? 1 : x.at > y.at ? -1 : x.id < y.id ? 1 : -1));
-  return { items: items.slice(0, n), generated_at: new Date().toISOString() };
+  const page = b ? items.filter((x) => x.at <= b) : items; // live-only items (heartbeat, gaps) only within the page
+  return { items: page.slice(0, n), generated_at: new Date().toISOString() };
 }
 
 // ------------------------------------------------------------------ notification API (/api/notifications/*)

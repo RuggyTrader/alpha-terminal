@@ -137,7 +137,7 @@ describe("Home", () => {
     expect(html).toContain("ALPHA TERMINAL");
     expect(html).toContain("PAPER DESK");
     expect(html).toContain("ONLINE");
-    expect(html).toContain("VERIFIED P&amp;L");
+    expect(html).toContain("VERIFIED PAPER P&amp;L");
     expect(html).toContain("TOTAL RETURN");
     expect(html).toContain("CLOSED TRADES");
     expect(html).toContain("WIN RATE");
@@ -153,15 +153,16 @@ describe("Home", () => {
     expect(eng).toContain("NOT CONFIGURED");
     // Home shows the STRATEGY engine's status (bot heartbeats), not system health or the broker route (recovery 2026-11-14).
     expect(html).not.toContain("System health"); // (the Strategy engine card needs the bot registry: recovery.test.tsx)
-    for (const label of ["Home", "Bots", "Trades", "Activity", "Results", "Settings"]) expect(html).toContain(`>${label}<`);
+    for (const label of ["Home", "Bots", "Trades", "Settings"]) expect(html).toContain(`>${label}<`);
+    for (const gone of ["Activity", "Results"]) expect(html).not.toContain(`<span>${gone}</span>`); // four tabs: both now live inside Trades
     expect(html).not.toContain("bnav-engine"); // no Engine tab: diagnostics moved to Settings → Advanced
     expect(html).not.toMatch(/withdraw/i);
   });
 
-  it("shows an intentional empty state without positions", () => {
-    const html = page("/", ok(dashboard()));
+  it("shows an intentional empty state without positions (Trades → Open; signals under Trades → records)", () => {
+    const html = page("/trades?view=open", ok(dashboard()));
     expect(html).toContain("No open PAPER positions");
-    expect(html).toContain("No signals yet");
+    expect(page("/trades?view=records", ok(dashboard()))).toContain("No signals yet");
     expect(html).not.toContain("Alpaca PAPER account positions"); // no broker positions, no broker section
   });
 
@@ -180,7 +181,7 @@ describe("Home", () => {
 
   it("shows ALPHA PAPER positions, labelled and kept apart from broker equity", () => {
     const d = dashboard({ paper: paper([paperPos()], { realized_pnl: 12.5, total_pnl: 17.5 }) });
-    const html = page("/", ok(d));
+    const html = page("/trades?view=open", ok(d));
     expect(html).toContain("Open positions");
     expect(html).toContain("ALPHA PAPER POSITION · simulated, not a broker position");
     expect(html).toContain("SOLUSD");
@@ -192,10 +193,10 @@ describe("Home", () => {
     expect(html).toContain("$100.00"); // avg entry
     expect(html).toContain("$110.00"); // current mark
     expect(html).toContain("Kraken · 5s ago");
-    expect(html).toContain("Funded PAPER"); // Home keeps the summary (hero + selector); the full ALPHA PAPER performance section was a duplicate (UI duplicate audit)
+    expect(page("/", ok(d))).toContain("VERIFIED PAPER P&amp;L"); // Home keeps the verified summary; positions live in Trades → Open
     // Realized / unrealized / total moved to the Performance page (one place; Home keeps the summary).
     primeVerified(verifiedKey(d.counts.trades.closed, d.counts.trades.total), { verification: "TEST older backend without lifetime", trades: [], truncated: false, excluded_closed_trades: 0 });
-    const perf = page("/performance", ok(d));
+    const perf = page("/trades?view=performance", ok(d));
     expect(perf).toContain("Complete lifetime performance unavailable");
     expect(perf).not.toContain("+$17.50"); // legacy open + realized is not lifetime profit
     expect(html).not.toContain("$2,222.22"); // broker equity is not mixed in
@@ -258,7 +259,7 @@ describe("Home", () => {
     expect(html).toContain("STALE");
     expect(html).toContain("Showing data from");
     expect(html).toContain("is-stale");
-    expect(html).toContain("No open PAPER positions"); // the last snapshot is still shown
+    expect(html).toContain("VERIFIED PAPER P&amp;L"); // the last snapshot is still shown (the hero is marked is-stale above)
   });
 
   it("shows OFFLINE and no numbers when the first load fails", () => {
@@ -362,7 +363,7 @@ describe("Engine", () => {
 
 describe("Activity", () => {
   it("shows a loading state, never generated log lines, before the Worker's events arrive", () => {
-    const html = page("/activity", ok(dashboard()));
+    const html = page("/trades?view=activity", ok(dashboard()));
     expect(html).toContain("Recorded events");
     expect(html).not.toContain("ac-item"); // no event row exists until the Worker returns one
     expect(html).not.toContain("Legacy engine log"); // no legacy rows → no legacy section
@@ -375,7 +376,7 @@ describe("Activity", () => {
         activity: [{ id: 1, ts: "2026-10-31T14:00:00Z", category: "risk", level: "info", message: "Rejected", alert_id: null, symbol: "SPY", action: "buy", error_detail: null }],
       },
     });
-    const html = page("/activity", ok(d));
+    const html = page("/trades?view=activity", ok(d));
     expect(html).toContain("feed-warn");
     expect(html).toContain("RISK");
     expect(html).toContain("SPY BUY");
@@ -588,14 +589,18 @@ describe("remember this device", () => {
     const sources = import.meta.glob(["./**/*.{ts,tsx}", "!./**/*.test.tsx"], { query: "?raw", import: "default", eager: true }) as Record<string, string>;
     expect(Object.keys(sources).length).toBeGreaterThan(10);
     for (const [file, text] of Object.entries(sources)) {
-      // The one exception: the Light/Dark/System choice (theme.ts), a single non-sensitive key.
-      if (file === "./theme.ts") continue;
+      // The exceptions: the Light/Dark/System choice (theme.ts) and two display preferences (prefs.ts), non-sensitive keys.
+      if (file === "./theme.ts" || file === "./prefs.ts") continue;
       expect(text, file).not.toMatch(/localStorage|sessionStorage|document\.cookie|indexedDB/);
     }
     const theme = sources["./theme.ts"].replace(/\/\/.*$/gm, "");
     expect(theme).not.toMatch(/sessionStorage|document\.cookie|indexedDB/);
     expect(Array.from(theme.matchAll(/localStorage\.(\w+)\(([^,)]*)/g), (m) => `${m[1]}(${m[2]})`).sort()).toEqual(["getItem(KEY)", "setItem(KEY)"]);
     expect(theme).toContain('const KEY = "at-theme";');
+    const prefs = sources["./prefs.ts"].replace(/\/\/.*$/gm, "");
+    expect(prefs).not.toMatch(/sessionStorage|document\.cookie|indexedDB/);
+    expect(Array.from(prefs.matchAll(/localStorage\.(\w+)\(([^,)]*)/g), (m) => `${m[1]}(${m[2]})`).sort()).toEqual(["getItem(k)", "setItem(k)"]);
+    expect(prefs).toContain('const KEYS = { motion: "at-motion", companion: "at-companion" } as const;');
   });
 });
 

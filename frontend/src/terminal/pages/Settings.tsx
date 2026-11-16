@@ -17,6 +17,9 @@ import { useDash } from "../store";
 import { PAPER_FILL_DISCLOSURE } from "../disclosures";
 import { THEME_LABEL, THEME_PREFS, useThemePref } from "../theme";
 import { NotificationSettings } from "../components/NotificationSettings";
+import { WalletOverview } from "../components/WalletOverview";
+import { setCompanion, setMotion, usePrefs } from "../prefs";
+import { TRIAL_DISPLAY_NAME } from "../botNames";
 
 function Group({ n, title, sub, children }: { n: number; title: string; sub?: string; children: ReactNode }) {
   return (
@@ -49,6 +52,7 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
 
 function AppearanceGroup() {
   const [pref, setPref] = useThemePref();
+  const prefs = usePrefs();
   const idx = THEME_PREFS.indexOf(pref);
   return (
     <section className="sg" aria-label="Appearance">
@@ -59,6 +63,21 @@ function AppearanceGroup() {
         {THEME_PREFS.map((t) => (
           <button key={t} type="button" role="radio" aria-checked={pref === t} className={`m-press${pref === t ? " on" : ""}`} onClick={() => setPref(t)}>{THEME_LABEL[t]}</button>
         ))}
+      </div>
+      <div className="card sg-card sg-prefs">
+        <div className="li">
+          <span>Animations<i className="sg-edit"> · this device</i></span>
+          <span className="sg-toggle" role="radiogroup" aria-label="Animations">
+            {(["full", "reduced"] as const).map((m) => <button key={m} type="button" role="radio" aria-checked={prefs.motion === m} className={`chip ${prefs.motion === m ? "on" : ""}`} onClick={() => setMotion(m)}>{m === "full" ? "Full" : "Reduced"}</button>)}
+          </span>
+        </div>
+        <div className="li">
+          <span>Talking globe on Home<i className="sg-edit"> · this device</i></span>
+          <span className="sg-toggle" role="radiogroup" aria-label="Talking globe">
+            {(["on", "off"] as const).map((c) => <button key={c} type="button" role="radio" aria-checked={prefs.companion === c} className={`chip ${prefs.companion === c ? "on" : ""}`} onClick={() => setCompanion(c)}>{c === "on" ? "On" : "Off"}</button>)}
+          </span>
+        </div>
+        <p className="li-note">Reduced animations also apply automatically when your device asks for reduced motion. The globe only repeats facts from your records.</p>
       </div>
     </section>
   );
@@ -82,6 +101,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
     <div className="page-narrow m-stagger">
       <h1 className="page-title">Settings</h1>
 
+      {d?.portfolio ? <WalletOverview portfolio={d.portfolio} paper={d.paper} feedStale={state.status === "stale" || state.status === "error"} /> : null}
       <Group n={1} title="Account & wallets" sub="Simulated PAPER money: not cash, cannot be withdrawn.">
         <Row k="Account">ALPHA PAPER (internal ledger)</Row>
         <Row k="Account equity">{t ? money(t.book_balance_usd) : NA}</Row>
@@ -136,6 +156,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
       <Group n={6} title="Advanced" sub="Diagnostics, research and optional integrations. Nothing here is needed day to day.">
         <div className="li"><span>Engine diagnostics (host, supervisor, ledger check, health)</span><Link className="link" to="/engine">Engine →</Link></div>
         <div className="li"><span>Research: Strategy Mirror and hypothetical comparisons (never actual PAPER results)</span><Link className="link" to="/research">Research →</Link></div>
+        <div className="li"><span>Research trial: {TRIAL_DISPLAY_NAME} (BTC daily trend forward trial, its own research account)</span><Link className="link" to="/research/trial">Trial →</Link></div>
         <Fold title="Execution costs (read-only)">
           <Row k="Bot ledger fee model">Ndax-equivalent 0.20% per fill</Row>
           {!p ? <Row k="Legacy cost profile">{NA}</Row>

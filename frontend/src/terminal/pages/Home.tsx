@@ -1,23 +1,19 @@
-import { PerformanceSelector } from "../components/PerformanceSelector";
-import { Link } from "react-router-dom";
-import { AccountHero } from "../components/AccountHero";
 import { AlphaPaperPositionCard } from "../components/AlphaPaperPositionCard";
-import { ActivityPanel, PipelinePanel } from "../components/HomePanels";
-import { BotPipelinePanel } from "../components/BotPipeline";
 import { PositionCard } from "../components/PositionCard";
-import { EngineStatusCard } from "../components/EngineStatusCard";
 import { useFleet } from "../fleetStore";
 import { TradeStoryCard } from "../components/TradeStoryCard";
 import { fromBotTrade } from "../tradeStory";
 import { EmptyState, SectionHeader, SkeletonCards } from "../components/ui";
-import { AnimatedList, Reveal } from "../motion";
-import { useActivity } from "../activity";
+import { AnimatedList } from "../motion";
 import { useDash } from "../store";
 import { useVerified } from "../useVerified";
-import { useState } from "react";
-import type { HeroScope } from "../components/AccountHero";
-import { WalletOverview } from "../components/WalletOverview";
-import { AlertCard as LegacyAlert } from "../components/AlertCard";
+import { useMemo } from "react";
+import { useBotTrades } from "../botTrades";
+import { closedCards } from "../recentClosed";
+import { useActivityStream } from "../activity";
+import { HomeHero } from "../components/HomeHero";
+import { ClosedTrades } from "../components/ClosedTrades";
+import { LiveActivity } from "../components/LiveActivity";
 
 /** Every open ALPHA PAPER position: the legacy ledger's (simulated) AND each fleet bot's own (bot ledger), from the
  *  same records as the Capital card's "reserved" figure, so the two can never disagree. */
@@ -72,44 +68,22 @@ export function BrokerPositionsSection() {
   );
 }
 
+/** Home: a fixed one-screen command center. The talking hero, the latest closed funded trades and ALPHA Activity, which
+ *  takes all remaining height and is the only part that scrolls. Wallets, positions, the fleet and research live on
+ *  their own pages, so Home stays the same size however many bots there are. */
 export function HomePage() {
   const { state, reconnected } = useDash();
-  // One funded trade set for the hero and the Funded PAPER tab: the legacy ledger + the bot ledger, never twice.
   const verified = useVerified();
-  const [scope, setScope] = useState<HeroScope | null>(null); // the hero follows the selected performance scope
-  const fleetAvailable = !!useFleet().fleet?.available;
-  const d = state.data;
-  const alerts = d?.recent.alerts ?? [];
-  const total = d?.counts.alerts.total ?? 0;
-  const activity = useActivity(reconnected, state.status === "stale" || state.status === "error");
+  const { fleet } = useFleet();
+  const trades = useBotTrades({ bot: null, signal: null }, fleet);
+  const cards = useMemo(() => closedCards(trades.data?.trades, 4), [trades.data]);
+  const offline = state.status === "stale" || state.status === "error";
+  const stream = useActivityStream(reconnected, offline);
   return (
-    <div className="home-grid">
-      <div className="col-main m-stagger">
-        <AccountHero state={state} verified={verified} reconnected={reconnected} scope={scope} />
-        <PerformanceSelector verified={verified} onScope={setScope} />
-        {d?.portfolio ? <WalletOverview portfolio={d.portfolio} paper={d.paper} feedStale={state.status === "stale" || state.status === "error"} /> : null}
-        <div className="hp-panels">
-          {/* The legacy single-engine pipeline only where there is no bot registry (schema 6); otherwise every bot,
-              ALPHA-02 included, has its own live line in the Bots pipeline (no duplicate "offline" engine panel). */}
-          {fleetAvailable ? null : <PipelinePanel state={state} mirror={activity.mirror} />}
-          {fleetAvailable ? <EngineStatusCard /> : <BotPipelinePanel />}
-          <ActivityPanel activity={activity} />
-        </div>
-        <PositionsSection />
-      </div>
-      <div className="col-side m-stagger">
-        {/* The legacy signal list only without a bot registry (schema 6); with it, Trades and Activity carry every outcome. */}
-        {fleetAvailable ? null : (
-          <Reveal>
-            <section aria-label="Recent signals">
-              <SectionHeader title="Recent signals" right={d ? <Link className="link" to="/trades">{total} total · View all</Link> : null} />
-              {!d ? (state.status === "loading" ? <SkeletonCards count={2} /> : <EmptyState title="No data" />)
-                : alerts.length === 0 ? <EmptyState title="No signals yet">Signals received by the Worker will appear here.</EmptyState>
-                : <AnimatedList items={alerts.slice(0, 3)} getKey={(a) => String(a.id)} render={(a) => <LegacyAlert a={a} />} />}
-            </section>
-          </Reveal>
-        )}
-      </div>
+    <div className="cc">
+      <HomeHero state={state} verified={verified} reconnected={reconnected} closed={cards} />
+      <ClosedTrades cards={cards} loading={!trades.data && !trades.error} error={trades.error} stale={trades.stale} />
+      <LiveActivity s={stream} loadOlder={stream.loadOlder} feedOk={!offline} />
     </div>
   );
 }

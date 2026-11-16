@@ -3,6 +3,7 @@
 // the explanation says it is unavailable instead. One normalized TradeView feeds the trade card, the chart and the
 // assistant, so they cannot disagree.
 
+import { displayName } from "./botNames";
 import type { BotTradeRow } from "./botTrades";
 import type { TradeRow } from "./types";
 
@@ -34,7 +35,7 @@ export function legacyBotOf(alertId: string | null | undefined): { botId: string
   if (!m) return { botId: null, timeframe: null };
   return { botId: m[1] === "SOLUSD" && m[2] === "5" ? "ALPHA-02" : null, timeframe: `${m[2]}m` };
 }
-const label = (id: string | null) => (id ? id.replace("-", " ") : "Engine");
+const label = (id: string | null) => (id ? displayName(id, id.replace("-", " ")) : "Engine"); // display alias; the id stays the key
 
 export function fromLegacyTrade(t: TradeRow & { story?: TradeStory | null }): TradeView {
   const b = legacyBotOf(t.open_alert_id);

@@ -3,6 +3,8 @@
 // Kraken; the forming candle is drawn separately and labelled; nothing is interpolated between refreshes. Refreshes only
 // while the page is visible. Charts: TradingView Lightweight Charts™ (Apache-2.0), attribution below the chart.
 
+import { BotCard, BotOwnerControls } from "./Bots";
+import { invalidateFleet } from "../fleetStore";
 import { AssetLogo } from "../components/AssetLogo";
 import { createChart, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -343,6 +345,11 @@ function BotChartContent({ id, ledger, tradeRef }: { id: string; ledger: "legacy
           ? `Setup developing: ${bot.engine.strategy_state.direction} swing ${bot.engine.strategy_state.leg_start} → ${bot.engine.strategy_state.leg_end}; no order has been placed yet.`
           : "Scanning — no valid setup yet."}</p>
       ) : null}
+      {bot ? <BotCard b={bot} nowMs={now} /> : null}
+      {bot && bot.status === "ACTIVE" ? (
+        <details className="bot-details"><summary>Owner controls for {bot.name}</summary><BotOwnerControls b={bot} onDone={() => void invalidateFleet()} /></details>
+      ) : null}
+      {bot ? <Link className="btn btn-ghost" to={`/trades?view=records&bot=${bot.bot_id}`}>All {bot.name} trades and orders</Link> : null}
       <p className="sizing-note">Charts by <a className="link" href="https://www.tradingview.com/lightweight-charts/" target="_blank" rel="noreferrer">TradingView Lightweight Charts™</a></p>
     </div>
   );

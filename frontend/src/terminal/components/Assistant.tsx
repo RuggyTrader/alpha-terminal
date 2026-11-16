@@ -8,9 +8,24 @@ import { ASK_EVENT, type AskRequest } from "../askAlpha";
 import { answerTrade, isFleetQuestion } from "../tradeAssistant";
 import type { TradeView } from "../tradeStory";
 import { useFleet } from "../fleetStore";
+import { useLocation } from "react-router-dom";
+import { useBotTrades } from "../botTrades";
+import { closedCards, type ClosedCard } from "../recentClosed";
 
-const SUGGESTED = ["What is SOL 1m doing right now?", "What is BTC 5m waiting for?", "Which bot is making the most money?", "How much did BTC 5m pay in fees?",
-  "What is my MAIN balance?", "How much profit has been transferred to MAIN?", "Can my BTC bot afford its minimum order?", "Is my engine offline?"];
+/** Opens the assistant from anywhere (the Home globe uses it). */
+export const OPEN_ASSISTANT_EVENT = "alpha:open-assistant";
+export const openAssistant = () => { if (typeof window !== "undefined") window.dispatchEvent(new Event(OPEN_ASSISTANT_EVENT)); };
+
+/** Mounted only while the sheet is open: reads the shared bot-trades snapshot (no poller of its own when closed). */
+function ClosedFeed({ onRows }: { onRows: (rows: ClosedCard[] | undefined) => void }) {
+  const { fleet } = useFleet();
+  const snap = useBotTrades({ bot: null, signal: null }, fleet);
+  useEffect(() => { onRows(snap.data ? closedCards(snap.data.trades, 50) : undefined); }, [snap.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
+const SUGGESTED = ["Why is my portfolio down?", "What positions are currently open?", "Which bot has performed best?", "What are my bots doing?",
+  "How much have I paid in fees?", "What was my most recent trade?", "What is SOL Orbit waiting for?", "Is my engine offline?"];
 
 interface Msg { q: string; a: Answer }
 
@@ -25,6 +40,13 @@ export function AssistantDrawer() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const end = useRef<HTMLDivElement>(null);
   const [trade, setTrade] = useState<TradeView | null>(null); // "Ask ALPHA about this trade": the exact trade in context
+  const closed = useRef<ClosedCard[] | undefined>(undefined);
+  const onHome = useLocation().pathname === "/";
+  useEffect(() => {
+    const on = () => setOpen(true);
+    window.addEventListener(OPEN_ASSISTANT_EVENT, on);
+    return () => window.removeEventListener(OPEN_ASSISTANT_EVENT, on);
+  }, []);
   useEffect(() => {
     const on = (e: Event) => {
       const req = (e as CustomEvent<AskRequest>).detail;
@@ -38,17 +60,20 @@ export function AssistantDrawer() {
   useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [msgs]);
   const ask = (text: string) => {
     if (!text.trim()) return;
-    setMsgs((m) => [...m, { q: text, a: trade && !isFleetQuestion(text) ? answerTrade(text, trade) : answer(text, fleet, Date.now(), ctx || null) }].slice(-30));
+    setMsgs((m) => [...m, { q: text, a: trade && !isFleetQuestion(text) ? answerTrade(text, trade) : answer(text, fleet, Date.now(), ctx || null, { closed: closed.current }) }].slice(-30));
     setQ("");
   };
   return (
     <>
-      <button className="asst-fab" aria-label="Open ALPHA Assistant" onClick={() => setOpen(true)}>α</button>
+      {/* On Home the talking globe opens the assistant; the floating button would cover the activity feed there. */}
+      {onHome ? null : <button className="asst-fab" aria-label="Open ALPHA Assistant" onClick={() => setOpen(true)}>α</button>}
+      {open ? <ClosedFeed onRows={(r) => { closed.current = r; }} /> : null}
+      {open ? <button className="asst-scrim" aria-label="Close ALPHA Assistant" onClick={() => setOpen(false)} /> : null}
       {open ? (
         <div className={`asst ${full ? "is-full" : ""}`} role="dialog" aria-label="ALPHA Assistant">
           <div className="asst-h">
             <b>ALPHA Assistant</b>
-            <span className="asst-sub">Read-only · answers from your records</span>
+            <span className="asst-sub">Read-only · answers only from your recorded PAPER data</span>
             <button className="link" onClick={() => setFull(!full)}>{full ? "Smaller" : "Expand"}</button>
             <button className="link" onClick={() => setMsgs([])}>Clear</button>
             <button className="link" aria-label="Close" onClick={() => setOpen(false)}>Close</button>

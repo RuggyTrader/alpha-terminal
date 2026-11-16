@@ -1328,7 +1328,7 @@ export async function handleDashboardApi(
     }
     // Recent genuine activity (trade events, funded signals, engine heartbeat, observation gaps); bounded.
     if (pathname === "/api/dashboard/events") {
-      return json({ ok: true, data: await activityFeed(env.DB, Number(searchParams.get("limit")) || 30) });
+      return json({ ok: true, data: await activityFeed(env.DB, Number(searchParams.get("limit")) || 30, searchParams.get("before")) });
     }
     if (pathname === "/api/dashboard/mirror/overview") {
       return json({ ok: true, data: await mirrorOverview(env.DB) });
