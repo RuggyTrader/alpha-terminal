@@ -586,7 +586,11 @@ export class EngineRunner {
         S.liveOrder = null;
       }
     }
-    if (prev && S.liveOrder && (!live || live.limit !== prev.limit || sideOf(live.side) !== prev.side || live.qty !== prev.qtyRaw)) {
+    // Strict timing: an order is identified by its side and limit. A size-only change (the stop moved a little, so the
+    // dollar-risk size changed) keeps the accepted ledger order and its acceptance time; the ledger fills at most the
+    // size it accepted. Replacing it would restart acceptance every candle and the order could never fill.
+    const sizeChanged = !this.cfg.strictFill && live && live.qty !== prev?.qtyRaw;
+    if (prev && S.liveOrder && (!live || live.limit !== prev.limit || sideOf(live.side) !== prev.side || sizeChanged)) {
       if (live) {
         // Replaced by a new strategy order: cancel the old one explicitly, so the ledger never keeps an order the engine
         // no longer works even when the replacement itself cannot be sent (too late after an outage).

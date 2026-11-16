@@ -115,7 +115,8 @@ export function placeEntry(br, order) {
   if (br.pos) return false;
   // The same order re-issued on a later bar keeps its age (it is the same live order); any change is a new order.
   // entryAgeKey "limit": a size-only change keeps the order (the ledger fills at most the size it accepted).
-  const sameSize = (br.opts?.entryAgeKey === "limit") || (br.entry && br.entry.qty === order.qty);
+  // Identity = side + limit when the order's identity is its limit (research "limit") or with live acceptance timing.
+  const sameSize = br.opts?.entryAgeKey === "limit" || br.opts?.acceptanceTiming || (br.entry && br.entry.qty === order.qty);
   const same = br.entry && br.entry.id === order.id && br.entry.side === order.side && sameSize && br.entry.limit === (order.limit ?? null);
   br.entry = { id: order.id, side: order.side, qty: order.qty, limit: order.limit ?? null,
     ...(br.opts?.entryDelayBars >= 1 ? { age: same ? br.entry.age ?? 0 : 0 } : {}),

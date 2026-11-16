@@ -15,13 +15,13 @@ const HERE = dirname(fileURLToPath(import.meta.url)), ENGINE = join(HERE, "..");
 const SOL1 = JSON.parse(readFileSync(join(HERE, "fixtures", "SOLUSD-1m-2026-11-10_2026-11-12.json"), "utf8")).candles;
 const temps = []; after(() => { for (const t of temps) { try { rmSync(t, { recursive: true, force: true }); } catch { /* locked */ } } });
 
-function harness({ strict, dataDir = null }) {
+function harness({ strict, dataDir = null, balance = 20 }) {
   const dir = dataDir ?? (temps.push(mkdtempSync(join(tmpdir(), "alpha-strict-"))), temps.at(-1));
   const L = { strictLedger: strict, orders: new Map(), pending: null, position: null, opens: [], refusedEarly: 0, early: 0, cancels: [], clock: { now: SOL1[300].t + 70_000 } };
   const http = async (url, init) => {
     const path = String(url).replace(/^.*\/webhook\//, ""), b = JSON.parse(init.body);
     const ok = (code, data = {}) => new Response(JSON.stringify({ ok: true, code, data }), { status: 200 });
-    if (path === "bot-ledger") return new Response(JSON.stringify({ ok: true, position: L.position, alerts: {}, pending_order: L.pending, balance: { available_usd: 20, bot_available_usd: 20, max_order_notional_usd: 5000 } }), { status: 200 });
+    if (path === "bot-ledger") return new Response(JSON.stringify({ ok: true, position: L.position, alerts: {}, pending_order: L.pending, balance: { available_usd: balance, bot_available_usd: balance, max_order_notional_usd: 5000 } }), { status: 200 });
     if (path !== "bot-order") return new Response(JSON.stringify({ ok: true }), { status: 200 });
     if (b.action === "PLACE_LIMIT") {
       const o = { order_id: b.order_id, side: b.side, limit: b.limit, accepted_qty: b.qty, placed_at: b.placed_at, received_at: new Date(L.clock.now + 3000).toISOString() };
@@ -95,5 +95,18 @@ describe("strict acceptance timing (engine = ledger rule)", () => {
     for (let k = 0; k < 1500; k++) { h.L.clock.now += 60_000; await r.tick(); }
     assert.equal(h.L.refusedEarly, 0);
     assert.ok(h.L.opens.length >= 1, "orders still fill after the upgrade");
+  });
+
+  it("strict with a size that changes every candle (risk-based sizing, large wallet): the order keeps its acceptance, is not re-placed for size-only changes, and fills", async () => {
+    const h = harness({ strict: true, balance: 1000 });
+    const r = h.mk(); await r.tick();
+    const places = [];
+    const http0 = null;
+    for (let i = 0; i < 1400; i++) { h.L.clock.now += 60_000; await r.tick(); }
+    const pl = [...h.L.orders.values()];
+    for (let i = 1; i < pl.length; i++) assert.ok(!(pl[i].side === pl[i - 1].side && pl[i].limit === pl[i - 1].limit), `no re-placement for a size-only change (${pl[i].order_id})`);
+    assert.ok(h.L.opens.length >= 3, `fills happen (${h.L.opens.length})`);
+    assert.equal(h.L.refusedEarly, 0);
+    for (const { b, o } of h.L.opens) assert.ok(Date.parse(b.fill.candle.t) >= Date.parse(o.received_at));
   });
 });
