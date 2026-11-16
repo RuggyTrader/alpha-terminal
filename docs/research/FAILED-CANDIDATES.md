@@ -92,3 +92,19 @@ Source: `docs/research/round5/` (pre-registration `bac1a9d`, before any run). Th
 | F6 volatility stop + fee-aware reward, LONG / SHORT | +3.45 / −0.75; +13.85 / −0.91 | fails |
 
 Conclusion: OTE timing showed no demonstrated value over simple trend following, and no hybrid OTE candidate qualifies for a forward trial.
+
+## Round 6 (2026-11-16): fee-aware OTE variants, live 5m profiles
+
+Source: `docs/research/round6/` (pre-registration `f9506dc`, before any run). Sizing is as live ($20 wallet, $10 risk capped), with strict acceptance and 0.20% fee + 0.05% slippage. Independent data: LTC, LINK, ADA, DOGE 5m, 2024-07 → 2026-11.
+
+| Candidate | Independent gross before fees / net (trades) | Verdict |
+|---|---|---|
+| V0 baseline | −11.39 / −54.46 (1206) | fails; negative before fees |
+| V1a / V1b fee-aware minimum reward (minNetRR 1.0 / 2.0) | −10.31 / −52.09 (1170); −8.31 / −27.85 (367) | fails; fewer trades only |
+| V2 fee-aware break-even (entry ± 0.45%) | −11.40 / −56.96 (1276) | fails; slightly worse than baseline |
+| V3 target −1.0 | −10.36 / −52.24 (1174) | fails |
+| V4 stop ≥ 0.8% | −8.29 / −42.73 (882) | fails |
+| V5 minScore 2 | −12.62 / −54.80 (1155) | fails |
+| V6 combined | −6.32 / −39.43 (850) | fails; no independent market positive, CI entirely below 0 |
+
+Conclusion: the 5m OTE strategy has no edge before costs on independent markets, so fee-aware rules reduce losses only by trading less.
