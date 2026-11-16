@@ -108,3 +108,16 @@ Source: `docs/research/round6/` (pre-registration `f9506dc`, before any run). Si
 | V6 combined | −6.32 / −39.43 (850) | fails; no independent market positive, CI entirely below 0 |
 
 Conclusion: the 5m OTE strategy has no edge before costs on independent markets, so fee-aware rules reduce losses only by trading less.
+
+## Round 7 (2026-11-16): different strategy families
+
+Source: `docs/research/round7/` (pre-registration `255a351`, before any run). Independent set: 8 never-used markets. Costs: 0.20% + 0.05% slippage.
+
+| Candidate | Independent net (trades, + of 8) | Status |
+|---|---|---|
+| T1 LONG Donchian 55/20, 4h | +275.8 (601, 5/8) | INCONCLUSIVE: breadth, 99.5% CI and drawdown fail; XLM is 85% of the net |
+| M1 LONG 30-day momentum, 1d | +83.9 (169, 4/8) | INCONCLUSIVE: breadth and CI fail; concentrated in 2024 |
+| T2 LONG SMA200, 4h | −18.1 (1293, 2/8) | FAILED |
+| B1 LONG squeeze breakout, 4h | −33.0 (651, 2/8) | FAILED |
+| R1 LONG mean reversion, 4h | −42.9 (156, 0/8) | FAILED |
+| All five SHORT candidates (T1, T2, M1, B1, R1) | −7.8 to −90.8 | FAILED |
