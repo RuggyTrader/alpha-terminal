@@ -20,6 +20,7 @@ import { loadConfig } from "../../engine/src/config.mjs";
 import { runBacktest } from "../../engine/src/cli/backtest.mjs";
 import { MarketsRunner } from "../../engine/src/markets.mjs";
 import { EngineRunner } from "../../engine/src/runner.mjs";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DEV_DIR = join(HERE, "..");
@@ -57,6 +58,7 @@ async function start() {
     throw new Error(`port ${PORT} is already in use; refusing to attach to another test Worker`);
   } catch (e) { if (/already in use/.test(String(e.message))) throw e; }
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9810", "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, 9810); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: DEV_DIR, stdio: ["ignore", "pipe", "pipe"], shell: WIN, detached: !WIN });
   let output = "";

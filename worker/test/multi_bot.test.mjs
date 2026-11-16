@@ -16,6 +16,7 @@ import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const KRAKEN = await startKrakenStub({ sol: 80 });
 KRAKEN.set("XBTUSD", 100000);
@@ -59,6 +60,7 @@ before(async () => {
   // TEST activation of the PROPOSED bots (production activates them one approval at a time).
   sql(`UPDATE bots SET status = 'ACTIVE' WHERE bot_id IN ('ALPHA-01', 'ALPHA-03', 'ALPHA-04')`);
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, PORT + 600); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 120000;

@@ -22,6 +22,7 @@ import { startKrakenStub } from "./lib/kraken-stub.mjs";
 import { DEPLOYED_REF, workerAt } from "./lib/worker-at.mjs";
 import { createMirror, mirrorStep } from "../../engine/src/mirror.mjs";
 import { loadConfig } from "../../engine/src/config.mjs";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DEV_DIR = join(HERE, "..");
@@ -60,6 +61,7 @@ function d1(sql, ...args) {
 let worker = null, cookie = null;
 async function start(dir) {
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9809", "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, 9809); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: dir, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 90000;

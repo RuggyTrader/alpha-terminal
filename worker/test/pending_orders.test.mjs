@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
 import { pathToFileURL } from "node:url";
 import { buildSync } from "esbuild";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const FILL_OUT = join(mkdtempSync(join(tmpdir(), "alpha-fill-")), "paper_fill.mjs");
 buildSync({ entryPoints: [join(dirname(fileURLToPath(import.meta.url)), "..", "src", "paper_fill.ts")], bundle: true, format: "esm", platform: "neutral", outfile: FILL_OUT, logLevel: "silent" });
@@ -94,6 +95,7 @@ before(async () => {
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   sql(`UPDATE bots SET status = 'ACTIVE' WHERE bot_id = 'ALPHA-01'`);
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, PORT + 600); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 120000;

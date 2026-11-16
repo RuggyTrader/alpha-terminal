@@ -18,6 +18,7 @@ import { DatabaseSync } from "node:sqlite";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WORKER_DIR = join(HERE, "..");
@@ -68,6 +69,7 @@ function d1(sql) {
 
 async function start(profile) {
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9801", "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, 9801); // never test against a server this test did not start
   const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: krakenBase, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: profile };
   for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });

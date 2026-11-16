@@ -19,6 +19,7 @@ import { DatabaseSync } from "node:sqlite";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DEV_DIR = join(HERE, "..");
@@ -86,6 +87,7 @@ function d1(sql, root = persist) {
 let worker = null, cookie = null;
 async function start(dir, profile) {
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9803", "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, 9803); // never test against a server this test did not start
   const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: `http://127.0.0.1:${fixture.address().port}`, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "", ...(profile ? { PAPER_COST_PROFILE: profile } : {}) };
   for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);
   // A Worker left over from an interrupted run would silently answer this test's requests: refuse instead.

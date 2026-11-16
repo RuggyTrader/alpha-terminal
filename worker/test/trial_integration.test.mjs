@@ -10,6 +10,7 @@ import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const KRAKEN = await startKrakenStub();
 const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -43,6 +44,7 @@ before(async () => {
   persist = mkdtempSync(join(tmpdir(), "alpha-trial-int-"));
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--test-scheduled", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, PORT + 600); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none" })) args.push("--var", `${k}:${v}`);
   const { openSync } = await import("node:fs"); const LOGF = openSync(join(tmpdir(), "trial-int-worker.log"), "w");
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: ["ignore", LOGF, LOGF], shell: WIN, detached: !WIN });

@@ -18,6 +18,7 @@ import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WORKER_DIR = join(HERE, "..");
@@ -59,6 +60,7 @@ before(async () => {
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   sql(`UPDATE bots SET status = 'ACTIVE' WHERE bot_id = 'ALPHA-01'`); // DEMO activation (production: owner approval)
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, PORT + 600); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 120000;

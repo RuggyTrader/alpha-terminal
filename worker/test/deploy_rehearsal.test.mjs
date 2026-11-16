@@ -18,6 +18,7 @@ import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DEV_DIR = join(HERE, "..");
@@ -66,6 +67,7 @@ async function start(dir) {
   try { await fetch(`${BASE}/health`, { signal: AbortSignal.timeout(1500) }); busy = true; } catch { /* free */ }
   if (busy) throw new Error(`port ${PORT} is already in use`);
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", "9804", "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, 9804); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "" })) args.push("--var", `${k}:${v}`);
   worker = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: dir, stdio: "ignore", shell: WIN, detached: !WIN });
   const end = Date.now() + 90000;

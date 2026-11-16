@@ -18,6 +18,7 @@ import { DatabaseSync } from "node:sqlite";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const WIN = process.platform === "win32";
@@ -82,6 +83,7 @@ before(async () => {
   await new Promise((r) => ticker.listen(0, "127.0.0.1", r));
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--port", String(PORT), "--inspector-port", String(PORT + 600), "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(PORT, PORT + 600); // never test against a server this test did not start
   const vars = {
     WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: `http://127.0.0.1:${ticker.address().port}`,
     PAPER_MARK_MIN_INTERVAL_SECONDS: "0", DAILY_LOSS_LIMIT: String(DAILY_LOSS_LIMIT), ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none",

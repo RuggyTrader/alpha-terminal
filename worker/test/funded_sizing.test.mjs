@@ -21,6 +21,7 @@ import { EngineRunner } from "../../engine/src/runner.mjs";
 import { loadConfig } from "../../engine/src/config.mjs";
 import { runBacktest } from "../../engine/src/cli/backtest.mjs";
 import { startKrakenStub } from "./lib/kraken-stub.mjs";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const KRAKEN = await startKrakenStub();
 const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -47,6 +48,7 @@ async function environment(port, balance) {
   temps.push(persist, dataDir);
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--port", String(port), "--inspector-port", String(port + 600), "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(port, port + 600); // never test against a server this test did not start
   for (const [k, v] of Object.entries({ WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: KRAKEN.base, ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none" })) args.push("--var", `${k}:${v}`);
   const w = spawn(WIN ? "npx.cmd" : "npx", args, { cwd: WORKER_DIR, stdio: "ignore", shell: WIN, detached: !WIN });
   workers.push(w);

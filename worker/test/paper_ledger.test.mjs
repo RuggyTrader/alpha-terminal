@@ -16,6 +16,7 @@ import { DatabaseSync } from "node:sqlite";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const WIN = process.platform === "win32";
@@ -97,6 +98,7 @@ before(async () => {
   const krakenBase = `http://127.0.0.1:${fixture.address().port}`;
   wrangler(["d1", "migrations", "apply", "alpha-terminal-db", "--local", "--persist-to", persist]);
   const args = ["wrangler", "dev", "--local", "--port", "8795", "--inspector-port", "9395", "--ip", "127.0.0.1", "--persist-to", persist];
+  assertPortFree(8795, 9395); // never test against a server this test did not start
   // ALPACA_KEY / ALPACA_SECRET blank: overrides any keys in worker/.dev.vars, so no Alpaca account exists here.
   const vars = { WEBHOOK_SECRET, DASHBOARD_PASSPHRASE, ADMIN_SECRET, KRAKEN_API_BASE: krakenBase, PAPER_MARK_MIN_INTERVAL_SECONDS: "0", ALPACA_KEY: "", ALPACA_SECRET: "", PAPER_COST_PROFILE: "none" };
   for (const [k, v] of Object.entries(vars)) args.push("--var", `${k}:${v}`);

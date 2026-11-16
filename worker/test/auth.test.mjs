@@ -13,6 +13,7 @@ import { join, dirname } from "node:path";
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
+import { assertPortFree } from "./lib/port-guard.mjs";
 
 const WORKER_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(WORKER_DIR, "..", "frontend", "dist");
@@ -39,6 +40,7 @@ function wrangler(args, opts = {}) {
 
 function startWorker(port, inspectorPort, dir, vars) {
   const args = ["wrangler", "dev", "--local", "--port", String(port), "--inspector-port", String(inspectorPort),
+  assertPortFree(port, inspectorPort); // never test against a server this test did not start
     "--ip", "127.0.0.1", "--persist-to", dir];
   // Blank the broker keys so these tests never depend on (or call) a real Alpaca account,
   // even when worker/.dev.vars holds PAPER keys.
