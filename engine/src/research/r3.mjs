@@ -4,31 +4,34 @@
 // with slippage; stops fill at the stop or a worse gap open; Kraken minimums; no leverage, borrowing or shorts.
 // Selection uses BTC + SOL development only; validation is a gate; ETH (never used to choose anything) is run ONCE.
 import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i === -1 ? d : process.argv[i + 1]; };
-const DIR = arg("data"), OUT = arg("out");
+// Data folder: --data, else ALPHA_RESEARCH_DATA (the module is also imported by later research scripts).
+const DIR = arg("data", process.env.ALPHA_RESEARCH_DATA), OUT = arg("out");
 const DAY = 86_400_000, D = Date.parse;
 const load = (p) => JSON.parse(readFileSync(`${DIR}/${p}-86400.json`, "utf8")).candles.map(({ t, o, h, l, c }) => ({ t, o, h, l, c }));
-const DATA = { BTC: load("BTC-USD"), SOL: load("SOL-USD"), ETH: load("ETH-USD") };
-const MIN = { BTC: { qty: 0.00006, cost: 0.5 }, SOL: { qty: 0.05, cost: 0.5 }, ETH: { qty: 0.002, cost: 0.5 } };
-const P = { dev: [D("2021-07-01"), D("2024-07-01")], val: [D("2024-07-01"), D("2026-11-15")], all: [D("2021-07-01"), D("2026-11-15")] };
-const COSTS = [{ fee: 0, slip: 0 }, { fee: 0.2, slip: 0.05 }, { fee: 0.2, slip: 0.15 }, { fee: 0.4, slip: 0.05 }, { fee: 0.4, slip: 0.15 }];
-const SEL = { fee: 0.2, slip: 0.05 };
+export const DATA = { BTC: load("BTC-USD"), SOL: load("SOL-USD"), ETH: load("ETH-USD") };
+export const MIN = { BTC: { qty: 0.00006, cost: 0.5 }, SOL: { qty: 0.05, cost: 0.5 }, ETH: { qty: 0.002, cost: 0.5 } };
+export const P = { dev: [D("2021-07-01"), D("2024-07-01")], val: [D("2024-07-01"), D("2026-11-15")], all: [D("2021-07-01"), D("2026-11-15")] };
+export const COSTS = [{ fee: 0, slip: 0 }, { fee: 0.2, slip: 0.05 }, { fee: 0.2, slip: 0.15 }, { fee: 0.4, slip: 0.05 }, { fee: 0.4, slip: 0.15 }];
+export const SEL = { fee: 0.2, slip: 0.05 };
 
 // ---- indicators (completed closes only) ----
-const sma = (xs, n) => xs.map((_, i) => (i + 1 < n ? null : xs.slice(i + 1 - n, i + 1).reduce((s, v) => s + v, 0) / n));
-function atr(K, n = 14) { let a = null; return K.map((k, i) => { const tr = i === 0 ? k.h - k.l : Math.max(k.h - k.l, Math.abs(k.h - K[i - 1].c), Math.abs(k.l - K[i - 1].c)); a = a === null ? tr : (a * (n - 1) + tr) / n; return i + 1 < n ? null : a; }); }
-function rvol(K, n = 30) { return K.map((_, i) => { if (i < n) return null; const r = []; for (let j = i - n + 1; j <= i; j++) r.push(Math.log(K[j].c / K[j - 1].c)); const m = r.reduce((s, v) => s + v, 0) / n; return Math.sqrt(r.reduce((s, v) => s + (v - m) ** 2, 0) / (n - 1)) * Math.sqrt(365); }); }
-const hh = (K, n) => K.map((_, i) => (i < n ? null : Math.max(...K.slice(i - n, i).map((k) => k.h))));
-const ll = (K, n) => K.map((_, i) => (i < n ? null : Math.min(...K.slice(i - n, i).map((k) => k.l))));
-const weekly = (t) => new Date(t).getUTCDay() === 0; // decisions on Sunday closes (weekly hypotheses)
+export const sma = (xs, n) => xs.map((_, i) => (i + 1 < n ? null : xs.slice(i + 1 - n, i + 1).reduce((s, v) => s + v, 0) / n));
+export function atr(K, n = 14) { let a = null; return K.map((k, i) => { const tr = i === 0 ? k.h - k.l : Math.max(k.h - k.l, Math.abs(k.h - K[i - 1].c), Math.abs(k.l - K[i - 1].c)); a = a === null ? tr : (a * (n - 1) + tr) / n; return i + 1 < n ? null : a; }); }
+export function rvol(K, n = 30) { return K.map((_, i) => { if (i < n) return null; const r = []; for (let j = i - n + 1; j <= i; j++) r.push(Math.log(K[j].c / K[j - 1].c)); const m = r.reduce((s, v) => s + v, 0) / n; return Math.sqrt(r.reduce((s, v) => s + (v - m) ** 2, 0) / (n - 1)) * Math.sqrt(365); }); }
+export const hh = (K, n) => K.map((_, i) => (i < n ? null : Math.max(...K.slice(i - n, i).map((k) => k.h))));
+export const ll = (K, n) => K.map((_, i) => (i < n ? null : Math.min(...K.slice(i - n, i).map((k) => k.l))));
+export const weekly = (t) => new Date(t).getUTCDay() === 0; // decisions on Sunday closes (weekly hypotheses)
 
 /**
  * Generic daily simulator for ONE asset. `target(i)` (at close i) returns { w } (fraction of equity to hold, 0 = cash)
  * or { risk: true } meaning "enter by risk sizing with stop", plus optional { stop } levels. Positions are changed at
  * the next open; the protective / trailing stop is a stop order checked on each later candle.
  */
-function simAsset(asset, K, rule, { fee, slip, risk = 2, capital = 100, from, to, rebalanceBand = 0 }) {
+export function simAsset(asset, K, rule, { fee, slip, risk = 2, capital = 100, from, to, rebalanceBand = 0 }) {
   const f = fee / 100, s = slip / 100, min = MIN[asset];
   let cash = capital, qty = 0, entry = 0, entryT = 0, entryFee = 0, stop = null, pending = null, peak = capital, dd = 0, ddPct = 0, cashDays = 0, days = 0;
   const trades = [], eq = [];
@@ -83,7 +86,7 @@ function simAsset(asset, K, rule, { fee, slip, risk = 2, capital = 100, from, to
 }
 
 // ---- hypotheses: each returns rule(i, pos) for one asset ----
-const H = {
+export const H = {
   H1: { grid: { L: [60, 90, 120, 180] }, make: (K, p) => { const A = atr(K); return (i, pos) => {
     const mom = i >= p.L ? K[i].c / K[i - p.L].c - 1 : null;
     if (pos.qty > 0) return weekly(K[i].t) && mom !== null && mom <= 0 ? { order: { w: 0 } } : null;
@@ -110,16 +113,23 @@ const H = {
     const on = S[i] !== null && S[i - 20] !== null && K[i].c > S[i] && S[i] > S[i - 20];
     return on && pos.qty === 0 ? { order: { w: 1 } } : !on && pos.qty > 0 ? { order: { w: 0 } } : null;
   }; } },
-  H6: { grid: {}, make: (K, p0, BTC) => { const p = { ma: 50, k: 3, gs: 200, vw: 30, mw: 365, ...p0 };
+  // p: ma (entry/exit average), k (protective stop, x ATR), trail (trailing stop from the best close, x ATR; null = off;
+  // default = k as registered), gs (BTC regime average), vw / mw (volatility window / median lookback), vq (volatility
+  // percentile; 0.5 = median as registered), trendGate / volGate (false = that filter off; both off = unfiltered B).
+  H6: { grid: {}, make: (K, p0, BTC) => { const p = { ma: 50, k: 3, gs: 200, vw: 30, mw: 365, vq: 0.5, trendGate: true, volGate: true, ...p0 };
+    const trailK = p.trail === undefined ? p.k : p.trail;
     const S50 = sma(K.map((k) => k.c), p.ma), A = atr(K), bS = sma(BTC.map((k) => k.c), p.gs), bV = rvol(BTC, p.vw);
     const bIdx = new Map(BTC.map((k, j) => [k.t, j]));
-    const medV = (j) => { const xs = bV.slice(Math.max(0, j - (p.mw - 1)), j + 1).filter((v) => v !== null).sort((a, b) => a - b); return xs.length ? xs[xs.length >> 1] : null; };
+    const medV = (j) => { const xs = bV.slice(Math.max(0, j - (p.mw - 1)), j + 1).filter((v) => v !== null).sort((a, b) => a - b); return xs.length ? xs[Math.min(xs.length - 1, Math.floor(xs.length * p.vq))] : null; };
     let best = 0;
     return (i, pos) => {
-      const j = bIdx.get(K[i].t); const gate = j !== undefined && bS[j] !== null && bV[j] !== null && BTC[j].c > bS[j] && bV[j] < medV(j);
+      const j = bIdx.get(K[i].t);
+      const trendOk = !p.trendGate || (j !== undefined && bS[j] !== null && BTC[j].c > bS[j]);
+      const volOk = !p.volGate || (j !== undefined && bV[j] !== null && bV[j] < medV(j));
+      const gate = trendOk && volOk;
       if (pos.qty > 0) {
         best = Math.max(best, K[i].c);
-        const d = { newStop: A[i] ? best - p.k * A[i] : undefined };
+        const d = { newStop: A[i] && trailK !== null ? best - trailK * A[i] : undefined };
         if ((S50[i] !== null && K[i].c < S50[i]) || !gate) d.order = { w: 0 };
         return d;
       }
@@ -130,7 +140,7 @@ const H = {
 };
 
 // H4: relative strength across assets (weekly; hold the strongest with positive L-day return, fully invested).
-function simRS(assets, p, { fee, slip, capital = 100, from, to }) {
+export function simRS(assets, p, { fee, slip, capital = 100, from, to }) {
   const f = fee / 100, s = slip / 100;
   const dates = DATA.BTC.map((k) => k.t).filter((t) => t >= from && t < to && assets.every((a) => DATA[a].some((k) => k.t === t)));
   const idx = Object.fromEntries(assets.map((a) => [a, new Map(DATA[a].map((k, j) => [k.t, j]))]));
@@ -156,7 +166,7 @@ function simRS(assets, p, { fee, slip, capital = 100, from, to }) {
 }
 
 // ---- metrics ----
-function metrics(r, capital = 100) {
+export function metrics(r, capital = 100) {
   const nets = r.trades.map((t) => t.net), sum = (x) => x.reduce((a, b) => a + b, 0);
   const w = nets.filter((v) => v > 0), l = nets.filter((v) => v <= 0);
   let st = 0, worst = 0; for (const v of nets) { st = v <= 0 ? st + 1 : 0; worst = Math.max(worst, st); }
@@ -168,10 +178,10 @@ function metrics(r, capital = 100) {
     avg: nets.length ? +(sum(nets) / nets.length).toFixed(2) : null, ci, max_dd_pct: +(r.ddPct * 100).toFixed(1), ret_dd: r.ddPct > 0 ? +((net / capital) / r.ddPct).toFixed(2) : null,
     streak: worst, hold_days: nets.length ? +(sum(r.trades.map((t) => (t.exitT - t.entryT) / DAY)) / nets.length).toFixed(1) : null, cash_pct: +(r.cashPct * 100).toFixed(0) };
 }
-const bh = (asset, [from, to], { fee, slip }) => { const ks = DATA[asset].filter((k) => k.t >= from && k.t < to); const q = 100 / (ks[0].o * (1 + slip / 100) * (1 + fee / 100)); let pk = 100, dd = 0; for (const k of ks) { const v = q * k.c; pk = Math.max(pk, v); dd = Math.max(dd, (pk - v) / pk); } const end = q * ks.at(-1).c * (1 - slip / 100) * (1 - fee / 100); return { net: +(end - 100).toFixed(2), max_dd_pct: +(dd * 100).toFixed(1), ret_dd: dd > 0 ? +(((end - 100) / 100) / dd).toFixed(2) : null }; };
+export const bh = (asset, [from, to], { fee, slip }) => { const ks = DATA[asset].filter((k) => k.t >= from && k.t < to); const q = 100 / (ks[0].o * (1 + slip / 100) * (1 + fee / 100)); let pk = 100, dd = 0; for (const k of ks) { const v = q * k.c; pk = Math.max(pk, v); dd = Math.max(dd, (pk - v) / pk); } const end = q * ks.at(-1).c * (1 - slip / 100) * (1 - fee / 100); return { net: +(end - 100).toFixed(2), max_dd_pct: +(dd * 100).toFixed(1), ret_dd: dd > 0 ? +(((end - 100) / 100) / dd).toFixed(2) : null }; };
 
 // regimes: quarter of entry, by the asset's quarterly return
-function regimes(asset, trades) {
+export function regimes(asset, trades) {
   const K = DATA[asset], q = new Map();
   for (const k of K) { const d = new Date(k.t), id = `${d.getUTCFullYear()}Q${Math.floor(d.getUTCMonth() / 3) + 1}`; (q.get(id) ?? q.set(id, []).get(id)).push(k); }
   const rows = [...q.values()].map((ks) => ({ from: ks[0].t, to: ks.at(-1).t + DAY, ret: ks.at(-1).c / ks[0].o - 1 }));
@@ -180,10 +190,12 @@ function regimes(asset, trades) {
   return out;
 }
 
-const expand = (g) => Object.entries(g).reduce((acc, [k, vs]) => acc.flatMap((a) => vs.map((v) => ({ ...a, [k]: v }))), [{}]);
-const neighbours = (g, c) => Object.entries(g).flatMap(([k, vs]) => { const i = vs.indexOf(c[k]); return [i - 1, i + 1].filter((j) => j >= 0 && j < vs.length).map((j) => ({ ...c, [k]: vs[j] })); });
-const runOne = (h, asset, c, period, cost = SEL, risk = 2) => { const K = DATA[asset]; const r = simAsset(asset, K, H[h].make(K, c, DATA.BTC), { ...cost, risk, from: period[0], to: period[1], rebalanceBand: H[h].band ?? 0 }); return { r, m: metrics(r) }; };
+export const expand = (g) => Object.entries(g).reduce((acc, [k, vs]) => acc.flatMap((a) => vs.map((v) => ({ ...a, [k]: v }))), [{}]);
+export const neighbours = (g, c) => Object.entries(g).flatMap(([k, vs]) => { const i = vs.indexOf(c[k]); return [i - 1, i + 1].filter((j) => j >= 0 && j < vs.length).map((j) => ({ ...c, [k]: vs[j] })); });
+export const runOne = (h, asset, c, period, cost = SEL, risk = 2) => { const K = DATA[asset]; const r = simAsset(asset, K, H[h].make(K, c, DATA.BTC), { ...cost, risk, from: period[0], to: period[1], rebalanceBand: H[h].band ?? 0 }); return { r, m: metrics(r) }; };
 
+const isMain = process.argv[1] && resolve(fileURLToPath(import.meta.url)) === resolve(process.argv[1]);
+if (isMain) {
 const report = { label: "RESEARCH ROUND 3 (Coinbase daily candles; not PAPER results)", preregistration: "docs/research/round3/PREREGISTRATION.md", periods: P, costs: COSTS, hypotheses: {}, benchmarks: {} };
 for (const h of ["H1", "H2", "H3", "H5", "H6"]) {
   const grid = H[h].grid, configs = expand(grid);
@@ -238,3 +250,4 @@ for (const [name, per] of Object.entries(P)) report.benchmarks[name] = Object.fr
 writeFileSync(OUT, JSON.stringify(report, null, 1));
 console.error("benchmarks ETH all:", JSON.stringify(report.benchmarks.all.ETH.buy_hold), "H5 on ETH:", report.benchmarks.all.ETH.h5_trend.net, report.benchmarks.all.ETH.h5_trend.max_dd_pct + "%");
 console.error("benchmarks val BTC BH", JSON.stringify(report.benchmarks.val.BTC.buy_hold), "H5", report.benchmarks.val.BTC.h5_trend.net, "| SOL BH", JSON.stringify(report.benchmarks.val.SOL.buy_hold), "H5", report.benchmarks.val.SOL.h5_trend.net);
+}
