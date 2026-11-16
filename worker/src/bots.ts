@@ -104,7 +104,8 @@ const µ = (v: unknown) => Number(v ?? 0) / 1e6;
  *   mirror      hypothetical Strategy Mirror figures, separate, never added to PAPER.
  * The legacy bot's figures come from the legacy tables (paper_positions / trades) until it moves to its own wallet.
  */
-export async function fleetSection(db: D1Database) {
+/** Reference (per-bot queries, ~9 statements per bot). Kept for the equivalence test of fleetSection; not routed. */
+export async function fleetSectionPerBot(db: D1Database) {
   let bots: BotRow[];
   try {
     bots = (await db.prepare(`SELECT * FROM bots ORDER BY priority, bot_id`).all<BotRow>()).results;
@@ -179,4 +180,94 @@ export async function fleetSection(db: D1Database) {
   const main = await db.prepare(`SELECT available_micro, net_funding_micro FROM portfolio_wallets WHERE wallet = 'MAIN'`).first<Record<string, number>>();
   const swept = await db.prepare(`SELECT COALESCE(SUM(available_change_micro), 0) AS v FROM portfolio_entries WHERE wallet = 'MAIN' AND kind = 'TRANSFER_IN' AND group_key LIKE 'SWEEP:%'`).first<{ v: number }>();
   return { available: true, generated_at: new Date().toISOString(), main: { available_usd: µ(main?.available_micro), profit_received_usd: µ(swept?.v) }, groups, bots: out };
+}
+
+/** The fleet section with a FIXED number of statements: one read of the registry, then ONE D1 batch (one round trip)
+ *  of 11 set-based reads, whatever the number of bots. Rows are grouped in code by the same keys and kept in the same
+ *  order, and every figure is computed exactly as fleetSectionPerBot computes it (equivalence test:
+ *  worker/test/fleet_batched.test.mjs). Read-only. */
+export async function fleetSection(db: D1Database) {
+  let bots: BotRow[];
+  try {
+    bots = (await db.prepare(`SELECT * FROM bots ORDER BY priority, bot_id`).all<BotRow>()).results;
+  } catch (e) {
+    if (noBotsTable(e)) return { available: false, groups: [], bots: [] };
+    throw e;
+  }
+  type R = Record<string, unknown>;
+  const res = await db.batch([
+    db.prepare(`SELECT group_id, name, symbol FROM allocation_groups ORDER BY group_id`),
+    db.prepare(`SELECT wallet, available_micro, reserved_micro, shortfall_micro FROM portfolio_wallets WHERE wallet IN (SELECT wallet FROM bots)`),
+    db.prepare(`SELECT wallet,
+          COALESCE(SUM(CASE WHEN kind = 'TRANSFER_IN' AND group_key LIKE 'ALLOC:%' THEN available_change_micro END), 0) AS allocated,
+          COALESCE(SUM(CASE WHEN kind = 'TRANSFER_IN' AND group_key NOT LIKE 'ALLOC:%' THEN available_change_micro END), 0) AS transferred_in,
+          COALESCE(-SUM(CASE WHEN kind = 'TRANSFER_OUT' AND group_key LIKE 'SWEEP:%' THEN available_change_micro END), 0) AS swept,
+          COALESCE(-SUM(CASE WHEN kind IN ('TRANSFER_OUT', 'WITHDRAW') AND group_key NOT LIKE 'SWEEP:%' THEN available_change_micro END), 0) AS withdrawn
+        FROM portfolio_entries WHERE wallet IN (SELECT wallet FROM bots) GROUP BY wallet`),
+    db.prepare(`SELECT s.bot_id, s.version, s.risk_usd, s.status, s.requested_at, s.applied_at FROM bot_settings s
+        WHERE s.version = (SELECT MAX(x.version) FROM bot_settings x WHERE x.bot_id = s.bot_id)`),
+    db.prepare(`SELECT key, value FROM app_meta WHERE key IN (SELECT 'engine_status:' || bot_id FROM bots)`),
+    db.prepare(`SELECT a.bot_id AS _bot, a.account_id, a.last_candle_time, a.candles_processed, a.last_contiguous_seq,
+           (SELECT COUNT(*) FROM mirror_trades t WHERE t.account_id = a.account_id) AS trades,
+           (SELECT COALESCE(SUM(gross_pnl), 0) FROM mirror_trades t WHERE t.account_id = a.account_id) AS gross,
+           (SELECT COALESCE(SUM(net_modelled_pnl), 0) FROM mirror_trades t WHERE t.account_id = a.account_id) AS net_modelled
+         FROM mirror_accounts a WHERE a.bot_id IN (SELECT bot_id FROM bots) ORDER BY a.rowid`),
+    db.prepare(`SELECT bot_id AS _bot, side, gross_pnl_micro / 1e6 AS gross, (entry_fee_micro + exit_fee_micro) / 1e6 AS fees, net_pnl_micro / 1e6 AS net,
+          swept_micro / 1e6 AS swept, closed_at FROM bot_positions WHERE status = 'CLOSED' ORDER BY bot_id, closed_at, id`),
+    db.prepare(`SELECT bot_id AS _bot, trade_id, symbol, side, qty, entry_price, stop, tp, collateral_micro / 1e6 AS collateral_usd, entry_fee_micro / 1e6 AS entry_fee_usd,
+          opened_at, mark_price, mark_at, risk_usd FROM bot_positions WHERE status = 'OPEN' ORDER BY rowid`),
+    db.prepare(`SELECT bot_id AS _bot, 'LONG' AS side, COALESCE(gross_pnl, realized_pnl) AS gross, COALESCE(fees_usd, 0) AS fees, realized_pnl AS net, 0 AS swept, closed_at
+          FROM trades WHERE source = 'ALPHA_PAPER' AND bot_id IN (SELECT bot_id FROM bots) ORDER BY bot_id, closed_at, id`),
+    db.prepare(`SELECT bot_id AS _bot, open_alert_id AS trade_id, symbol, 'LONG' AS side, qty, avg_entry_price AS entry_price, NULL AS stop, NULL AS tp,
+          reserved_micro / 1e6 AS collateral_usd, opened_at, mark_price, mark_at FROM paper_positions WHERE status = 'OPEN' AND bot_id IN (SELECT bot_id FROM bots) ORDER BY rowid`),
+    db.prepare(`SELECT (SELECT available_micro FROM portfolio_wallets WHERE wallet = 'MAIN') AS available_micro,
+          (SELECT COALESCE(SUM(available_change_micro), 0) FROM portfolio_entries WHERE wallet = 'MAIN' AND kind = 'TRANSFER_IN' AND group_key LIKE 'SWEEP:%') AS swept`),
+  ]);
+  const rows = (i: number) => ((res[i] as { results?: R[] }).results ?? []) as R[];
+  const groups = rows(0) as { group_id: string; name: string; symbol: string }[];
+  const by = (list: R[], key: string) => { const m = new Map<string, R[]>(); for (const r of list) { const k = String(r[key]); const { _bot: _drop, ...rest } = r; void _drop; (m.get(k) ?? m.set(k, []).get(k)!).push(key === "_bot" ? rest : r); } return m; };
+  const wallets = new Map(rows(1).map((r) => [String(r.wallet), r]));
+  const funding = new Map(rows(2).map((r) => [String(r.wallet), r]));
+  const settings = new Map(rows(3).map((r) => { const { bot_id, ...rest } = r; return [String(bot_id), rest]; }));
+  const meta = new Map(rows(4).map((r) => [String(r.key), String(r.value)]));
+  const mirrors = by(rows(5), "_bot"), closedBot = by(rows(6), "_bot"), openBot = by(rows(7), "_bot"), closedLegacy = by(rows(8), "_bot"), openLegacy = by(rows(9), "_bot");
+  const mainRow = rows(10)[0] ?? {};
+  const out = [];
+  for (const b of bots) {
+    const wallet = wallets.get(b.wallet) as Record<string, number> | undefined;
+    // a wallet with no entries: the per-bot SUM query returns one row of zeros
+    const funding0 = (funding.get(b.wallet) ?? { allocated: 0, transferred_in: 0, swept: 0, withdrawn: 0 }) as Record<string, number>;
+    let closed = (b.ledger_api === "bot" ? closedBot.get(b.bot_id) ?? [] : closedLegacy.get(b.bot_id) ?? []) as unknown as { side: string; gross: number; fees: number; net: number; swept: number; closed_at: string }[];
+    const open = (b.ledger_api === "bot" ? openBot.get(b.bot_id) ?? [] : openLegacy.get(b.bot_id) ?? []) as R[];
+    if (b.ledger_api === "bot" && b.legacy_default) {
+      const before = (closedLegacy.get(b.bot_id) ?? []) as unknown as typeof closed;
+      closed = [...before, ...closed].sort((x, y) => (String(x.closed_at) < String(y.closed_at) ? -1 : String(x.closed_at) > String(y.closed_at) ? 1 : 0));
+    }
+    const nets = closed.map((t) => Number(t.net));
+    let cum = 0, peak = 0, dd = 0;
+    for (const v of nets) { cum += v; peak = Math.max(peak, cum); dd = Math.max(dd, peak - cum); }
+    const wins = nets.filter((v) => v > 0), losses = nets.filter((v) => v < 0);
+    const lossSum = -losses.reduce((s, v) => s + v, 0);
+    let report: Record<string, unknown> | null = null;
+    const status = meta.get(`engine_status:${b.bot_id}`);
+    try { report = status ? JSON.parse(status) : null; } catch { report = null; }
+    out.push({
+      bot_id: b.bot_id, name: b.name, group: b.group_id, symbol: b.symbol, timeframe: `${b.timeframe_min}m`, profile: b.profile, inputs_hash: b.inputs_hash,
+      status: b.status, ledger_api: b.ledger_api, entries_paused: b.entries_paused === 1, wallet: b.wallet,
+      risk_usd: b.risk_usd, risk_setting: settings.get(b.bot_id) ?? null,
+      balances: { available_usd: µ(wallet?.available_micro), reserved_usd: µ(wallet?.reserved_micro), shortfall_usd: µ(wallet?.shortfall_micro) },
+      funding: { allocated_usd: µ(funding0.allocated), transferred_in_usd: µ(funding0.transferred_in), withdrawn_usd: µ(funding0.withdrawn), profit_swept_to_main_usd: µ(funding0.swept) },
+      open_positions: open,
+      paper: {
+        trades: nets.length, long_trades: closed.filter((t) => t.side === "LONG").length, short_trades: closed.filter((t) => t.side === "SHORT").length,
+        wins: wins.length, losses: losses.length, break_even: nets.length - wins.length - losses.length,
+        gross_usd: closed.reduce((s, t) => s + Number(t.gross), 0), fees_usd: closed.reduce((s, t) => s + Number(t.fees), 0), net_usd: cum,
+        win_rate: nets.length ? wins.length / nets.length : null, profit_factor: lossSum > 0 ? wins.reduce((s, v) => s + v, 0) / lossSum : null,
+        expectancy_usd: nets.length ? cum / nets.length : null, max_drawdown_usd: dd,
+      },
+      mirror: (mirrors.get(b.bot_id) ?? []).map((m) => ({ ...m, hypothetical: true })),
+      engine: report,
+    });
+  }
+  return { available: true, generated_at: new Date().toISOString(), main: { available_usd: µ(mainRow.available_micro as number | undefined), profit_received_usd: µ(mainRow.swept as number | undefined) }, groups, bots: out };
 }
