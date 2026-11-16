@@ -51,12 +51,12 @@ export function stats(nets) {
  *               validated by worker/src/paper_fill.ts (a limit never worse than its limit, stops at the stop or the gap open,
  *               targets at the limit), from the broker emulator's TradingView intrabar rules. Same sizing, wallets and fees.
  */
-export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.2, slippagePct = 0, limits = { maxOrderNotional: 5000, maxTotalExposure: 25000, maxOpenPositions: 5 }, fromMs = null, toMs = null, priceBufferPct = 0.5, fillModel = "close" }) {
+export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.2, slippagePct = 0, limits = { maxOrderNotional: 5000, maxTotalExposure: 25000, maxOpenPositions: 5 }, fromMs = null, toMs = null, priceBufferPct = 0.5, fillModel = "close", fill = undefined }) {
   const ledger = new FleetLedgerSim({ bots: bots.map((b) => ({ id: b.id, group: b.group, priority: b.priority })), main, feePct, slippagePct, ...limits });
   for (const a of allocations) { const r = ledger.allocate(a.group, a.amountUsd); if (!r.ok) throw new Error(`allocation refused: ${r.code}`); }
   const run = bots.map((b) => {
     const instrument = getInstrument(b.symbol);
-    const S = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs,
+    const S = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs, fill,
       sizing: { mode: "dollar", riskUSD: b.riskUSD, feePct, priceBufferPct, simulatedShort: true, symbol: b.symbol, instrument, limits } });
     const M = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs }); // reference: fixed $10, TradingView semantics
     return { b, S, M, step: b.intervalMin * 60_000, refused: {}, refusals: [], lastOrder: null, skipped: {}, mirrorClosed: 0, mirror: [] };

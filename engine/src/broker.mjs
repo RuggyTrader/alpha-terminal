@@ -64,16 +64,26 @@ export function processBar(br, bar) {
   // Options (research variants; defaults = TradingView's documented emulator, the behaviour above):
   //   limitPrice "requested": a limit order that the open gaps through fills at its own price, not the open.
   //   exitDelayTicks 1: an exit bracket can fill only from the next tick (path point) after its entry filled.
+  //   acceptanceTiming (STRICT, live engine): an entry can fill only on a bar that STARTS at or after the moment the
+  //     PAPER ledger accepted the order (entry.acceptedAtMs, the ledger's own received_at): the same rule the ledger
+  //     enforces. Not yet accepted = not fillable.
+  //   entryDelayBars 1 (STRICT, backtests without a ledger): acceptance happens seconds into the next bar, so the
+  //     entry is worked from the bar after it.
   const opt = br.opts ?? {};
+  // Only tracked when an option is on, so the saved state is byte-identical to earlier releases when both are off.
+  if (br.entry && opt.entryDelayBars >= 1) br.entry.age = (br.entry.age ?? 0) + 1; // bars since this exact order was placed
+  const entryEligible = !br.entry
+    || (opt.acceptanceTiming ? Number.isFinite(br.entry.acceptedAtMs) && bar.t >= br.entry.acceptedAtMs
+      : !(opt.entryDelayBars >= 1) || br.entry.age > opt.entryDelayBars);
   let entrySeg = -1;
-  if (br.entry && br.entry.limit === null && !br.pos) { fillEntry(br, bar.o, bar, events); entrySeg = 0; } // market entry: next open
+  if (entryEligible && br.entry && br.entry.limit === null && !br.pos) { fillEntry(br, bar.o, bar, events); entrySeg = 0; } // market entry: next open
   const pts = path(bar);
   const segments = [[pts[0], pts[0]], [pts[0], pts[1]], [pts[1], pts[2]], [pts[2], pts[3]]];
   for (let si = 0; si < segments.length; si++) {
     let [a, b] = segments[si];
     for (let guard = 0; guard < 4; guard++) {
       const cands = [];
-      if (!br.pos && br.entry && br.entry.limit !== null) {
+      if (entryEligible && !br.pos && br.entry && br.entry.limit !== null) {
         let p = throughLimit(a, b, br.entry.limit, br.entry.side === -1, opt);
         if (p === undefined) p = triggerPrice(a, b, br.entry.limit, br.entry.side === -1); // buy limit fills on the way down
         if (p !== null && opt.limitPrice === "requested") p = br.entry.limit;
@@ -103,7 +113,13 @@ export function processBar(br, bar) {
 /** strategy.entry: places or replaces the pending entry. Ignored while a position is open (pyramiding = 0). */
 export function placeEntry(br, order) {
   if (br.pos) return false;
-  br.entry = { id: order.id, side: order.side, qty: order.qty, limit: order.limit ?? null };
+  // The same order re-issued on a later bar keeps its age (it is the same live order); any change is a new order.
+  // entryAgeKey "limit": a size-only change keeps the order (the ledger fills at most the size it accepted).
+  const sameSize = (br.opts?.entryAgeKey === "limit") || (br.entry && br.entry.qty === order.qty);
+  const same = br.entry && br.entry.id === order.id && br.entry.side === order.side && sameSize && br.entry.limit === (order.limit ?? null);
+  br.entry = { id: order.id, side: order.side, qty: order.qty, limit: order.limit ?? null,
+    ...(br.opts?.entryDelayBars >= 1 ? { age: same ? br.entry.age ?? 0 : 0 } : {}),
+    ...(br.opts?.acceptanceTiming && same && Number.isFinite(br.entry.acceptedAtMs) ? { acceptedAtMs: br.entry.acceptedAtMs } : {}) };
   return true;
 }
 

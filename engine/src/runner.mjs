@@ -395,6 +395,10 @@ export class EngineRunner {
     const nowMs = this.now();
     if (!this.state) this.fresh();
     const S = this.state;
+    // Strict acceptance timing (ENGINE_STRICT_FILL=on; REVIEW, off in production): applied to the live broker each
+    // round, so a resumed state follows the current setting. It changes only WHEN a new order may fill, not settings.
+    { const o = { ...(S.strategy.broker.opts ?? {}) }; if (this.cfg.strictFill) o.acceptanceTiming = true; else delete o.acceptanceTiming;
+      S.strategy.broker.opts = Object.keys(o).length ? o : undefined; }
     await this.prepareSizing();
     // The first batch after a (re)start from scratch is warm-up history: processed, never sent.
     const warmup = S.warmedUpAt === null;
@@ -789,6 +793,13 @@ export class EngineRunner {
       const delayed = item.delayedMin ? `delivered ${item.delayedMin} min after the engine's exit; the ledger closed at the live price` : null;
       if (status === 200 && item.kind === "ORDER" && ["ORDER_PENDING", "ORDER_CANCELLED", "ORDER_EXPIRED", "ORDER_ALREADY_FINAL"].includes(code)) {
         if (Number.isFinite(Number(body.data?.accepted_qty))) item.acceptedQty = Number(body.data.accepted_qty);
+        // The ledger's own acceptance time: with strict timing the engine's broker may fill this order only on a candle
+        // that starts at or after it (exactly the ledger's rule), and only while it is still the order being worked.
+        if (item.action === "PLACE_LIMIT" && body.data?.received_at) {
+          item.acceptedAt = body.data.received_at;
+          const br = this.state.strategy.broker;
+          if (this.cfg.strictFill && this.state.liveOrder?.id === item.id && br.entry) br.entry.acceptedAtMs = Date.parse(body.data.received_at);
+        }
         this.final(item, "accepted", code, body.data?.message ?? null);
       } else if (status === 200 && code === "DRY_RUN_ACCEPTED") {
         // Bot ledger: the quantity actually filled (it may be reduced to fit the bot's wallet at the live price).
@@ -850,6 +861,15 @@ export class EngineRunner {
       // Durable pending order: the ledger's PENDING record must be the engine's live order (once delivered).
       const lo = S.liveOrder ? S.outbox.find((x) => x.id === S.liveOrder.id) : null;
       const lpo = L.pendingOrder;
+      // Strict timing: an order accepted before strict mode was switched on (or whose acceptance reply was lost) takes
+      // its acceptance time from the ledger's own record, so it stays fillable under exactly the ledger's rule.
+      const br = S.strategy.broker;
+      if (this.cfg.strictFill && lo && lpo && lpo.order_id === lo.id && lpo.received_at && br.entry && !Number.isFinite(br.entry.acceptedAtMs)) {
+        br.entry.acceptedAtMs = Date.parse(lpo.received_at);
+        lo.acceptedAt ??= lpo.received_at;
+        this.audit({ type: "pending_order", event: "ACCEPTANCE_FROM_LEDGER", id: lo.id, accepted_at: lpo.received_at });
+        this.save();
+      }
       if (lo && lo.status === "accepted" && (!lpo || lpo.order_id !== lo.id)) issues.push(`the engine's pending order ${lo.id} is ${lpo ? `not the ledger's (${lpo.order_id})` : "not pending in the ledger"}`);
       if (!lo && lpo) {
         issues.push(`the ledger has a pending order ${lpo.order_id} that the engine is not working; cancelling it`);

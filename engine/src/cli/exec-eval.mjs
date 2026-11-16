@@ -33,7 +33,9 @@ const variant = arg("variant", null) ? JSON.parse(arg("variant")) : {};
 const only = arg("bots", "ALPHA-01,ALPHA-02,ALPHA-03,ALPHA-04").split(",");
 const WARMUP_MS = 2 * 86_400_000;
 const TF = Number(arg("tf", "5")); // timeframe for the two "5m" profiles (higher-timeframe research: 15, 30, 60)
-const SLIP = Number(arg("slip", "0")); // % slippage applied by the backtest's fill model (sensitivity)
+const SLIP = Number(arg("slip", "0"));
+// strict acceptance timing; --strict-limit: a size-only change does not restart the order's age
+const FILL = process.argv.includes("--strict-limit") ? { entryDelayBars: 1, entryAgeKey: "limit" } : process.argv.includes("--strict") ? { entryDelayBars: 1 } : undefined; // % slippage applied by the backtest's fill model (sensitivity)
 
 const defs = [
   { id: "ALPHA-01", group: "SOLANA", symbol: "SOLUSD", intervalMin: 1, priority: 2, profile: "solusd-1m", candles: sol1 },
@@ -61,7 +63,7 @@ function metrics(T) {
 }
 function runOne(d, { feePct, fillModel, fromMs, toMs }) {
   const bot = { ...d, inputs: { ...profileInputs(process.cwd(), d.profile), ...variant }, riskUSD: 10 };
-  const r = runFleetBacktest({ bots: [bot], main: WALLET, allocations: [{ group: d.group, amountUsd: WALLET }], feePct, fillModel, fromMs, toMs, slippagePct: SLIP });
+  const r = runFleetBacktest({ bots: [bot], main: WALLET, allocations: [{ group: d.group, amountUsd: WALLET }], feePct, fillModel, fromMs, toMs, slippagePct: SLIP, fill: FILL });
   return r;
 }
 // The ledger's own trade list (with prices, qty, fees) from a run: re-run the simulation and capture its trades.
