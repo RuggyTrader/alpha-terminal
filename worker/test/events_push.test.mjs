@@ -587,3 +587,115 @@ describe("Strategy Mirror ENTRY records on the Worker (mirror.ts)", () => {
   });
 });
 
+
+// ================================================================= CPU: the read-only event pre-check (docs/WORKER-CPU.md)
+// processEvents now asks ONE read-only question first and returns when nothing could change. These tests run the new
+// processEvents and the previous routine (syncTradeEvents + deliver) side by side on identical databases through every
+// kind of change, and require identical results; when the pre-check says "nothing to do" it must cost exactly 1 query.
+
+describe("event pre-check (CPU): same results as the full routine, one query when idle", () => {
+  const STABLE = { // columns compared (timestamps written with the current time are left out)
+    trade_events: "event_key, kind, source, symbol, side, qty, price, pnl, pnl_net, fees, classification, ref, account_id, url, occurred_at, bot_id, detail_json",
+    event_cursors: "name, last_id",
+    push_deliveries: "event_id, subscription_id, status, attempts, error",
+    push_subscriptions: "id, endpoint, disabled_at, failures, last_error",
+  };
+  const snap = (db) => JSON.stringify(Object.entries(STABLE).map(([t, cols]) => rows(db, `SELECT ${cols} FROM ${t} ORDER BY 1, 2`)));
+  function botFill(db, { id, kind = "ENTRY", side = "LONG" }) {
+    db.raw.prepare(`INSERT INTO bot_fills (fill_id, bot_id, trade_id, kind, side, qty, price, notional_micro, fee_rate_pct, fee_micro, fee_currency, fee_model, price_source, price_at, filled_at)
+      VALUES (?, 'ALPHA-01', ?, ?, ?, 0.3, 72.3, 21690000, 0.2, 43380, 'USD', 'ndax', 'kraken', '2026-11-16T02:20:00Z', '2026-11-16T02:20:05Z')`).run(`F${id}${kind}`, `T${id}`, kind, side);
+  }
+  async function pair() {
+    const v = await vapidKeys(), dev = await deviceKeys();
+    const mk = () => { const db = makeD1({ upTo: 8 }); return { db, env: { DB: db, VAPID_PUBLIC_KEY: v.publicKey, VAPID_PRIVATE_KEY: v.privateKey, VAPID_SUBJECT: v.subject } }; };
+    return { A: mk(), B: mk(), dev };
+  }
+  const realFetch = globalThis.fetch;
+  let status = 201;
+  before(() => { globalThis.fetch = async () => new Response(null, { status }); });
+  after(() => { globalThis.fetch = realFetch; });
+
+  it("through every kind of change: identical tables to the previous routine; idle runs are a single read", async () => {
+    const { A, B, dev } = await pair();
+    const steps = [
+      ["empty database", () => {}, false],
+      ["a device is enabled", (db) => addSub(db, "https://web.push.apple.com/A", dev), false],
+      ["idle", () => {}, false],
+      ["a funded PAPER round trip", (db) => fundedRound(db, { pnl: 1.2, fees: 0.1 }), true],
+      ["idle", () => {}, false],
+      ["a mirror entry", (db) => mirrorOpen(db, { seq: 1 }), true],
+      ["a mirror close", (db) => mirrorClose(db, { seq: 2, gross: 5, net: 4 }), true],
+      ["a fleet bot entry", (db) => botFill(db, { id: 1 }), true],
+      ["a fleet bot exit", (db) => botFill(db, { id: 1, kind: "EXIT" }), true],
+      ["idle", () => {}, false],
+      ["a mirror account becomes a bot's (label update)", (db) => db.raw.exec(`UPDATE mirror_accounts SET bot_id = 'ALPHA-02'`), true],
+      ["idle", () => {}, false],
+      ["the push service fails (pending retry)", (db) => { status = 503; mirrorClose(db, { seq: 3, gross: 1, net: 1 }); }, true],
+      ["retry still pending", () => {}, true],
+      ["the device is disabled", (db) => db.raw.exec(`UPDATE push_subscriptions SET disabled_at = 'now'`), false],
+      ["idle with no device", () => {}, false],
+      ["a mirror close with no device", (db) => mirrorClose(db, { seq: 4, gross: 2, net: 2 }), true],
+      ["idle", () => {}, false],
+    ];
+    let idleSkips = 0;
+    for (const [label, change, expect] of steps) {
+      change(A.db); change(B.db);
+      M.resetTableCache();
+      const pending = await M.eventWorkPending(A.env);
+      const q0 = A.db.queries;
+      await M.processEvents(A.env);
+      const used = A.db.queries - q0;
+      M.resetTableCache();
+      await M.syncTradeEvents(B.db); await M.deliver(B.env); // the previous routine
+      assert.equal(snap(A.db), snap(B.db), `same tables after: ${label}`);
+      if (!pending) { idleSkips++; assert.ok(used <= 2, `${label}: skipped run used ${used} queries`); } // the check (+ cached table list)
+      assert.equal(pending, expect, `${label}: pre-check says ${pending}`);
+    }
+    assert.ok(idleSkips >= 6);
+    status = 201;
+  });
+
+  it("an idle run reads nothing else and writes nothing", async () => {
+    const { A, dev } = await pair();
+    addSub(A.db, "https://web.push.apple.com/A", dev);
+    fundedRound(A.db, { pnl: 1, fees: 0.1 });
+    await M.processEvents(A.env);
+    M.resetTableCache();
+    const before = snap(A.db), q0 = A.db.queries;
+    await M.eventWorkPending(A.env); // warms the table list (1 query), as a long-lived isolate has
+    const q1 = A.db.queries;
+    await M.processEvents(A.env);
+    assert.equal(A.db.queries - q1, 1, "one read-only query");
+    assert.ok(q1 - q0 <= 2);
+    assert.equal(snap(A.db), before);
+  });
+
+  it("a missing planning cursor, a claimed send, or a failing check all run the full routine", async () => {
+    const { A, dev } = await pair();
+    addSub(A.db, "https://web.push.apple.com/A", dev);
+    await M.processEvents(A.env);
+    M.resetTableCache();
+    assert.equal(await M.eventWorkPending(A.env), false);
+    A.db.raw.exec(`DELETE FROM event_cursors WHERE name = 'push_planned'`);
+    assert.equal(await M.eventWorkPending(A.env), true, "unplanned device cursor");
+    await M.processEvents(A.env);
+    assert.equal(await M.eventWorkPending(A.env), false);
+    mirrorClose(A.db, { seq: 9, gross: 1, net: 1 });
+    await M.syncTradeEvents(A.db);
+    A.db.raw.exec(`INSERT INTO push_deliveries (event_id, subscription_id, status, created_at, last_attempt_at) SELECT MAX(id), 1, 'sending', 'now', '2000-01-01T00:00:00Z' FROM trade_events`);
+    A.db.raw.exec(`UPDATE event_cursors SET last_id = (SELECT MAX(id) FROM trade_events) WHERE name = 'push_planned'`);
+    assert.equal(await M.eventWorkPending(A.env), true, "an interrupted send must still be resolved");
+    A.db.raw.exec(`DROP TABLE event_cursors`);
+    assert.equal(await M.eventWorkPending(A.env), true, "a failing check never skips");
+  });
+
+  it("without push keys or before migration 0006, the check never claims work it cannot do", async () => {
+    const db = makeD1({ upTo: 8 });
+    M.resetTableCache();
+    assert.equal(await M.eventWorkPending({ DB: db }), false);
+    const old = makeD1({ upTo: 5 });
+    M.resetTableCache();
+    assert.equal(await M.eventWorkPending({ DB: old }), false);
+    await M.processEvents({ DB: old });
+  });
+});
