@@ -1,0 +1,1296 @@
+{
+ "generated_at": "2026-11-16T20:08:39.510Z",
+ "statuses": [
+  "IDEA",
+  "SPECIFIED",
+  "TESTING",
+  "FAILED",
+  "INCONCLUSIVE",
+  "ELIGIBLE FOR FURTHER VALIDATION"
+ ],
+ "note": "Research registry. No candidate here is connected to execution; ranking is by evidence status, never by backtest profit.",
+ "candidates": [
+  {
+   "id": "R1-OTE-ORIG-1M5M",
+   "name": "Original OTE (four live bots)",
+   "family": "OTE / Fibonacci",
+   "version": "production profiles",
+   "markets": [
+    "SOL",
+    "BTC"
+   ],
+   "timeframes": [
+    "1m",
+    "5m"
+   ],
+   "data": "Kraken 1m (Aug–Nov 2026)",
+   "periods": {
+    "development": "Aug–Oct 1 2026",
+    "validation": "Oct 2–Nov 12 2026"
+   },
+   "costs": "0.20% per fill",
+   "results": {
+    "validation": {
+     "net": -40.8,
+     "trades": 987,
+     "note": "all four bots negative; profit factor 0.04–0.20; ALPHA-01 negative before fees"
+    }
+   },
+   "status": "FAILED",
+   "failure": "negative net expectancy after fees; edge before fees 0.01–0.06% of turnover",
+   "source": "docs/research/2026-11-15/PROFITABILITY-REPORT-1.md"
+  },
+  {
+   "id": "R1-OTE-FILTERS",
+   "name": "OTE + fee-aware / EMA / ATR / higher-timeframe filters",
+   "family": "OTE / Fibonacci",
+   "version": "round 1 grid",
+   "markets": [
+    "SOL",
+    "BTC"
+   ],
+   "timeframes": [
+    "1m",
+    "5m",
+    "15m",
+    "30m",
+    "60m"
+   ],
+   "data": "Kraken 1m",
+   "periods": {
+    "validation": "Oct 2–Nov 12 2026"
+   },
+   "costs": "0.20%",
+   "results": {
+    "validation": {
+     "net": -1.77,
+     "note": "best: minNetRR 2.0, 22 trades"
+    }
+   },
+   "status": "FAILED",
+   "failure": "losses cut only by removing trades",
+   "source": "docs/research/FAILED-CANDIDATES.md (round 1)"
+  },
+  {
+   "id": "R3-CANDIDATE-B",
+   "name": "BTC daily MA-50 trend (Candidate B)",
+   "family": "Trend following",
+   "version": "frozen trial rules",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase daily 2021–2026",
+   "periods": {
+    "development": "2021-07–2024-07",
+    "validation": "2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%",
+   "results": {
+    "validation": {
+     "note": "positive in every period on BTC, SOL, ETH (round 3)"
+    }
+   },
+   "status": "INCONCLUSIVE",
+   "failure": "positive on examined markets only; forward PAPER trial deployed but NOT started (needs the owner)",
+   "source": "docs/research/round3/REPORT.md"
+  },
+  {
+   "id": "R4-OTE-HYBRID",
+   "name": "Hybrid OTE (regime / trend filters, 5m–4h)",
+   "family": "OTE / Fibonacci",
+   "version": "round 4",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH"
+   ],
+   "timeframes": [
+    "5m",
+    "15m",
+    "1h",
+    "4h"
+   ],
+   "data": "Coinbase 2021–2026",
+   "periods": {
+    "development": "2021-07–2024-07",
+    "validation": "2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%",
+   "results": {
+    "validation": {
+     "note": "5m–1h loses heavily; only SOL 4h −1.618 positive (8/15 trades)"
+    }
+   },
+   "status": "FAILED",
+   "failure": "no candidate met criteria",
+   "source": "docs/research/round4/REPORT.md"
+  },
+  {
+   "id": "R5-OTE-HTF",
+   "name": "OTE 4h / daily with trend filters, new markets",
+   "family": "OTE / Fibonacci",
+   "version": "round 5 (F0–F6)",
+   "markets": [
+    "LTC",
+    "LINK",
+    "AVAX",
+    "ADA",
+    "BCH",
+    "DOGE",
+    "XRP"
+   ],
+   "timeframes": [
+    "4h",
+    "1d"
+   ],
+   "data": "Coinbase 1h/daily",
+   "periods": {
+    "development": "2021-07–2024-07",
+    "validation": "2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%",
+   "results": {
+    "validation": {
+     "note": "best F4 LONG +28.1 (3/7 markets), CI includes 0"
+    }
+   },
+   "status": "FAILED",
+   "failure": "breadth and significance; simple trend beat OTE",
+   "source": "docs/research/round5/REPORT.md"
+  },
+  {
+   "id": "R6-V0",
+   "name": "OTE 5m fee-aware variant V0",
+   "family": "OTE / Fibonacci",
+   "version": "{}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -43.24,
+     "trades": 1346
+    },
+    "validation": {
+     "net": -42.08,
+     "trades": 940
+    },
+    "independent": {
+     "net": -54.458,
+     "gross": -11.393,
+     "fees": 43.065,
+     "trades": 1206,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0499,
+      -0.0434
+     ]
+    }
+   },
+   "fee_drag": "fees 43.065 vs gross -11.393",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R6-V1a",
+   "name": "OTE 5m fee-aware variant V1a",
+   "family": "OTE / Fibonacci",
+   "version": "{\"minNetRR\":1,\"researchCostPct\":0.2}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -36.054,
+     "trades": 974
+    },
+    "validation": {
+     "net": -30.325,
+     "trades": 637
+    },
+    "independent": {
+     "net": -52.085,
+     "gross": -10.313,
+     "fees": 41.772,
+     "trades": 1170,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0485,
+      -0.0387
+     ]
+    }
+   },
+   "fee_drag": "fees 41.772 vs gross -10.313",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R6-V1b",
+   "name": "OTE 5m fee-aware variant V1b",
+   "family": "OTE / Fibonacci",
+   "version": "{\"minNetRR\":2,\"researchCostPct\":0.2}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -10.073,
+     "trades": 127
+    },
+    "validation": {
+     "net": -3.3,
+     "trades": 55
+    },
+    "independent": {
+     "net": -27.851,
+     "gross": -8.305,
+     "fees": 19.547,
+     "trades": 367,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0969,
+      -0.0575
+     ]
+    }
+   },
+   "fee_drag": "fees 19.547 vs gross -8.305",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R6-V2",
+   "name": "OTE 5m fee-aware variant V2",
+   "family": "OTE / Fibonacci",
+   "version": "{\"beFeeOffsetPct\":0.45}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -46.605,
+     "trades": 1442
+    },
+    "validation": {
+     "net": -45.136,
+     "trades": 981
+    },
+    "independent": {
+     "net": -56.955,
+     "gross": -11.402,
+     "fees": 45.552,
+     "trades": 1276,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0469,
+      -0.0419
+     ]
+    }
+   },
+   "fee_drag": "fees 45.552 vs gross -11.402",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R6-V3",
+   "name": "OTE 5m fee-aware variant V3",
+   "family": "OTE / Fibonacci",
+   "version": "{\"tp2Ext\":-1}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -40.403,
+     "trades": 1241
+    },
+    "validation": {
+     "net": -37.589,
+     "trades": 909
+    },
+    "independent": {
+     "net": -52.239,
+     "gross": -10.361,
+     "fees": 41.879,
+     "trades": 1174,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0505,
+      -0.0415
+     ]
+    }
+   },
+   "fee_drag": "fees 41.879 vs gross -10.361",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R6-V4",
+   "name": "OTE 5m fee-aware variant V4",
+   "family": "OTE / Fibonacci",
+   "version": "{\"minStopPct\":0.8}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -37.4,
+     "trades": 868
+    },
+    "validation": {
+     "net": -28.465,
+     "trades": 527
+    },
+    "independent": {
+     "net": -42.731,
+     "gross": -8.286,
+     "fees": 34.445,
+     "trades": 882,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0566,
+      -0.0415
+     ]
+    }
+   },
+   "fee_drag": "fees 34.445 vs gross -8.286",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R6-V5",
+   "name": "OTE 5m fee-aware variant V5",
+   "family": "OTE / Fibonacci",
+   "version": "{\"minScore\":2}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -44.232,
+     "trades": 1161
+    },
+    "validation": {
+     "net": -40.689,
+     "trades": 902
+    },
+    "independent": {
+     "net": -54.796,
+     "gross": -12.62,
+     "fees": 42.176,
+     "trades": 1155,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0507,
+      -0.0435
+     ]
+    }
+   },
+   "fee_drag": "fees 42.176 vs gross -12.62",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R6-V6",
+   "name": "OTE 5m fee-aware variant V6",
+   "family": "OTE / Fibonacci",
+   "version": "{\"minNetRR\":1,\"researchCostPct\":0.2,\"beFeeOffsetPct\":0.45,\"tp2Ext\":-1,\"minStopPct\":0.8}",
+   "markets": [
+    "BTC",
+    "SOL",
+    "ETH",
+    "LTC",
+    "LINK",
+    "ADA",
+    "DOGE"
+   ],
+   "timeframes": [
+    "5m"
+   ],
+   "data": "Coinbase 5m",
+   "periods": {
+    "development": "2021-07–2024-07 (BTC/SOL/ETH)",
+    "validation": "2024-07–2026-11",
+    "independent": "LTC/LINK/ADA/DOGE 2024-07–2026-11"
+   },
+   "costs": "0.20% + 0.05%; $20 wallet / $10 risk",
+   "results": {
+    "development": {
+     "net": -36.842,
+     "trades": 801
+    },
+    "validation": {
+     "net": -24.917,
+     "trades": 507
+    },
+    "independent": {
+     "net": -39.429,
+     "gross": -6.316,
+     "fees": 33.113,
+     "trades": 850,
+     "positive_markets": "0/4",
+     "ci95": [
+      -0.0631,
+      -0.0364
+     ]
+    }
+   },
+   "fee_drag": "fees 33.113 vs gross -6.316",
+   "status": "FAILED",
+   "failure": "failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees",
+   "source": "docs/research/round6/REPORT.md"
+  },
+  {
+   "id": "R7-T1-240-55-20-LONG",
+   "name": "T1 LONG (T1-240-55-20)",
+   "family": "Breakout / trend",
+   "version": "T1-240-55-20 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": 369.44,
+     "trades": 139
+    },
+    "validation": {
+     "net": 194.69,
+     "trades": 407,
+     "positive_markets": "5/10"
+    },
+    "independent": {
+     "net": 275.76,
+     "gross": 400.14,
+     "fees": 124.38,
+     "trades": 601,
+     "positive_markets": "5/8",
+     "ci995": [
+      -0.5512,
+      1.4755
+     ],
+     "max_dd_pct": [
+      40.3,
+      36.4,
+      35.4,
+      37.8,
+      38.6,
+      40.2,
+      54.2,
+      29
+     ],
+     "by_year": {
+      "2021": -14.13,
+      "2022": -18.78,
+      "2023": 32.2,
+      "2024": 294.42,
+      "2025": -30.37,
+      "2026": 12.41
+     }
+    },
+    "stress_040_010": 96.27,
+    "cost_080": -105.54
+   },
+   "fee_drag": "31% of gross",
+   "robustness": "all grid configurations of this family/side: T1-240-20-10 174.6, T1-240-55-20 369.44, T1-1440-20-10 136.19, T1-1440-55-20 134.32",
+   "status": "INCONCLUSIVE",
+   "failure": "failed: c3_independent_net_and_breadth, c5_ci_995, c7_drawdown",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-T2-240-200-LONG",
+   "name": "T2 LONG (T2-240-200)",
+   "family": "Trend following",
+   "version": "T2-240-200 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": 112.47,
+     "trades": 420
+    },
+    "validation": {
+     "net": -24.48,
+     "trades": 1030,
+     "positive_markets": "3/10"
+    },
+    "independent": {
+     "net": -18.08,
+     "gross": 120.11,
+     "fees": 138.18,
+     "trades": 1293,
+     "positive_markets": "2/8",
+     "ci995": [
+      -0.1959,
+      0.4075
+     ],
+     "max_dd_pct": [
+      34.9,
+      35.1,
+      28.1,
+      24,
+      32.8,
+      43.6,
+      34.6,
+      25.1
+     ],
+     "by_year": {
+      "2021": 1.67,
+      "2022": -30.31,
+      "2023": 13.08,
+      "2024": 123.58,
+      "2025": -55.31,
+      "2026": -70.78
+     }
+    },
+    "stress_040_010": -180.11,
+    "cost_080": -340.37
+   },
+   "fee_drag": "115% of gross",
+   "robustness": "all grid configurations of this family/side: T2-240-50 59.44, T2-240-100 108.55, T2-240-200 112.47, T2-1440-50 96.02, T2-1440-100 32.66, T2-1440-200 59.27",
+   "status": "FAILED",
+   "failure": "failed: c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c7_drawdown, c8_years",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-M1-1440-30-LONG",
+   "name": "M1 LONG (M1-1440-30)",
+   "family": "Momentum",
+   "version": "M1-1440-30 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": 84.66,
+     "trades": 75
+    },
+    "validation": {
+     "net": 67.35,
+     "trades": 172,
+     "positive_markets": "8/10"
+    },
+    "independent": {
+     "net": 83.92,
+     "gross": 92.33,
+     "fees": 8.41,
+     "trades": 169,
+     "positive_markets": "4/8",
+     "ci995": [
+      -0.381,
+      1.771
+     ],
+     "max_dd_pct": [
+      7.1,
+      5.2,
+      8.4,
+      12.2,
+      26.1,
+      8.7,
+      4.8,
+      13.8
+     ],
+     "by_year": {
+      "2021": 1.1,
+      "2022": -12.46,
+      "2023": 10.87,
+      "2024": 108.73,
+      "2025": 0.04,
+      "2026": -24.36
+     }
+    },
+    "stress_040_010": 71.9,
+    "cost_080": 56.67
+   },
+   "fee_drag": "9% of gross",
+   "robustness": "all grid configurations of this family/side: M1-1440-30 84.66, M1-1440-60 43.54, M1-1440-120 49.77",
+   "status": "INCONCLUSIVE",
+   "failure": "failed: c3_independent_net_and_breadth, c5_ci_995",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-B1-240-LONG",
+   "name": "B1 LONG (B1-240)",
+   "family": "Volatility breakout",
+   "version": "B1-240 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": 0.3,
+     "trades": 178
+    },
+    "validation": {
+     "net": 3.28,
+     "trades": 493,
+     "positive_markets": "5/10"
+    },
+    "independent": {
+     "net": -33,
+     "gross": 51.25,
+     "fees": 84.25,
+     "trades": 651,
+     "positive_markets": "2/8",
+     "ci995": [
+      -0.2916,
+      0.3301
+     ],
+     "max_dd_pct": [
+      15.4,
+      22,
+      36.3,
+      21.3,
+      19.1,
+      22.7,
+      17.8,
+      29.4
+     ],
+     "by_year": {
+      "2021": -8.7,
+      "2022": -35.88,
+      "2023": 6.91,
+      "2024": 11.71,
+      "2025": -20.14,
+      "2026": 13.09
+     }
+    },
+    "stress_040_010": -138.47,
+    "cost_080": -255.23
+   },
+   "fee_drag": "164% of gross",
+   "robustness": "all grid configurations of this family/side: B1-60 -80.51, B1-240 0.3",
+   "status": "FAILED",
+   "failure": "failed: c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-R1-240-2.5-LONG",
+   "name": "R1 LONG (R1-240-2.5)",
+   "family": "Mean reversion",
+   "version": "R1-240-2.5 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": -13.45,
+     "trades": 88
+    },
+    "validation": {
+     "net": -56.67,
+     "trades": 143,
+     "positive_markets": "2/10"
+    },
+    "independent": {
+     "net": -42.92,
+     "gross": -25.08,
+     "fees": 17.84,
+     "trades": 156,
+     "positive_markets": "0/8",
+     "ci995": [
+      -0.5461,
+      -0.041
+     ],
+     "max_dd_pct": [
+      9,
+      9.8,
+      15.3,
+      7.6,
+      9,
+      9.7,
+      10.4,
+      5.9
+     ],
+     "by_year": {
+      "2021": -3.92,
+      "2022": -4.75,
+      "2023": 23.16,
+      "2024": -40.07,
+      "2025": -9.79,
+      "2026": -7.56
+     }
+    },
+    "stress_040_010": -63.7,
+    "cost_080": -92.72
+   },
+   "fee_drag": "fees 17.84 on gross -25.08",
+   "robustness": "all grid configurations of this family/side: R1-60-2 -173.47, R1-60-2.5 -127.91, R1-240-2 -27.67, R1-240-2.5 -13.45",
+   "status": "FAILED",
+   "failure": "failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-T1-1440-20-10-SHORT",
+   "name": "T1 SHORT (T1-1440-20-10)",
+   "family": "Breakout / trend",
+   "version": "T1-1440-20-10 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": -10.26,
+     "trades": 48
+    },
+    "validation": {
+     "net": -7.65,
+     "trades": 136,
+     "positive_markets": "5/10"
+    },
+    "independent": {
+     "net": -9.56,
+     "gross": 0.06,
+     "fees": 9.62,
+     "trades": 162,
+     "positive_markets": "5/8",
+     "ci995": [
+      -0.4079,
+      0.4345
+     ],
+     "max_dd_pct": [
+      9.1,
+      8.7,
+      7.7,
+      18.3,
+      19.7,
+      12.3,
+      9.1,
+      12.1
+     ],
+     "by_year": {
+      "2021": 0.47,
+      "2022": -1.71,
+      "2023": -10.78,
+      "2024": -22.74,
+      "2025": -17.15,
+      "2026": 42.35
+     }
+    },
+    "stress_040_010": -21.44,
+    "cost_080": -36.32
+   },
+   "fee_drag": "16033% of gross",
+   "robustness": "all grid configurations of this family/side: T1-240-20-10 -52.89, T1-240-55-20 -49.27, T1-1440-20-10 -10.26, T1-1440-55-20 -0.97",
+   "status": "FAILED",
+   "failure": "failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-T2-1440-200-SHORT",
+   "name": "T2 SHORT (T2-1440-200)",
+   "family": "Trend following",
+   "version": "T2-1440-200 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": 4.75,
+     "trades": 47
+    },
+    "validation": {
+     "net": 9.71,
+     "trades": 174,
+     "positive_markets": "6/10"
+    },
+    "independent": {
+     "net": -34.81,
+     "gross": -23.25,
+     "fees": 11.56,
+     "trades": 246,
+     "positive_markets": "1/8",
+     "ci995": [
+      -0.3776,
+      0.0767
+     ],
+     "max_dd_pct": [
+      6.6,
+      8.4,
+      20.5,
+      14.9,
+      15.7,
+      11.1,
+      6.2,
+      11.7
+     ],
+     "by_year": {
+      "2022": 3.68,
+      "2023": -16.51,
+      "2024": -16.17,
+      "2025": -16.96,
+      "2026": 11.14
+     }
+    },
+    "stress_040_010": -48.65,
+    "cost_080": -67.06
+   },
+   "fee_drag": "fees 11.56 on gross -23.25",
+   "robustness": "all grid configurations of this family/side: T2-240-50 -77.63, T2-240-100 -35.19, T2-240-200 -34.52, T2-1440-50 -3.86, T2-1440-100 -0.01, T2-1440-200 4.75",
+   "status": "FAILED",
+   "failure": "failed: c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-M1-1440-120-SHORT",
+   "name": "M1 SHORT (M1-1440-120)",
+   "family": "Momentum",
+   "version": "M1-1440-120 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": 16.94,
+     "trades": 47
+    },
+    "validation": {
+     "net": 13.6,
+     "trades": 167,
+     "positive_markets": "6/10"
+    },
+    "independent": {
+     "net": -7.84,
+     "gross": 1.46,
+     "fees": 9.3,
+     "trades": 209,
+     "positive_markets": "3/8",
+     "ci995": [
+      -0.3292,
+      0.2853
+     ],
+     "max_dd_pct": [
+      4.4,
+      5.9,
+      14,
+      12.8,
+      13.1,
+      10.9,
+      5.8,
+      9.1
+     ],
+     "by_year": {
+      "2021": -0.42,
+      "2022": -1.64,
+      "2023": -17.48,
+      "2024": -7.81,
+      "2025": 0.22,
+      "2026": 19.29
+     }
+    },
+    "stress_040_010": -19.07,
+    "cost_080": -36.99
+   },
+   "fee_drag": "637% of gross",
+   "robustness": "all grid configurations of this family/side: M1-1440-30 -1.75, M1-1440-60 -10.95, M1-1440-120 16.94",
+   "status": "FAILED",
+   "failure": "failed: c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-B1-240-SHORT",
+   "name": "B1 SHORT (B1-240)",
+   "family": "Volatility breakout",
+   "version": "B1-240 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": -37.46,
+     "trades": 185
+    },
+    "validation": {
+     "net": -50.71,
+     "trades": 477,
+     "positive_markets": "4/10"
+    },
+    "independent": {
+     "net": -63.02,
+     "gross": 20.53,
+     "fees": 83.55,
+     "trades": 715,
+     "positive_markets": "2/8",
+     "ci995": [
+      -0.2926,
+      0.0478
+     ],
+     "max_dd_pct": [
+      18.5,
+      15.3,
+      19,
+      23.2,
+      15.8,
+      34,
+      22,
+      25.1
+     ],
+     "by_year": {
+      "2021": -14.54,
+      "2022": 4.73,
+      "2023": -12.94,
+      "2024": 17.46,
+      "2025": -24.02,
+      "2026": -33.7
+     }
+    },
+    "stress_040_010": -161.35,
+    "cost_080": -264.09
+   },
+   "fee_drag": "407% of gross",
+   "robustness": "all grid configurations of this family/side: B1-60 -186.21, B1-240 -37.46",
+   "status": "FAILED",
+   "failure": "failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
+   "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R7-R1-240-2.5-SHORT",
+   "name": "R1 SHORT (R1-240-2.5)",
+   "family": "Mean reversion",
+   "version": "R1-240-2.5 @ 255a351",
+   "markets": [
+    "DOT",
+    "ATOM",
+    "UNI",
+    "AAVE",
+    "XLM",
+    "ETC",
+    "FIL",
+    "ALGO"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase public candles (sha256 in r7-results.json)",
+   "periods": {
+    "development": "BTC/ETH/SOL 2021-07–2024-07",
+    "validation": "10 markets 2024-07–2026-11",
+    "independent": "8 untouched markets 2021-07–2026-11"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%; 0.80%)",
+   "results": {
+    "development": {
+     "net": -3.73,
+     "trades": 81
+    },
+    "validation": {
+     "net": -0.09,
+     "trades": 241,
+     "positive_markets": "6/10"
+    },
+    "independent": {
+     "net": -90.75,
+     "gross": -27.31,
+     "fees": 63.44,
+     "trades": 405,
+     "positive_markets": "0/8",
+     "ci995": [
+      -0.4886,
+      -0.0644
+     ],
+     "max_dd_pct": [
+      12.3,
+      21.1,
+      17.5,
+      15.7,
+      16.9,
+      17.2,
+      17.4,
+      21
+     ],
+     "by_year": {
+      "2021": -14.61,
+      "2022": 30.83,
+      "2023": -42.92,
+      "2024": -35.8,
+      "2025": 6.93,
+      "2026": -35.18
+     }
+    },
+    "stress_040_010": -158.78,
+    "cost_080": -247.82
+   },
+   "fee_drag": "fees 63.44 on gross -27.31",
+   "robustness": "all grid configurations of this family/side: R1-60-2 -168.42, R1-60-2.5 -105.98, R1-240-2 -33.22, R1-240-2.5 -3.73",
+   "status": "FAILED",
+   "failure": "failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
+   "source": "docs/research/round7/REPORT.md"
+  }
+ ]
+}
