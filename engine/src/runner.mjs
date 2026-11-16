@@ -696,7 +696,9 @@ export class EngineRunner {
         this.final(item, "skipped", "ENTRIES_PAUSED", "new entries are paused for this bot by the owner (ENGINE_PAUSED_BOTS); exits and cancellations continue");
         continue;
       }
-      if (opens && this.cfg.ledgerApi === "bot" && this.state.ledgerCheck?.blocking) {
+      // Only a NEW request is held. A retry of one already sent (attempts > 0) is idempotent by its id: it can only
+      // confirm what the ledger already did (e.g. a fill whose reply was lost), so holding it would orphan that result.
+      if (opens && this.cfg.ledgerApi === "bot" && this.state.ledgerCheck?.blocking && item.attempts === 0) {
         // Reconciliation unresolved: hold (do not send) until the engine and the ledger agree again. If it is not
         // resolved in time the item expires (SIGNAL_EXPIRED) like any late signal; it is never sent late.
         if (!item.heldForReconcile) { item.heldForReconcile = true; this.audit({ type: "signal", id: item.id, action: item.action, status: "held", code: "RECONCILE_PENDING", reason: this.state.ledgerCheck.issues?.[0] ?? null }); }
@@ -872,6 +874,8 @@ export class EngineRunner {
         if (lp.status !== "OPEN") issues.push(`ledger position status ${lp.status}`);
         if ((pos.side === 1 ? "long" : "short") !== lp.side) issues.push(`ledger side ${lp.side} vs engine ${pos.side === 1 ? "long" : "short"}`);
       }
+    } else if (lp && entry && entry.status === "pending" && lp.open_alert_id === entry.id) {
+      // in delivery: the ledger already recorded this entry (its reply was lost); the retry will confirm it. Not a divergence.
     } else if (lp && String(lp.open_alert_id).startsWith(`${this.idPrefix}-`)) {
       issues.push(`the ledger holds an engine-opened ${this.cfg.symbol} position (${lp.open_alert_id}, qty ${lp.qty}) that the engine does not hold`);
     }
