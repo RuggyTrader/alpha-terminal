@@ -14,6 +14,9 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(mkdtempSync(join(tmpdir(), "alpha-trial-")), "trial.mjs");
 buildSync({ entryPoints: [join(HERE, "..", "src", "trial", "trial.ts")], bundle: true, format: "esm", platform: "neutral", outfile: OUT, logLevel: "silent" });
 const T = await import(pathToFileURL(OUT).href);
+const ROUT = join(dirname(OUT), "report.mjs");
+buildSync({ entryPoints: [join(HERE, "..", "src", "trial", "report.ts")], bundle: true, format: "esm", platform: "neutral", outfile: ROUT, logLevel: "silent" });
+const REP = await import(pathToFileURL(ROUT).href);
 const SCHEMA = readFileSync(join(HERE, "..", "migrations", "0008_trial.sql"), "utf8");
 const DAY = 86_400_000, MIN = 60_000;
 const D0 = Date.UTC(2026, 10, 10); // last completed day at activation (TEST)
@@ -152,6 +155,10 @@ describe("outages, restarts and data problems (TEST)", () => {
     assert.ok(Math.abs(q.exit_price - p.stop * 0.9995) < 1e-6, "at the stop (the 15-minute candle did not gap through it)");
     assert.ok(q.recorded_late_min > 16 * 60, `recorded ${q.recorded_late_min} min late`);
     assert.ok(events(s.db).includes("FILL_RECORDED_LATE"));
+    const ev = (await REP.trialReport(s.db)).trades.list[0].exit_evidence;
+    assert.equal(ev.kind, "RECONSTRUCTED"); assert.equal(ev.interval_min, 15);
+    assert.equal(Date.parse(ev.candle_to) - Date.parse(ev.candle_from), 15 * MIN, "a 15-minute window, no invented exact time");
+    assert.match(ev.note, /exact time is not known/);
   });
   it("daily closes missed during an outage: only the latest can trade; older signals are recorded as missed, never back-dated", async () => {
     const s = setup();
@@ -208,5 +215,37 @@ describe("isolation from the production portfolio", () => {
   it("the account's recorded settings are exactly the frozen module settings", async () => {
     const s = setup();
     assert.equal(acct(s.db).params_json, JSON.stringify(T.PARAMS));
+  });
+});
+
+describe("scheduling guarantees (TEST)", () => {
+  it("while flat, every daily close is processed even though idle minutes fetch nothing", async () => {
+    const s = setup();
+    await s.run(D0 + DAY + 30_000);
+    for (let d = 1; d <= 5; d++) s.m.addDay(0.9); // five closes, all below the 50-day average: stays flat
+    const fetches = () => s.m.calls.filter((c) => c.interval !== 1440).length;
+    const f0 = fetches();
+    for (let d = 1; d <= 5; d++) {
+      const close = D0 + (d + 1) * DAY;
+      for (let m = 10; m < 1440; m += 97) await s.run(close - DAY + m * MIN); // idle minutes during the day
+      await s.run(close + 90_000); // just after the close
+    }
+    const days = s.db.sql(`SELECT day_t FROM trial_equity ORDER BY day_t`).map((r) => r.day_t);
+    assert.deepEqual(days, [1, 2, 3, 4, 5].map((d) => D0 + d * DAY), "each completed day recorded exactly once");
+    assert.equal(acct(s.db).last_daily_t, D0 + 5 * DAY);
+    assert.equal(fetches(), f0, "no intraday market data while flat");
+    assert.deepEqual(orders(s.db), []);
+  });
+  it("two scheduled runs at the same moment cannot create a duplicate order or fill", async () => {
+    const s = setup();
+    await s.run(D0 + DAY + 30_000);
+    s.m.addDay();
+    const t2 = D0 + 2 * DAY;
+    await Promise.all([s.run(t2 + 90_000), s.run(t2 + 90_000), s.run(t2 + 90_000)]);
+    await Promise.all([s.run(t2 + 3 * MIN + 5000), s.run(t2 + 3 * MIN + 5000)]);
+    assert.equal(orders(s.db).length, 1); assert.equal(orders(s.db)[0].status, "FILLED");
+    assert.equal(positions(s.db).length, 1);
+    const p = positions(s.db)[0];
+    assert.equal(acct(s.db).cash_micro, 100_000_000 - p.cost_micro - p.entry_fee_micro, "cash debited once");
   });
 });

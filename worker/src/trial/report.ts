@@ -26,6 +26,16 @@ function bootstrapCi(nets: number[]) {
   return [r2(ms[50]), r2(ms[1949])];
 }
 
+/** What the data can establish about a simulated fill: the candle it happened in (not an exact time inside it), the
+ *  candle size, and whether it was reconstructed after a gap in processing (coarser candles or recorded late). */
+export function evidence(candleT: number, intervalMin: number, lateMin: number) {
+  const reconstructed = intervalMin > 1 || lateMin > 5;
+  return { candle_from: new Date(candleT).toISOString(), candle_to: new Date(candleT + intervalMin * 60_000).toISOString(), interval_min: intervalMin, recorded_late_min: lateMin,
+    kind: reconstructed ? "RECONSTRUCTED" : "NORMAL",
+    note: reconstructed ? `reconstructed after an outage from ${intervalMin}-minute candles; the price was reached within this candle, the exact time is not known`
+      : "within this 1-minute candle (simulated; not an exchange execution)" };
+}
+
 export async function trialReport(db: D1Database) {
   const has = await db.prepare(`SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'trial_accounts'`).first().catch(() => null);
   if (!has) return { available: false };
@@ -64,7 +74,7 @@ export async function trialReport(db: D1Database) {
       longest_losing_streak: worst, avg_risk_usd: closed.length ? r2(sum(closed.map((p) => Number(p.risk_usd))) / closed.length) : null,
       recorded_late: closed.filter((p) => Number(p.recorded_late_min) > 5).length,
       evidence: closed.length < 30 ? `${closed.length} of 30 completed trades: not yet an initial evidence milestone` : "30+ completed trades: an initial milestone, not proof",
-      list: closed.slice(-20).map((p) => ({ opened_at: p.opened_at, closed_at: p.closed_at, entry: p.entry_price, exit: p.exit_price, qty: p.qty, reason: p.exit_reason, net_usd: usd(Number(p.net_micro)), late_min: p.recorded_late_min })),
+      list: closed.slice(-20).map((p) => ({ opened_at: p.opened_at, entry: p.entry_price, exit: p.exit_price, qty: p.qty, reason: p.exit_reason, net_usd: usd(Number(p.net_micro)), exit_evidence: evidence(Number(p.exit_candle_t), Number(p.exit_interval_min), Number(p.recorded_late_min)) })),
     },
     open_position: open ? { opened_at: open.opened_at, qty: open.qty, entry: open.entry_price, stop: open.stop, initial_stop: open.initial_stop, risk_at_entry_usd: r2(Number(open.risk_usd)),
       open_risk_usd: mark ? r2(Math.max(0, mark - Number(open.stop)) * Number(open.qty)) : null, mark } : null,
