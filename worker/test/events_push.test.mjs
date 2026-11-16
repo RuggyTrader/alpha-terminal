@@ -655,6 +655,43 @@ describe("event pre-check (CPU): same results as the full routine, one query whe
     status = 201;
   });
 
+  it("order lifecycle, stops, duplicates, out-of-order, simultaneous changes, interrupted sync and a change right after an idle check: identical to the full routine", async () => {
+    const { A, B, dev } = await pair();
+    const BOT = { bot_id: "ALPHA-02", name: "ALPHA 02", symbol: "SOLUSD", timeframe: "5m" };
+    const life = (db, key, kind, at, price = 71.59) => M.recordLifecycle(db, BOT, [{ key, kind, side: "LONG", qty: 0.27, price, occurred_at: at, detail: { bot_name: "ALPHA 02", timeframe: "5m" } }]);
+    const steps = [
+      ["a device is enabled", (db) => addSub(db, "https://web.push.apple.com/A", dev), false],
+      ["a limit order is accepted (pending)", (db) => life(db, "BOTPEND:o1", "ORDER_PENDING", "2026-11-16T02:55:12Z"), true],
+      ["the same heartbeat again (duplicate lifecycle record)", (db) => life(db, "BOTPEND:o1", "ORDER_PENDING", "2026-11-16T02:55:12Z"), false],
+      ["the pending order fills (position opens)", (db) => botFill(db, { id: 7 }), true],
+      ["the stop moves to break-even", (db) => life(db, "BOTBE:t7", "STOP_TO_BREAK_EVEN", "2026-11-16T04:30:00Z", 71.6), true],
+      ["the trailing stop moves", (db) => life(db, "BOTTRAIL:t7:71.7", "TRAILING_STOP_MOVED", "2026-11-16T04:31:00Z", 71.7), true],
+      ["an event recorded out of order (older occurred_at)", (db) => life(db, "BOTCANCEL:o0", "ORDER_CANCELLED", "2026-11-16T01:00:00Z", 70), true],
+      ["several changes at once: exit fill + mirror close + another order", (db) => { botFill(db, { id: 7, kind: "EXIT" }); mirrorClose(db, { seq: 20, gross: 1, net: 1 }); return life(db, "BOTPEND:o2", "ORDER_PENDING", "2026-11-16T05:00:00Z"); }, true],
+      ["an order expires (cancelled before a fill)", (db) => life(db, "BOTCANCEL:o2", "ORDER_CANCELLED", "2026-11-16T05:10:00Z"), true],
+      ["idle", () => {}, false],
+      ["a sync interrupted before its cursor moved (retry)", (db) => db.raw.exec(`UPDATE event_cursors SET last_id = last_id - 1 WHERE name = 'bot_fills'`), true],
+      ["idle after the retry", () => {}, false],
+    ];
+    for (const [label, change, expect] of steps) {
+      await change(A.db); await change(B.db);
+      M.resetTableCache();
+      assert.equal(await M.eventWorkPending(A.env), expect, `${label}: pre-check`);
+      await M.processEvents(A.env);
+      M.resetTableCache();
+      await M.syncTradeEvents(B.db); await M.deliver(B.env);
+      assert.equal(snap(A.db), snap(B.db), `same tables after: ${label}`);
+    }
+    // A change that lands just after an idle check is not lost: the next request (every heartbeat) sees it.
+    M.resetTableCache();
+    assert.equal(await M.eventWorkPending(A.env), false);
+    await life(A.db, "BOTPEND:o3", "ORDER_PENDING", "2026-11-16T05:20:00Z");
+    assert.equal(await M.eventWorkPending(A.env), true, "the following check sees the new record");
+    await M.processEvents(A.env);
+    assert.ok(rows(A.db, "SELECT COUNT(*) AS n FROM push_deliveries d JOIN trade_events e ON e.id = d.event_id WHERE e.event_key = 'BOTPEND:o3'")[0].n === 1, "planned exactly once");
+    status = 201;
+  });
+
   it("an idle run reads nothing else and writes nothing", async () => {
     const { A, dev } = await pair();
     addSub(A.db, "https://web.push.apple.com/A", dev);
