@@ -185,6 +185,11 @@ export function loadBotConfigs(ids, env = process.env, baseDir = process.cwd(), 
   // registered profiles. The Worker independently refuses orders from a bot the owner has not activated there.
   const approvedRaw = String(env.ENGINE_APPROVED_BOTS ?? loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env")).ENGINE_APPROVED_BOTS ?? "");
   const approved = new Set(approvedRaw.split(",").map((x) => x.trim()).filter(Boolean));
+  // Owner pause (2026-11-16): ENGINE_PAUSED_BOTS=ALPHA-01,ALPHA-03 stops NEW entries and new limit orders for those bots.
+  // Exits, stop management and cancellations continue, so an open position or accepted order is never abandoned.
+  const pausedRaw = String(env.ENGINE_PAUSED_BOTS ?? loadEnvFile(resolve(baseDir, env.ENGINE_ENV_FILE ?? ".env")).ENGINE_PAUSED_BOTS ?? "");
+  const paused = new Set(pausedRaw.split(",").map((x) => x.trim()).filter(Boolean));
+  for (const id of paused) if (!ids.includes(id)) throw new Error(`ENGINE_PAUSED_BOTS: ${id} is not one of this engine's bots (${ids.join(", ")})`);
   const chosen = ids.map((id) => selectBots([id], { list, allowProposed: allowProposed || approved.has(id) })[0]);
   if (new Set(ids).size !== ids.length) throw new Error("a bot is listed twice");
   return chosen.map((registered) => {
@@ -212,7 +217,7 @@ export function loadBotConfigs(ids, env = process.env, baseDir = process.cwd(), 
       ENGINE_MARKETS: "", ENGINE_BOTS: "",
     }, baseDir);
     return { bot, cfg: { ...cfg, botId: bot.id, botName: bot.name, fileTag: botTag(bot), idPrefix: botIdPrefix(bot), priority: bot.priority, wallet: bot.wallet,
-      ledgerApi: bot.ledgerApi, group: bot.group } };
+      ledgerApi: bot.ledgerApi, group: bot.group, entriesPaused: paused.has(bot.id) } };
   });
 }
 

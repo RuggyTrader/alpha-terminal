@@ -689,6 +689,20 @@ export class EngineRunner {
     for (const item of box) {
       if (item.status !== "pending") continue;
       const ageMs = this.now() - Date.parse(item.barClose);
+      // Anything that would OPEN exposure (a new limit order, or an entry) is gated; exits, stop management and
+      // cancellations are never held.
+      const opens = item.kind === "ENTRY" || (item.kind === "ORDER" && item.action === "PLACE_LIMIT");
+      if (opens && this.cfg.entriesPaused) {
+        this.final(item, "skipped", "ENTRIES_PAUSED", "new entries are paused for this bot by the owner (ENGINE_PAUSED_BOTS); exits and cancellations continue");
+        continue;
+      }
+      if (opens && this.cfg.ledgerApi === "bot" && this.state.ledgerCheck?.blocking) {
+        // Reconciliation unresolved: hold (do not send) until the engine and the ledger agree again. If it is not
+        // resolved in time the item expires (SIGNAL_EXPIRED) like any late signal; it is never sent late.
+        if (!item.heldForReconcile) { item.heldForReconcile = true; this.audit({ type: "signal", id: item.id, action: item.action, status: "held", code: "RECONCILE_PENDING", reason: this.state.ledgerCheck.issues?.[0] ?? null }); }
+        if (ageMs > maxAgeMs) { this.final(item, "skipped", "SIGNAL_EXPIRED", `held while engine and ledger were reconciled; not delivered within ${this.cfg.lateBars * this.cfg.intervalMin} min`); }
+        continue;
+      }
 
       if (item.kind === "ORDER") {
         if (item.action === "CANCEL_ORDER" && item.reconcile) {
@@ -863,8 +877,34 @@ export class EngineRunner {
     }
     if (this.cfg.ledgerApi === "bot") {
       // Durable pending order: the ledger's PENDING record must be the engine's live order (once delivered).
-      const lo = S.liveOrder ? S.outbox.find((x) => x.id === S.liveOrder.id) : null;
+      // Only an order the ledger ACCEPTED (or that is still being delivered) is live. An order whose placement was
+      // skipped (SIGNAL_EXPIRED after an outage), rejected or paused never reached the ledger: it must not mask a stale
+      // ledger order (production ALPHA-03, 2026-11-16: a phantom LONG hid an expired SHORT for 12 h).
+      const loRaw = S.liveOrder ? S.outbox.find((x) => x.id === S.liveOrder.id) : null;
+      // In delivery ("pending") counts only when the ledger already holds that exact order (accepted, reply lost);
+      // otherwise an undelivered or held order would hide the very divergence that holds it.
+      const lo = loRaw && (loRaw.status === "accepted" || (loRaw.status === "pending" && L.pendingOrder?.order_id === loRaw.id)) ? loRaw : null;
+      if (loRaw && !lo && loRaw.status !== "pending" && !S.liveOrder.unaccepted) {
+        S.liveOrder.unaccepted = loRaw.code ?? loRaw.status;
+        this.audit({ type: "pending_order", event: "NOT_ACCEPTED", id: loRaw.id, status: loRaw.status, code: loRaw.code ?? null,
+          reason: "its placement never reached the ledger; it is not a live order and cannot fill" });
+      }
       const lpo = L.pendingOrder;
+      const queueReconcileCancel = (reasonCode, cancelReason) => {
+        // One reconcile cancel at a time per order. If the ledger rejected an earlier one, retry with a new id at most
+        // every 10 minutes, up to 6 attempts (idempotent: each attempt has its own id; the divergence stays visible).
+        const prior = S.outbox.filter((x) => x.reconcile && x.targetId === lpo.order_id);
+        if (prior.some((x) => x.status === "pending" || x.status === "accepted")) return;
+        const last = prior.at(-1);
+        if (last && (prior.length >= 6 || this.now() - Date.parse(last.createdAt) < 10 * 60_000)) return;
+        const base = `${this.idPrefix}-RECONCILE-${reasonCode === "EXPIRED" ? "EXPIRE" : "CANCEL"}-${lpo.order_id}`;
+        const id = (prior.length ? `${base}-R${prior.length + 1}` : base).slice(0, 160);
+        if (S.outbox.some((x) => x.id === id)) return;
+        S.outbox.push({ id, action: "CANCEL_ORDER", kind: "ORDER", targetId: lpo.order_id, reconcile: true, reasonCode, cancelReason,
+          barTime: at, barClose: at, createdAt: at, status: "pending", code: null, reason: null, attempts: 0 });
+        this.audit({ type: "pending_order", event: reasonCode === "EXPIRED" ? "RECONCILE_EXPIRE" : "RECONCILE_CANCEL", id: lpo.order_id, reason: cancelReason });
+        this.save();
+      };
       // Strict timing: an order accepted before strict mode was switched on (or whose acceptance reply was lost) takes
       // its acceptance time from the ledger's own record, so it stays fillable under exactly the ledger's rule.
       const br = S.strategy.broker;
@@ -875,20 +915,25 @@ export class EngineRunner {
         this.save();
       }
       if (lo && lo.status === "accepted" && (!lpo || lpo.order_id !== lo.id)) issues.push(`the engine's pending order ${lo.id} is ${lpo ? `not the ledger's (${lpo.order_id})` : "not pending in the ledger"}`);
-      if (!lo && lpo) {
+      const expiredAt = lpo?.expires_at ? Date.parse(lpo.expires_at) : NaN;
+      if (lpo && Number.isFinite(expiredAt) && this.now() > expiredAt + 2 * this.step) {
+        // An order past its own expiry (plus two candles of grace) can never stay active, whoever works it.
+        issues.push(`the ledger's pending order ${lpo.order_id} expired at ${lpo.expires_at}; expiring it`);
+        queueReconcileCancel("EXPIRED", `reconciliation: expired at ${lpo.expires_at} (the strategy's setup age limit) and still pending in the ledger`);
+      } else if (lpo && this.cfg.entriesPaused && lo && lpo.order_id === lo.id) {
+        // Owner pause: an accepted order that has not filled is cancelled explicitly (recorded), never left to fill.
+        issues.push(`entries are paused; cancelling the accepted, unfilled order ${lpo.order_id}`);
+        queueReconcileCancel("CANCELLED", "new entries paused by the owner (ENGINE_PAUSED_BOTS); the order had not filled");
+      } else if (!lo && lpo) {
         issues.push(`the ledger has a pending order ${lpo.order_id} that the engine is not working; cancelling it`);
-        const id = `${this.idPrefix}-RECONCILE-CANCEL-${lpo.order_id}`.slice(0, 160);
-        if (!S.outbox.some((x) => x.id === id)) {
-          S.outbox.push({ id, action: "CANCEL_ORDER", kind: "ORDER", targetId: lpo.order_id, reconcile: true, reasonCode: "CANCELLED",
-            cancelReason: "reconciliation: the engine is not working this order (its strategy setup ended or was replaced)",
-            barTime: at, barClose: at, createdAt: at, status: "pending", code: null, reason: null, attempts: 0 });
-          this.audit({ type: "pending_order", event: "RECONCILE_CANCEL", id: lpo.order_id });
-          this.save();
-        }
+        queueReconcileCancel("CANCELLED", "reconciliation: the engine is not working this order (its strategy setup ended or was replaced)");
       }
     }
     S.ledgerCheck = {
       status: issues.length ? "DIVERGED" : "OK", at, issues: issues.slice(0, 5),
+      // While the engine and the ledger disagree, nothing that opens exposure is sent (bot path; see flush()).
+      ...(this.cfg.ledgerApi === "bot" && issues.length > 0 ? { blocking: true } : {}), // absent when OK: saved state stays byte-identical
+      ...(this.cfg.entriesPaused ? { entries_paused: true } : {}),
       ledger_position: lp ? { qty: Number(lp.qty), side: lp.side, open_alert_id: lp.open_alert_id } : null,
       ...(this.cfg.ledgerApi === "bot" ? { ledger_pending_order: L.pendingOrder ?? null } : {}),
     };
