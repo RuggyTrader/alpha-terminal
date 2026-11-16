@@ -14,9 +14,24 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 to 0008 (no staged or irreversible migration)", () => {
+  it("are exactly 0001 to 0009 (no staged or irreversible migration)", () => {
     assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
-      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql"]);
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql", "0009_trade_events_occurred_index.sql"]);
+  });
+
+  it("0009 adds exactly one index and changes no table, row or other index; the older-page query uses it", () => {
+    const db = new DatabaseSync(":memory:");
+    for (const f of ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql"]) db.exec(sql(f));
+    const schema = () => db.prepare("SELECT type, name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name").all().map((r) => JSON.stringify(r));
+    const before = schema();
+    db.exec(sql("0009_trade_events_occurred_index.sql"));
+    db.exec(sql("0009_trade_events_occurred_index.sql")); // idempotent
+    const added = schema().filter((x) => !before.includes(x));
+    assert.equal(added.length, 1);
+    assert.match(added[0], /idx_trade_events_occurred/);
+    assert.ok(before.every((x) => schema().includes(x)), "nothing removed or changed");
+    const plan = db.prepare("EXPLAIN QUERY PLAN SELECT e.id FROM trade_events e WHERE e.kind <> 'TEST' AND e.occurred_at <= ? ORDER BY e.occurred_at DESC, e.id DESC LIMIT 30").all("2026-11-16T00:00:00Z").map((r) => r.detail).join(" ");
+    assert.match(plan, /USING INDEX idx_trade_events_occurred/);
   });
 
   it("0008 (forward trial) is purely additive: every existing table and index is unchanged; it adds only trial_* objects", () => {
