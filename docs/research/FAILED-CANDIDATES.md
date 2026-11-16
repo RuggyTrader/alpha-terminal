@@ -74,3 +74,21 @@ Source: `docs/research/round3/`. Costs: 0.20% + 0.05% slippage, $100, no leverag
 | H4 relative strength, 90-day | −59.07 | +2.17 (max drawdown 79%) | failed |
 | H5 cash vs BTC, 200-day rising (baseline) | −16.37 / −57.18 | −18.82 | failed |
 | **H6 regime-filtered MA-50** | +7.42 / +4.88 | +13.70 (36 trades) | **not recommended**: the H6 study showed the filter cuts exposure but not expectancy; unfiltered Candidate B does as well or better on a risk-adjusted basis on most markets |
+
+## Round 5 (2026-11-16): OTE / Fibonacci on 4h and daily, seven new markets
+
+Source: `docs/research/round5/` (pre-registration `bac1a9d`, before any run). These are pooled results on LTC, LINK, AVAX, ADA, BCH, DOGE and XRP, with $100 per market, 0.20% fee + 0.05% slippage, and strict acceptance timing.
+
+| Candidate | Development / validation net (validation trades, markets positive) | Verdict |
+|---|---|---|
+| F0 original OTE 4h, LONG / SHORT | +3.24 / −9.21 (106, 3/7); −33.91 / +6.66 (83, 2/7) | fails |
+| F1 4h + daily EMA50, LONG / SHORT | +5.96 / +0.56; −27.47 / +12.66 | fails |
+| **F2 4h + daily EMA50 + −1.618 target, LONG** (round-4 SOL lead) | +13.17 / +8.03 (51, 3/7); CI per trade [−0.63, 1.28]; +0.01 at 0.40% | **fails; the SOL result is not confirmed on new markets** (LTC and DOGE carry it) |
+| F2 SHORT, and neighbours −1.0 / −2.0 | development negative for SHORT; LONG neighbours +3.20 / +5.47 in validation | fails |
+| F3 daily OTE + weekly EMA20 (± −1.618), both sides | 10–11 validation trades; validation −5.45 to −11.53 | fails; too few trades |
+| F4 OTE pullback inside BTC MA-50 trend, LONG | +10.07 / +28.08 (64, 3/7); CI [−0.38, 1.39] | fails; simple trend following made +70.13 on the same markets |
+| F4 SHORT | −13.10 / +32.90 (45, 4/7) | fails (development negative) |
+| F5 + PD confluence minScore 2, LONG / SHORT | −4.29 / −2.79 (18); +8.22 / +25.21 (21, 2/7) | fails; too few trades |
+| F6 volatility stop + fee-aware reward, LONG / SHORT | +3.45 / −0.75; +13.85 / −0.91 | fails |
+
+Conclusion: OTE timing showed no demonstrated value over simple trend following, and no hybrid OTE candidate qualifies for a forward trial.
