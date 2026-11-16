@@ -6,13 +6,16 @@
 //   * at most one ENTRY fill per order and per trade (no duplicates)
 //   node scripts/strict-fill-observe.mjs --since 2026-11-16T03:19:37Z
 import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i === -1 ? d : process.argv[i + 1]; };
 const since = arg("since", "2026-11-16T03:19:37Z");
 if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/.test(since)) throw new Error("--since must be an ISO UTC time");
-const q = (sql) => JSON.parse(execFileSync("npx", ["wrangler", "d1", "execute", "alpha-terminal-db", "--remote", "--json", "--command", quoted(sql)], { encoding: "utf8", shell: process.platform === "win32", stdio: ["ignore", "pipe", "ignore"], timeout: 120_000 }))[0].results;
-// npx needs a shell on Windows, which splits arguments on spaces: pass the (single-quote-only) SQL as ONE double-quoted line.
-function quoted(sql) { if (/["%]/.test(sql)) throw new Error("unsupported character in SQL"); const one = sql.replace(/\s+/g, " "); return process.platform === "win32" ? `"${one}"` : one; }
+// wrangler is run by node directly, never through npx: on Windows the npx launcher hangs on some argument strings
+// before wrangler starts (diagnosed 2026-11-16; the same query returns in ~2 s this way). No shell, so no quoting.
+const WRANGLER = fileURLToPath(new URL("../node_modules/wrangler/bin/wrangler.js", import.meta.url));
+const q = (sql) => JSON.parse(execFileSync(process.execPath, [WRANGLER, "d1", "execute", "alpha-terminal-db", "--remote", "--json", "--command", sql.replace(/\s+/g, " ")],
+  { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 120_000 }))[0].results;
 
 const orders = q(`SELECT order_id, bot_id, side, limit_price, requested_qty, accepted_qty, placed_at, received_at, status, code, fill_trade_id, updated_at
   FROM bot_pending_orders WHERE received_at >= '${since}' OR updated_at >= '${since}' OR status = 'PENDING' ORDER BY received_at`);
