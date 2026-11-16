@@ -379,9 +379,41 @@ export async function deliver(env: EventsEnv, opts: { fetcher?: typeof fetch; no
   return out;
 }
 
+/** ONE read-only query: would syncTradeEvents or deliver change anything? It returns false only when every source is at
+ *  its cursor, no mirror event awaits its bot label, and (with push configured and a device enabled) nothing is unplanned,
+ *  pending or being sent. In exactly that state both functions only read (about 12 statements) and write nothing, so
+ *  skipping them changes no result; otherwise, or if the check fails, the full routine runs unchanged. Measured: heartbeat
+ *  and mirror requests ran this routine every time and were the only requests above 10 ms CPU (docs/WORKER-CPU.md). */
+export async function eventWorkPending(env: EventsEnv): Promise<boolean> {
+  try {
+    const t = await tables(env.DB);
+    if (!t.has("trade_events")) return false; // both functions return at once without the table (schema before 0006)
+    const cur = (name: string) => `COALESCE((SELECT last_id FROM event_cursors WHERE name = '${name}'), 0)`;
+    const ahead = (table: string) => `(SELECT COALESCE(MAX(id), 0) FROM ${table}) > ${cur(table)}`;
+    const parts = [ahead("paper_fills"), ahead("mirror_trades")];
+    if (t.has("mirror_open_events")) parts.push(ahead("mirror_open_events"));
+    if (t.has("bot_fills")) {
+      parts.push(ahead("bot_fills"));
+      // the bot-label UPDATE in syncTradeEvents changes a row only when its mirror account belongs to a bot
+      parts.push(`EXISTS (SELECT 1 FROM trade_events e JOIN mirror_accounts a ON a.account_id = e.account_id
+        WHERE e.source = 'mirror' AND e.bot_id IS NULL AND e.account_id IS NOT NULL AND a.bot_id IS NOT NULL
+          AND e.id > (SELECT COALESCE(MAX(id), 0) - 200 FROM trade_events))`);
+    }
+    if (vapidOf(env)) parts.push(`EXISTS (SELECT 1 FROM push_subscriptions WHERE disabled_at IS NULL) AND (
+      NOT EXISTS (SELECT 1 FROM event_cursors WHERE name = 'push_planned')
+      OR (SELECT COALESCE(MAX(id), 0) FROM trade_events WHERE kind <> 'TEST') > ${cur("push_planned")}
+      OR EXISTS (SELECT 1 FROM push_deliveries WHERE status IN ('pending', 'sending')))`);
+    const row = await env.DB.prepare(`SELECT CASE WHEN (${parts.join(") OR (")}) THEN 1 ELSE 0 END AS work`).first<{ work: number }>();
+    return Number(row?.work) !== 0;
+  } catch {
+    return true; // unknown: run the full routine exactly as before
+  }
+}
+
 /** Called after event-producing requests (ctx.waitUntil). Swallows every error: ingestion is never affected. */
 export async function processEvents(env: EventsEnv): Promise<void> {
   try {
+    if (!(await eventWorkPending(env))) return;
     await syncTradeEvents(env.DB);
     await deliver(env);
   } catch (e) {
