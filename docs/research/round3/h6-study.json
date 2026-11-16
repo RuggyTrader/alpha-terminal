@@ -1,0 +1,4742 @@
+{
+ "label": "H6 sensitivity and weakness study (RESEARCH; ETH already examined; nothing selected from this)",
+ "registered": "ma 50, k 3, trail 3, gs 200, vw 30, mw 365, vq 0.5, risk 2 %",
+ "periods": [
+  "development",
+  "validation",
+  "all",
+  "y2022",
+  "y2023",
+  "y2024",
+  "y2025",
+  "y2026"
+ ],
+ "grid": [
+  {
+   "variant": "registered H6",
+   "cells": {
+    "BTC.development": {
+     "net": 9.46,
+     "trades": 13,
+     "pf": 2.99,
+     "max_dd_pct": 4.5
+    },
+    "BTC.validation": {
+     "net": 7.42,
+     "trades": 21,
+     "pf": 1.87,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 17.58,
+     "trades": 34,
+     "pf": 2.25,
+     "max_dd_pct": 4.5
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 4.29,
+     "trades": 10,
+     "pf": 2.3,
+     "max_dd_pct": 4.5
+    },
+    "BTC.y2024": {
+     "net": 9.11,
+     "trades": 8,
+     "pf": 3.04,
+     "max_dd_pct": 2.5
+    },
+    "BTC.y2025": {
+     "net": -0.05,
+     "trades": 12,
+     "pf": 0.99,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 3.38,
+     "trades": 4,
+     "pf": 2.88,
+     "max_dd_pct": 2.2
+    },
+    "SOL.development": {
+     "net": 2.44,
+     "trades": 15,
+     "pf": 1.35,
+     "max_dd_pct": 5.8
+    },
+    "SOL.validation": {
+     "net": 4.88,
+     "trades": 18,
+     "pf": 1.45,
+     "max_dd_pct": 5.1
+    },
+    "SOL.all": {
+     "net": 7.44,
+     "trades": 33,
+     "pf": 1.41,
+     "max_dd_pct": 5.8
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.01,
+     "trades": 12,
+     "pf": 1.62,
+     "max_dd_pct": 5.8
+    },
+    "SOL.y2024": {
+     "net": 4.4,
+     "trades": 6,
+     "pf": 2.55,
+     "max_dd_pct": 3
+    },
+    "SOL.y2025": {
+     "net": -0.6,
+     "trades": 10,
+     "pf": 0.92,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": 0.47,
+     "trades": 4,
+     "pf": 1.19,
+     "max_dd_pct": 2.4
+    },
+    "ETH.development": {
+     "net": 3.81,
+     "trades": 16,
+     "pf": 1.66,
+     "max_dd_pct": 6.4
+    },
+    "ETH.validation": {
+     "net": 9.53,
+     "trades": 20,
+     "pf": 2.15,
+     "max_dd_pct": 3.6
+    },
+    "ETH.all": {
+     "net": 13.7,
+     "trades": 36,
+     "pf": 1.95,
+     "max_dd_pct": 6.4
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.78,
+     "trades": 13,
+     "pf": 0.59,
+     "max_dd_pct": 6.4
+    },
+    "ETH.y2024": {
+     "net": 4.22,
+     "trades": 12,
+     "pf": 1.64,
+     "max_dd_pct": 4
+    },
+    "ETH.y2025": {
+     "net": 9.44,
+     "trades": 8,
+     "pf": 6.11,
+     "max_dd_pct": 2.7
+    },
+    "ETH.y2026": {
+     "net": 1.49,
+     "trades": 3,
+     "pf": 1.95,
+     "max_dd_pct": 1.7
+    }
+   }
+  },
+  {
+   "variant": {
+    "ma": 30
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 5.15,
+     "trades": 17,
+     "pf": 1.54,
+     "max_dd_pct": 9.3
+    },
+    "BTC.validation": {
+     "net": 2.53,
+     "trades": 27,
+     "pf": 1.2,
+     "max_dd_pct": 6.4
+    },
+    "BTC.all": {
+     "net": 7.81,
+     "trades": 44,
+     "pf": 1.34,
+     "max_dd_pct": 9.3
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 0.69,
+     "trades": 14,
+     "pf": 1.09,
+     "max_dd_pct": 9.3
+    },
+    "BTC.y2024": {
+     "net": 10.21,
+     "trades": 7,
+     "pf": 4.01,
+     "max_dd_pct": 2
+    },
+    "BTC.y2025": {
+     "net": -4.04,
+     "trades": 16,
+     "pf": 0.43,
+     "max_dd_pct": 6.3
+    },
+    "BTC.y2026": {
+     "net": 2.2,
+     "trades": 6,
+     "pf": 1.74,
+     "max_dd_pct": 3.3
+    },
+    "SOL.development": {
+     "net": 1.54,
+     "trades": 18,
+     "pf": 1.21,
+     "max_dd_pct": 6.8
+    },
+    "SOL.validation": {
+     "net": 2.84,
+     "trades": 23,
+     "pf": 1.26,
+     "max_dd_pct": 5.3
+    },
+    "SOL.all": {
+     "net": 4.4,
+     "trades": 41,
+     "pf": 1.24,
+     "max_dd_pct": 6.8
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 1.47,
+     "trades": 15,
+     "pf": 1.22,
+     "max_dd_pct": 6.8
+    },
+    "SOL.y2024": {
+     "net": 3.4,
+     "trades": 9,
+     "pf": 2.27,
+     "max_dd_pct": 2.3
+    },
+    "SOL.y2025": {
+     "net": -1.81,
+     "trades": 13,
+     "pf": 0.73,
+     "max_dd_pct": 5.3
+    },
+    "SOL.y2026": {
+     "net": 1.05,
+     "trades": 3,
+     "pf": 1.56,
+     "max_dd_pct": 1.9
+    },
+    "ETH.development": {
+     "net": 1.69,
+     "trades": 16,
+     "pf": 1.2,
+     "max_dd_pct": 9.1
+    },
+    "ETH.validation": {
+     "net": 7.92,
+     "trades": 22,
+     "pf": 1.84,
+     "max_dd_pct": 3.5
+    },
+    "ETH.all": {
+     "net": 9.73,
+     "trades": 38,
+     "pf": 1.54,
+     "max_dd_pct": 9.1
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -4.12,
+     "trades": 14,
+     "pf": 0.43,
+     "max_dd_pct": 9.1
+    },
+    "ETH.y2024": {
+     "net": 6.45,
+     "trades": 8,
+     "pf": 2.47,
+     "max_dd_pct": 3.4
+    },
+    "ETH.y2025": {
+     "net": 6.82,
+     "trades": 12,
+     "pf": 2.79,
+     "max_dd_pct": 2.6
+    },
+    "ETH.y2026": {
+     "net": 0.66,
+     "trades": 4,
+     "pf": 1.27,
+     "max_dd_pct": 2.6
+    }
+   }
+  },
+  {
+   "variant": {
+    "ma": 40
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 9.95,
+     "trades": 12,
+     "pf": 2.7,
+     "max_dd_pct": 5.9
+    },
+    "BTC.validation": {
+     "net": 6.48,
+     "trades": 25,
+     "pf": 1.74,
+     "max_dd_pct": 4.3
+    },
+    "BTC.all": {
+     "net": 17.07,
+     "trades": 37,
+     "pf": 2.1,
+     "max_dd_pct": 5.9
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 4.3,
+     "trades": 10,
+     "pf": 1.88,
+     "max_dd_pct": 5.9
+    },
+    "BTC.y2024": {
+     "net": 9.17,
+     "trades": 8,
+     "pf": 3.07,
+     "max_dd_pct": 2.8
+    },
+    "BTC.y2025": {
+     "net": -0.17,
+     "trades": 13,
+     "pf": 0.95,
+     "max_dd_pct": 2.9
+    },
+    "BTC.y2026": {
+     "net": 2.99,
+     "trades": 6,
+     "pf": 2.36,
+     "max_dd_pct": 2.6
+    },
+    "SOL.development": {
+     "net": 2.65,
+     "trades": 19,
+     "pf": 1.41,
+     "max_dd_pct": 6.1
+    },
+    "SOL.validation": {
+     "net": 3.56,
+     "trades": 25,
+     "pf": 1.29,
+     "max_dd_pct": 4.2
+    },
+    "SOL.all": {
+     "net": 6.31,
+     "trades": 44,
+     "pf": 1.33,
+     "max_dd_pct": 6.1
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 2.32,
+     "trades": 16,
+     "pf": 1.44,
+     "max_dd_pct": 6.1
+    },
+    "SOL.y2024": {
+     "net": 5.02,
+     "trades": 8,
+     "pf": 2.66,
+     "max_dd_pct": 2.4
+    },
+    "SOL.y2025": {
+     "net": -1.49,
+     "trades": 15,
+     "pf": 0.79,
+     "max_dd_pct": 4.2
+    },
+    "SOL.y2026": {
+     "net": 0.18,
+     "trades": 4,
+     "pf": 1.07,
+     "max_dd_pct": 2.7
+    },
+    "ETH.development": {
+     "net": 2.67,
+     "trades": 18,
+     "pf": 1.36,
+     "max_dd_pct": 7.6
+    },
+    "ETH.validation": {
+     "net": 11.53,
+     "trades": 18,
+     "pf": 2.55,
+     "max_dd_pct": 3
+    },
+    "ETH.all": {
+     "net": 14.5,
+     "trades": 36,
+     "pf": 1.96,
+     "max_dd_pct": 7.6
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -2.96,
+     "trades": 14,
+     "pf": 0.51,
+     "max_dd_pct": 7.6
+    },
+    "ETH.y2024": {
+     "net": 4.75,
+     "trades": 11,
+     "pf": 1.78,
+     "max_dd_pct": 4.3
+    },
+    "ETH.y2025": {
+     "net": 10.3,
+     "trades": 8,
+     "pf": 5.97,
+     "max_dd_pct": 2.5
+    },
+    "ETH.y2026": {
+     "net": 2.13,
+     "trades": 3,
+     "pf": 3.28,
+     "max_dd_pct": 1.1
+    }
+   }
+  },
+  {
+   "variant": {
+    "ma": 60
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 9.27,
+     "trades": 13,
+     "pf": 2.99,
+     "max_dd_pct": 4.8
+    },
+    "BTC.validation": {
+     "net": 7.33,
+     "trades": 19,
+     "pf": 1.83,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 17.28,
+     "trades": 32,
+     "pf": 2.21,
+     "max_dd_pct": 4.8
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 4.03,
+     "trades": 10,
+     "pf": 2.21,
+     "max_dd_pct": 4.8
+    },
+    "BTC.y2024": {
+     "net": 9.06,
+     "trades": 8,
+     "pf": 3.01,
+     "max_dd_pct": 2.6
+    },
+    "BTC.y2025": {
+     "net": -0.16,
+     "trades": 11,
+     "pf": 0.96,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 3.31,
+     "trades": 4,
+     "pf": 2.77,
+     "max_dd_pct": 2.3
+    },
+    "SOL.development": {
+     "net": 1.47,
+     "trades": 14,
+     "pf": 1.2,
+     "max_dd_pct": 6.2
+    },
+    "SOL.validation": {
+     "net": 3.78,
+     "trades": 18,
+     "pf": 1.34,
+     "max_dd_pct": 4.6
+    },
+    "SOL.all": {
+     "net": 5.31,
+     "trades": 32,
+     "pf": 1.29,
+     "max_dd_pct": 6.2
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 1.88,
+     "trades": 11,
+     "pf": 1.36,
+     "max_dd_pct": 6.2
+    },
+    "SOL.y2024": {
+     "net": 4.56,
+     "trades": 6,
+     "pf": 2.7,
+     "max_dd_pct": 2.8
+    },
+    "SOL.y2025": {
+     "net": -0.95,
+     "trades": 9,
+     "pf": 0.86,
+     "max_dd_pct": 4.6
+    },
+    "SOL.y2026": {
+     "net": 0.28,
+     "trades": 4,
+     "pf": 1.11,
+     "max_dd_pct": 2.6
+    },
+    "ETH.development": {
+     "net": 2.44,
+     "trades": 18,
+     "pf": 1.35,
+     "max_dd_pct": 6.9
+    },
+    "ETH.validation": {
+     "net": 9.81,
+     "trades": 22,
+     "pf": 2.28,
+     "max_dd_pct": 3.1
+    },
+    "ETH.all": {
+     "net": 12.49,
+     "trades": 40,
+     "pf": 1.84,
+     "max_dd_pct": 6.9
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -2.34,
+     "trades": 14,
+     "pf": 0.51,
+     "max_dd_pct": 6.9
+    },
+    "ETH.y2024": {
+     "net": 3.59,
+     "trades": 13,
+     "pf": 1.5,
+     "max_dd_pct": 4.9
+    },
+    "ETH.y2025": {
+     "net": 9.88,
+     "trades": 9,
+     "pf": 10.51,
+     "max_dd_pct": 3.1
+    },
+    "ETH.y2026": {
+     "net": 1.19,
+     "trades": 4,
+     "pf": 1.64,
+     "max_dd_pct": 2
+    }
+   }
+  },
+  {
+   "variant": {
+    "ma": 80
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 6.11,
+     "trades": 14,
+     "pf": 1.83,
+     "max_dd_pct": 7.3
+    },
+    "BTC.validation": {
+     "net": 6.26,
+     "trades": 19,
+     "pf": 1.55,
+     "max_dd_pct": 4.6
+    },
+    "BTC.all": {
+     "net": 12.76,
+     "trades": 33,
+     "pf": 1.66,
+     "max_dd_pct": 7.3
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 1.27,
+     "trades": 11,
+     "pf": 1.22,
+     "max_dd_pct": 7.3
+    },
+    "BTC.y2024": {
+     "net": 8.8,
+     "trades": 8,
+     "pf": 2.85,
+     "max_dd_pct": 2.6
+    },
+    "BTC.y2025": {
+     "net": 1.1,
+     "trades": 10,
+     "pf": 1.28,
+     "max_dd_pct": 4.6
+    },
+    "BTC.y2026": {
+     "net": 0.92,
+     "trades": 5,
+     "pf": 1.22,
+     "max_dd_pct": 4.6
+    },
+    "SOL.development": {
+     "net": -0.52,
+     "trades": 15,
+     "pf": 0.93,
+     "max_dd_pct": 8
+    },
+    "SOL.validation": {
+     "net": 2.06,
+     "trades": 21,
+     "pf": 1.15,
+     "max_dd_pct": 4.6
+    },
+    "SOL.all": {
+     "net": 1.53,
+     "trades": 36,
+     "pf": 1.07,
+     "max_dd_pct": 8
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": -0.98,
+     "trades": 13,
+     "pf": 0.86,
+     "max_dd_pct": 8
+    },
+    "SOL.y2024": {
+     "net": 4.35,
+     "trades": 6,
+     "pf": 2.51,
+     "max_dd_pct": 3
+    },
+    "SOL.y2025": {
+     "net": -1.68,
+     "trades": 12,
+     "pf": 0.79,
+     "max_dd_pct": 4.5
+    },
+    "SOL.y2026": {
+     "net": -0.1,
+     "trades": 4,
+     "pf": 0.97,
+     "max_dd_pct": 3
+    },
+    "ETH.development": {
+     "net": 0.85,
+     "trades": 22,
+     "pf": 1.11,
+     "max_dd_pct": 8
+    },
+    "ETH.validation": {
+     "net": 4.59,
+     "trades": 19,
+     "pf": 1.45,
+     "max_dd_pct": 4.3
+    },
+    "ETH.all": {
+     "net": 5.68,
+     "trades": 40,
+     "pf": 1.32,
+     "max_dd_pct": 8
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -3.95,
+     "trades": 17,
+     "pf": 0.28,
+     "max_dd_pct": 8
+    },
+    "ETH.y2024": {
+     "net": 3.56,
+     "trades": 11,
+     "pf": 1.49,
+     "max_dd_pct": 5.1
+    },
+    "ETH.y2025": {
+     "net": 5.18,
+     "trades": 9,
+     "pf": 2.59,
+     "max_dd_pct": 3.6
+    },
+    "ETH.y2026": {
+     "net": 0.77,
+     "trades": 4,
+     "pf": 1.34,
+     "max_dd_pct": 2.4
+    }
+   }
+  },
+  {
+   "variant": {
+    "ma": 100
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 5.21,
+     "trades": 17,
+     "pf": 1.56,
+     "max_dd_pct": 8.6
+    },
+    "BTC.validation": {
+     "net": 4.25,
+     "trades": 27,
+     "pf": 1.33,
+     "max_dd_pct": 5.8
+    },
+    "BTC.all": {
+     "net": 9.68,
+     "trades": 44,
+     "pf": 1.42,
+     "max_dd_pct": 8.6
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": -0.19,
+     "trades": 15,
+     "pf": 0.98,
+     "max_dd_pct": 8.6
+    },
+    "BTC.y2024": {
+     "net": 9.46,
+     "trades": 7,
+     "pf": 3.28,
+     "max_dd_pct": 2.6
+    },
+    "BTC.y2025": {
+     "net": -1.58,
+     "trades": 18,
+     "pf": 0.75,
+     "max_dd_pct": 5.8
+    },
+    "BTC.y2026": {
+     "net": 1.7,
+     "trades": 5,
+     "pf": 1.49,
+     "max_dd_pct": 3.8
+    },
+    "SOL.development": {
+     "net": -2.95,
+     "trades": 16,
+     "pf": 0.68,
+     "max_dd_pct": 7.3
+    },
+    "SOL.validation": {
+     "net": 2.17,
+     "trades": 19,
+     "pf": 1.18,
+     "max_dd_pct": 6.8
+    },
+    "SOL.all": {
+     "net": -2.01,
+     "trades": 35,
+     "pf": 0.91,
+     "max_dd_pct": 7.3
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": -3.11,
+     "trades": 13,
+     "pf": 0.61,
+     "max_dd_pct": 7.3
+    },
+    "SOL.y2024": {
+     "net": 5.16,
+     "trades": 6,
+     "pf": 3.44,
+     "max_dd_pct": 2.3
+    },
+    "SOL.y2025": {
+     "net": -3.68,
+     "trades": 11,
+     "pf": 0.58,
+     "max_dd_pct": 6.1
+    },
+    "SOL.y2026": {
+     "net": -0.44,
+     "trades": 4,
+     "pf": 0.87,
+     "max_dd_pct": 3.3
+    },
+    "ETH.development": {
+     "net": 0.58,
+     "trades": 20,
+     "pf": 1.08,
+     "max_dd_pct": 6.3
+    },
+    "ETH.validation": {
+     "net": 2.54,
+     "trades": 23,
+     "pf": 1.2,
+     "max_dd_pct": 5.7
+    },
+    "ETH.all": {
+     "net": 3.18,
+     "trades": 43,
+     "pf": 1.16,
+     "max_dd_pct": 6.3
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -3.14,
+     "trades": 14,
+     "pf": 0.28,
+     "max_dd_pct": 6.3
+    },
+    "ETH.y2024": {
+     "net": 3.96,
+     "trades": 11,
+     "pf": 1.58,
+     "max_dd_pct": 4.7
+    },
+    "ETH.y2025": {
+     "net": 5.75,
+     "trades": 11,
+     "pf": 3.18,
+     "max_dd_pct": 4.1
+    },
+    "ETH.y2026": {
+     "net": -2.55,
+     "trades": 7,
+     "pf": 0.55,
+     "max_dd_pct": 5.7
+    }
+   }
+  },
+  {
+   "variant": {
+    "gs": 150
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 7.79,
+     "trades": 20,
+     "pf": 1.93,
+     "max_dd_pct": 6
+    },
+    "BTC.validation": {
+     "net": 6.51,
+     "trades": 23,
+     "pf": 1.61,
+     "max_dd_pct": 5.9
+    },
+    "BTC.all": {
+     "net": 14.8,
+     "trades": 43,
+     "pf": 1.74,
+     "max_dd_pct": 6
+    },
+    "BTC.y2022": {
+     "net": -1.42,
+     "trades": 3,
+     "pf": 0,
+     "max_dd_pct": 1.4
+    },
+    "BTC.y2023": {
+     "net": 5.4,
+     "trades": 12,
+     "pf": 2.19,
+     "max_dd_pct": 6
+    },
+    "BTC.y2024": {
+     "net": 10.57,
+     "trades": 7,
+     "pf": 3.45,
+     "max_dd_pct": 2.5
+    },
+    "BTC.y2025": {
+     "net": -0.05,
+     "trades": 12,
+     "pf": 0.99,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 1.14,
+     "trades": 7,
+     "pf": 1.29,
+     "max_dd_pct": 3.1
+    },
+    "SOL.development": {
+     "net": 1.06,
+     "trades": 20,
+     "pf": 1.11,
+     "max_dd_pct": 5.9
+    },
+    "SOL.validation": {
+     "net": 6.18,
+     "trades": 20,
+     "pf": 1.56,
+     "max_dd_pct": 5.6
+    },
+    "SOL.all": {
+     "net": 7.31,
+     "trades": 40,
+     "pf": 1.36,
+     "max_dd_pct": 5.9
+    },
+    "SOL.y2022": {
+     "net": -1.07,
+     "trades": 3,
+     "pf": 0.1,
+     "max_dd_pct": 1.5
+    },
+    "SOL.y2023": {
+     "net": 2.73,
+     "trades": 14,
+     "pf": 1.45,
+     "max_dd_pct": 5.9
+    },
+    "SOL.y2024": {
+     "net": 6.28,
+     "trades": 5,
+     "pf": 4,
+     "max_dd_pct": 2.1
+    },
+    "SOL.y2025": {
+     "net": -0.6,
+     "trades": 10,
+     "pf": 0.92,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": -0.09,
+     "trades": 7,
+     "pf": 0.97,
+     "max_dd_pct": 2.9
+    },
+    "ETH.development": {
+     "net": -2.45,
+     "trades": 27,
+     "pf": 0.8,
+     "max_dd_pct": 10.3
+    },
+    "ETH.validation": {
+     "net": 8.43,
+     "trades": 21,
+     "pf": 1.9,
+     "max_dd_pct": 3.6
+    },
+    "ETH.all": {
+     "net": 5.78,
+     "trades": 48,
+     "pf": 1.27,
+     "max_dd_pct": 10.3
+    },
+    "ETH.y2022": {
+     "net": -1.79,
+     "trades": 3,
+     "pf": 0,
+     "max_dd_pct": 1.8
+    },
+    "ETH.y2023": {
+     "net": -2.69,
+     "trades": 15,
+     "pf": 0.53,
+     "max_dd_pct": 7.8
+    },
+    "ETH.y2024": {
+     "net": 3.99,
+     "trades": 12,
+     "pf": 1.59,
+     "max_dd_pct": 4.2
+    },
+    "ETH.y2025": {
+     "net": 9.44,
+     "trades": 8,
+     "pf": 6.11,
+     "max_dd_pct": 2.7
+    },
+    "ETH.y2026": {
+     "net": 0.7,
+     "trades": 4,
+     "pf": 1.3,
+     "max_dd_pct": 1.7
+    }
+   }
+  },
+  {
+   "variant": {
+    "gs": 250
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 4.75,
+     "trades": 17,
+     "pf": 1.67,
+     "max_dd_pct": 5.9
+    },
+    "BTC.validation": {
+     "net": 6.53,
+     "trades": 22,
+     "pf": 1.74,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 11.59,
+     "trades": 39,
+     "pf": 1.71,
+     "max_dd_pct": 5.9
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": -0.2,
+     "trades": 14,
+     "pf": 0.97,
+     "max_dd_pct": 5.9
+    },
+    "BTC.y2024": {
+     "net": 10.11,
+     "trades": 9,
+     "pf": 3.13,
+     "max_dd_pct": 2.8
+    },
+    "BTC.y2025": {
+     "net": -0.05,
+     "trades": 12,
+     "pf": 0.99,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 1.59,
+     "trades": 4,
+     "pf": 1.9,
+     "max_dd_pct": 2.2
+    },
+    "SOL.development": {
+     "net": -1.18,
+     "trades": 17,
+     "pf": 0.87,
+     "max_dd_pct": 5.2
+    },
+    "SOL.validation": {
+     "net": 5.73,
+     "trades": 19,
+     "pf": 1.54,
+     "max_dd_pct": 5.2
+    },
+    "SOL.all": {
+     "net": 4.48,
+     "trades": 36,
+     "pf": 1.23,
+     "max_dd_pct": 5.2
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": -0.62,
+     "trades": 14,
+     "pf": 0.91,
+     "max_dd_pct": 5.2
+    },
+    "SOL.y2024": {
+     "net": 5.88,
+     "trades": 7,
+     "pf": 3.39,
+     "max_dd_pct": 2.1
+    },
+    "SOL.y2025": {
+     "net": -0.6,
+     "trades": 10,
+     "pf": 0.92,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": -0.14,
+     "trades": 4,
+     "pf": 0.94,
+     "max_dd_pct": 2.4
+    },
+    "ETH.development": {
+     "net": -0.63,
+     "trades": 19,
+     "pf": 0.94,
+     "max_dd_pct": 8.1
+    },
+    "ETH.validation": {
+     "net": 8.47,
+     "trades": 20,
+     "pf": 2,
+     "max_dd_pct": 3.6
+    },
+    "ETH.all": {
+     "net": 7.79,
+     "trades": 39,
+     "pf": 1.43,
+     "max_dd_pct": 8.1
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -5.98,
+     "trades": 16,
+     "pf": 0.28,
+     "max_dd_pct": 8.1
+    },
+    "ETH.y2024": {
+     "net": 3.99,
+     "trades": 12,
+     "pf": 1.59,
+     "max_dd_pct": 4.2
+    },
+    "ETH.y2025": {
+     "net": 9.44,
+     "trades": 8,
+     "pf": 6.11,
+     "max_dd_pct": 2.7
+    },
+    "ETH.y2026": {
+     "net": 0.73,
+     "trades": 3,
+     "pf": 1.47,
+     "max_dd_pct": 1.7
+    }
+   }
+  },
+  {
+   "variant": {
+    "vq": 0.4
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 10.04,
+     "trades": 12,
+     "pf": 2.75,
+     "max_dd_pct": 5.4
+    },
+    "BTC.validation": {
+     "net": 4.45,
+     "trades": 21,
+     "pf": 1.65,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 14.93,
+     "trades": 33,
+     "pf": 2.12,
+     "max_dd_pct": 5.4
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 3.94,
+     "trades": 10,
+     "pf": 1.75,
+     "max_dd_pct": 5.4
+    },
+    "BTC.y2024": {
+     "net": 9.97,
+     "trades": 9,
+     "pf": 4.46,
+     "max_dd_pct": 1.7
+    },
+    "BTC.y2025": {
+     "net": -0.9,
+     "trades": 10,
+     "pf": 0.69,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 1.46,
+     "trades": 4,
+     "pf": 2,
+     "max_dd_pct": 1.9
+    },
+    "SOL.development": {
+     "net": 3.5,
+     "trades": 14,
+     "pf": 1.56,
+     "max_dd_pct": 6.6
+    },
+    "SOL.validation": {
+     "net": 0.23,
+     "trades": 18,
+     "pf": 1.02,
+     "max_dd_pct": 5.9
+    },
+    "SOL.all": {
+     "net": 3.74,
+     "trades": 32,
+     "pf": 1.22,
+     "max_dd_pct": 6.6
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.02,
+     "trades": 12,
+     "pf": 1.59,
+     "max_dd_pct": 6.6
+    },
+    "SOL.y2024": {
+     "net": 3.7,
+     "trades": 6,
+     "pf": 3.03,
+     "max_dd_pct": 2.1
+    },
+    "SOL.y2025": {
+     "net": -2.1,
+     "trades": 9,
+     "pf": 0.7,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": -0.85,
+     "trades": 4,
+     "pf": 0.62,
+     "max_dd_pct": 2.4
+    },
+    "ETH.development": {
+     "net": 4.86,
+     "trades": 15,
+     "pf": 1.82,
+     "max_dd_pct": 6.7
+    },
+    "ETH.validation": {
+     "net": 4.05,
+     "trades": 18,
+     "pf": 1.56,
+     "max_dd_pct": 2.8
+    },
+    "ETH.all": {
+     "net": 9.12,
+     "trades": 33,
+     "pf": 1.67,
+     "max_dd_pct": 6.7
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.86,
+     "trades": 13,
+     "pf": 0.67,
+     "max_dd_pct": 6.7
+    },
+    "ETH.y2024": {
+     "net": 4.97,
+     "trades": 10,
+     "pf": 2.12,
+     "max_dd_pct": 3.5
+    },
+    "ETH.y2025": {
+     "net": 6.24,
+     "trades": 7,
+     "pf": 4.43,
+     "max_dd_pct": 2.7
+    },
+    "ETH.y2026": {
+     "net": -0.3,
+     "trades": 3,
+     "pf": 0.82,
+     "max_dd_pct": 1.9
+    }
+   }
+  },
+  {
+   "variant": {
+    "vq": 0.6
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 9.93,
+     "trades": 17,
+     "pf": 3.15,
+     "max_dd_pct": 3.1
+    },
+    "BTC.validation": {
+     "net": 4.14,
+     "trades": 28,
+     "pf": 1.36,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 14.47,
+     "trades": 45,
+     "pf": 1.83,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 5.59,
+     "trades": 13,
+     "pf": 3.45,
+     "max_dd_pct": 3.1
+    },
+    "BTC.y2024": {
+     "net": 7.29,
+     "trades": 12,
+     "pf": 2.07,
+     "max_dd_pct": 4.1
+    },
+    "BTC.y2025": {
+     "net": -0.59,
+     "trades": 13,
+     "pf": 0.86,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 1.66,
+     "trades": 7,
+     "pf": 1.59,
+     "max_dd_pct": 2.5
+    },
+    "SOL.development": {
+     "net": 7.4,
+     "trades": 19,
+     "pf": 2.08,
+     "max_dd_pct": 5.8
+    },
+    "SOL.validation": {
+     "net": 4,
+     "trades": 23,
+     "pf": 1.34,
+     "max_dd_pct": 5.1
+    },
+    "SOL.all": {
+     "net": 11.24,
+     "trades": 43,
+     "pf": 1.57,
+     "max_dd_pct": 5.8
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 8.35,
+     "trades": 15,
+     "pf": 2.95,
+     "max_dd_pct": 5.8
+    },
+    "SOL.y2024": {
+     "net": 2.63,
+     "trades": 10,
+     "pf": 1.51,
+     "max_dd_pct": 4.6
+    },
+    "SOL.y2025": {
+     "net": 0.05,
+     "trades": 9,
+     "pf": 1.01,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": 0.36,
+     "trades": 7,
+     "pf": 1.13,
+     "max_dd_pct": 2.5
+    },
+    "ETH.development": {
+     "net": 3.71,
+     "trades": 19,
+     "pf": 1.49,
+     "max_dd_pct": 6
+    },
+    "ETH.validation": {
+     "net": 9.17,
+     "trades": 22,
+     "pf": 1.97,
+     "max_dd_pct": 3.6
+    },
+    "ETH.all": {
+     "net": 13.22,
+     "trades": 41,
+     "pf": 1.76,
+     "max_dd_pct": 6
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.32,
+     "trades": 16,
+     "pf": 0.76,
+     "max_dd_pct": 6
+    },
+    "ETH.y2024": {
+     "net": 3.63,
+     "trades": 12,
+     "pf": 1.51,
+     "max_dd_pct": 4.5
+    },
+    "ETH.y2025": {
+     "net": 10.86,
+     "trades": 7,
+     "pf": 6.84,
+     "max_dd_pct": 3.5
+    },
+    "ETH.y2026": {
+     "net": -0.13,
+     "trades": 6,
+     "pf": 0.95,
+     "max_dd_pct": 2.4
+    }
+   }
+  },
+  {
+   "variant": {
+    "volGate": false
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 22.98,
+     "trades": 19,
+     "pf": 7.73,
+     "max_dd_pct": 4.2
+    },
+    "BTC.validation": {
+     "net": 9.43,
+     "trades": 21,
+     "pf": 2.2,
+     "max_dd_pct": 5.1
+    },
+    "BTC.all": {
+     "net": 34.57,
+     "trades": 40,
+     "pf": 3.65,
+     "max_dd_pct": 6.3
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 16.14,
+     "trades": 10,
+     "pf": 17.52,
+     "max_dd_pct": 3.1
+    },
+    "BTC.y2024": {
+     "net": 10.59,
+     "trades": 16,
+     "pf": 2.6,
+     "max_dd_pct": 6.3
+    },
+    "BTC.y2025": {
+     "net": -0.29,
+     "trades": 13,
+     "pf": 0.93,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 4.07,
+     "trades": 2,
+     "pf": 11.83,
+     "max_dd_pct": 2.9
+    },
+    "SOL.development": {
+     "net": 38.57,
+     "trades": 21,
+     "pf": 5.1,
+     "max_dd_pct": 10.8
+    },
+    "SOL.validation": {
+     "net": 7.79,
+     "trades": 18,
+     "pf": 1.9,
+     "max_dd_pct": 5.1
+    },
+    "SOL.all": {
+     "net": 46.93,
+     "trades": 41,
+     "pf": 2.99,
+     "max_dd_pct": 12.1
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 42.27,
+     "trades": 13,
+     "pf": 9.95,
+     "max_dd_pct": 7.1
+    },
+    "SOL.y2024": {
+     "net": 2.17,
+     "trades": 14,
+     "pf": 1.34,
+     "max_dd_pct": 7.2
+    },
+    "SOL.y2025": {
+     "net": -0.29,
+     "trades": 9,
+     "pf": 0.95,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": 4.96,
+     "trades": 2,
+     "pf": 9.22,
+     "max_dd_pct": 3.8
+    },
+    "ETH.development": {
+     "net": 7.33,
+     "trades": 21,
+     "pf": 1.94,
+     "max_dd_pct": 5.8
+    },
+    "ETH.validation": {
+     "net": 11.75,
+     "trades": 19,
+     "pf": 2.81,
+     "max_dd_pct": 4.8
+    },
+    "ETH.all": {
+     "net": 19.94,
+     "trades": 40,
+     "pf": 2.35,
+     "max_dd_pct": 9.2
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": 4.04,
+     "trades": 14,
+     "pf": 2,
+     "max_dd_pct": 5.7
+    },
+    "ETH.y2024": {
+     "net": 1.9,
+     "trades": 18,
+     "pf": 1.22,
+     "max_dd_pct": 9.2
+    },
+    "ETH.y2025": {
+     "net": 9.79,
+     "trades": 8,
+     "pf": 5.68,
+     "max_dd_pct": 3
+    },
+    "ETH.y2026": {
+     "net": 2.44,
+     "trades": 1,
+     "pf": 99,
+     "max_dd_pct": 2.1
+    }
+   }
+  },
+  {
+   "variant": {
+    "vw": 20
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 11.71,
+     "trades": 18,
+     "pf": 2.57,
+     "max_dd_pct": 5.2
+    },
+    "BTC.validation": {
+     "net": 1.66,
+     "trades": 22,
+     "pf": 1.2,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 13.56,
+     "trades": 40,
+     "pf": 1.81,
+     "max_dd_pct": 5.2
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 3.48,
+     "trades": 12,
+     "pf": 1.73,
+     "max_dd_pct": 5.2
+    },
+    "BTC.y2024": {
+     "net": 6.49,
+     "trades": 12,
+     "pf": 1.95,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2025": {
+     "net": 0.67,
+     "trades": 12,
+     "pf": 1.18,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 1.46,
+     "trades": 4,
+     "pf": 2.3,
+     "max_dd_pct": 1.2
+    },
+    "SOL.development": {
+     "net": 3.02,
+     "trades": 18,
+     "pf": 1.43,
+     "max_dd_pct": 6.2
+    },
+    "SOL.validation": {
+     "net": 1.09,
+     "trades": 18,
+     "pf": 1.12,
+     "max_dd_pct": 4.6
+    },
+    "SOL.all": {
+     "net": 6.44,
+     "trades": 37,
+     "pf": 1.38,
+     "max_dd_pct": 6.2
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.7,
+     "trades": 12,
+     "pf": 1.87,
+     "max_dd_pct": 6.2
+    },
+    "SOL.y2024": {
+     "net": -1.11,
+     "trades": 10,
+     "pf": 0.8,
+     "max_dd_pct": 5.2
+    },
+    "SOL.y2025": {
+     "net": -0.12,
+     "trades": 10,
+     "pf": 0.98,
+     "max_dd_pct": 4.6
+    },
+    "SOL.y2026": {
+     "net": 1.07,
+     "trades": 4,
+     "pf": 1.81,
+     "max_dd_pct": 1.3
+    },
+    "ETH.development": {
+     "net": 2.24,
+     "trades": 20,
+     "pf": 1.25,
+     "max_dd_pct": 7.2
+    },
+    "ETH.validation": {
+     "net": 5.59,
+     "trades": 19,
+     "pf": 1.71,
+     "max_dd_pct": 5.2
+    },
+    "ETH.all": {
+     "net": 7.96,
+     "trades": 39,
+     "pf": 1.46,
+     "max_dd_pct": 7.4
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -3.26,
+     "trades": 15,
+     "pf": 0.49,
+     "max_dd_pct": 7.2
+    },
+    "ETH.y2024": {
+     "net": 0.61,
+     "trades": 13,
+     "pf": 1.08,
+     "max_dd_pct": 6.5
+    },
+    "ETH.y2025": {
+     "net": 9.76,
+     "trades": 8,
+     "pf": 5.13,
+     "max_dd_pct": 3
+    },
+    "ETH.y2026": {
+     "net": 0.56,
+     "trades": 3,
+     "pf": 1.46,
+     "max_dd_pct": 1.2
+    }
+   }
+  },
+  {
+   "variant": {
+    "vw": 45
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 14.29,
+     "trades": 13,
+     "pf": 9.89,
+     "max_dd_pct": 3.1
+    },
+    "BTC.validation": {
+     "net": 6.02,
+     "trades": 22,
+     "pf": 1.7,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 21.16,
+     "trades": 35,
+     "pf": 2.86,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 11.13,
+     "trades": 10,
+     "pf": 12.41,
+     "max_dd_pct": 3.1
+    },
+    "BTC.y2024": {
+     "net": 7.41,
+     "trades": 8,
+     "pf": 3.46,
+     "max_dd_pct": 2.9
+    },
+    "BTC.y2025": {
+     "net": -0.59,
+     "trades": 15,
+     "pf": 0.87,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 2.1,
+     "trades": 2,
+     "pf": 2.39,
+     "max_dd_pct": 1.5
+    },
+    "SOL.development": {
+     "net": 20.73,
+     "trades": 13,
+     "pf": 8.01,
+     "max_dd_pct": 4.9
+    },
+    "SOL.validation": {
+     "net": 2.62,
+     "trades": 19,
+     "pf": 1.22,
+     "max_dd_pct": 5.7
+    },
+    "SOL.all": {
+     "net": 23.89,
+     "trades": 32,
+     "pf": 2.37,
+     "max_dd_pct": 5.7
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 19.21,
+     "trades": 11,
+     "pf": 7.5,
+     "max_dd_pct": 4.9
+    },
+    "SOL.y2024": {
+     "net": 5.9,
+     "trades": 6,
+     "pf": 6,
+     "max_dd_pct": 3.5
+    },
+    "SOL.y2025": {
+     "net": -1.24,
+     "trades": 11,
+     "pf": 0.84,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": -0.67,
+     "trades": 3,
+     "pf": 0.75,
+     "max_dd_pct": 2.6
+    },
+    "ETH.development": {
+     "net": 4.49,
+     "trades": 16,
+     "pf": 1.96,
+     "max_dd_pct": 5.6
+    },
+    "ETH.validation": {
+     "net": 7.41,
+     "trades": 19,
+     "pf": 1.84,
+     "max_dd_pct": 3.6
+    },
+    "ETH.all": {
+     "net": 12.23,
+     "trades": 35,
+     "pf": 1.88,
+     "max_dd_pct": 5.6
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": 3.48,
+     "trades": 13,
+     "pf": 1.83,
+     "max_dd_pct": 5.6
+    },
+    "ETH.y2024": {
+     "net": 0.71,
+     "trades": 11,
+     "pf": 1.17,
+     "max_dd_pct": 4.3
+    },
+    "ETH.y2025": {
+     "net": 7.48,
+     "trades": 9,
+     "pf": 3.48,
+     "max_dd_pct": 2.5
+    },
+    "ETH.y2026": {
+     "net": 0.19,
+     "trades": 2,
+     "pf": 1.09,
+     "max_dd_pct": 2.1
+    }
+   }
+  },
+  {
+   "variant": {
+    "mw": 180
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 10.69,
+     "trades": 12,
+     "pf": 3.01,
+     "max_dd_pct": 4.2
+    },
+    "BTC.validation": {
+     "net": 8.56,
+     "trades": 21,
+     "pf": 2.15,
+     "max_dd_pct": 4.5
+    },
+    "BTC.all": {
+     "net": 20.17,
+     "trades": 33,
+     "pf": 2.48,
+     "max_dd_pct": 4.5
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 5.32,
+     "trades": 9,
+     "pf": 2.31,
+     "max_dd_pct": 4.2
+    },
+    "BTC.y2024": {
+     "net": 9.01,
+     "trades": 10,
+     "pf": 2.94,
+     "max_dd_pct": 4.1
+    },
+    "BTC.y2025": {
+     "net": -0.14,
+     "trades": 11,
+     "pf": 0.96,
+     "max_dd_pct": 4.5
+    },
+    "BTC.y2026": {
+     "net": 4.81,
+     "trades": 3,
+     "pf": 14.25,
+     "max_dd_pct": 0.9
+    },
+    "SOL.development": {
+     "net": 3,
+     "trades": 13,
+     "pf": 1.45,
+     "max_dd_pct": 6
+    },
+    "SOL.validation": {
+     "net": 5.59,
+     "trades": 18,
+     "pf": 1.62,
+     "max_dd_pct": 5.7
+    },
+    "SOL.all": {
+     "net": 8.75,
+     "trades": 31,
+     "pf": 1.55,
+     "max_dd_pct": 6
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.77,
+     "trades": 10,
+     "pf": 1.87,
+     "max_dd_pct": 6
+    },
+    "SOL.y2024": {
+     "net": 3.79,
+     "trades": 7,
+     "pf": 2.11,
+     "max_dd_pct": 3.6
+    },
+    "SOL.y2025": {
+     "net": -1.93,
+     "trades": 11,
+     "pf": 0.74,
+     "max_dd_pct": 5.7
+    },
+    "SOL.y2026": {
+     "net": 2.92,
+     "trades": 2,
+     "pf": 99,
+     "max_dd_pct": 0.1
+    },
+    "ETH.development": {
+     "net": 3.87,
+     "trades": 15,
+     "pf": 1.49,
+     "max_dd_pct": 6.4
+    },
+    "ETH.validation": {
+     "net": 10.74,
+     "trades": 21,
+     "pf": 2.25,
+     "max_dd_pct": 3.7
+    },
+    "ETH.all": {
+     "net": 15.02,
+     "trades": 36,
+     "pf": 1.9,
+     "max_dd_pct": 6.4
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.49,
+     "trades": 12,
+     "pf": 0.76,
+     "max_dd_pct": 6.4
+    },
+    "ETH.y2024": {
+     "net": 3.84,
+     "trades": 13,
+     "pf": 1.56,
+     "max_dd_pct": 5.6
+    },
+    "ETH.y2025": {
+     "net": 9.09,
+     "trades": 9,
+     "pf": 3.42,
+     "max_dd_pct": 3.7
+    },
+    "ETH.y2026": {
+     "net": 3.06,
+     "trades": 2,
+     "pf": 99,
+     "max_dd_pct": 0.1
+    }
+   }
+  },
+  {
+   "variant": {
+    "mw": 730
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 21.83,
+     "trades": 17,
+     "pf": 5.11,
+     "max_dd_pct": 3.1
+    },
+    "BTC.validation": {
+     "net": 2.16,
+     "trades": 22,
+     "pf": 1.27,
+     "max_dd_pct": 4.4
+    },
+    "BTC.all": {
+     "net": 24.46,
+     "trades": 39,
+     "pf": 2.61,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 10.42,
+     "trades": 11,
+     "pf": 9.68,
+     "max_dd_pct": 3.1
+    },
+    "BTC.y2024": {
+     "net": 10.3,
+     "trades": 12,
+     "pf": 2.73,
+     "max_dd_pct": 3.2
+    },
+    "BTC.y2025": {
+     "net": -1.84,
+     "trades": 13,
+     "pf": 0.55,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 3.26,
+     "trades": 4,
+     "pf": 2.7,
+     "max_dd_pct": 2.2
+    },
+    "SOL.development": {
+     "net": 21.04,
+     "trades": 20,
+     "pf": 4.13,
+     "max_dd_pct": 6.7
+    },
+    "SOL.validation": {
+     "net": 1.97,
+     "trades": 17,
+     "pf": 1.19,
+     "max_dd_pct": 5.1
+    },
+    "SOL.all": {
+     "net": 22.18,
+     "trades": 39,
+     "pf": 2.1,
+     "max_dd_pct": 6.7
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 20.52,
+     "trades": 13,
+     "pf": 6.31,
+     "max_dd_pct": 6.7
+    },
+    "SOL.y2024": {
+     "net": 2.16,
+     "trades": 10,
+     "pf": 1.54,
+     "max_dd_pct": 2.8
+    },
+    "SOL.y2025": {
+     "net": -2.1,
+     "trades": 9,
+     "pf": 0.7,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": 0.86,
+     "trades": 4,
+     "pf": 1.42,
+     "max_dd_pct": 2.4
+    },
+    "ETH.development": {
+     "net": 9.48,
+     "trades": 20,
+     "pf": 2.37,
+     "max_dd_pct": 6
+    },
+    "ETH.validation": {
+     "net": 3.38,
+     "trades": 17,
+     "pf": 1.45,
+     "max_dd_pct": 5
+    },
+    "ETH.all": {
+     "net": 13.18,
+     "trades": 37,
+     "pf": 1.87,
+     "max_dd_pct": 6.9
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": 2.25,
+     "trades": 15,
+     "pf": 1.53,
+     "max_dd_pct": 6
+    },
+    "ETH.y2024": {
+     "net": 2.27,
+     "trades": 13,
+     "pf": 1.33,
+     "max_dd_pct": 5.9
+    },
+    "ETH.y2025": {
+     "net": 6.24,
+     "trades": 7,
+     "pf": 4.43,
+     "max_dd_pct": 2.7
+    },
+    "ETH.y2026": {
+     "net": 1.28,
+     "trades": 3,
+     "pf": 1.72,
+     "max_dd_pct": 1.8
+    }
+   }
+  },
+  {
+   "variant": {
+    "k": 2,
+    "trail": 3
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 13.68,
+     "trades": 13,
+     "pf": 2.92,
+     "max_dd_pct": 7.1
+    },
+    "BTC.validation": {
+     "net": 11.05,
+     "trades": 21,
+     "pf": 1.85,
+     "max_dd_pct": 6.5
+    },
+    "BTC.all": {
+     "net": 26.24,
+     "trades": 34,
+     "pf": 2.2,
+     "max_dd_pct": 7.1
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 5.87,
+     "trades": 10,
+     "pf": 2.2,
+     "max_dd_pct": 7.1
+    },
+    "BTC.y2024": {
+     "net": 13.62,
+     "trades": 8,
+     "pf": 2.97,
+     "max_dd_pct": 3.7
+    },
+    "BTC.y2025": {
+     "net": -0.09,
+     "trades": 12,
+     "pf": 0.98,
+     "max_dd_pct": 6.5
+    },
+    "BTC.y2026": {
+     "net": 5.04,
+     "trades": 4,
+     "pf": 2.83,
+     "max_dd_pct": 3.3
+    },
+    "SOL.development": {
+     "net": 3.52,
+     "trades": 15,
+     "pf": 1.33,
+     "max_dd_pct": 8.6
+    },
+    "SOL.validation": {
+     "net": 5.84,
+     "trades": 22,
+     "pf": 1.33,
+     "max_dd_pct": 7.1
+    },
+    "SOL.all": {
+     "net": 9.57,
+     "trades": 37,
+     "pf": 1.33,
+     "max_dd_pct": 8.6
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 4.41,
+     "trades": 12,
+     "pf": 1.6,
+     "max_dd_pct": 8.6
+    },
+    "SOL.y2024": {
+     "net": 4.46,
+     "trades": 8,
+     "pf": 1.71,
+     "max_dd_pct": 4.5
+    },
+    "SOL.y2025": {
+     "net": -0.86,
+     "trades": 13,
+     "pf": 0.92,
+     "max_dd_pct": 7.1
+    },
+    "SOL.y2026": {
+     "net": 1.33,
+     "trades": 4,
+     "pf": 1.43,
+     "max_dd_pct": 3
+    },
+    "ETH.development": {
+     "net": 4.7,
+     "trades": 16,
+     "pf": 1.49,
+     "max_dd_pct": 9.6
+    },
+    "ETH.validation": {
+     "net": 14.64,
+     "trades": 20,
+     "pf": 2.19,
+     "max_dd_pct": 5.3
+    },
+    "ETH.all": {
+     "net": 20.03,
+     "trades": 36,
+     "pf": 1.89,
+     "max_dd_pct": 9.6
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -2.99,
+     "trades": 13,
+     "pf": 0.55,
+     "max_dd_pct": 9.6
+    },
+    "ETH.y2024": {
+     "net": 5.68,
+     "trades": 12,
+     "pf": 1.54,
+     "max_dd_pct": 6.4
+    },
+    "ETH.y2025": {
+     "net": 14.35,
+     "trades": 8,
+     "pf": 6.09,
+     "max_dd_pct": 4
+    },
+    "ETH.y2026": {
+     "net": 2.39,
+     "trades": 3,
+     "pf": 2.08,
+     "max_dd_pct": 2.4
+    }
+   }
+  },
+  {
+   "variant": {
+    "k": 2.5,
+    "trail": 3
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 11.37,
+     "trades": 13,
+     "pf": 2.98,
+     "max_dd_pct": 5.4
+    },
+    "BTC.validation": {
+     "net": 8.88,
+     "trades": 21,
+     "pf": 1.86,
+     "max_dd_pct": 5.2
+    },
+    "BTC.all": {
+     "net": 21.26,
+     "trades": 34,
+     "pf": 2.24,
+     "max_dd_pct": 5.4
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 5.14,
+     "trades": 10,
+     "pf": 2.29,
+     "max_dd_pct": 5.4
+    },
+    "BTC.y2024": {
+     "net": 10.92,
+     "trades": 8,
+     "pf": 3.01,
+     "max_dd_pct": 2.9
+    },
+    "BTC.y2025": {
+     "net": -0.06,
+     "trades": 12,
+     "pf": 0.99,
+     "max_dd_pct": 5.2
+    },
+    "BTC.y2026": {
+     "net": 4.05,
+     "trades": 4,
+     "pf": 2.86,
+     "max_dd_pct": 2.7
+    },
+    "SOL.development": {
+     "net": 2.45,
+     "trades": 15,
+     "pf": 1.28,
+     "max_dd_pct": 7.3
+    },
+    "SOL.validation": {
+     "net": 3.92,
+     "trades": 21,
+     "pf": 1.26,
+     "max_dd_pct": 6.1
+    },
+    "SOL.all": {
+     "net": 6.46,
+     "trades": 36,
+     "pf": 1.27,
+     "max_dd_pct": 7.3
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.14,
+     "trades": 12,
+     "pf": 1.5,
+     "max_dd_pct": 7.3
+    },
+    "SOL.y2024": {
+     "net": 3.62,
+     "trades": 8,
+     "pf": 1.72,
+     "max_dd_pct": 3.6
+    },
+    "SOL.y2025": {
+     "net": -1.05,
+     "trades": 12,
+     "pf": 0.88,
+     "max_dd_pct": 6.1
+    },
+    "SOL.y2026": {
+     "net": 0.67,
+     "trades": 4,
+     "pf": 1.23,
+     "max_dd_pct": 2.8
+    },
+    "ETH.development": {
+     "net": 4.52,
+     "trades": 16,
+     "pf": 1.65,
+     "max_dd_pct": 7.6
+    },
+    "ETH.validation": {
+     "net": 11.46,
+     "trades": 20,
+     "pf": 2.15,
+     "max_dd_pct": 4.3
+    },
+    "ETH.all": {
+     "net": 16.5,
+     "trades": 36,
+     "pf": 1.95,
+     "max_dd_pct": 7.6
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -2.14,
+     "trades": 13,
+     "pf": 0.58,
+     "max_dd_pct": 7.6
+    },
+    "ETH.y2024": {
+     "net": 5,
+     "trades": 12,
+     "pf": 1.63,
+     "max_dd_pct": 4.8
+    },
+    "ETH.y2025": {
+     "net": 11.39,
+     "trades": 8,
+     "pf": 6.1,
+     "max_dd_pct": 3.2
+    },
+    "ETH.y2026": {
+     "net": 1.78,
+     "trades": 3,
+     "pf": 1.94,
+     "max_dd_pct": 2.1
+    }
+   }
+  },
+  {
+   "variant": {
+    "k": 3.5,
+    "trail": 3
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 8.1,
+     "trades": 13,
+     "pf": 3,
+     "max_dd_pct": 3.9
+    },
+    "BTC.validation": {
+     "net": 6.38,
+     "trades": 21,
+     "pf": 1.88,
+     "max_dd_pct": 3.8
+    },
+    "BTC.all": {
+     "net": 14.99,
+     "trades": 34,
+     "pf": 2.26,
+     "max_dd_pct": 3.9
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 3.68,
+     "trades": 10,
+     "pf": 2.3,
+     "max_dd_pct": 3.9
+    },
+    "BTC.y2024": {
+     "net": 7.82,
+     "trades": 8,
+     "pf": 3.06,
+     "max_dd_pct": 2.1
+    },
+    "BTC.y2025": {
+     "net": -0.04,
+     "trades": 12,
+     "pf": 0.99,
+     "max_dd_pct": 3.8
+    },
+    "BTC.y2026": {
+     "net": 2.9,
+     "trades": 4,
+     "pf": 2.89,
+     "max_dd_pct": 1.9
+    },
+    "SOL.development": {
+     "net": 2.11,
+     "trades": 15,
+     "pf": 1.35,
+     "max_dd_pct": 5
+    },
+    "SOL.validation": {
+     "net": 4.18,
+     "trades": 17,
+     "pf": 1.45,
+     "max_dd_pct": 4.4
+    },
+    "SOL.all": {
+     "net": 6.37,
+     "trades": 32,
+     "pf": 1.41,
+     "max_dd_pct": 5
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 2.59,
+     "trades": 12,
+     "pf": 1.63,
+     "max_dd_pct": 5
+    },
+    "SOL.y2024": {
+     "net": 3.78,
+     "trades": 6,
+     "pf": 2.56,
+     "max_dd_pct": 2.6
+    },
+    "SOL.y2025": {
+     "net": 0.78,
+     "trades": 8,
+     "pf": 1.16,
+     "max_dd_pct": 3.5
+    },
+    "SOL.y2026": {
+     "net": 0.41,
+     "trades": 4,
+     "pf": 1.2,
+     "max_dd_pct": 2.1
+    },
+    "ETH.development": {
+     "net": 3.29,
+     "trades": 16,
+     "pf": 1.66,
+     "max_dd_pct": 5.5
+    },
+    "ETH.validation": {
+     "net": 8.15,
+     "trades": 20,
+     "pf": 2.15,
+     "max_dd_pct": 3.1
+    },
+    "ETH.all": {
+     "net": 11.71,
+     "trades": 36,
+     "pf": 1.95,
+     "max_dd_pct": 5.5
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.53,
+     "trades": 13,
+     "pf": 0.59,
+     "max_dd_pct": 5.5
+    },
+    "ETH.y2024": {
+     "net": 3.65,
+     "trades": 12,
+     "pf": 1.65,
+     "max_dd_pct": 3.4
+    },
+    "ETH.y2025": {
+     "net": 8.06,
+     "trades": 8,
+     "pf": 6.12,
+     "max_dd_pct": 2.3
+    },
+    "ETH.y2026": {
+     "net": 1.28,
+     "trades": 3,
+     "pf": 1.96,
+     "max_dd_pct": 1.5
+    }
+   }
+  },
+  {
+   "variant": {
+    "k": 4,
+    "trail": 3
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 7.08,
+     "trades": 13,
+     "pf": 3.01,
+     "max_dd_pct": 3.4
+    },
+    "BTC.validation": {
+     "net": 5.59,
+     "trades": 21,
+     "pf": 1.89,
+     "max_dd_pct": 3.3
+    },
+    "BTC.all": {
+     "net": 13.06,
+     "trades": 34,
+     "pf": 2.27,
+     "max_dd_pct": 3.4
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 3.23,
+     "trades": 10,
+     "pf": 2.31,
+     "max_dd_pct": 3.4
+    },
+    "BTC.y2024": {
+     "net": 6.84,
+     "trades": 8,
+     "pf": 3.08,
+     "max_dd_pct": 1.8
+    },
+    "BTC.y2025": {
+     "net": -0.03,
+     "trades": 12,
+     "pf": 0.99,
+     "max_dd_pct": 3.3
+    },
+    "BTC.y2026": {
+     "net": 2.54,
+     "trades": 4,
+     "pf": 2.9,
+     "max_dd_pct": 1.7
+    },
+    "SOL.development": {
+     "net": 1.85,
+     "trades": 15,
+     "pf": 1.36,
+     "max_dd_pct": 4.4
+    },
+    "SOL.validation": {
+     "net": 6.21,
+     "trades": 14,
+     "pf": 2.12,
+     "max_dd_pct": 3
+    },
+    "SOL.all": {
+     "net": 8.13,
+     "trades": 29,
+     "pf": 1.74,
+     "max_dd_pct": 4.4
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 2.28,
+     "trades": 12,
+     "pf": 1.63,
+     "max_dd_pct": 4.4
+    },
+    "SOL.y2024": {
+     "net": 3.32,
+     "trades": 6,
+     "pf": 2.56,
+     "max_dd_pct": 2.2
+    },
+    "SOL.y2025": {
+     "net": 1.14,
+     "trades": 7,
+     "pf": 1.36,
+     "max_dd_pct": 3.3
+    },
+    "SOL.y2026": {
+     "net": 0.36,
+     "trades": 4,
+     "pf": 1.2,
+     "max_dd_pct": 1.8
+    },
+    "ETH.development": {
+     "net": 2.9,
+     "trades": 16,
+     "pf": 1.67,
+     "max_dd_pct": 4.8
+    },
+    "ETH.validation": {
+     "net": 7.12,
+     "trades": 20,
+     "pf": 2.15,
+     "max_dd_pct": 2.7
+    },
+    "ETH.all": {
+     "net": 10.23,
+     "trades": 36,
+     "pf": 1.95,
+     "max_dd_pct": 4.8
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.33,
+     "trades": 13,
+     "pf": 0.59,
+     "max_dd_pct": 4.8
+    },
+    "ETH.y2024": {
+     "net": 3.21,
+     "trades": 12,
+     "pf": 1.66,
+     "max_dd_pct": 3
+    },
+    "ETH.y2025": {
+     "net": 7.04,
+     "trades": 8,
+     "pf": 6.12,
+     "max_dd_pct": 2
+    },
+    "ETH.y2026": {
+     "net": 1.13,
+     "trades": 3,
+     "pf": 1.96,
+     "max_dd_pct": 1.3
+    }
+   }
+  },
+  {
+   "variant": {
+    "trail": 2
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 9.58,
+     "trades": 14,
+     "pf": 2.55,
+     "max_dd_pct": 4.9
+    },
+    "BTC.validation": {
+     "net": 8.78,
+     "trades": 25,
+     "pf": 1.93,
+     "max_dd_pct": 4
+    },
+    "BTC.all": {
+     "net": 19.2,
+     "trades": 39,
+     "pf": 2.16,
+     "max_dd_pct": 4.9
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 4.41,
+     "trades": 11,
+     "pf": 1.93,
+     "max_dd_pct": 4.9
+    },
+    "BTC.y2024": {
+     "net": 9.72,
+     "trades": 9,
+     "pf": 3.6,
+     "max_dd_pct": 2.4
+    },
+    "BTC.y2025": {
+     "net": -0.04,
+     "trades": 15,
+     "pf": 0.99,
+     "max_dd_pct": 4
+    },
+    "BTC.y2026": {
+     "net": 4.1,
+     "trades": 4,
+     "pf": 4.82,
+     "max_dd_pct": 1.5
+    },
+    "SOL.development": {
+     "net": 3.26,
+     "trades": 18,
+     "pf": 1.48,
+     "max_dd_pct": 5.4
+    },
+    "SOL.validation": {
+     "net": 7.4,
+     "trades": 23,
+     "pf": 1.81,
+     "max_dd_pct": 3.4
+    },
+    "SOL.all": {
+     "net": 10.9,
+     "trades": 41,
+     "pf": 1.67,
+     "max_dd_pct": 5.4
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.61,
+     "trades": 15,
+     "pf": 1.67,
+     "max_dd_pct": 5.4
+    },
+    "SOL.y2024": {
+     "net": 3.18,
+     "trades": 8,
+     "pf": 2.33,
+     "max_dd_pct": 2.8
+    },
+    "SOL.y2025": {
+     "net": 1.79,
+     "trades": 13,
+     "pf": 1.31,
+     "max_dd_pct": 3.4
+    },
+    "SOL.y2026": {
+     "net": 1.07,
+     "trades": 4,
+     "pf": 1.57,
+     "max_dd_pct": 1.8
+    },
+    "ETH.development": {
+     "net": 1.59,
+     "trades": 21,
+     "pf": 1.18,
+     "max_dd_pct": 7.9
+    },
+    "ETH.validation": {
+     "net": 9.22,
+     "trades": 25,
+     "pf": 1.96,
+     "max_dd_pct": 3.1
+    },
+    "ETH.all": {
+     "net": 10.96,
+     "trades": 46,
+     "pf": 1.58,
+     "max_dd_pct": 7.9
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -3.6,
+     "trades": 18,
+     "pf": 0.5,
+     "max_dd_pct": 7.9
+    },
+    "ETH.y2024": {
+     "net": 5.21,
+     "trades": 12,
+     "pf": 1.93,
+     "max_dd_pct": 3.7
+    },
+    "ETH.y2025": {
+     "net": 8.12,
+     "trades": 12,
+     "pf": 3.03,
+     "max_dd_pct": 2.9
+    },
+    "ETH.y2026": {
+     "net": 1.19,
+     "trades": 4,
+     "pf": 1.64,
+     "max_dd_pct": 2
+    }
+   }
+  },
+  {
+   "variant": {
+    "trail": 4
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 9.89,
+     "trades": 11,
+     "pf": 2.93,
+     "max_dd_pct": 5.6
+    },
+    "BTC.validation": {
+     "net": 7.8,
+     "trades": 18,
+     "pf": 2.1,
+     "max_dd_pct": 4.1
+    },
+    "BTC.all": {
+     "net": 18.46,
+     "trades": 29,
+     "pf": 2.43,
+     "max_dd_pct": 5.6
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 4.7,
+     "trades": 8,
+     "pf": 2.28,
+     "max_dd_pct": 5.6
+    },
+    "BTC.y2024": {
+     "net": 9.75,
+     "trades": 7,
+     "pf": 3.55,
+     "max_dd_pct": 2.4
+    },
+    "BTC.y2025": {
+     "net": -0.95,
+     "trades": 11,
+     "pf": 0.73,
+     "max_dd_pct": 4.1
+    },
+    "BTC.y2026": {
+     "net": 4.08,
+     "trades": 3,
+     "pf": 4.73,
+     "max_dd_pct": 1.6
+    },
+    "SOL.development": {
+     "net": 3.43,
+     "trades": 12,
+     "pf": 1.58,
+     "max_dd_pct": 5.6
+    },
+    "SOL.validation": {
+     "net": 5.01,
+     "trades": 16,
+     "pf": 1.55,
+     "max_dd_pct": 4.8
+    },
+    "SOL.all": {
+     "net": 8.61,
+     "trades": 28,
+     "pf": 1.56,
+     "max_dd_pct": 5.6
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.25,
+     "trades": 10,
+     "pf": 1.68,
+     "max_dd_pct": 5.6
+    },
+    "SOL.y2024": {
+     "net": 5.17,
+     "trades": 5,
+     "pf": 3.87,
+     "max_dd_pct": 2.5
+    },
+    "SOL.y2025": {
+     "net": 0.56,
+     "trades": 8,
+     "pf": 1.12,
+     "max_dd_pct": 4.8
+    },
+    "SOL.y2026": {
+     "net": 0.22,
+     "trades": 4,
+     "pf": 1.08,
+     "max_dd_pct": 2.7
+    },
+    "ETH.development": {
+     "net": 4.16,
+     "trades": 15,
+     "pf": 1.64,
+     "max_dd_pct": 6.6
+    },
+    "ETH.validation": {
+     "net": 9.3,
+     "trades": 17,
+     "pf": 2.01,
+     "max_dd_pct": 4.3
+    },
+    "ETH.all": {
+     "net": 13.85,
+     "trades": 32,
+     "pf": 1.86,
+     "max_dd_pct": 6.6
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.44,
+     "trades": 12,
+     "pf": 0.71,
+     "max_dd_pct": 6.6
+    },
+    "ETH.y2024": {
+     "net": 3.95,
+     "trades": 11,
+     "pf": 1.58,
+     "max_dd_pct": 3.5
+    },
+    "ETH.y2025": {
+     "net": 10.11,
+     "trades": 6,
+     "pf": 6.46,
+     "max_dd_pct": 3.7
+    },
+    "ETH.y2026": {
+     "net": 0.92,
+     "trades": 3,
+     "pf": 1.43,
+     "max_dd_pct": 2.3
+    }
+   }
+  },
+  {
+   "variant": {
+    "trail": null
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 9.89,
+     "trades": 11,
+     "pf": 2.93,
+     "max_dd_pct": 5.6
+    },
+    "BTC.validation": {
+     "net": 6.12,
+     "trades": 17,
+     "pf": 1.73,
+     "max_dd_pct": 5.8
+    },
+    "BTC.all": {
+     "net": 16.61,
+     "trades": 28,
+     "pf": 2.15,
+     "max_dd_pct": 5.8
+    },
+    "BTC.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "BTC.y2023": {
+     "net": 4.7,
+     "trades": 8,
+     "pf": 2.28,
+     "max_dd_pct": 5.6
+    },
+    "BTC.y2024": {
+     "net": 9.75,
+     "trades": 7,
+     "pf": 3.55,
+     "max_dd_pct": 2.4
+    },
+    "BTC.y2025": {
+     "net": -2.49,
+     "trades": 10,
+     "pf": 0.48,
+     "max_dd_pct": 5.8
+    },
+    "BTC.y2026": {
+     "net": 4.08,
+     "trades": 3,
+     "pf": 4.73,
+     "max_dd_pct": 1.6
+    },
+    "SOL.development": {
+     "net": 3.6,
+     "trades": 12,
+     "pf": 1.61,
+     "max_dd_pct": 5.6
+    },
+    "SOL.validation": {
+     "net": 3.94,
+     "trades": 15,
+     "pf": 1.46,
+     "max_dd_pct": 5.6
+    },
+    "SOL.all": {
+     "net": 7.69,
+     "trades": 27,
+     "pf": 1.52,
+     "max_dd_pct": 5.6
+    },
+    "SOL.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "SOL.y2023": {
+     "net": 3.42,
+     "trades": 10,
+     "pf": 1.71,
+     "max_dd_pct": 5.6
+    },
+    "SOL.y2024": {
+     "net": 5.17,
+     "trades": 5,
+     "pf": 3.87,
+     "max_dd_pct": 2.5
+    },
+    "SOL.y2025": {
+     "net": -0.79,
+     "trades": 7,
+     "pf": 0.82,
+     "max_dd_pct": 5.6
+    },
+    "SOL.y2026": {
+     "net": 0.22,
+     "trades": 4,
+     "pf": 1.08,
+     "max_dd_pct": 2.7
+    },
+    "ETH.development": {
+     "net": 4.42,
+     "trades": 14,
+     "pf": 1.71,
+     "max_dd_pct": 6.3
+    },
+    "ETH.validation": {
+     "net": 9.44,
+     "trades": 17,
+     "pf": 2.02,
+     "max_dd_pct": 4.4
+    },
+    "ETH.all": {
+     "net": 14.27,
+     "trades": 31,
+     "pf": 1.9,
+     "max_dd_pct": 6.3
+    },
+    "ETH.y2022": {
+     "net": 0,
+     "trades": 0,
+     "pf": null,
+     "max_dd_pct": 0
+    },
+    "ETH.y2023": {
+     "net": -1.2,
+     "trades": 11,
+     "pf": 0.74,
+     "max_dd_pct": 6.3
+    },
+    "ETH.y2024": {
+     "net": 3.94,
+     "trades": 11,
+     "pf": 1.57,
+     "max_dd_pct": 3.5
+    },
+    "ETH.y2025": {
+     "net": 10.27,
+     "trades": 6,
+     "pf": 6.54,
+     "max_dd_pct": 3.6
+    },
+    "ETH.y2026": {
+     "net": 0.92,
+     "trades": 3,
+     "pf": 1.43,
+     "max_dd_pct": 2.3
+    }
+   }
+  },
+  {
+   "variant": {
+    "trendGate": false
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 14.38,
+     "trades": 26,
+     "pf": 2.06,
+     "max_dd_pct": 10.3
+    },
+    "BTC.validation": {
+     "net": 8.29,
+     "trades": 28,
+     "pf": 1.68,
+     "max_dd_pct": 6.8
+    },
+    "BTC.all": {
+     "net": 23.86,
+     "trades": 54,
+     "pf": 1.87,
+     "max_dd_pct": 10.3
+    },
+    "BTC.y2022": {
+     "net": -5.28,
+     "trades": 6,
+     "pf": 0,
+     "max_dd_pct": 5.3
+    },
+    "BTC.y2023": {
+     "net": 13.91,
+     "trades": 11,
+     "pf": 4.66,
+     "max_dd_pct": 5.7
+    },
+    "BTC.y2024": {
+     "net": 9.99,
+     "trades": 8,
+     "pf": 3.1,
+     "max_dd_pct": 2.7
+    },
+    "BTC.y2025": {
+     "net": -0.05,
+     "trades": 12,
+     "pf": 0.99,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 3.38,
+     "trades": 11,
+     "pf": 1.68,
+     "max_dd_pct": 4.8
+    },
+    "SOL.development": {
+     "net": 34.95,
+     "trades": 26,
+     "pf": 3.35,
+     "max_dd_pct": 6.6
+    },
+    "SOL.validation": {
+     "net": 5.33,
+     "trades": 27,
+     "pf": 1.36,
+     "max_dd_pct": 8.4
+    },
+    "SOL.all": {
+     "net": 40.3,
+     "trades": 55,
+     "pf": 2.1,
+     "max_dd_pct": 8.4
+    },
+    "SOL.y2022": {
+     "net": -4.48,
+     "trades": 8,
+     "pf": 0,
+     "max_dd_pct": 5.7
+    },
+    "SOL.y2023": {
+     "net": 9.3,
+     "trades": 12,
+     "pf": 2.85,
+     "max_dd_pct": 6.1
+    },
+    "SOL.y2024": {
+     "net": 5.22,
+     "trades": 6,
+     "pf": 2.82,
+     "max_dd_pct": 2.4
+    },
+    "SOL.y2025": {
+     "net": -0.6,
+     "trades": 10,
+     "pf": 0.92,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": 0.11,
+     "trades": 13,
+     "pf": 1.02,
+     "max_dd_pct": 4.9
+    },
+    "ETH.development": {
+     "net": 3.58,
+     "trades": 35,
+     "pf": 1.23,
+     "max_dd_pct": 10.5
+    },
+    "ETH.validation": {
+     "net": 11.44,
+     "trades": 22,
+     "pf": 2.1,
+     "max_dd_pct": 4
+    },
+    "ETH.all": {
+     "net": 15.43,
+     "trades": 57,
+     "pf": 1.59,
+     "max_dd_pct": 10.5
+    },
+    "ETH.y2022": {
+     "net": -2.85,
+     "trades": 7,
+     "pf": 0.1,
+     "max_dd_pct": 3.4
+    },
+    "ETH.y2023": {
+     "net": 0.31,
+     "trades": 15,
+     "pf": 1.05,
+     "max_dd_pct": 7.9
+    },
+    "ETH.y2024": {
+     "net": 3.99,
+     "trades": 12,
+     "pf": 1.59,
+     "max_dd_pct": 4.2
+    },
+    "ETH.y2025": {
+     "net": 9.44,
+     "trades": 8,
+     "pf": 6.11,
+     "max_dd_pct": 2.7
+    },
+    "ETH.y2026": {
+     "net": 3.49,
+     "trades": 5,
+     "pf": 2.04,
+     "max_dd_pct": 3.1
+    }
+   }
+  },
+  {
+   "variant": {
+    "trendGate": false,
+    "volGate": false
+   },
+   "cells": {
+    "BTC.development": {
+     "net": 28.23,
+     "trades": 39,
+     "pf": 2.75,
+     "max_dd_pct": 11.5
+    },
+    "BTC.validation": {
+     "net": 12.3,
+     "trades": 34,
+     "pf": 1.93,
+     "max_dd_pct": 6.5
+    },
+    "BTC.all": {
+     "net": 44,
+     "trades": 73,
+     "pf": 2.33,
+     "max_dd_pct": 11.5
+    },
+    "BTC.y2022": {
+     "net": -8.87,
+     "trades": 13,
+     "pf": 0.02,
+     "max_dd_pct": 9
+    },
+    "BTC.y2023": {
+     "net": 28.04,
+     "trades": 11,
+     "pf": 22.73,
+     "max_dd_pct": 4
+    },
+    "BTC.y2024": {
+     "net": 11.23,
+     "trades": 17,
+     "pf": 2.58,
+     "max_dd_pct": 6.7
+    },
+    "BTC.y2025": {
+     "net": 0.57,
+     "trades": 15,
+     "pf": 1.12,
+     "max_dd_pct": 4.4
+    },
+    "BTC.y2026": {
+     "net": 5.27,
+     "trades": 12,
+     "pf": 2.19,
+     "max_dd_pct": 3.9
+    },
+    "SOL.development": {
+     "net": 85.87,
+     "trades": 32,
+     "pf": 5.87,
+     "max_dd_pct": 12.3
+    },
+    "SOL.validation": {
+     "net": 6.66,
+     "trades": 32,
+     "pf": 1.42,
+     "max_dd_pct": 11
+    },
+    "SOL.all": {
+     "net": 91.66,
+     "trades": 69,
+     "pf": 2.74,
+     "max_dd_pct": 16.1
+    },
+    "SOL.y2022": {
+     "net": -3.23,
+     "trades": 9,
+     "pf": 0.29,
+     "max_dd_pct": 7.1
+    },
+    "SOL.y2023": {
+     "net": 61.35,
+     "trades": 13,
+     "pf": 13.62,
+     "max_dd_pct": 8.2
+    },
+    "SOL.y2024": {
+     "net": 2.44,
+     "trades": 14,
+     "pf": 1.35,
+     "max_dd_pct": 7.1
+    },
+    "SOL.y2025": {
+     "net": 0.74,
+     "trades": 9,
+     "pf": 1.13,
+     "max_dd_pct": 5.1
+    },
+    "SOL.y2026": {
+     "net": 2.53,
+     "trades": 16,
+     "pf": 1.36,
+     "max_dd_pct": 7.6
+    },
+    "ETH.development": {
+     "net": 9.36,
+     "trades": 42,
+     "pf": 1.51,
+     "max_dd_pct": 7.6
+    },
+    "ETH.validation": {
+     "net": 14.66,
+     "trades": 22,
+     "pf": 2.74,
+     "max_dd_pct": 4.8
+    },
+    "ETH.all": {
+     "net": 25.39,
+     "trades": 64,
+     "pf": 1.92,
+     "max_dd_pct": 9.3
+    },
+    "ETH.y2022": {
+     "net": -2.82,
+     "trades": 10,
+     "pf": 0.32,
+     "max_dd_pct": 3.9
+    },
+    "ETH.y2023": {
+     "net": 6.26,
+     "trades": 16,
+     "pf": 2.14,
+     "max_dd_pct": 6.9
+    },
+    "ETH.y2024": {
+     "net": 1.8,
+     "trades": 18,
+     "pf": 1.21,
+     "max_dd_pct": 9.3
+    },
+    "ETH.y2025": {
+     "net": 9.79,
+     "trades": 8,
+     "pf": 5.68,
+     "max_dd_pct": 3
+    },
+    "ETH.y2026": {
+     "net": 5.2,
+     "trades": 4,
+     "pf": 4.12,
+     "max_dd_pct": 3.2
+    }
+   }
+  }
+ ],
+ "risk": [
+  {
+   "risk": 1,
+   "BTC": {
+    "trades": 34,
+    "gross": 10.24,
+    "fees": 1.62,
+    "net": 8.62,
+    "win": 0.41,
+    "pf": 2.29,
+    "avg": 0.25,
+    "ci": [
+     -0.04,
+     0.63
+    ],
+    "max_dd_pct": 2.3,
+    "ret_dd": 3.72,
+    "streak": 5,
+    "hold_days": 10.6,
+    "cash_pct": 82,
+    "cagr": 1.6,
+    "exposure_pct": 18
+   },
+   "SOL": {
+    "trades": 18,
+    "gross": 2.46,
+    "fees": 0.44,
+    "net": 2.02,
+    "win": 0.44,
+    "pf": 1.48,
+    "avg": 0.11,
+    "ci": [
+     -0.21,
+     0.51
+    ],
+    "max_dd_pct": 2.9,
+    "ret_dd": 0.69,
+    "streak": 6,
+    "hold_days": 8.6,
+    "cash_pct": 92,
+    "cagr": 0.4,
+    "exposure_pct": 8
+   },
+   "ETH": {
+    "trades": 32,
+    "gross": 6.63,
+    "fees": 1.17,
+    "net": 5.46,
+    "win": 0.31,
+    "pf": 1.82,
+    "avg": 0.17,
+    "ci": [
+     -0.12,
+     0.47
+    ],
+    "max_dd_pct": 3.2,
+    "ret_dd": 1.69,
+    "streak": 9,
+    "hold_days": 8.4,
+    "cash_pct": 86,
+    "cagr": 1,
+    "exposure_pct": 14
+   }
+  },
+  {
+   "risk": 2,
+   "BTC": {
+    "trades": 34,
+    "gross": 20.97,
+    "fees": 3.39,
+    "net": 17.58,
+    "win": 0.41,
+    "pf": 2.25,
+    "avg": 0.52,
+    "ci": [
+     -0.09,
+     1.29
+    ],
+    "max_dd_pct": 4.5,
+    "ret_dd": 3.88,
+    "streak": 5,
+    "hold_days": 10.6,
+    "cash_pct": 82,
+    "cagr": 3.1,
+    "exposure_pct": 18
+   },
+   "SOL": {
+    "trades": 33,
+    "gross": 9.12,
+    "fees": 1.68,
+    "net": 7.44,
+    "win": 0.39,
+    "pf": 1.41,
+    "avg": 0.23,
+    "ci": [
+     -0.39,
+     0.85
+    ],
+    "max_dd_pct": 5.8,
+    "ret_dd": 1.29,
+    "streak": 6,
+    "hold_days": 9.6,
+    "cash_pct": 84,
+    "cagr": 1.3,
+    "exposure_pct": 16
+   },
+   "ETH": {
+    "trades": 36,
+    "gross": 16.24,
+    "fees": 2.54,
+    "net": 13.7,
+    "win": 0.33,
+    "pf": 1.95,
+    "avg": 0.38,
+    "ci": [
+     -0.21,
+     1.05
+    ],
+    "max_dd_pct": 6.4,
+    "ret_dd": 2.16,
+    "streak": 9,
+    "hold_days": 9.2,
+    "cash_pct": 83,
+    "cagr": 2.4,
+    "exposure_pct": 17
+   }
+  },
+  {
+   "risk": 3,
+   "BTC": {
+    "trades": 34,
+    "gross": 32.21,
+    "fees": 5.32,
+    "net": 26.88,
+    "win": 0.41,
+    "pf": 2.21,
+    "avg": 0.79,
+    "ci": [
+     -0.15,
+     2.01
+    ],
+    "max_dd_pct": 6.7,
+    "ret_dd": 4.04,
+    "streak": 5,
+    "hold_days": 10.6,
+    "cash_pct": 82,
+    "cagr": 4.5,
+    "exposure_pct": 18
+   },
+   "SOL": {
+    "trades": 36,
+    "gross": 10.95,
+    "fees": 2.72,
+    "net": 8.23,
+    "win": 0.36,
+    "pf": 1.27,
+    "avg": 0.23,
+    "ci": [
+     -0.6,
+     1.08
+    ],
+    "max_dd_pct": 8.5,
+    "ret_dd": 0.97,
+    "streak": 6,
+    "hold_days": 9,
+    "cash_pct": 83,
+    "cagr": 1.5,
+    "exposure_pct": 17
+   },
+   "ETH": {
+    "trades": 36,
+    "gross": 24.58,
+    "fees": 3.86,
+    "net": 20.73,
+    "win": 0.33,
+    "pf": 1.94,
+    "avg": 0.58,
+    "ci": [
+     -0.32,
+     1.58
+    ],
+    "max_dd_pct": 9.4,
+    "ret_dd": 2.22,
+    "streak": 9,
+    "hold_days": 9.2,
+    "cash_pct": 83,
+    "cagr": 3.6,
+    "exposure_pct": 17
+   }
+  }
+ ],
+ "costs": [
+  {
+   "fee": 0,
+   "slip": 0,
+   "BTC": 22.18,
+   "SOL": 9.62,
+   "ETH": 17.25
+  },
+  {
+   "fee": 0.2,
+   "slip": 0.05,
+   "BTC": 17.58,
+   "SOL": 7.44,
+   "ETH": 13.7
+  },
+  {
+   "fee": 0.2,
+   "slip": 0.15,
+   "BTC": 15.79,
+   "SOL": 6.58,
+   "ETH": 12.31
+  },
+  {
+   "fee": 0.4,
+   "slip": 0.05,
+   "BTC": 14.03,
+   "SOL": 5.73,
+   "ETH": 10.93
+  },
+  {
+   "fee": 0.4,
+   "slip": 0.15,
+   "BTC": 12.29,
+   "SOL": 4.89,
+   "ETH": 9.58
+  }
+ ],
+ "weakness": {
+  "BTC": {
+   "development": {
+    "h6": {
+     "trades": 13,
+     "gross": 10.68,
+     "fees": 1.22,
+     "net": 9.46,
+     "win": 0.46,
+     "pf": 2.99,
+     "avg": 0.73,
+     "ci": [
+      -0.34,
+      2.1
+     ],
+     "max_dd_pct": 4.5,
+     "ret_dd": 2.09,
+     "streak": 2,
+     "hold_days": 11,
+     "cash_pct": 87,
+     "cagr": 3.1,
+     "exposure_pct": 13
+    },
+    "unfiltered_candidate_B": {
+     "trades": 39,
+     "gross": 31.14,
+     "fees": 2.91,
+     "net": 28.23,
+     "win": 0.28,
+     "pf": 2.75,
+     "avg": 0.72,
+     "ci": [
+      -0.22,
+      1.96
+     ],
+     "max_dd_pct": 11.5,
+     "ret_dd": 2.45,
+     "streak": 8,
+     "hold_days": 13.8,
+     "cash_pct": 51,
+     "cagr": 8.6,
+     "exposure_pct": 49
+    },
+    "buy_hold": {
+     "net": 77.85,
+     "max_dd_pct": 76.7,
+     "cagr": 21.2
+    },
+    "exposure_matched_buy_hold": {
+     "net": 10.12,
+     "max_dd_pct": 10,
+     "cagr": 3.3
+    },
+    "ret_per_dd": {
+     "h6": 2.1,
+     "unfiltered": 2.45,
+     "buy_hold": 1.01,
+     "matched": 1.01
+    },
+    "expectancy_per_trade": {
+     "h6": 0.73,
+     "unfiltered": 0.72
+    }
+   },
+   "validation": {
+    "h6": {
+     "trades": 21,
+     "gross": 9.41,
+     "fees": 1.99,
+     "net": 7.42,
+     "win": 0.38,
+     "pf": 1.87,
+     "avg": 0.35,
+     "ci": [
+      -0.32,
+      1.32
+     ],
+     "max_dd_pct": 4.4,
+     "ret_dd": 1.7,
+     "streak": 5,
+     "hold_days": 10.4,
+     "cash_pct": 75,
+     "cagr": 3.1,
+     "exposure_pct": 25
+    },
+    "unfiltered_candidate_B": {
+     "trades": 34,
+     "gross": 15.26,
+     "fees": 2.96,
+     "net": 12.3,
+     "win": 0.21,
+     "pf": 1.93,
+     "avg": 0.36,
+     "ci": [
+      -0.31,
+      1.24
+     ],
+     "max_dd_pct": 6.5,
+     "ret_dd": 1.89,
+     "streak": 6,
+     "hold_days": 13.4,
+     "cash_pct": 47,
+     "cagr": 5,
+     "exposure_pct": 53
+    },
+    "buy_hold": {
+     "net": 1.8,
+     "max_dd_pct": 53.1,
+     "cagr": 0.8
+    },
+    "exposure_matched_buy_hold": {
+     "net": 0.45,
+     "max_dd_pct": 13.3,
+     "cagr": 0.2
+    },
+    "ret_per_dd": {
+     "h6": 1.69,
+     "unfiltered": 1.89,
+     "buy_hold": 0.03,
+     "matched": 0.03
+    },
+    "expectancy_per_trade": {
+     "h6": 0.35,
+     "unfiltered": 0.36
+    }
+   },
+   "all": {
+    "h6": {
+     "trades": 34,
+     "gross": 20.97,
+     "fees": 3.39,
+     "net": 17.58,
+     "win": 0.41,
+     "pf": 2.25,
+     "avg": 0.52,
+     "ci": [
+      -0.09,
+      1.29
+     ],
+     "max_dd_pct": 4.5,
+     "ret_dd": 3.88,
+     "streak": 5,
+     "hold_days": 10.6,
+     "cash_pct": 82,
+     "cagr": 3.1,
+     "exposure_pct": 18
+    },
+    "unfiltered_candidate_B": {
+     "trades": 73,
+     "gross": 50.71,
+     "fees": 6.71,
+     "net": 44,
+     "win": 0.25,
+     "pf": 2.33,
+     "avg": 0.6,
+     "ci": [
+      -0.1,
+      1.36
+     ],
+     "max_dd_pct": 11.5,
+     "ret_dd": 3.82,
+     "streak": 9,
+     "hold_days": 13.6,
+     "cash_pct": 49,
+     "cagr": 7,
+     "exposure_pct": 51
+    },
+    "buy_hold": {
+     "net": 81.97,
+     "max_dd_pct": 76.7,
+     "cagr": 11.8
+    },
+    "exposure_matched_buy_hold": {
+     "net": 14.75,
+     "max_dd_pct": 13.8,
+     "cagr": 2.6
+    },
+    "ret_per_dd": {
+     "h6": 3.91,
+     "unfiltered": 3.83,
+     "buy_hold": 1.07,
+     "matched": 1.07
+    },
+    "expectancy_per_trade": {
+     "h6": 0.52,
+     "unfiltered": 0.6
+    }
+   },
+   "bull_quarters": [
+    {
+     "quarter": "2021Q3",
+     "asset_return_pct": 25,
+     "h6_net": 0,
+     "h6_exposure_pct": 0
+    },
+    {
+     "quarter": "2023Q1",
+     "asset_return_pct": 72.2,
+     "h6_net": 2.7,
+     "h6_exposure_pct": 52
+    },
+    {
+     "quarter": "2023Q4",
+     "asset_return_pct": 56.8,
+     "h6_net": 3.27,
+     "h6_exposure_pct": 11
+    },
+    {
+     "quarter": "2024Q1",
+     "asset_return_pct": 68.6,
+     "h6_net": 6.33,
+     "h6_exposure_pct": 19
+    },
+    {
+     "quarter": "2024Q4",
+     "asset_return_pct": 47.5,
+     "h6_net": 5.11,
+     "h6_exposure_pct": 47
+    },
+    {
+     "quarter": "2025Q2",
+     "asset_return_pct": 29.9,
+     "h6_net": 2.02,
+     "h6_exposure_pct": 55
+    },
+    {
+     "quarter": "2026Q3",
+     "asset_return_pct": 42.8,
+     "h6_net": 4.77,
+     "h6_exposure_pct": 7
+    }
+   ]
+  },
+  "SOL": {
+   "development": {
+    "h6": {
+     "trades": 15,
+     "gross": 3.09,
+     "fees": 0.65,
+     "net": 2.44,
+     "win": 0.4,
+     "pf": 1.35,
+     "avg": 0.16,
+     "ci": [
+      -0.49,
+      0.97
+     ],
+     "max_dd_pct": 5.8,
+     "ret_dd": 0.42,
+     "streak": 6,
+     "hold_days": 9.3,
+     "cash_pct": 87,
+     "cagr": 0.8,
+     "exposure_pct": 13
+    },
+    "unfiltered_candidate_B": {
+     "trades": 32,
+     "gross": 87.7,
+     "fees": 1.83,
+     "net": 85.87,
+     "win": 0.38,
+     "pf": 5.87,
+     "avg": 2.68,
+     "ci": [
+      -0.24,
+      7.67
+     ],
+     "max_dd_pct": 12.3,
+     "ret_dd": 6.98,
+     "streak": 8,
+     "hold_days": 15.3,
+     "cash_pct": 55,
+     "cagr": 22.9,
+     "exposure_pct": 45
+    },
+    "buy_hold": {
+     "net": 309.73,
+     "max_dd_pct": 96.3,
+     "cagr": 60
+    },
+    "exposure_matched_buy_hold": {
+     "net": 40.26,
+     "max_dd_pct": 12.5,
+     "cagr": 11.9
+    },
+    "ret_per_dd": {
+     "h6": 0.42,
+     "unfiltered": 6.98,
+     "buy_hold": 3.22,
+     "matched": 3.22
+    },
+    "expectancy_per_trade": {
+     "h6": 0.16,
+     "unfiltered": 2.68
+    }
+   },
+   "validation": {
+    "h6": {
+     "trades": 18,
+     "gross": 5.89,
+     "fees": 1.01,
+     "net": 4.88,
+     "win": 0.39,
+     "pf": 1.45,
+     "avg": 0.27,
+     "ci": [
+      -0.53,
+      1.23
+     ],
+     "max_dd_pct": 5.1,
+     "ret_dd": 0.96,
+     "streak": 3,
+     "hold_days": 9.8,
+     "cash_pct": 80,
+     "cagr": 2,
+     "exposure_pct": 20
+    },
+    "unfiltered_candidate_B": {
+     "trades": 32,
+     "gross": 8.43,
+     "fees": 1.77,
+     "net": 6.66,
+     "win": 0.22,
+     "pf": 1.42,
+     "avg": 0.21,
+     "ci": [
+      -0.48,
+      1.06
+     ],
+     "max_dd_pct": 11,
+     "ret_dd": 0.61,
+     "streak": 10,
+     "hold_days": 11.8,
+     "cash_pct": 57,
+     "cagr": 2.8,
+     "exposure_pct": 43
+    },
+    "buy_hold": {
+     "net": -52.24,
+     "max_dd_pct": 76.3,
+     "cagr": -26.8
+    },
+    "exposure_matched_buy_hold": {
+     "net": -10.45,
+     "max_dd_pct": 15.3,
+     "cagr": -4.5
+    },
+    "ret_per_dd": {
+     "h6": 0.96,
+     "unfiltered": 0.61,
+     "buy_hold": -0.68,
+     "matched": -0.68
+    },
+    "expectancy_per_trade": {
+     "h6": 0.27,
+     "unfiltered": 0.21
+    }
+   },
+   "all": {
+    "h6": {
+     "trades": 33,
+     "gross": 9.12,
+     "fees": 1.68,
+     "net": 7.44,
+     "win": 0.39,
+     "pf": 1.41,
+     "avg": 0.23,
+     "ci": [
+      -0.39,
+      0.85
+     ],
+     "max_dd_pct": 5.8,
+     "ret_dd": 1.29,
+     "streak": 6,
+     "hold_days": 9.6,
+     "cash_pct": 84,
+     "cagr": 1.3,
+     "exposure_pct": 16
+    },
+    "unfiltered_candidate_B": {
+     "trades": 69,
+     "gross": 96.99,
+     "fees": 5.33,
+     "net": 91.66,
+     "win": 0.28,
+     "pf": 2.74,
+     "avg": 1.33,
+     "ci": [
+      -0.15,
+      3.62
+     ],
+     "max_dd_pct": 16.1,
+     "ret_dd": 5.69,
+     "streak": 10,
+     "hold_days": 12.8,
+     "cash_pct": 55,
+     "cagr": 12.9,
+     "exposure_pct": 45
+    },
+    "buy_hold": {
+     "net": 96.65,
+     "max_dd_pct": 96.3,
+     "cagr": 13.4
+    },
+    "exposure_matched_buy_hold": {
+     "net": 15.46,
+     "max_dd_pct": 15.4,
+     "cagr": 2.7
+    },
+    "ret_per_dd": {
+     "h6": 1.28,
+     "unfiltered": 5.69,
+     "buy_hold": 1,
+     "matched": 1
+    },
+    "expectancy_per_trade": {
+     "h6": 0.23,
+     "unfiltered": 1.33
+    }
+   },
+   "bull_quarters": [
+    {
+     "quarter": "2021Q3",
+     "asset_return_pct": 297.7,
+     "h6_net": 0,
+     "h6_exposure_pct": 0
+    },
+    {
+     "quarter": "2021Q4",
+     "asset_return_pct": 20.2,
+     "h6_net": 0,
+     "h6_exposure_pct": 0
+    },
+    {
+     "quarter": "2023Q1",
+     "asset_return_pct": 112.6,
+     "h6_net": 1.38,
+     "h6_exposure_pct": 48
+    },
+    {
+     "quarter": "2023Q4",
+     "asset_return_pct": 376.1,
+     "h6_net": 3.46,
+     "h6_exposure_pct": 11
+    },
+    {
+     "quarter": "2024Q1",
+     "asset_return_pct": 99,
+     "h6_net": 0.46,
+     "h6_exposure_pct": 18
+    },
+    {
+     "quarter": "2024Q4",
+     "asset_return_pct": 23.8,
+     "h6_net": 5.8,
+     "h6_exposure_pct": 30
+    },
+    {
+     "quarter": "2025Q2",
+     "asset_return_pct": 24.4,
+     "h6_net": -0.63,
+     "h6_exposure_pct": 31
+    },
+    {
+     "quarter": "2025Q3",
+     "asset_return_pct": 34.8,
+     "h6_net": 1.35,
+     "h6_exposure_pct": 83
+    },
+    {
+     "quarter": "2026Q3",
+     "asset_return_pct": 60.5,
+     "h6_net": 2.34,
+     "h6_exposure_pct": 7
+    }
+   ]
+  },
+  "ETH": {
+   "development": {
+    "h6": {
+     "trades": 16,
+     "gross": 5.08,
+     "fees": 1.28,
+     "net": 3.81,
+     "win": 0.25,
+     "pf": 1.66,
+     "avg": 0.24,
+     "ci": [
+      -0.47,
+      1.26
+     ],
+     "max_dd_pct": 6.4,
+     "ret_dd": 0.6,
+     "streak": 9,
+     "hold_days": 9.4,
+     "cash_pct": 86,
+     "cagr": 1.3,
+     "exposure_pct": 14
+    },
+    "unfiltered_candidate_B": {
+     "trades": 42,
+     "gross": 11.96,
+     "fees": 2.59,
+     "net": 9.36,
+     "win": 0.26,
+     "pf": 1.51,
+     "avg": 0.22,
+     "ci": [
+      -0.24,
+      0.78
+     ],
+     "max_dd_pct": 7.6,
+     "ret_dd": 1.23,
+     "streak": 10,
+     "hold_days": 13.3,
+     "cash_pct": 49,
+     "cagr": 3,
+     "exposure_pct": 51
+    },
+    "buy_hold": {
+     "net": 50.01,
+     "max_dd_pct": 79.4,
+     "cagr": 14.5
+    },
+    "exposure_matched_buy_hold": {
+     "net": 7,
+     "max_dd_pct": 11.1,
+     "cagr": 2.3
+    },
+    "ret_per_dd": {
+     "h6": 0.6,
+     "unfiltered": 1.23,
+     "buy_hold": 0.63,
+     "matched": 0.63
+    },
+    "expectancy_per_trade": {
+     "h6": 0.24,
+     "unfiltered": 0.22
+    }
+   },
+   "validation": {
+    "h6": {
+     "trades": 20,
+     "gross": 10.75,
+     "fees": 1.22,
+     "net": 9.53,
+     "win": 0.4,
+     "pf": 2.15,
+     "avg": 0.48,
+     "ci": [
+      -0.27,
+      1.2
+     ],
+     "max_dd_pct": 3.6,
+     "ret_dd": 2.64,
+     "streak": 5,
+     "hold_days": 8.9,
+     "cash_pct": 79,
+     "cagr": 3.9,
+     "exposure_pct": 21
+    },
+    "unfiltered_candidate_B": {
+     "trades": 22,
+     "gross": 15.95,
+     "fees": 1.29,
+     "net": 14.66,
+     "win": 0.32,
+     "pf": 2.74,
+     "avg": 0.67,
+     "ci": [
+      -0.11,
+      1.61
+     ],
+     "max_dd_pct": 4.8,
+     "ret_dd": 3.05,
+     "streak": 7,
+     "hold_days": 17.3,
+     "cash_pct": 56,
+     "cagr": 5.9,
+     "exposure_pct": 44
+    },
+    "buy_hold": {
+     "net": -48.74,
+     "max_dd_pct": 67.6,
+     "cagr": -24.5
+    },
+    "exposure_matched_buy_hold": {
+     "net": -10.24,
+     "max_dd_pct": 14.2,
+     "cagr": -4.4
+    },
+    "ret_per_dd": {
+     "h6": 2.65,
+     "unfiltered": 3.05,
+     "buy_hold": -0.72,
+     "matched": -0.72
+    },
+    "expectancy_per_trade": {
+     "h6": 0.48,
+     "unfiltered": 0.67
+    }
+   },
+   "all": {
+    "h6": {
+     "trades": 36,
+     "gross": 16.24,
+     "fees": 2.54,
+     "net": 13.7,
+     "win": 0.33,
+     "pf": 1.95,
+     "avg": 0.38,
+     "ci": [
+      -0.21,
+      1.05
+     ],
+     "max_dd_pct": 6.4,
+     "ret_dd": 2.16,
+     "streak": 9,
+     "hold_days": 9.2,
+     "cash_pct": 83,
+     "cagr": 2.4,
+     "exposure_pct": 17
+    },
+    "unfiltered_candidate_B": {
+     "trades": 64,
+     "gross": 29.4,
+     "fees": 4,
+     "net": 25.39,
+     "win": 0.28,
+     "pf": 1.92,
+     "avg": 0.4,
+     "ci": [
+      -0.1,
+      0.85
+     ],
+     "max_dd_pct": 9.3,
+     "ret_dd": 2.73,
+     "streak": 12,
+     "hold_days": 14.7,
+     "cash_pct": 52,
+     "cagr": 4.3,
+     "exposure_pct": 48
+    },
+    "buy_hold": {
+     "net": -22.71,
+     "max_dd_pct": 79.4,
+     "cagr": -4.7
+    },
+    "exposure_matched_buy_hold": {
+     "net": -3.86,
+     "max_dd_pct": 13.5,
+     "cagr": -0.7
+    },
+    "ret_per_dd": {
+     "h6": 2.14,
+     "unfiltered": 2.73,
+     "buy_hold": -0.29,
+     "matched": -0.29
+    },
+    "expectancy_per_trade": {
+     "h6": 0.38,
+     "unfiltered": 0.4
+    }
+   },
+   "bull_quarters": [
+    {
+     "quarter": "2021Q3",
+     "asset_return_pct": 31.8,
+     "h6_net": 0,
+     "h6_exposure_pct": 0
+    },
+    {
+     "quarter": "2021Q4",
+     "asset_return_pct": 22.5,
+     "h6_net": 0,
+     "h6_exposure_pct": 0
+    },
+    {
+     "quarter": "2022Q3",
+     "asset_return_pct": 24.2,
+     "h6_net": 0,
+     "h6_exposure_pct": 0
+    },
+    {
+     "quarter": "2023Q1",
+     "asset_return_pct": 52.4,
+     "h6_net": 0.69,
+     "h6_exposure_pct": 53
+    },
+    {
+     "quarter": "2023Q4",
+     "asset_return_pct": 36.5,
+     "h6_net": 1.56,
+     "h6_exposure_pct": 5
+    },
+    {
+     "quarter": "2024Q1",
+     "asset_return_pct": 59.8,
+     "h6_net": 7.22,
+     "h6_exposure_pct": 19
+    },
+    {
+     "quarter": "2024Q4",
+     "asset_return_pct": 28,
+     "h6_net": -0.66,
+     "h6_exposure_pct": 33
+    },
+    {
+     "quarter": "2025Q2",
+     "asset_return_pct": 36.4,
+     "h6_net": 3.38,
+     "h6_exposure_pct": 47
+    },
+    {
+     "quarter": "2025Q3",
+     "asset_return_pct": 66.8,
+     "h6_net": 7.38,
+     "h6_exposure_pct": 84
+    },
+    {
+     "quarter": "2026Q3",
+     "asset_return_pct": 71,
+     "h6_net": 2.94,
+     "h6_exposure_pct": 7
+    }
+   ]
+  }
+ },
+ "ma_selection_bias": {
+  "BTC": [
+   {
+    "ma": 20,
+    "unfiltered_all": 16.67,
+    "h6_all": 9.6
+   },
+   {
+    "ma": 30,
+    "unfiltered_all": 31.66,
+    "h6_all": 7.81
+   },
+   {
+    "ma": 40,
+    "unfiltered_all": 52.34,
+    "h6_all": 17.07
+   },
+   {
+    "ma": 50,
+    "unfiltered_all": 44,
+    "h6_all": 17.58
+   },
+   {
+    "ma": 60,
+    "unfiltered_all": 37.65,
+    "h6_all": 17.28
+   },
+   {
+    "ma": 80,
+    "unfiltered_all": 23.34,
+    "h6_all": 12.76
+   },
+   {
+    "ma": 100,
+    "unfiltered_all": 23.77,
+    "h6_all": 9.68
+   },
+   {
+    "ma": 150,
+    "unfiltered_all": 17.95,
+    "h6_all": 12.33
+   },
+   {
+    "ma": 200,
+    "unfiltered_all": 23.23,
+    "h6_all": 11.86
+   }
+  ],
+  "SOL": [
+   {
+    "ma": 20,
+    "unfiltered_all": 54.58,
+    "h6_all": 5.66
+   },
+   {
+    "ma": 30,
+    "unfiltered_all": 90.05,
+    "h6_all": 4.4
+   },
+   {
+    "ma": 40,
+    "unfiltered_all": 106.76,
+    "h6_all": 6.31
+   },
+   {
+    "ma": 50,
+    "unfiltered_all": 91.66,
+    "h6_all": 7.44
+   },
+   {
+    "ma": 60,
+    "unfiltered_all": 72.51,
+    "h6_all": 5.31
+   },
+   {
+    "ma": 80,
+    "unfiltered_all": 30.31,
+    "h6_all": 1.53
+   },
+   {
+    "ma": 100,
+    "unfiltered_all": 23.24,
+    "h6_all": -2.01
+   },
+   {
+    "ma": 150,
+    "unfiltered_all": 37.3,
+    "h6_all": -4.8
+   },
+   {
+    "ma": 200,
+    "unfiltered_all": 43.29,
+    "h6_all": 1.29
+   }
+  ],
+  "ETH": [
+   {
+    "ma": 20,
+    "unfiltered_all": 12.17,
+    "h6_all": 7.83
+   },
+   {
+    "ma": 30,
+    "unfiltered_all": 16.12,
+    "h6_all": 9.73
+   },
+   {
+    "ma": 40,
+    "unfiltered_all": 22.01,
+    "h6_all": 14.5
+   },
+   {
+    "ma": 50,
+    "unfiltered_all": 25.39,
+    "h6_all": 13.7
+   },
+   {
+    "ma": 60,
+    "unfiltered_all": 23.44,
+    "h6_all": 12.49
+   },
+   {
+    "ma": 80,
+    "unfiltered_all": 7.29,
+    "h6_all": 5.68
+   },
+   {
+    "ma": 100,
+    "unfiltered_all": 5.83,
+    "h6_all": 3.18
+   },
+   {
+    "ma": 150,
+    "unfiltered_all": 10.21,
+    "h6_all": 4.86
+   },
+   {
+    "ma": 200,
+    "unfiltered_all": 10.78,
+    "h6_all": 7.28
+   }
+  ]
+ }
+}

@@ -61,3 +61,16 @@ Negative in development for 7 of 8 combinations, and rejected.
 **Candidate B, BTC daily MA-50 long only:** +21.10 / +13.43 / +4.12 (19 trades), 95% interval −0.42 to +1.19 per trade.
 - Not the protocol's pick: the robust-median rule chose MA-100.
 - Now in an isolated forward PAPER trial (pending deployment approval).
+
+## Round 3 (2026-11-16): pre-registered daily long-only hypotheses, BTC/SOL/ETH 2021–2026
+
+Source: `docs/research/round3/`. Costs: 0.20% + 0.05% slippage, $100, no leverage.
+
+| Candidate | Validation BTC / SOL | ETH (run once) | Verdict |
+|---|---|---|---|
+| H1 momentum, 180-day (development plateau median) | +9.93 / −5.67 | −7.36 (18 trades) | failed validation |
+| H2 volatility-target trend, SMA 100, 50% | +23.81 / −5.52 | +9.16 (52 trades, max drawdown 54%); negative at 0.40% | failed |
+| H3 breakout 100/50, 5×ATR | +1.59 / −0.85 | +7.69 (6 trades) | failed |
+| H4 relative strength, 90-day | −59.07 | +2.17 (max drawdown 79%) | failed |
+| H5 cash vs BTC, 200-day rising (baseline) | −16.37 / −57.18 | −18.82 | failed |
+| **H6 regime-filtered MA-50** | +7.42 / +4.88 | +13.70 (36 trades) | **not recommended**: the H6 study showed the filter cuts exposure but not expectancy; unfiltered Candidate B does as well or better on a risk-adjusted basis on most markets |
