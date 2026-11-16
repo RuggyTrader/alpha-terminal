@@ -288,7 +288,10 @@ export function onBar(S, bar) {
     const netRiskU = slPlan === null ? null : Math.abs(ep - slPlan) + (ep + slPlan) * feeF + slPlan * slipF;
     const netOk = !(I.minNetRR > 0) || (netRiskU !== null && netRiskU > 0 && netRewardU / netRiskU >= I.minNetRR);
     const volOk = !(I.minAtrPct > 0) || (atr !== null && (atr / c) * 100 >= I.minAtrPct);
-    const place = timing && valid && dirOk && sc >= I.minScore && canTrade && netOk && volOk;
+    // RESEARCH-ONLY market filter (round 4): a function set on the state by the research harness, never by production
+    // (absent = no filter). It sees the completed bar's open time and the setup's direction only.
+    const gateOk = typeof S.researchGate !== "function" || S.researchGate(bar.t, S.dir);
+    const place = timing && valid && dirOk && sc >= I.minScore && canTrade && netOk && volOk && gateOk;
     S.armed = armedNow;
     plan = { entry: l705, sl: slPlan, tp2: tp2v, score: sc, tags: tags.trim() };
     const eid = S.dir === 1 ? "OTE Long" : "OTE Short";
