@@ -1,6 +1,6 @@
 # Research round 6: fee-aware OTE variants (PRE-REGISTRATION, 2026-11-16)
 
-Written and committed **before any round-6 run**. Every setting below is frozen. Results are reported whether they help or not.
+Written and committed **before any round-6 run** (`f9506dc`; V2 trigger clarified before the first run). Every setting below is frozen. Results are reported whether they help or not.
 
 - **No live strategy parameter is changed. Nothing is deployed.**
 - A candidate must pass on independent data before it may even be *proposed* for a forward PAPER trial.
@@ -45,7 +45,7 @@ This round tests whether fee-aware rules make the existing OTE strategy net-posi
 |---|---|---|
 | V0 | none (baseline) | — |
 | V1a / V1b | fee-aware minimum reward: `minNetRR` 1.0 / 2.0 with `researchCostPct` 0.2 | skip setups whose target cannot pay the fees |
-| V2 | fee-aware break-even: when break-even triggers, the stop moves to entry ± 0.45% (round-trip fee + slippage) instead of exactly to entry (research input `beFeeOffsetPct`) | break-even exits stop costing 0.40% |
+| V2 | fee-aware break-even: the stop moves to entry ± 0.45% (round-trip fee + slippage) instead of exactly to entry, once price has reached that level (trigger = the later of the original break-even level and entry ± 0.45%), so the stop is never placed through price (research input `beFeeOffsetPct`) | break-even exits stop costing 0.40% |
 | V3 | larger target: `tp2Ext` −1.0 | wins pay more than the fixed cost |
 | V4 | fewer, wider trades: skip setups whose stop is closer than 0.8% (2 × round-trip fee) from entry (research input `minStopPct`) | remove trades whose risk is smaller than their cost |
 | V5 | more selective: `minScore` 2 | fewer, better-confirmed setups |

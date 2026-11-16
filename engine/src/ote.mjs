@@ -288,10 +288,12 @@ export function onBar(S, bar) {
     const netRiskU = slPlan === null ? null : Math.abs(ep - slPlan) + (ep + slPlan) * feeF + slPlan * slipF;
     const netOk = !(I.minNetRR > 0) || (netRiskU !== null && netRiskU > 0 && netRewardU / netRiskU >= I.minNetRR);
     const volOk = !(I.minAtrPct > 0) || (atr !== null && (atr / c) * 100 >= I.minAtrPct);
+    // RESEARCH-ONLY (round 6; absent = off): skip setups whose stop is closer than minStopPct % of the entry.
+    const stopOk = !(I.minStopPct > 0) || (slPlan !== null && (Math.abs(ep - slPlan) / ep) * 100 >= I.minStopPct);
     // RESEARCH-ONLY market filter (round 4): a function set on the state by the research harness, never by production
     // (absent = no filter). It sees the completed bar's open time and the setup's direction only.
     const gateOk = typeof S.researchGate !== "function" || S.researchGate(bar.t, S.dir);
-    const place = timing && valid && dirOk && sc >= I.minScore && canTrade && netOk && volOk && gateOk;
+    const place = timing && valid && dirOk && sc >= I.minScore && canTrade && netOk && volOk && gateOk && stopOk;
     S.armed = armedNow;
     plan = { entry: l705, sl: slPlan, tp2: tp2v, score: sc, tags: tags.trim() };
     const eid = S.dir === 1 ? "OTE Long" : "OTE Short";
@@ -334,10 +336,15 @@ export function onBar(S, bar) {
     const eidT = S.dir === 1 ? "OTE Long" : "OTE Short";
     let newStop = S.curStop;
     let beNow = false, trailNow = false;
-    if (I.useBE && !S.beDone && (S.dir === 1 ? h >= S.beLevel : l <= S.beLevel)) {
+    // RESEARCH-ONLY (round 6; absent = off): fee-aware break-even. The stop moves to entry +/- beFeeOffsetPct % (so a
+    // break-even exit pays its fees) and only once price has reached that level, so it is never placed through price.
+    const beOff = I.beFeeOffsetPct > 0 ? I.beFeeOffsetPct / 100 : 0;
+    const beStop = beOff ? S.entryP * (1 + S.dir * beOff) : S.entryP;
+    const beTrig = beOff ? (S.dir === 1 ? Math.max(S.beLevel, beStop) : Math.min(S.beLevel, beStop)) : S.beLevel;
+    if (I.useBE && !S.beDone && (S.dir === 1 ? h >= beTrig : l <= beTrig)) {
       S.beDone = true;
-      if (S.dir === 1 ? S.entryP > newStop : S.entryP < newStop) {
-        newStop = S.entryP;
+      if (S.dir === 1 ? beStop > newStop : beStop < newStop) {
+        newStop = beStop;
         beNow = true;
       }
     }
