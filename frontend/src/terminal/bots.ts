@@ -30,7 +30,7 @@ export interface BotEngineReport {
   received_at?: string | null;
   position?: { side: string; qty: number; entry: number | null; stop: number | null; tp2?: number | null } | null;
   strategy_state?: StrategyState | null;
-  ledger_check?: { status?: string; issues?: string[] } | null;
+  ledger_check?: { status?: string; issues?: string[]; at?: string | null; entries_paused?: boolean } | null;
   sizing?: { mode?: string; risk_usd?: number | null; capital_usd?: number | null; last?: { status?: string; code?: string | null; qty?: number | null; risk_actual_usd?: number | null; notional_usd?: number | null; capped?: boolean; explanation?: string | null } | null } | null;
   last_error?: { at?: string; message?: string } | null;
 }
@@ -116,7 +116,8 @@ export function botState(b: Pick<Bot, "status" | "timeframe" | "entries_paused" 
   const tf = Number(String(b.timeframe).replace(/\D/g, "")) || 5;
   const age = Math.max(0, (nowMs - at) / 1000);
   const live = age <= tf * 120 + 120 ? "ONLINE" : age <= 1800 ? "STALE" : "OFFLINE";
-  return live === "ONLINE" && b.entries_paused ? "PAUSED" : live;
+  // paused by the Worker owner control, or by the engine's own setting (ENGINE_PAUSED_BOTS, reported in its heartbeat)
+  return live === "ONLINE" && (b.entries_paused || b.engine?.ledger_check?.entries_paused === true) ? "PAUSED" : live;
 }
 
 export const STATE_TONE: Record<BotState, "ok" | "warn" | "bad" | "muted"> = {
