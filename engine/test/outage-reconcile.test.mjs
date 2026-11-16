@@ -201,6 +201,7 @@ describe("owner pause (ENGINE_PAUSED_BOTS)", () => {
     assert.equal(r.state.ledgerCheck.status, "OK", `after the confirmed cancel the engine and the ledger agree (${JSON.stringify(r.state.ledgerCheck.issues)})`);
     await h.run(r, 600);
     assert.equal(r.state.ledgerCheck.status, "OK", "and stay in agreement");
+    assert.ok(!h.audits().some((x) => x.event === "NOT_ACCEPTED" && x.id === id), "an accepted-then-cancelled order is never described as not accepted");
     assert.equal(h.L.opens.length, 0, "and nothing opens afterwards");
   });
 

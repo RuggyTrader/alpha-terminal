@@ -891,7 +891,7 @@ export class EngineRunner {
         this.audit({ type: "pending_order", event: "CANCEL_CONFIRMED", id: loBase.id, reason: "the ledger confirmed the reconciliation cancel; the order is terminated" });
       }
       const lo = loBase && !S.liveOrder.cancelled ? loBase : null;
-      if (loRaw && !lo && loRaw.status !== "pending" && !S.liveOrder.unaccepted) {
+      if (loRaw && !lo && loRaw.status !== "pending" && !S.liveOrder.cancelled && !S.liveOrder.unaccepted) {
         S.liveOrder.unaccepted = loRaw.code ?? loRaw.status;
         this.audit({ type: "pending_order", event: "NOT_ACCEPTED", id: loRaw.id, status: loRaw.status, code: loRaw.code ?? null,
           reason: "its placement never reached the ledger; it is not a live order and cannot fill" });
