@@ -74,3 +74,19 @@ Source: `docs/research/round3/`. Costs: 0.20% + 0.05% slippage, $100, no leverag
 | H4 relative strength, 90-day | −59.07 | +2.17 (max drawdown 79%) | failed |
 | H5 cash vs BTC, 200-day rising (baseline) | −16.37 / −57.18 | −18.82 | failed |
 | **H6 regime-filtered MA-50** | +7.42 / +4.88 | +13.70 (36 trades) | **not recommended**: the H6 study showed the filter cuts exposure but not expectancy; unfiltered Candidate B does as well or better on a risk-adjusted basis on most markets |
+
+## Round 4 (2026-11-16): hybrid OTE (OTE / Fibonacci / PD-Array entries; moving averages and volatility as filters only)
+
+Source: `docs/research/round4/`. Production fleet backtest, strict acceptance, fresh $100 per period, 0.20% + 0.05%.
+
+| Candidate | Development / validation (typical) | Verdict |
+|---|---|---|
+| C0 original OTE 5m / 15m / 1h, LONG and SHORT, BTC SOL ETH | −17 to −89 per period; profit factor 0.07–0.6 | failed: fee-dominated |
+| C0 original OTE 4h | −17 to +10 (9–30 trades) | failed: negative development on 5 of 6 |
+| C1 OTE 5m + H6 regime | −44 to −79 | failed |
+| C2 OTE 5m + 1h trend | −63 to −87 | failed |
+| C3 OTE 15m / 1h + 4h trend | −17 to −54 (one validation +3.03 on 29 trades) | failed |
+| C4 OTE 4h + daily trend | −10 to +14 (≤ 17 trades) | failed |
+| C5 4h + wider target −0.618 / −1.0 / −1.618 | SOL LONG −1.618: +15.49 / +14.46 (8 / 15 trades); other markets and neighbours fail | not accepted: too few trades, one market; carried forward as a hypothesis |
+| C6 volatility-adjusted stop + fee-aware reward | mixed, ≤ 13 trades | failed |
+| C7 stricter confluence, minScore 2 / 3 | ≤ 10 trades | failed: too few trades |
