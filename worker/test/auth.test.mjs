@@ -39,8 +39,8 @@ function wrangler(args, opts = {}) {
 }
 
 function startWorker(port, inspectorPort, dir, vars) {
-  const args = ["wrangler", "dev", "--local", "--port", String(port), "--inspector-port", String(inspectorPort),
   assertPortFree(port, inspectorPort); // never test against a server this test did not start
+  const args = ["wrangler", "dev", "--local", "--port", String(port), "--inspector-port", String(inspectorPort),
     "--ip", "127.0.0.1", "--persist-to", dir];
   // Blank the broker keys so these tests never depend on (or call) a real Alpaca account,
   // even when worker/.dev.vars holds PAPER keys.
