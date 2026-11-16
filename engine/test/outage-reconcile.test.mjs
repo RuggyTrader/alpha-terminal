@@ -197,7 +197,10 @@ describe("owner pause (ENGINE_PAUSED_BOTS)", () => {
     const c = h.L.cancels.find((x) => x.target === id);
     assert.ok(c && /paused by the owner/.test(c.reason), `cancelled with the pause recorded (${JSON.stringify(c)})`);
     assert.equal(h.L.pending, null);
+    await h.run(r, 2);
+    assert.equal(r.state.ledgerCheck.status, "OK", `after the confirmed cancel the engine and the ledger agree (${JSON.stringify(r.state.ledgerCheck.issues)})`);
     await h.run(r, 600);
+    assert.equal(r.state.ledgerCheck.status, "OK", "and stay in agreement");
     assert.equal(h.L.opens.length, 0, "and nothing opens afterwards");
   });
 

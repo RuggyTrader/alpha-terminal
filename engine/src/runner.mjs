@@ -883,7 +883,14 @@ export class EngineRunner {
       const loRaw = S.liveOrder ? S.outbox.find((x) => x.id === S.liveOrder.id) : null;
       // In delivery ("pending") counts only when the ledger already holds that exact order (accepted, reply lost);
       // otherwise an undelivered or held order would hide the very divergence that holds it.
-      const lo = loRaw && (loRaw.status === "accepted" || (loRaw.status === "pending" && L.pendingOrder?.order_id === loRaw.id)) ? loRaw : null;
+      const loBase = loRaw && (loRaw.status === "accepted" || (loRaw.status === "pending" && L.pendingOrder?.order_id === loRaw.id)) ? loRaw : null;
+      // An order the ledger has confirmed cancelled by reconciliation (owner pause, or expiry) is terminated: it is no
+      // longer live, even while the strategy still carries that setup (it can never fill: the ledger refuses it).
+      if (loBase && !S.liveOrder.cancelled && S.outbox.some((x) => x.reconcile && x.targetId === loBase.id && x.status === "accepted")) {
+        S.liveOrder.cancelled = true;
+        this.audit({ type: "pending_order", event: "CANCEL_CONFIRMED", id: loBase.id, reason: "the ledger confirmed the reconciliation cancel; the order is terminated" });
+      }
+      const lo = loBase && !S.liveOrder.cancelled ? loBase : null;
       if (loRaw && !lo && loRaw.status !== "pending" && !S.liveOrder.unaccepted) {
         S.liveOrder.unaccepted = loRaw.code ?? loRaw.status;
         this.audit({ type: "pending_order", event: "NOT_ACCEPTED", id: loRaw.id, status: loRaw.status, code: loRaw.code ?? null,
