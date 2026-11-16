@@ -54,6 +54,8 @@ export interface BotLedgerEnv extends MarketDataConfig {
   MAX_ORDER_NOTIONAL?: string;
   MAX_TOTAL_EXPOSURE?: string;
   MAX_OPEN_POSITIONS?: string;
+  /** REVIEW (absent = off): "true" = a fill's candle must open at or after the order's ACCEPTANCE by this ledger. */
+  STRICT_FILL_TIMING?: string;
 }
 
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -158,7 +160,10 @@ export async function handleBotOrder(request: Request, env: BotLedgerEnv): Promi
     const exitKind = String(fillIn.kind ?? "");
     const lim = pending ? pending.limit_price : action === "CLOSE" && open && exitKind === "TP" && open.tp ? open.tp : null;
     const chk = checkStrategyFill({ side: isBuy ? "BUY" : "SELL", price: fillIn.price, candle: parseCandle(fillIn.candle, bot.timeframe_min), limit: lim, nowMs,
-      notBeforeMs: pending ? Date.parse(pending.placed_at) : null });
+      // Default: the candle must open at or after the strategy's order time (placed_at, the close it was issued at).
+      // Strict (STRICT_FILL_TIMING, review): also at or after this ledger ACCEPTED it (received_at, seconds later), so
+      // a candle that began before the order existed can never establish its fill.
+      notBeforeMs: pending ? (env.STRICT_FILL_TIMING === "true" ? Math.max(Date.parse(pending.placed_at), Date.parse(pending.received_at)) : Date.parse(pending.placed_at)) : null });
     if (!chk.ok) return reject(db, { ...ctx, code: chk.code, message: chk.message });
     px = chk.price; priceAt = chk.candleClose; fillAt = parseCandle(fillIn.candle, bot.timeframe_min)?.t ?? null;
     priceSource = pending ? "PAPER_LIMIT_FILL (strategy candle, simulated)" : `PAPER_STRATEGY_FILL ${exitKind || "fill"} (strategy candle, simulated)`;
@@ -467,11 +472,11 @@ export async function handleBotLedger(request: Request, env: BotLedgerEnv): Prom
   }
   const w = await env.DB.prepare(`SELECT available_micro, reserved_micro FROM portfolio_wallets WHERE wallet = ?`).bind(bot.wallet).first<{ available_micro: number; reserved_micro: number }>();
   const acct = await accountExposure(env.DB);
-  const po = await env.DB.prepare(`SELECT order_id, side, limit_price, accepted_qty, placed_at, expires_at FROM bot_pending_orders WHERE bot_id = ? AND status = 'PENDING'`).bind(botId)
-    .first<{ order_id: string; side: string; limit_price: number; accepted_qty: number | null; placed_at: string; expires_at: string | null }>();
+  const po = await env.DB.prepare(`SELECT order_id, side, limit_price, accepted_qty, placed_at, expires_at, received_at FROM bot_pending_orders WHERE bot_id = ? AND status = 'PENDING'`).bind(botId)
+    .first<{ order_id: string; side: string; limit_price: number; accepted_qty: number | null; placed_at: string; expires_at: string | null; received_at: string }>();
   return json({
     ok: true, mode: "PAPER", read_only: true, symbol: bot.symbol, bot_id: botId, alerts,
-    pending_order: po ? { order_id: po.order_id, side: po.side, limit: po.limit_price, accepted_qty: po.accepted_qty, placed_at: po.placed_at, expires_at: po.expires_at } : null,
+    pending_order: po ? { order_id: po.order_id, side: po.side, limit: po.limit_price, accepted_qty: po.accepted_qty, placed_at: po.placed_at, expires_at: po.expires_at, received_at: po.received_at } : null,
     position: p ? { symbol: p.symbol, side: p.side.toLowerCase(), status: p.status, qty: p.qty, avg_entry_price: p.entry_price, open_alert_id: p.trade_id, opened_at: p.opened_at } : null,
     balance: w ? {
       wallet: bot.wallet, available_usd: fromMicro(w.available_micro), reserved_usd: fromMicro(w.reserved_micro), bot_id: botId, bot_available_usd: fromMicro(w.available_micro),
