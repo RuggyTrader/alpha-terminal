@@ -91,6 +91,30 @@ describe("engine outage detection", () => {
   });
 });
 
+describe("whole-engine outage: one incident, one alert", () => {
+  it("all bots silent for > 10 min (the 5m bots not yet past their own 15-min limit): ONE alert naming all bots, then ONE recovery", async () => {
+    const w = world();
+    for (const b of ["ALPHA-01", "ALPHA-02", "ALPHA-03", "ALPHA-04"]) w.report(b, 11, 12);
+    await w.run();
+    assert.equal(w.rows().filter((x) => x.kind === "ENGINE_OFFLINE").length, 4);
+    assert.equal(w.sent.length, 2, "one message per device");
+    assert.match(w.sent[0].title, /engine offline \(all bots\)/);
+    for (const t of [1, 5, 10]) await w.run(NOW + t * MIN);
+    assert.equal(w.sent.length, 2, "the 5m bots crossing their own limit later do not alert again");
+    for (const b of ["ALPHA-01", "ALPHA-02", "ALPHA-03", "ALPHA-04"]) w.report(b, -20, -19);
+    await w.run(NOW + 21 * MIN);
+    assert.equal(w.sent.length, 4); assert.match(w.sent[2].title, /back to normal/);
+  });
+  it("one bot silent while the others report: only that bot, by its own threshold", async () => {
+    const w = world();
+    for (const b of ["ALPHA-01", "ALPHA-02", "ALPHA-03"]) w.report(b, 1, 2);
+    w.report("ALPHA-04", 13, 14); // 5m: 13 min is only REPORT_DELAYED (12-15 min) when the other bots report
+    await w.run();
+    assert.deepEqual(w.rows().map((x) => [x.bot_id, x.kind]), [["ALPHA-04", "REPORT_DELAYED"]]);
+    assert.equal(w.sent.length, 0);
+  });
+});
+
 describe("reporting delayed, escalation and the live classification", () => {
   it("a late report is RECORDED but never pushed; if it continues it escalates to ENGINE_OFFLINE, which is pushed once", async () => {
     const w = world();

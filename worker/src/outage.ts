@@ -19,6 +19,8 @@ interface BotRow { bot_id: string; name: string; symbol: string; timeframe_min: 
 interface OpenRow { id: number; bot_id: string; kind: OutageKind; started_at: string; alerted_at: string | null }
 
 const MIN = 60_000;
+/** Whole-engine outage: every reporting bot silent for longer than this. */
+export const ENGINE_SILENT_MS = 10 * MIN;
 export const offlineAfterMs = (tfMin: number) => Math.max(10 * MIN, 3 * tfMin * MIN);
 export const staleAfterMs = (tfMin: number) => (3 * tfMin + 3) * MIN;
 /** The dashboard's own ONLINE limit (engine_status.ts): two candles + 2 minutes. */
@@ -58,9 +60,14 @@ export async function checkEngineOutages(env: EventsEnv & { DB: D1Database }, op
   const writes: D1PreparedStatement[] = [];
   const newly: { bot: BotRow; kind: OutageKind; last: string | null; candle: string | null }[] = [];
   const recovered: { bot: BotRow; kind: OutageKind; started: string }[] = [];
+  // One engine process runs every bot: when EVERY bot that has reported is silent for more than 10 minutes, that is one
+  // whole-engine outage (e.g. the PC lost power). All bots are marked offline together, so the owner gets ONE alert
+  // instead of one for the 1m bots and another for the 5m bots a few minutes later.
+  const ages = bots.map((b) => now - Date.parse(String(reports.get(b.bot_id)?.received_at ?? ""))).filter((a) => Number.isFinite(a));
+  const engineDown = ages.length > 1 && ages.length === bots.length && ages.every((a) => a > ENGINE_SILENT_MS);
   for (const bot of bots) {
     const rep = reports.get(bot.bot_id) ?? null;
-    const cond = assess(rep as { received_at?: string; last_candle_time?: string } | null, Number(bot.timeframe_min) || 5, now);
+    const cond = engineDown ? "ENGINE_OFFLINE" : assess(rep as { received_at?: string; last_candle_time?: string } | null, Number(bot.timeframe_min) || 5, now);
     for (const kind of ["ENGINE_OFFLINE", "REPORT_DELAYED", "MARKET_DATA_STALE"] as OutageKind[]) {
       const row = open.find((x) => x.bot_id === bot.bot_id && x.kind === kind);
       if (cond === kind && !row) {
