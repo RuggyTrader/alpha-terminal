@@ -1,4 +1,6 @@
 import { runTrial, type TrialEnv } from "./trial/trial";
+import { checkEngineOutages } from "./outage";
+import type { EventsEnv } from "./events";
 import { handleBotLedger, handleBotOrder } from "./bot_ledger";
 import { handleNotificationsApi, processEvents } from "./events";
 import { meterD1, meterHeader } from "./d1meter";
@@ -554,6 +556,8 @@ const worker = {
   // nothing until the owner activates it, and it never touches the portfolio.
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(runTrial(env as unknown as TrialEnv).then(() => undefined, () => undefined));
+    // engine outage detection and alerts (outage.ts): independent of the engine's PC; a no-op before migration 0009
+    ctx.waitUntil(checkEngineOutages(env as unknown as EventsEnv & { DB: D1Database }).then(() => undefined, () => undefined));
   },
   async fetch(
     request: Request,

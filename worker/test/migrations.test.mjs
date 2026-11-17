@@ -14,9 +14,9 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 to 0008 (no staged or irreversible migration)", () => {
+  it("are exactly 0001 to 0009 (no staged or irreversible migration; 0009 engine_outages is additive)", () => {
     assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
-      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql"]);
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql", "0009_engine_outages.sql"]);
   });
 
   it("0008 (forward trial) is purely additive: every existing table and index is unchanged; it adds only trial_* objects", () => {

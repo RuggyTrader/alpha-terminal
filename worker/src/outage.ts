@@ -1,0 +1,112 @@
+// Engine outage detection and alerts (candidate, 2026-11-17; migration 0009). Runs in the Worker's one-minute cron on
+// Cloudflare, so a power cut or crash of the engine's PC cannot silence it (the 16 Nov outage lasted 700 minutes unseen).
+//
+// Per ACTIVE fleet bot that has ever reported (app_meta engine_status:<bot_id>):
+//   ENGINE_OFFLINE     no report for longer than max(10 min, 3 candles)        -> its stops and exits are NOT managed
+//   MARKET_DATA_STALE  reporting, but the last candle is older than 3 candles + 3 min (exchange feed or catch-up issue)
+//   (a paused bot that keeps reporting is neither: pausing stops entries, not the engine)
+// An episode opens once, alerts once, closes when the condition clears and sends one recovery notice. Several bots
+// going down together (the PC) produce ONE notification per device listing them. Read-mostly: the only writes are this
+// table's own rows. Trading, the ledger and every safeguard are untouched. Without migration 0009 it does nothing.
+import { vapidOf, type EventsEnv } from "./events";
+import { sendPush, type PushOutcome } from "./webpush";
+
+export type OutageKind = "ENGINE_OFFLINE" | "MARKET_DATA_STALE";
+type Send = (sub: { endpoint: string; p256dh: string; auth: string }, payload: unknown) => Promise<PushOutcome>;
+interface BotRow { bot_id: string; name: string; symbol: string; timeframe_min: number }
+interface OpenRow { id: number; bot_id: string; kind: OutageKind; started_at: string; alerted_at: string | null }
+
+const MIN = 60_000;
+export const offlineAfterMs = (tfMin: number) => Math.max(10 * MIN, 3 * tfMin * MIN);
+export const staleAfterMs = (tfMin: number) => (3 * tfMin + 3) * MIN;
+// Display aliases (frontend/src/terminal/botNames.ts), so a notification names the bot the owner knows.
+export const DISPLAY_NAMES: Record<string, string> = { "ALPHA-01": "SOL Flare", "ALPHA-02": "SOL Orbit", "ALPHA-03": "BTC Hash", "ALPHA-04": "BTC Atlas" };
+const hhmm = (iso: string | null | undefined) => (iso ? `${iso.slice(11, 16)} UTC` : "unknown");
+
+/** The condition for one bot now, from its own last report only. */
+export function assess(report: { received_at?: string; last_candle_time?: string } | null, tfMin: number, now: number): OutageKind | null {
+  const at = Date.parse(String(report?.received_at ?? ""));
+  if (!Number.isFinite(at)) return null; // never reported: not an outage (a bot that has not started)
+  if (now - at > offlineAfterMs(tfMin)) return "ENGINE_OFFLINE";
+  const candle = Date.parse(String(report?.last_candle_time ?? ""));
+  if (Number.isFinite(candle) && now - candle > staleAfterMs(tfMin)) return "MARKET_DATA_STALE";
+  return null;
+}
+
+export async function checkEngineOutages(env: EventsEnv & { DB: D1Database }, opts: { now?: number; send?: Send; names?: Record<string, string> } = {}) {
+  const db = env.DB, now = opts.now ?? Date.now(), iso = new Date(now).toISOString();
+  const out = { opened: 0, closed: 0, alerts: 0, recoveries: 0, devices: 0, skipped: null as string | null };
+  let bots: BotRow[], reports: Map<string, Record<string, unknown>>, open: OpenRow[];
+  try {
+    const [b, r, o] = await db.batch([
+      db.prepare(`SELECT bot_id, name, symbol, timeframe_min FROM bots WHERE status = 'ACTIVE' ORDER BY bot_id`),
+      db.prepare(`SELECT key, value FROM app_meta WHERE key LIKE 'engine_status:%'`),
+      db.prepare(`SELECT id, bot_id, kind, started_at, alerted_at FROM engine_outages WHERE ended_at IS NULL`),
+    ]);
+    bots = (b.results ?? []) as unknown as BotRow[];
+    reports = new Map((r.results ?? []).map((x) => { const row = x as { key: string; value: string }; let v: Record<string, unknown> = {}; try { v = JSON.parse(row.value); } catch { /* malformed: ignored */ } return [row.key.slice("engine_status:".length), v]; }));
+    open = (o.results ?? []) as unknown as OpenRow[];
+  } catch {
+    out.skipped = "not installed (migration 0009) or registry unavailable";
+    return out;
+  }
+  const writes: D1PreparedStatement[] = [];
+  const newly: { bot: BotRow; kind: OutageKind; last: string | null; candle: string | null }[] = [];
+  const recovered: { bot: BotRow; kind: OutageKind; started: string }[] = [];
+  for (const bot of bots) {
+    const rep = reports.get(bot.bot_id) ?? null;
+    const cond = assess(rep as { received_at?: string; last_candle_time?: string } | null, Number(bot.timeframe_min) || 5, now);
+    for (const kind of ["ENGINE_OFFLINE", "MARKET_DATA_STALE"] as OutageKind[]) {
+      const row = open.find((x) => x.bot_id === bot.bot_id && x.kind === kind);
+      if (cond === kind && !row) {
+        writes.push(db.prepare(`INSERT OR IGNORE INTO engine_outages (bot_id, kind, started_at, last_report_at) VALUES (?, ?, ?, ?)`).bind(bot.bot_id, kind, iso, (rep?.received_at as string) ?? null));
+        newly.push({ bot, kind, last: (rep?.received_at as string) ?? null, candle: (rep?.last_candle_time as string) ?? null });
+        out.opened++;
+      } else if (cond !== kind && row) {
+        writes.push(db.prepare(`UPDATE engine_outages SET ended_at = ? WHERE id = ? AND ended_at IS NULL`).bind(iso, row.id));
+        if (row.alerted_at) recovered.push({ bot, kind, started: row.started_at });
+        out.closed++;
+      }
+    }
+  }
+  if (writes.length) await db.batch(writes);
+  if (!newly.length && !recovered.length) return out;
+
+  // ---- notifications: one message per device per tick, listing every bot affected ----
+  const name = (b: BotRow) => (opts.names ?? DISPLAY_NAMES)[b.bot_id] ?? b.name;
+  const offline = newly.filter((n) => n.kind === "ENGINE_OFFLINE"), stale = newly.filter((n) => n.kind === "MARKET_DATA_STALE");
+  const msgs: { title: string; body: string }[] = [];
+  if (offline.length) msgs.push({
+    title: offline.length === bots.length && bots.length > 1 ? "ALPHA PAPER · engine offline (all bots)" : `ALPHA PAPER · engine offline · ${offline.map((n) => name(n.bot)).join(", ")}`,
+    body: `${offline.map((n) => `${name(n.bot)}: no report since ${hhmm(n.last)}`).join("; ")}. Stops and exits are not managed while the engine is down. Nothing has been changed automatically.`,
+  });
+  if (stale.length) msgs.push({ title: `ALPHA PAPER · market data delayed · ${stale.map((n) => name(n.bot)).join(", ")}`,
+    body: `${stale.map((n) => `${name(n.bot)}: last candle ${hhmm(n.candle)}`).join("; ")}. The engine is reporting, but its candles are not advancing.` });
+  if (recovered.length) msgs.push({ title: `ALPHA PAPER · back to normal · ${recovered.map((r) => name(r.bot)).join(", ")}`,
+    body: recovered.map((r) => `${name(r.bot)}: ${r.kind === "ENGINE_OFFLINE" ? "engine reporting again" : "candles advancing again"} (since ${hhmm(r.started)} → ${hhmm(iso)})`).join("; ") + "." });
+
+  const vapid = vapidOf(env);
+  const send: Send | null = opts.send ?? (vapid ? (sub, payload) => sendPush(sub, payload, vapid, { urgency: "high", ttl: 3600 }) : null);
+  let devices = 0;
+  if (send) {
+    const subs = (await db.prepare(`SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE disabled_at IS NULL`).all<{ id: number; endpoint: string; p256dh: string; auth: string }>().catch(() => ({ results: [] as { id: number; endpoint: string; p256dh: string; auth: string }[] }))).results;
+    for (const s of subs) {
+      let ok = false;
+      for (const m of msgs) { const r = await send({ endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth }, { ...m, url: "/bots", tag: "alpha-engine-health", ts: iso }); ok = ok || r.ok; }
+      if (ok) devices++;
+    }
+  }
+  out.devices = devices;
+  const marks: D1PreparedStatement[] = [];
+  for (const n of newly) { marks.push(db.prepare(`UPDATE engine_outages SET alerted_at = ?, alert_devices = ? WHERE bot_id = ? AND kind = ? AND started_at = ?`).bind(iso, devices, n.bot.bot_id, n.kind, iso)); out.alerts++; }
+  for (const r of recovered) { marks.push(db.prepare(`UPDATE engine_outages SET recovery_alerted_at = ? WHERE bot_id = ? AND kind = ? AND started_at = ?`).bind(iso, r.bot.bot_id, r.kind, r.started)); out.recoveries++; }
+  if (marks.length) await db.batch(marks);
+  return out;
+}
+
+/** Recent episodes for the dashboard / assistant (read-only). */
+export async function recentOutages(db: D1Database, limit = 20) {
+  try {
+    return (await db.prepare(`SELECT bot_id, kind, started_at, last_report_at, ended_at, alerted_at, alert_devices, recovery_alerted_at FROM engine_outages ORDER BY id DESC LIMIT ?`).bind(limit).all()).results;
+  } catch { return null; } // before migration 0009
+}
