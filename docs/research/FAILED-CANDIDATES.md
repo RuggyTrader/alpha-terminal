@@ -121,3 +121,11 @@ Source: `docs/research/round7/` (pre-registration `255a351`, before any run). In
 | B1 LONG squeeze breakout, 4h | −33.0 (651, 2/8) | FAILED |
 | R1 LONG mean reversion, 4h | −42.9 (156, 0/8) | FAILED |
 | All five SHORT candidates (T1, T2, M1, B1, R1) | −7.8 to −90.8 | FAILED |
+
+## Round 8 (2026-11-17): cross-sectional momentum rotation
+
+Source: `docs/research/round8/` (pre-registration `931cf8a`, before the data download and any run). Independent set: 10 markets never used by any round.
+
+| Candidate | Independent net | Status |
+|---|---|---|
+| X1 rotation, 30-day return, top 2, weekly, 1d | −96.5 (buy-and-hold −89.9), drawdown 97% | FAILED: every independent gate fails. Development +136.6 and validation +15.9 did not transfer to smaller markets; 2022 reversals were ruinous |

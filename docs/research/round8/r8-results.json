@@ -1,0 +1,389 @@
+{
+ "preregistration": "docs/research/round8/PREREGISTRATION.md",
+ "generated_at": "2026-11-17T00:12:39.179Z",
+ "costs": {
+  "selected": {
+   "feePct": 0.2,
+   "slipPct": 0.05
+  },
+  "stress": {
+   "feePct": 0.4,
+   "slipPct": 0.1
+  },
+  "kraken_taker": {
+   "feePct": 0.8,
+   "slipPct": 0.05
+  }
+ },
+ "grid": [
+  {
+   "L": 30,
+   "K": 2
+  },
+  {
+   "L": 30,
+   "K": 3
+  },
+  {
+   "L": 90,
+   "K": 2
+  },
+  {
+   "L": 90,
+   "K": 3
+  }
+ ],
+ "universes": {
+  "development": [
+   "BTC",
+   "ETH",
+   "SOL",
+   "LTC",
+   "LINK",
+   "AVAX",
+   "ADA",
+   "BCH",
+   "DOGE",
+   "XRP"
+  ],
+  "independent": [
+   "MKR",
+   "COMP",
+   "CRV",
+   "GRT",
+   "SNX",
+   "MANA",
+   "XTZ",
+   "ICP",
+   "BAT",
+   "YFI"
+  ],
+  "independent_excluded": [
+   "NEAR",
+   "SAND"
+  ],
+  "secondary": [
+   "DOT",
+   "ATOM",
+   "UNI",
+   "AAVE",
+   "XLM",
+   "ETC",
+   "FIL",
+   "ALGO"
+  ]
+ },
+ "development": [
+  {
+   "L": 30,
+   "K": 2,
+   "net": 136.58,
+   "fees": 27.06,
+   "entries": 93,
+   "mdd_pct": 78.87,
+   "exposure_pct": 74.73,
+   "turnover_usd": 13529.61,
+   "by_year": {
+    "2021": 110.85,
+    "2022": -135.34,
+    "2023": 188.43,
+    "2024": -27.37
+   },
+   "pnl_by_market": {
+    "ADA": -34.93,
+    "AVAX": 60.53,
+    "BCH": -34.75,
+    "BTC": 26.78,
+    "DOGE": 12.62,
+    "ETH": 61.83,
+    "LINK": -54.65,
+    "LTC": -29.32,
+    "SOL": 128.47,
+    "XRP": 0
+   }
+  },
+  {
+   "L": 30,
+   "K": 3,
+   "net": 123.1,
+   "fees": 21.04,
+   "entries": 116,
+   "mdd_pct": 71.72,
+   "exposure_pct": 74.73,
+   "turnover_usd": 10518.29,
+   "by_year": {
+    "2021": 89.24,
+    "2022": -105.72,
+    "2023": 140.64,
+    "2024": -1.06
+   },
+   "pnl_by_market": {
+    "ADA": 9.65,
+    "AVAX": 22.19,
+    "BCH": 5.65,
+    "BTC": 35.8,
+    "DOGE": 5.65,
+    "ETH": 30.2,
+    "LINK": -25.26,
+    "LTC": -45.3,
+    "SOL": 82.96,
+    "XRP": 1.57
+   }
+  },
+  {
+   "L": 90,
+   "K": 2,
+   "net": 43.45,
+   "fees": 6.25,
+   "entries": 47,
+   "mdd_pct": 73.78,
+   "exposure_pct": 76.64,
+   "turnover_usd": 3126.18,
+   "by_year": {
+    "2021": -11.58,
+    "2022": -55.05,
+    "2023": 91.56,
+    "2024": 18.53
+   },
+   "pnl_by_market": {
+    "ADA": -14.48,
+    "AVAX": -8.5,
+    "BCH": 10.11,
+    "BTC": -4.44,
+    "DOGE": -27.73,
+    "ETH": -10.27,
+    "LINK": -2.08,
+    "LTC": -5.49,
+    "SOL": 106.34,
+    "XRP": 0
+   }
+  },
+  {
+   "L": 90,
+   "K": 3,
+   "net": 14.62,
+   "fees": 5.65,
+   "entries": 71,
+   "mdd_pct": 68.97,
+   "exposure_pct": 76.64,
+   "turnover_usd": 2827.46,
+   "by_year": {
+    "2021": -16.54,
+    "2022": -43.79,
+    "2023": 58.03,
+    "2024": 16.92
+   },
+   "pnl_by_market": {
+    "ADA": -9.18,
+    "AVAX": 0,
+    "BCH": 4.7,
+    "BTC": -9.52,
+    "DOGE": -0.09,
+    "ETH": -9.66,
+    "LINK": -0.97,
+    "LTC": -4.95,
+    "SOL": 44.29,
+    "XRP": 0
+   }
+  }
+ ],
+ "selected": {
+  "L": 30,
+  "K": 2
+ },
+ "provenance": {
+  "NEAR": "b6ed5517dd978aab",
+  "MKR": "011f28278d21c510",
+  "COMP": "3b91498b1b11675d",
+  "CRV": "42585e0b1a381330",
+  "GRT": "5f427e3d30b67126",
+  "SNX": "c139425a187c9e8e",
+  "MANA": "f4ce3c248bf5a0cc",
+  "SAND": "12a14ceb755336ca",
+  "XTZ": "91583dc5878557b6",
+  "ICP": "9ce8c4e1167caf46",
+  "BAT": "a0be6368b2a59ee2",
+  "YFI": "b943ce3cedf882cb",
+  "BTC": "5c1b32068eecbf3c",
+  "ETH": "3459bf9620c2e0e4",
+  "SOL": "efa8d8828f88a970",
+  "LTC": "416455521d192014",
+  "LINK": "a4d2815a10c2b746",
+  "AVAX": "2117835549952f7d",
+  "ADA": "0e47e89add627cf2",
+  "BCH": "e40d41a7cfd0db7f",
+  "DOGE": "99652be1bcacc6c9",
+  "XRP": "b8528b8aa8a31d2d",
+  "DOT": "700d6c8fb4872c41",
+  "ATOM": "a359765a12f50411",
+  "UNI": "79a21883f7fbe177",
+  "AAVE": "461c3d71e970ed33",
+  "XLM": "17ff2c48f9a6beab",
+  "ETC": "5ae06f5f17c323cb",
+  "FIL": "dc36684db9f4424d",
+  "ALGO": "07d288d44874f562"
+ },
+ "validation": {
+  "net": 15.89,
+  "fees": 23.73,
+  "entries": 73,
+  "mdd_pct": 68.62,
+  "exposure_pct": 80.74,
+  "turnover_usd": 11866.83,
+  "by_year": {
+   "2024": 95.41,
+   "2025": -15.33,
+   "2026": -64.19
+  },
+  "pnl_by_market": {
+   "ADA": 37.82,
+   "AVAX": -23.37,
+   "BCH": 19.75,
+   "BTC": -19.42,
+   "DOGE": 39.07,
+   "ETH": -10.57,
+   "LINK": 24.92,
+   "LTC": -25.55,
+   "SOL": -7.22,
+   "XRP": -19.54
+  }
+ },
+ "independent": {
+  "net": -96.53,
+  "fees": 4.56,
+  "entries": 153,
+  "mdd_pct": 97.02,
+  "exposure_pct": 76.73,
+  "turnover_usd": 2280.21,
+  "by_year": {
+   "2022": -91.05,
+   "2023": 7.74,
+   "2024": 1.59,
+   "2025": -10.79,
+   "2026": -4.02
+  },
+  "pnl_by_market": {
+   "BAT": -1.8,
+   "COMP": -13.57,
+   "CRV": -26.02,
+   "GRT": -10.7,
+   "ICP": -6.82,
+   "MANA": -1.11,
+   "MKR": -1.44,
+   "SNX": -3.89,
+   "XTZ": -8.98,
+   "YFI": -22.2
+  }
+ },
+ "independent_stress": {
+  "net": -97.6,
+  "fees": 8.02,
+  "entries": 153,
+  "mdd_pct": 97.89,
+  "exposure_pct": 76.73,
+  "turnover_usd": 2005.49,
+  "by_year": {
+   "2022": -91.67,
+   "2023": 6.1,
+   "2024": 0.17,
+   "2025": -9.05,
+   "2026": -3.16
+  },
+  "pnl_by_market": {
+   "BAT": -1.53,
+   "COMP": -12.54,
+   "CRV": -28.29,
+   "GRT": -10.67,
+   "ICP": -5.54,
+   "MANA": -1.69,
+   "MKR": -2.28,
+   "SNX": -3.92,
+   "XTZ": -8.66,
+   "YFI": -22.48
+  }
+ },
+ "independent_kraken_taker": {
+  "net": -98.57,
+  "fees": 13.65,
+  "entries": 153,
+  "mdd_pct": 98.69,
+  "exposure_pct": 76.73,
+  "turnover_usd": 1706.7,
+  "by_year": {
+   "2022": -92.47,
+   "2023": 4.25,
+   "2024": -1.11,
+   "2025": -7.01,
+   "2026": -2.23
+  },
+  "pnl_by_market": {
+   "BAT": -1.26,
+   "COMP": -11.34,
+   "CRV": -30.6,
+   "GRT": -10.61,
+   "ICP": -4.23,
+   "MANA": -2.37,
+   "MKR": -3.19,
+   "SNX": -3.95,
+   "XTZ": -8.29,
+   "YFI": -22.74
+  }
+ },
+ "secondary": {
+  "net": -87.97,
+  "fees": 12.78,
+  "entries": 137,
+  "mdd_pct": 92.38,
+  "exposure_pct": 74.37,
+  "turnover_usd": 6392.09,
+  "by_year": {
+   "2022": -76.56,
+   "2023": 26.18,
+   "2024": 55.99,
+   "2025": -65.37,
+   "2026": -28.2
+  },
+  "pnl_by_market": {
+   "AAVE": -23.59,
+   "ALGO": 17.65,
+   "ATOM": -23.93,
+   "DOT": -30.46,
+   "ETC": -0.86,
+   "FIL": -25.88,
+   "UNI": 0.2,
+   "XLM": -1.11
+  }
+ },
+ "bootstrap_weekly": {
+  "lo": -0.01954,
+  "mean": -0.00683,
+  "hi": 0.00946,
+  "weeks": 254
+ },
+ "concentration": {
+  "top_market": "MANA",
+  "top_pnl": -1.11,
+  "top_share_of_net": null,
+  "gross_profit_markets": 0
+ },
+ "years_positive": 2,
+ "baselines": {
+  "buy_hold_development_val": -32.86,
+  "buy_hold_independent": -89.85,
+  "buy_hold_secondary": -81.44,
+  "cash": 0
+ },
+ "gates": {
+  "1 development net > 0": true,
+  "2 validation net > 0": true,
+  "3 independent net > 0": false,
+  "4 independent net > 0 at 0.40% + 0.10%": false,
+  "5 >= 30 independent entries": true,
+  "6 weekly block-bootstrap 95% lower bound > 0": false,
+  "7 independent max drawdown <= 40%": false,
+  "8 positive in >= 3 of 5 years 2022-2026": false,
+  "9 no market > 50% of independent net profit": false,
+  "data: >= 8 independent markets": true
+ },
+ "status": "FAILED"
+}

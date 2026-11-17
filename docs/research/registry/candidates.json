@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-16T20:08:39.510Z",
+ "generated_at": "2026-11-17T00:13:22.697Z",
  "statuses": [
   "IDEA",
   "SPECIFIED",
@@ -1291,6 +1291,52 @@
    "status": "FAILED",
    "failure": "failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
    "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R8-X1",
+   "name": "Cross-sectional momentum rotation, L30 / top-2, weekly (X1)",
+   "family": "Cross-sectional momentum (portfolio)",
+   "version": "round 8 pre-registered (931cf8a, A1 44744b2)",
+   "markets": [
+    "MKR",
+    "COMP",
+    "CRV",
+    "GRT",
+    "SNX",
+    "MANA",
+    "XTZ",
+    "ICP",
+    "BAT",
+    "YFI"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase daily 2021–2026; independent markets never used before",
+   "periods": {
+    "development": "2021-07–2024-07 (10 large caps)",
+    "validation": "2024-07–2026-11",
+    "independent": "2022-01–2026-11"
+   },
+   "costs": "0.20% + 0.05%",
+   "results": {
+    "development": {
+     "net": 136.58,
+     "trades": 93
+    },
+    "validation": {
+     "net": 15.89,
+     "note": "buy-and-hold −32.86"
+    },
+    "independent": {
+     "net": -96.53,
+     "trades": 153
+    }
+   },
+   "fee_drag": "not the cause: losses came from momentum reversals in 2022",
+   "status": "FAILED",
+   "failure": "independent −96.5 (worse than buy-and-hold −89.9), drawdown 97%, bootstrap CI includes 0, positive in 2 of 5 years",
+   "source": "docs/research/round8/REPORT.md"
   }
  ]
 }
