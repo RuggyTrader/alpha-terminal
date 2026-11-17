@@ -1,0 +1,4744 @@
+{
+ "label": "RESEARCH ROUND 7 (different strategy families; Coinbase candles; conservative bar backtester; NOT PAPER results)",
+ "code_version": "255a351",
+ "preregistration": "255a351",
+ "costs": {
+  "selected": {
+   "feePct": 0.2,
+   "slipPct": 0.05
+  },
+  "stress": {
+   "feePct": 0.4,
+   "slipPct": 0.1
+  },
+  "kraken_taker": {
+   "feePct": 0.8,
+   "slipPct": 0.05
+  }
+ },
+ "development_all": {
+  "T1-240-20-10 LONG": {
+   "trades": 292,
+   "gross": 244.6,
+   "fees": 70,
+   "net": 174.6,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    29.3,
+    30.6,
+    30.2
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 90,
+     "gross": 102.41,
+     "fees": 30.29,
+     "net": 72.11,
+     "pf": 1.54,
+     "win": 0.29,
+     "max_dd_pct": 29.3,
+     "exposure": 0.33
+    },
+    "ETH": {
+     "trades": 105,
+     "gross": 25.28,
+     "fees": 21.43,
+     "net": 3.85,
+     "pf": 1.03,
+     "win": 0.23,
+     "max_dd_pct": 30.6,
+     "exposure": 0.36
+    },
+    "SOL": {
+     "trades": 97,
+     "gross": 116.91,
+     "fees": 18.28,
+     "net": 98.63,
+     "pf": 1.75,
+     "win": 0.38,
+     "max_dd_pct": 30.2,
+     "exposure": 0.35
+    }
+   }
+  },
+  "T1-240-55-20 LONG": {
+   "trades": 139,
+   "gross": 410.68,
+   "fees": 41.24,
+   "net": 369.44,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    18,
+    22.9,
+    19.8
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 42,
+     "gross": 122.99,
+     "fees": 14.76,
+     "net": 108.23,
+     "pf": 2.53,
+     "win": 0.36,
+     "max_dd_pct": 18,
+     "exposure": 0.29
+    },
+    "ETH": {
+     "trades": 51,
+     "gross": 98.87,
+     "fees": 13.78,
+     "net": 85.09,
+     "pf": 2,
+     "win": 0.29,
+     "max_dd_pct": 22.9,
+     "exposure": 0.27
+    },
+    "SOL": {
+     "trades": 46,
+     "gross": 188.82,
+     "fees": 12.7,
+     "net": 176.12,
+     "pf": 2.53,
+     "win": 0.33,
+     "max_dd_pct": 19.8,
+     "exposure": 0.3
+    }
+   }
+  },
+  "T1-1440-20-10 LONG": {
+   "trades": 49,
+   "gross": 141.52,
+   "fees": 5.34,
+   "net": 136.19,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    14.5,
+    10.9,
+    19.5
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 17,
+     "gross": 29.97,
+     "fees": 2.07,
+     "net": 27.9,
+     "pf": 2.56,
+     "win": 0.41,
+     "max_dd_pct": 14.5,
+     "exposure": 0.37
+    },
+    "ETH": {
+     "trades": 16,
+     "gross": 16.58,
+     "fees": 1.68,
+     "net": 14.9,
+     "pf": 1.89,
+     "win": 0.44,
+     "max_dd_pct": 10.9,
+     "exposure": 0.35
+    },
+    "SOL": {
+     "trades": 16,
+     "gross": 94.98,
+     "fees": 1.59,
+     "net": 93.39,
+     "pf": 5.51,
+     "win": 0.38,
+     "max_dd_pct": 19.5,
+     "exposure": 0.33
+    }
+   }
+  },
+  "T1-1440-55-20 LONG": {
+   "trades": 25,
+   "gross": 137.05,
+   "fees": 2.73,
+   "net": 134.32,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    9.1,
+    14,
+    18.5
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 10,
+     "gross": 9.21,
+     "fees": 1.08,
+     "net": 8.13,
+     "pf": 1.85,
+     "win": 0.4,
+     "max_dd_pct": 9.1,
+     "exposure": 0.39
+    },
+    "ETH": {
+     "trades": 9,
+     "gross": 20.24,
+     "fees": 0.9,
+     "net": 19.34,
+     "pf": 2.9,
+     "win": 0.33,
+     "max_dd_pct": 14,
+     "exposure": 0.35
+    },
+    "SOL": {
+     "trades": 6,
+     "gross": 107.6,
+     "fees": 0.75,
+     "net": 106.85,
+     "pf": 19.87,
+     "win": 0.67,
+     "max_dd_pct": 18.5,
+     "exposure": 0.28
+    }
+   }
+  },
+  "T2-240-50 LONG": {
+   "trades": 525,
+   "gross": 136.89,
+   "fees": 77.45,
+   "net": 59.44,
+   "positive": 2,
+   "markets": 3,
+   "dd": [
+    31,
+    25.6,
+    19.7
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 185,
+     "gross": 21.5,
+     "fees": 31.23,
+     "net": -9.73,
+     "pf": 0.92,
+     "win": 0.16,
+     "max_dd_pct": 31,
+     "exposure": 0.38
+    },
+    "ETH": {
+     "trades": 174,
+     "gross": 42.81,
+     "fees": 27.13,
+     "net": 15.68,
+     "pf": 1.15,
+     "win": 0.21,
+     "max_dd_pct": 25.6,
+     "exposure": 0.4
+    },
+    "SOL": {
+     "trades": 166,
+     "gross": 72.59,
+     "fees": 19.09,
+     "net": 53.5,
+     "pf": 1.49,
+     "win": 0.28,
+     "max_dd_pct": 19.7,
+     "exposure": 0.37
+    }
+   }
+  },
+  "T2-240-100 LONG": {
+   "trades": 457,
+   "gross": 176.53,
+   "fees": 67.99,
+   "net": 108.55,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    27.9,
+    21.2,
+    30
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 163,
+     "gross": 55.26,
+     "fees": 31.25,
+     "net": 24.01,
+     "pf": 1.2,
+     "win": 0.26,
+     "max_dd_pct": 27.9,
+     "exposure": 0.44
+    },
+    "ETH": {
+     "trades": 151,
+     "gross": 50.77,
+     "fees": 23.04,
+     "net": 27.73,
+     "pf": 1.27,
+     "win": 0.28,
+     "max_dd_pct": 21.2,
+     "exposure": 0.4
+    },
+    "SOL": {
+     "trades": 143,
+     "gross": 70.5,
+     "fees": 13.69,
+     "net": 56.81,
+     "pf": 1.58,
+     "win": 0.28,
+     "max_dd_pct": 30,
+     "exposure": 0.38
+    }
+   }
+  },
+  "T2-240-200 LONG": {
+   "trades": 420,
+   "gross": 181.21,
+   "fees": 68.74,
+   "net": 112.47,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    20.7,
+    20.4,
+    26.2
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 142,
+     "gross": 87.15,
+     "fees": 34.13,
+     "net": 53.02,
+     "pf": 1.42,
+     "win": 0.31,
+     "max_dd_pct": 20.7,
+     "exposure": 0.43
+    },
+    "ETH": {
+     "trades": 136,
+     "gross": 40.93,
+     "fees": 20.86,
+     "net": 20.07,
+     "pf": 1.2,
+     "win": 0.29,
+     "max_dd_pct": 20.4,
+     "exposure": 0.41
+    },
+    "SOL": {
+     "trades": 142,
+     "gross": 53.12,
+     "fees": 13.75,
+     "net": 39.38,
+     "pf": 1.38,
+     "win": 0.27,
+     "max_dd_pct": 26.2,
+     "exposure": 0.39
+    }
+   }
+  },
+  "T2-1440-50 LONG": {
+   "trades": 82,
+   "gross": 101.22,
+   "fees": 5.2,
+   "net": 96.02,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    6.3,
+    6,
+    10.8
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 27,
+     "gross": 32.33,
+     "fees": 2.16,
+     "net": 30.17,
+     "pf": 3.62,
+     "win": 0.37,
+     "max_dd_pct": 6.3,
+     "exposure": 0.42
+    },
+    "ETH": {
+     "trades": 32,
+     "gross": 7.67,
+     "fees": 1.84,
+     "net": 5.84,
+     "pf": 1.48,
+     "win": 0.34,
+     "max_dd_pct": 6,
+     "exposure": 0.43
+    },
+    "SOL": {
+     "trades": 23,
+     "gross": 61.21,
+     "fees": 1.2,
+     "net": 60.01,
+     "pf": 5.69,
+     "win": 0.43,
+     "max_dd_pct": 10.8,
+     "exposure": 0.35
+    }
+   }
+  },
+  "T2-1440-100 LONG": {
+   "trades": 81,
+   "gross": 37.13,
+   "fees": 4.47,
+   "net": 32.66,
+   "positive": 2,
+   "markets": 3,
+   "dd": [
+    5.7,
+    8.6,
+    10.9
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 26,
+     "gross": 8.85,
+     "fees": 1.75,
+     "net": 7.1,
+     "pf": 1.55,
+     "win": 0.35,
+     "max_dd_pct": 5.7,
+     "exposure": 0.44
+    },
+    "ETH": {
+     "trades": 30,
+     "gross": -1.32,
+     "fees": 1.59,
+     "net": -2.92,
+     "pf": 0.83,
+     "win": 0.2,
+     "max_dd_pct": 8.6,
+     "exposure": 0.43
+    },
+    "SOL": {
+     "trades": 25,
+     "gross": 29.6,
+     "fees": 1.13,
+     "net": 28.48,
+     "pf": 2.94,
+     "win": 0.28,
+     "max_dd_pct": 10.9,
+     "exposure": 0.3
+    }
+   }
+  },
+  "T2-1440-200 LONG": {
+   "trades": 49,
+   "gross": 62.41,
+   "fees": 3.14,
+   "net": 59.27,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    3.7,
+    4.8,
+    12.4
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 18,
+     "gross": 11.76,
+     "fees": 1.33,
+     "net": 10.43,
+     "pf": 2.11,
+     "win": 0.39,
+     "max_dd_pct": 3.7,
+     "exposure": 0.4
+    },
+    "ETH": {
+     "trades": 16,
+     "gross": 3.13,
+     "fees": 0.97,
+     "net": 2.16,
+     "pf": 1.29,
+     "win": 0.5,
+     "max_dd_pct": 4.8,
+     "exposure": 0.4
+    },
+    "SOL": {
+     "trades": 15,
+     "gross": 47.52,
+     "fees": 0.84,
+     "net": 46.68,
+     "pf": 4.29,
+     "win": 0.4,
+     "max_dd_pct": 12.4,
+     "exposure": 0.28
+    }
+   }
+  },
+  "M1-1440-30 LONG": {
+   "trades": 75,
+   "gross": 89.38,
+   "fees": 4.71,
+   "net": 84.66,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    10.1,
+    7.5,
+    14.3
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 25,
+     "gross": 21.49,
+     "fees": 1.86,
+     "net": 19.63,
+     "pf": 2.54,
+     "win": 0.36,
+     "max_dd_pct": 10.1,
+     "exposure": 0.5
+    },
+    "ETH": {
+     "trades": 28,
+     "gross": 6.99,
+     "fees": 1.66,
+     "net": 5.33,
+     "pf": 1.32,
+     "win": 0.43,
+     "max_dd_pct": 7.5,
+     "exposure": 0.48
+    },
+    "SOL": {
+     "trades": 22,
+     "gross": 60.9,
+     "fees": 1.19,
+     "net": 59.71,
+     "pf": 4.41,
+     "win": 0.5,
+     "max_dd_pct": 14.3,
+     "exposure": 0.41
+    }
+   }
+  },
+  "M1-1440-60 LONG": {
+   "trades": 79,
+   "gross": 48.2,
+   "fees": 4.65,
+   "net": 43.54,
+   "positive": 2,
+   "markets": 3,
+   "dd": [
+    10,
+    11.2,
+    12.6
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 27,
+     "gross": 12.64,
+     "fees": 2,
+     "net": 10.64,
+     "pf": 1.53,
+     "win": 0.3,
+     "max_dd_pct": 10,
+     "exposure": 0.47
+    },
+    "ETH": {
+     "trades": 30,
+     "gross": -0.05,
+     "fees": 1.67,
+     "net": -1.72,
+     "pf": 0.91,
+     "win": 0.33,
+     "max_dd_pct": 11.2,
+     "exposure": 0.53
+    },
+    "SOL": {
+     "trades": 22,
+     "gross": 35.62,
+     "fees": 0.99,
+     "net": 34.62,
+     "pf": 3,
+     "win": 0.45,
+     "max_dd_pct": 12.6,
+     "exposure": 0.36
+    }
+   }
+  },
+  "M1-1440-120 LONG": {
+   "trades": 59,
+   "gross": 53.41,
+   "fees": 3.64,
+   "net": 49.77,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    9.8,
+    7.8,
+    14.2
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 23,
+     "gross": 12.15,
+     "fees": 1.68,
+     "net": 10.46,
+     "pf": 1.79,
+     "win": 0.3,
+     "max_dd_pct": 9.8,
+     "exposure": 0.47
+    },
+    "ETH": {
+     "trades": 21,
+     "gross": 6.55,
+     "fees": 1.2,
+     "net": 5.35,
+     "pf": 1.59,
+     "win": 0.43,
+     "max_dd_pct": 7.8,
+     "exposure": 0.46
+    },
+    "SOL": {
+     "trades": 15,
+     "gross": 34.71,
+     "fees": 0.75,
+     "net": 33.96,
+     "pf": 3.35,
+     "win": 0.47,
+     "max_dd_pct": 14.2,
+     "exposure": 0.31
+    }
+   }
+  },
+  "B1-60 LONG": {
+   "trades": 665,
+   "gross": 79.81,
+   "fees": 160.32,
+   "net": -80.51,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    48.8,
+    50.1,
+    42.6
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 212,
+     "gross": 16.29,
+     "fees": 52.16,
+     "net": -35.87,
+     "pf": 0.77,
+     "win": 0.28,
+     "max_dd_pct": 48.8,
+     "exposure": 0.15
+    },
+    "ETH": {
+     "trades": 235,
+     "gross": 13.66,
+     "fees": 59.32,
+     "net": -45.65,
+     "pf": 0.77,
+     "win": 0.34,
+     "max_dd_pct": 50.1,
+     "exposure": 0.16
+    },
+    "SOL": {
+     "trades": 218,
+     "gross": 49.86,
+     "fees": 48.85,
+     "net": 1.01,
+     "pf": 1,
+     "win": 0.38,
+     "max_dd_pct": 42.6,
+     "exposure": 0.15
+    }
+   }
+  },
+  "B1-240 LONG": {
+   "trades": 178,
+   "gross": 26.72,
+   "fees": 26.41,
+   "net": 0.3,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    26.2,
+    17.9,
+    16
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 63,
+     "gross": -3.04,
+     "fees": 11.08,
+     "net": -14.12,
+     "pf": 0.75,
+     "win": 0.32,
+     "max_dd_pct": 26.2,
+     "exposure": 0.16
+    },
+    "ETH": {
+     "trades": 62,
+     "gross": 6.38,
+     "fees": 9.5,
+     "net": -3.11,
+     "pf": 0.94,
+     "win": 0.26,
+     "max_dd_pct": 17.9,
+     "exposure": 0.17
+    },
+    "SOL": {
+     "trades": 53,
+     "gross": 23.37,
+     "fees": 5.84,
+     "net": 17.54,
+     "pf": 1.38,
+     "win": 0.4,
+     "max_dd_pct": 16,
+     "exposure": 0.15
+    }
+   }
+  },
+  "R1-60-2 LONG": {
+   "trades": 706,
+   "gross": -29.11,
+   "fees": 144.37,
+   "net": -173.47,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    70.1,
+    65.7,
+    49.4
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 234,
+     "gross": -21.04,
+     "fees": 48.98,
+     "net": -70.02,
+     "pf": 0.38,
+     "win": 0.41,
+     "max_dd_pct": 70.1,
+     "exposure": 0.07
+    },
+    "ETH": {
+     "trades": 258,
+     "gross": -7.11,
+     "fees": 57.03,
+     "net": -64.14,
+     "pf": 0.53,
+     "win": 0.45,
+     "max_dd_pct": 65.7,
+     "exposure": 0.08
+    },
+    "SOL": {
+     "trades": 214,
+     "gross": -0.96,
+     "fees": 38.35,
+     "net": -39.31,
+     "pf": 0.7,
+     "win": 0.49,
+     "max_dd_pct": 49.4,
+     "exposure": 0.07
+    }
+   }
+  },
+  "R1-60-2.5 LONG": {
+   "trades": 353,
+   "gross": -50.89,
+   "fees": 77.02,
+   "net": -127.91,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    61.1,
+    47.2,
+    25.4
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 136,
+     "gross": -30.58,
+     "fees": 30.55,
+     "net": -61.13,
+     "pf": 0.28,
+     "win": 0.38,
+     "max_dd_pct": 61.1,
+     "exposure": 0.04
+    },
+    "ETH": {
+     "trades": 133,
+     "gross": -13.99,
+     "fees": 31.61,
+     "net": -45.61,
+     "pf": 0.46,
+     "win": 0.41,
+     "max_dd_pct": 47.2,
+     "exposure": 0.04
+    },
+    "SOL": {
+     "trades": 84,
+     "gross": -6.32,
+     "fees": 14.86,
+     "net": -21.17,
+     "pf": 0.61,
+     "win": 0.4,
+     "max_dd_pct": 25.4,
+     "exposure": 0.03
+    }
+   }
+  },
+  "R1-240-2 LONG": {
+   "trades": 152,
+   "gross": -3.18,
+   "fees": 24.49,
+   "net": -27.67,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    19.3,
+    15.9,
+    14.5
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 60,
+     "gross": -3.43,
+     "fees": 11.97,
+     "net": -15.41,
+     "pf": 0.66,
+     "win": 0.5,
+     "max_dd_pct": 19.3,
+     "exposure": 0.07
+    },
+    "ETH": {
+     "trades": 50,
+     "gross": -3.9,
+     "fees": 8.54,
+     "net": -12.45,
+     "pf": 0.67,
+     "win": 0.54,
+     "max_dd_pct": 15.9,
+     "exposure": 0.06
+    },
+    "SOL": {
+     "trades": 42,
+     "gross": 4.16,
+     "fees": 3.97,
+     "net": 0.19,
+     "pf": 1.01,
+     "win": 0.6,
+     "max_dd_pct": 14.5,
+     "exposure": 0.06
+    }
+   }
+  },
+  "R1-240-2.5 LONG": {
+   "trades": 88,
+   "gross": 2.13,
+   "fees": 15.58,
+   "net": -13.45,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    7.8,
+    13.8,
+    5.6
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 36,
+     "gross": 2.98,
+     "fees": 8.02,
+     "net": -5.04,
+     "pf": 0.84,
+     "win": 0.56,
+     "max_dd_pct": 7.8,
+     "exposure": 0.04
+    },
+    "ETH": {
+     "trades": 32,
+     "gross": -6.05,
+     "fees": 5.48,
+     "net": -11.54,
+     "pf": 0.59,
+     "win": 0.53,
+     "max_dd_pct": 13.8,
+     "exposure": 0.03
+    },
+    "SOL": {
+     "trades": 20,
+     "gross": 5.2,
+     "fees": 2.08,
+     "net": 3.12,
+     "pf": 1.32,
+     "win": 0.65,
+     "max_dd_pct": 5.6,
+     "exposure": 0.03
+    }
+   }
+  },
+  "T1-240-20-10 SHORT": {
+   "trades": 267,
+   "gross": -2.64,
+   "fees": 50.25,
+   "net": -52.89,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    35.3,
+    44.5,
+    24.3
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 86,
+     "gross": 2.77,
+     "fees": 21.17,
+     "net": -18.39,
+     "pf": 0.82,
+     "win": 0.33,
+     "max_dd_pct": 35.3,
+     "exposure": 0.3
+    },
+    "ETH": {
+     "trades": 92,
+     "gross": -18.23,
+     "fees": 16.52,
+     "net": -34.75,
+     "pf": 0.66,
+     "win": 0.3,
+     "max_dd_pct": 44.5,
+     "exposure": 0.31
+    },
+    "SOL": {
+     "trades": 89,
+     "gross": 12.82,
+     "fees": 12.57,
+     "net": 0.25,
+     "pf": 1,
+     "win": 0.39,
+     "max_dd_pct": 24.3,
+     "exposure": 0.33
+    }
+   }
+  },
+  "T1-240-55-20 SHORT": {
+   "trades": 138,
+   "gross": -23.22,
+   "fees": 26.06,
+   "net": -49.27,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    31.5,
+    33,
+    25.2
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 43,
+     "gross": 2.42,
+     "fees": 11.32,
+     "net": -8.9,
+     "pf": 0.86,
+     "win": 0.3,
+     "max_dd_pct": 31.5,
+     "exposure": 0.21
+    },
+    "ETH": {
+     "trades": 44,
+     "gross": -12.44,
+     "fees": 8.53,
+     "net": -20.97,
+     "pf": 0.62,
+     "win": 0.27,
+     "max_dd_pct": 33,
+     "exposure": 0.22
+    },
+    "SOL": {
+     "trades": 51,
+     "gross": -13.2,
+     "fees": 6.21,
+     "net": -19.41,
+     "pf": 0.7,
+     "win": 0.27,
+     "max_dd_pct": 25.2,
+     "exposure": 0.25
+    }
+   }
+  },
+  "T1-1440-20-10 SHORT": {
+   "trades": 48,
+   "gross": -6.69,
+   "fees": 3.57,
+   "net": -10.26,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    11.9,
+    19.7,
+    7.7
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 16,
+     "gross": -0.01,
+     "fees": 1.53,
+     "net": -1.54,
+     "pf": 0.91,
+     "win": 0.44,
+     "max_dd_pct": 11.9,
+     "exposure": 0.25
+    },
+    "ETH": {
+     "trades": 18,
+     "gross": -11.86,
+     "fees": 1.34,
+     "net": -13.2,
+     "pf": 0.48,
+     "win": 0.11,
+     "max_dd_pct": 19.7,
+     "exposure": 0.26
+    },
+    "SOL": {
+     "trades": 14,
+     "gross": 5.18,
+     "fees": 0.7,
+     "net": 4.48,
+     "pf": 1.35,
+     "win": 0.43,
+     "max_dd_pct": 7.7,
+     "exposure": 0.33
+    }
+   }
+  },
+  "T1-1440-55-20 SHORT": {
+   "trades": 21,
+   "gross": 0.64,
+   "fees": 1.61,
+   "net": -0.97,
+   "positive": 2,
+   "markets": 3,
+   "dd": [
+    14,
+    8.4,
+    5.8
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 8,
+     "gross": -3.88,
+     "fees": 0.78,
+     "net": -4.67,
+     "pf": 0.64,
+     "win": 0.25,
+     "max_dd_pct": 14,
+     "exposure": 0.16
+    },
+    "ETH": {
+     "trades": 6,
+     "gross": 0.86,
+     "fees": 0.45,
+     "net": 0.4,
+     "pf": 1.06,
+     "win": 0.33,
+     "max_dd_pct": 8.4,
+     "exposure": 0.21
+    },
+    "SOL": {
+     "trades": 7,
+     "gross": 3.66,
+     "fees": 0.37,
+     "net": 3.29,
+     "pf": 1.48,
+     "win": 0.43,
+     "max_dd_pct": 5.8,
+     "exposure": 0.24
+    }
+   }
+  },
+  "T2-240-50 SHORT": {
+   "trades": 520,
+   "gross": -14.92,
+   "fees": 62.71,
+   "net": -77.63,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    41.9,
+    34.6,
+    25.2
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 173,
+     "gross": -11.61,
+     "fees": 25.26,
+     "net": -36.87,
+     "pf": 0.61,
+     "win": 0.2,
+     "max_dd_pct": 41.9,
+     "exposure": 0.37
+    },
+    "ETH": {
+     "trades": 176,
+     "gross": -5.63,
+     "fees": 23.19,
+     "net": -28.82,
+     "pf": 0.7,
+     "win": 0.2,
+     "max_dd_pct": 34.6,
+     "exposure": 0.36
+    },
+    "SOL": {
+     "trades": 171,
+     "gross": 2.31,
+     "fees": 14.26,
+     "net": -11.95,
+     "pf": 0.87,
+     "win": 0.28,
+     "max_dd_pct": 25.2,
+     "exposure": 0.4
+    }
+   }
+  },
+  "T2-240-100 SHORT": {
+   "trades": 431,
+   "gross": 24.41,
+   "fees": 59.6,
+   "net": -35.19,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    32.1,
+    40.8,
+    15.4
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 139,
+     "gross": 3.28,
+     "fees": 22.81,
+     "net": -19.53,
+     "pf": 0.77,
+     "win": 0.24,
+     "max_dd_pct": 32.1,
+     "exposure": 0.39
+    },
+    "ETH": {
+     "trades": 153,
+     "gross": -0.17,
+     "fees": 23.47,
+     "net": -23.64,
+     "pf": 0.75,
+     "win": 0.26,
+     "max_dd_pct": 40.8,
+     "exposure": 0.42
+    },
+    "SOL": {
+     "trades": 139,
+     "gross": 21.3,
+     "fees": 13.32,
+     "net": 7.98,
+     "pf": 1.1,
+     "win": 0.32,
+     "max_dd_pct": 15.4,
+     "exposure": 0.39
+    }
+   }
+  },
+  "T2-240-200 SHORT": {
+   "trades": 385,
+   "gross": 18.77,
+   "fees": 53.3,
+   "net": -34.52,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    22.8,
+    30.3,
+    24.7
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 124,
+     "gross": 12.66,
+     "fees": 21.66,
+     "net": -9,
+     "pf": 0.9,
+     "win": 0.32,
+     "max_dd_pct": 22.8,
+     "exposure": 0.41
+    },
+    "ETH": {
+     "trades": 128,
+     "gross": 6.93,
+     "fees": 19.82,
+     "net": -12.89,
+     "pf": 0.87,
+     "win": 0.29,
+     "max_dd_pct": 30.3,
+     "exposure": 0.41
+    },
+    "SOL": {
+     "trades": 133,
+     "gross": -0.82,
+     "fees": 11.81,
+     "net": -12.63,
+     "pf": 0.85,
+     "win": 0.25,
+     "max_dd_pct": 24.7,
+     "exposure": 0.41
+    }
+   }
+  },
+  "T2-1440-50 SHORT": {
+   "trades": 67,
+   "gross": -0.06,
+   "fees": 3.81,
+   "net": -3.86,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    5.9,
+    7.4,
+    7.8
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 27,
+     "gross": 0.62,
+     "fees": 1.8,
+     "net": -1.18,
+     "pf": 0.89,
+     "win": 0.22,
+     "max_dd_pct": 5.9,
+     "exposure": 0.35
+    },
+    "ETH": {
+     "trades": 22,
+     "gross": -0.46,
+     "fees": 1.33,
+     "net": -1.79,
+     "pf": 0.82,
+     "win": 0.23,
+     "max_dd_pct": 7.4,
+     "exposure": 0.32
+    },
+    "SOL": {
+     "trades": 18,
+     "gross": -0.21,
+     "fees": 0.68,
+     "net": -0.89,
+     "pf": 0.93,
+     "win": 0.28,
+     "max_dd_pct": 7.8,
+     "exposure": 0.35
+    }
+   }
+  },
+  "T2-1440-100 SHORT": {
+   "trades": 57,
+   "gross": 3.37,
+   "fees": 3.38,
+   "net": -0.01,
+   "positive": 2,
+   "markets": 3,
+   "dd": [
+    7.1,
+    6.6,
+    7
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 18,
+     "gross": 4.71,
+     "fees": 1.44,
+     "net": 3.27,
+     "pf": 1.29,
+     "win": 0.39,
+     "max_dd_pct": 7.1,
+     "exposure": 0.39
+    },
+    "ETH": {
+     "trades": 21,
+     "gross": -2.68,
+     "fees": 1.27,
+     "net": -3.95,
+     "pf": 0.61,
+     "win": 0.29,
+     "max_dd_pct": 6.6,
+     "exposure": 0.31
+    },
+    "SOL": {
+     "trades": 18,
+     "gross": 1.34,
+     "fees": 0.67,
+     "net": 0.67,
+     "pf": 1.05,
+     "win": 0.33,
+     "max_dd_pct": 7,
+     "exposure": 0.39
+    }
+   }
+  },
+  "T2-1440-200 SHORT": {
+   "trades": 47,
+   "gross": 7.43,
+   "fees": 2.67,
+   "net": 4.75,
+   "positive": 2,
+   "markets": 3,
+   "dd": [
+    7.9,
+    6.1,
+    7.6
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 11,
+     "gross": 2.91,
+     "fees": 0.93,
+     "net": 1.98,
+     "pf": 1.19,
+     "win": 0.36,
+     "max_dd_pct": 7.9,
+     "exposure": 0.29
+    },
+    "ETH": {
+     "trades": 15,
+     "gross": 0.83,
+     "fees": 0.9,
+     "net": -0.07,
+     "pf": 0.99,
+     "win": 0.27,
+     "max_dd_pct": 6.1,
+     "exposure": 0.31
+    },
+    "SOL": {
+     "trades": 21,
+     "gross": 3.69,
+     "fees": 0.85,
+     "net": 2.84,
+     "pf": 1.18,
+     "win": 0.33,
+     "max_dd_pct": 7.6,
+     "exposure": 0.38
+    }
+   }
+  },
+  "M1-1440-30 SHORT": {
+   "trades": 59,
+   "gross": 1.38,
+   "fees": 3.13,
+   "net": -1.75,
+   "positive": 2,
+   "markets": 3,
+   "dd": [
+    5.9,
+    8.7,
+    10.8
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 19,
+     "gross": 2.6,
+     "fees": 1.3,
+     "net": 1.31,
+     "pf": 1.11,
+     "win": 0.42,
+     "max_dd_pct": 5.9,
+     "exposure": 0.41
+    },
+    "ETH": {
+     "trades": 20,
+     "gross": 2.49,
+     "fees": 1.13,
+     "net": 1.36,
+     "pf": 1.1,
+     "win": 0.4,
+     "max_dd_pct": 8.7,
+     "exposure": 0.43
+    },
+    "SOL": {
+     "trades": 20,
+     "gross": -3.71,
+     "fees": 0.7,
+     "net": -4.42,
+     "pf": 0.69,
+     "win": 0.3,
+     "max_dd_pct": 10.8,
+     "exposure": 0.39
+    }
+   }
+  },
+  "M1-1440-60 SHORT": {
+   "trades": 55,
+   "gross": -7.9,
+   "fees": 3.05,
+   "net": -10.95,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    10.9,
+    8.9,
+    11.5
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 21,
+     "gross": -3.47,
+     "fees": 1.47,
+     "net": -4.95,
+     "pf": 0.67,
+     "win": 0.33,
+     "max_dd_pct": 10.9,
+     "exposure": 0.39
+    },
+    "ETH": {
+     "trades": 17,
+     "gross": -3.11,
+     "fees": 0.95,
+     "net": -4.06,
+     "pf": 0.63,
+     "win": 0.35,
+     "max_dd_pct": 8.9,
+     "exposure": 0.33
+    },
+    "SOL": {
+     "trades": 17,
+     "gross": -1.32,
+     "fees": 0.63,
+     "net": -1.94,
+     "pf": 0.84,
+     "win": 0.47,
+     "max_dd_pct": 11.5,
+     "exposure": 0.4
+    }
+   }
+  },
+  "M1-1440-120 SHORT": {
+   "trades": 47,
+   "gross": 19.76,
+   "fees": 2.82,
+   "net": 16.94,
+   "positive": 3,
+   "markets": 3,
+   "dd": [
+    4,
+    4.2,
+    7.7
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 15,
+     "gross": 11.25,
+     "fees": 1.26,
+     "net": 9.99,
+     "pf": 2.62,
+     "win": 0.67,
+     "max_dd_pct": 4,
+     "exposure": 0.34
+    },
+    "ETH": {
+     "trades": 15,
+     "gross": 7.38,
+     "fees": 0.92,
+     "net": 6.46,
+     "pf": 1.63,
+     "win": 0.4,
+     "max_dd_pct": 4.2,
+     "exposure": 0.36
+    },
+    "SOL": {
+     "trades": 17,
+     "gross": 1.13,
+     "fees": 0.64,
+     "net": 0.49,
+     "pf": 1.03,
+     "win": 0.47,
+     "max_dd_pct": 7.7,
+     "exposure": 0.42
+    }
+   }
+  },
+  "B1-60 SHORT": {
+   "trades": 664,
+   "gross": -69.13,
+   "fees": 117.08,
+   "net": -186.21,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    71.6,
+    70.8,
+    50.7
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 213,
+     "gross": -24.49,
+     "fees": 44.62,
+     "net": -69.11,
+     "pf": 0.52,
+     "win": 0.25,
+     "max_dd_pct": 71.6,
+     "exposure": 0.15
+    },
+    "ETH": {
+     "trades": 224,
+     "gross": -30.71,
+     "fees": 38.61,
+     "net": -69.32,
+     "pf": 0.51,
+     "win": 0.29,
+     "max_dd_pct": 70.8,
+     "exposure": 0.16
+    },
+    "SOL": {
+     "trades": 227,
+     "gross": -13.94,
+     "fees": 33.85,
+     "net": -47.78,
+     "pf": 0.7,
+     "win": 0.32,
+     "max_dd_pct": 50.7,
+     "exposure": 0.17
+    }
+   }
+  },
+  "B1-240 SHORT": {
+   "trades": 185,
+   "gross": -12.27,
+   "fees": 25.2,
+   "net": -37.46,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    31.1,
+    20.3,
+    15.4
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 63,
+     "gross": -17.81,
+     "fees": 9.99,
+     "net": -27.8,
+     "pf": 0.45,
+     "win": 0.33,
+     "max_dd_pct": 31.1,
+     "exposure": 0.17
+    },
+    "ETH": {
+     "trades": 65,
+     "gross": 5.41,
+     "fees": 9.48,
+     "net": -4.07,
+     "pf": 0.93,
+     "win": 0.37,
+     "max_dd_pct": 20.3,
+     "exposure": 0.19
+    },
+    "SOL": {
+     "trades": 57,
+     "gross": 0.13,
+     "fees": 5.73,
+     "net": -5.59,
+     "pf": 0.88,
+     "win": 0.42,
+     "max_dd_pct": 15.4,
+     "exposure": 0.17
+    }
+   }
+  },
+  "R1-60-2 SHORT": {
+   "trades": 616,
+   "gross": -40.12,
+   "fees": 128.3,
+   "net": -168.42,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    66.6,
+    57.1,
+    46.3
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 224,
+     "gross": -18.29,
+     "fees": 47.78,
+     "net": -66.07,
+     "pf": 0.39,
+     "win": 0.41,
+     "max_dd_pct": 66.6,
+     "exposure": 0.06
+    },
+    "ETH": {
+     "trades": 194,
+     "gross": -14.07,
+     "fees": 42.53,
+     "net": -56.6,
+     "pf": 0.46,
+     "win": 0.43,
+     "max_dd_pct": 57.1,
+     "exposure": 0.06
+    },
+    "SOL": {
+     "trades": 198,
+     "gross": -7.76,
+     "fees": 37.99,
+     "net": -45.75,
+     "pf": 0.63,
+     "win": 0.51,
+     "max_dd_pct": 46.3,
+     "exposure": 0.06
+    }
+   }
+  },
+  "R1-60-2.5 SHORT": {
+   "trades": 327,
+   "gross": -23.79,
+   "fees": 82.19,
+   "net": -105.98,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    48.1,
+    30.9,
+    31.2
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 124,
+     "gross": -13.56,
+     "fees": 33.43,
+     "net": -46.99,
+     "pf": 0.39,
+     "win": 0.36,
+     "max_dd_pct": 48.1,
+     "exposure": 0.04
+    },
+    "ETH": {
+     "trades": 104,
+     "gross": -1.69,
+     "fees": 28.44,
+     "net": -30.13,
+     "pf": 0.55,
+     "win": 0.46,
+     "max_dd_pct": 30.9,
+     "exposure": 0.03
+    },
+    "SOL": {
+     "trades": 99,
+     "gross": -8.54,
+     "fees": 20.32,
+     "net": -28.86,
+     "pf": 0.57,
+     "win": 0.47,
+     "max_dd_pct": 31.2,
+     "exposure": 0.03
+    }
+   }
+  },
+  "R1-240-2 SHORT": {
+   "trades": 151,
+   "gross": -6.16,
+   "fees": 27.06,
+   "net": -33.22,
+   "positive": 0,
+   "markets": 3,
+   "dd": [
+    18.9,
+    20.6,
+    16.2
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 51,
+     "gross": 0.2,
+     "fees": 11.45,
+     "net": -11.25,
+     "pf": 0.73,
+     "win": 0.53,
+     "max_dd_pct": 18.9,
+     "exposure": 0.05
+    },
+    "ETH": {
+     "trades": 55,
+     "gross": -5.68,
+     "fees": 10.21,
+     "net": -15.89,
+     "pf": 0.61,
+     "win": 0.49,
+     "max_dd_pct": 20.6,
+     "exposure": 0.06
+    },
+    "SOL": {
+     "trades": 45,
+     "gross": -0.67,
+     "fees": 5.4,
+     "net": -6.07,
+     "pf": 0.81,
+     "win": 0.56,
+     "max_dd_pct": 16.2,
+     "exposure": 0.06
+    }
+   }
+  },
+  "R1-240-2.5 SHORT": {
+   "trades": 81,
+   "gross": 12.46,
+   "fees": 16.19,
+   "net": -3.73,
+   "positive": 1,
+   "markets": 3,
+   "dd": [
+    11.5,
+    9.2,
+    8.6
+   ],
+   "per_market": {
+    "BTC": {
+     "trades": 26,
+     "gross": 3.74,
+     "fees": 6.91,
+     "net": -3.17,
+     "pf": 0.85,
+     "win": 0.54,
+     "max_dd_pct": 11.5,
+     "exposure": 0.03
+    },
+    "ETH": {
+     "trades": 29,
+     "gross": 2.72,
+     "fees": 6,
+     "net": -3.28,
+     "pf": 0.84,
+     "win": 0.55,
+     "max_dd_pct": 9.2,
+     "exposure": 0.03
+    },
+    "SOL": {
+     "trades": 26,
+     "gross": 6,
+     "fees": 3.28,
+     "net": 2.72,
+     "pf": 1.17,
+     "win": 0.62,
+     "max_dd_pct": 8.6,
+     "exposure": 0.03
+    }
+   }
+  }
+ },
+ "candidates": {
+  "T1 LONG": {
+   "selected": "T1-240-55-20",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": true,
+    "c2_validation": true,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": true,
+    "c7_drawdown": false,
+    "c8_years": true
+   },
+   "failed": [
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c7_drawdown"
+   ],
+   "development": {
+    "trades": 139,
+    "gross": 410.68,
+    "fees": 41.24,
+    "net": 369.44,
+    "positive": 3,
+    "markets": 3,
+    "dd": [
+     18,
+     22.9,
+     19.8
+    ]
+   },
+   "validation": {
+    "trades": 407,
+    "gross": 295.21,
+    "fees": 100.53,
+    "net": 194.69,
+    "positive": 5,
+    "markets": 10,
+    "dd": [
+     26.5,
+     23.1,
+     27.2,
+     36.2,
+     27.6,
+     26.8,
+     29.8,
+     49,
+     25.2,
+     35.8
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 40,
+      "gross": 9.09,
+      "fees": 13.04,
+      "net": -3.95,
+      "pf": 0.93,
+      "win": 0.33,
+      "max_dd_pct": 26.5,
+      "exposure": 0.29
+     },
+     "ETH": {
+      "trades": 39,
+      "gross": 18.74,
+      "fees": 9.56,
+      "net": 9.18,
+      "pf": 1.15,
+      "win": 0.33,
+      "max_dd_pct": 23.1,
+      "exposure": 0.25
+     },
+     "SOL": {
+      "trades": 40,
+      "gross": 37.71,
+      "fees": 8.91,
+      "net": 28.81,
+      "pf": 1.51,
+      "win": 0.38,
+      "max_dd_pct": 27.2,
+      "exposure": 0.27
+     },
+     "LTC": {
+      "trades": 42,
+      "gross": 3.07,
+      "fees": 9.82,
+      "net": -6.75,
+      "pf": 0.89,
+      "win": 0.21,
+      "max_dd_pct": 36.2,
+      "exposure": 0.22
+     },
+     "LINK": {
+      "trades": 41,
+      "gross": 18.19,
+      "fees": 7.71,
+      "net": 10.47,
+      "pf": 1.18,
+      "win": 0.27,
+      "max_dd_pct": 27.6,
+      "exposure": 0.24
+     },
+     "AVAX": {
+      "trades": 40,
+      "gross": 6.13,
+      "fees": 7.27,
+      "net": -1.14,
+      "pf": 0.98,
+      "win": 0.23,
+      "max_dd_pct": 26.8,
+      "exposure": 0.22
+     },
+     "ADA": {
+      "trades": 41,
+      "gross": 42.21,
+      "fees": 9.93,
+      "net": 32.28,
+      "pf": 1.43,
+      "win": 0.34,
+      "max_dd_pct": 29.8,
+      "exposure": 0.21
+     },
+     "BCH": {
+      "trades": 44,
+      "gross": -33.35,
+      "fees": 5.94,
+      "net": -39.29,
+      "pf": 0.31,
+      "win": 0.14,
+      "max_dd_pct": 49,
+      "exposure": 0.2
+     },
+     "DOGE": {
+      "trades": 41,
+      "gross": 1.21,
+      "fees": 7.57,
+      "net": -6.36,
+      "pf": 0.89,
+      "win": 0.29,
+      "max_dd_pct": 25.2,
+      "exposure": 0.21
+     },
+     "XRP": {
+      "trades": 39,
+      "gross": 192.2,
+      "fees": 20.77,
+      "net": 171.42,
+      "pf": 2.09,
+      "win": 0.23,
+      "max_dd_pct": 35.8,
+      "exposure": 0.2
+     }
+    }
+   },
+   "independent": {
+    "trades": 601,
+    "gross": 400.14,
+    "fees": 124.38,
+    "net": 275.76,
+    "positive": 5,
+    "markets": 8,
+    "dd": [
+     40.3,
+     36.4,
+     35.4,
+     37.8,
+     38.6,
+     40.2,
+     54.2,
+     29
+    ],
+    "ci_995": [
+     -0.5512,
+     1.4755
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 71,
+      "gross": -20.01,
+      "fees": 12.39,
+      "net": -32.4,
+      "pf": 0.68,
+      "win": 0.18,
+      "max_dd_pct": 40.3,
+      "exposure": 0.15
+     },
+     "ATOM": {
+      "trades": 59,
+      "gross": 14.27,
+      "fees": 14.66,
+      "net": -0.39,
+      "pf": 1,
+      "win": 0.2,
+      "max_dd_pct": 36.4,
+      "exposure": 0.15
+     },
+     "UNI": {
+      "trades": 85,
+      "gross": 23.43,
+      "fees": 11.28,
+      "net": 12.14,
+      "pf": 1.12,
+      "win": 0.28,
+      "max_dd_pct": 35.4,
+      "exposure": 0.23
+     },
+     "AAVE": {
+      "trades": 91,
+      "gross": 21.44,
+      "fees": 13.73,
+      "net": 7.72,
+      "pf": 1.06,
+      "win": 0.25,
+      "max_dd_pct": 37.8,
+      "exposure": 0.24
+     },
+     "XLM": {
+      "trades": 79,
+      "gross": 259.51,
+      "fees": 26.45,
+      "net": 233.07,
+      "pf": 2.22,
+      "win": 0.22,
+      "max_dd_pct": 38.6,
+      "exposure": 0.19
+     },
+     "ETC": {
+      "trades": 79,
+      "gross": 20.55,
+      "fees": 18.33,
+      "net": 2.22,
+      "pf": 1.01,
+      "win": 0.22,
+      "max_dd_pct": 40.2,
+      "exposure": 0.17
+     },
+     "FIL": {
+      "trades": 63,
+      "gross": -31.65,
+      "fees": 10.36,
+      "net": -42.01,
+      "pf": 0.55,
+      "win": 0.19,
+      "max_dd_pct": 54.2,
+      "exposure": 0.12
+     },
+     "ALGO": {
+      "trades": 74,
+      "gross": 112.61,
+      "fees": 17.19,
+      "net": 95.42,
+      "pf": 1.63,
+      "win": 0.23,
+      "max_dd_pct": 29,
+      "exposure": 0.19
+     }
+    },
+    "by_year": {
+     "2021": -14.13,
+     "2022": -18.78,
+     "2023": 32.2,
+     "2024": 294.42,
+     "2025": -30.37,
+     "2026": 12.41
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": 96.27,
+    "trades": 597
+   },
+   "independent_080": {
+    "net": -105.54,
+    "trades": 597
+   }
+  },
+  "T2 LONG": {
+   "selected": "T2-240-200",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": true,
+    "c2_validation": false,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": false,
+    "c8_years": false
+   },
+   "failed": [
+    "c2_validation",
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs",
+    "c7_drawdown",
+    "c8_years"
+   ],
+   "development": {
+    "trades": 420,
+    "gross": 181.21,
+    "fees": 68.74,
+    "net": 112.47,
+    "positive": 3,
+    "markets": 3,
+    "dd": [
+     20.7,
+     20.4,
+     26.2
+    ]
+   },
+   "validation": {
+    "trades": 1030,
+    "gross": 116.68,
+    "fees": 141.16,
+    "net": -24.48,
+    "positive": 3,
+    "markets": 10,
+    "dd": [
+     21.6,
+     17.9,
+     23.4,
+     27.3,
+     21.5,
+     23.6,
+     25.6,
+     32.8,
+     20.7,
+     19.2
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 114,
+      "gross": 20.7,
+      "fees": 26.55,
+      "net": -5.86,
+      "pf": 0.94,
+      "win": 0.28,
+      "max_dd_pct": 21.6,
+      "exposure": 0.43
+     },
+     "ETH": {
+      "trades": 94,
+      "gross": 50.15,
+      "fees": 16.46,
+      "net": 33.69,
+      "pf": 1.46,
+      "win": 0.36,
+      "max_dd_pct": 17.9,
+      "exposure": 0.38
+     },
+     "SOL": {
+      "trades": 106,
+      "gross": 12.04,
+      "fees": 14.04,
+      "net": -2,
+      "pf": 0.97,
+      "win": 0.3,
+      "max_dd_pct": 23.4,
+      "exposure": 0.38
+     },
+     "LTC": {
+      "trades": 105,
+      "gross": -5.41,
+      "fees": 12.88,
+      "net": -18.29,
+      "pf": 0.73,
+      "win": 0.25,
+      "max_dd_pct": 27.3,
+      "exposure": 0.37
+     },
+     "LINK": {
+      "trades": 123,
+      "gross": 7.24,
+      "fees": 13.71,
+      "net": -6.47,
+      "pf": 0.92,
+      "win": 0.19,
+      "max_dd_pct": 21.5,
+      "exposure": 0.36
+     },
+     "AVAX": {
+      "trades": 101,
+      "gross": -1.7,
+      "fees": 10.79,
+      "net": -12.49,
+      "pf": 0.82,
+      "win": 0.26,
+      "max_dd_pct": 23.6,
+      "exposure": 0.31
+     },
+     "ADA": {
+      "trades": 93,
+      "gross": -0.43,
+      "fees": 10.56,
+      "net": -10.99,
+      "pf": 0.83,
+      "win": 0.19,
+      "max_dd_pct": 25.6,
+      "exposure": 0.27
+     },
+     "BCH": {
+      "trades": 109,
+      "gross": -19.67,
+      "fees": 11.44,
+      "net": -31.1,
+      "pf": 0.55,
+      "win": 0.26,
+      "max_dd_pct": 32.8,
+      "exposure": 0.4
+     },
+     "DOGE": {
+      "trades": 96,
+      "gross": 23.83,
+      "fees": 11.48,
+      "net": 12.35,
+      "pf": 1.16,
+      "win": 0.21,
+      "max_dd_pct": 20.7,
+      "exposure": 0.29
+     },
+     "XRP": {
+      "trades": 89,
+      "gross": 29.94,
+      "fees": 13.27,
+      "net": 16.68,
+      "pf": 1.21,
+      "win": 0.3,
+      "max_dd_pct": 19.2,
+      "exposure": 0.32
+     }
+    }
+   },
+   "independent": {
+    "trades": 1293,
+    "gross": 120.11,
+    "fees": 138.18,
+    "net": -18.08,
+    "positive": 2,
+    "markets": 8,
+    "dd": [
+     34.9,
+     35.1,
+     28.1,
+     24,
+     32.8,
+     43.6,
+     34.6,
+     25.1
+    ],
+    "ci_995": [
+     -0.1959,
+     0.4075
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 121,
+      "gross": -9.47,
+      "fees": 13.38,
+      "net": -22.84,
+      "pf": 0.71,
+      "win": 0.21,
+      "max_dd_pct": 34.9,
+      "exposure": 0.15
+     },
+     "ATOM": {
+      "trades": 94,
+      "gross": -22.17,
+      "fees": 9.66,
+      "net": -31.83,
+      "pf": 0.4,
+      "win": 0.21,
+      "max_dd_pct": 35.1,
+      "exposure": 0.11
+     },
+     "UNI": {
+      "trades": 227,
+      "gross": 16.55,
+      "fees": 19,
+      "net": -2.45,
+      "pf": 0.98,
+      "win": 0.27,
+      "max_dd_pct": 28.1,
+      "exposure": 0.35
+     },
+     "AAVE": {
+      "trades": 229,
+      "gross": 9.54,
+      "fees": 19.9,
+      "net": -10.37,
+      "pf": 0.92,
+      "win": 0.31,
+      "max_dd_pct": 24,
+      "exposure": 0.37
+     },
+     "XLM": {
+      "trades": 203,
+      "gross": 143.41,
+      "fees": 33.82,
+      "net": 109.59,
+      "pf": 1.53,
+      "win": 0.23,
+      "max_dd_pct": 32.8,
+      "exposure": 0.3
+     },
+     "ETC": {
+      "trades": 162,
+      "gross": -18.61,
+      "fees": 16.88,
+      "net": -35.49,
+      "pf": 0.61,
+      "win": 0.22,
+      "max_dd_pct": 43.6,
+      "exposure": 0.2
+     },
+     "FIL": {
+      "trades": 97,
+      "gross": -16.79,
+      "fees": 9.74,
+      "net": -26.54,
+      "pf": 0.55,
+      "win": 0.23,
+      "max_dd_pct": 34.6,
+      "exposure": 0.13
+     },
+     "ALGO": {
+      "trades": 160,
+      "gross": 17.66,
+      "fees": 15.81,
+      "net": 1.84,
+      "pf": 1.02,
+      "win": 0.28,
+      "max_dd_pct": 25.1,
+      "exposure": 0.24
+     }
+    },
+    "by_year": {
+     "2021": 1.67,
+     "2022": -30.31,
+     "2023": 13.08,
+     "2024": 123.58,
+     "2025": -55.31,
+     "2026": -70.78
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -180.11,
+    "trades": 1277
+   },
+   "independent_080": {
+    "net": -340.37,
+    "trades": 1248
+   }
+  },
+  "M1 LONG": {
+   "selected": "M1-1440-30",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": true,
+    "c2_validation": true,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": true,
+    "c7_drawdown": true,
+    "c8_years": true
+   },
+   "failed": [
+    "c3_independent_net_and_breadth",
+    "c5_ci_995"
+   ],
+   "development": {
+    "trades": 75,
+    "gross": 89.38,
+    "fees": 4.71,
+    "net": 84.66,
+    "positive": 3,
+    "markets": 3,
+    "dd": [
+     10.1,
+     7.5,
+     14.3
+    ]
+   },
+   "validation": {
+    "trades": 172,
+    "gross": 77.88,
+    "fees": 10.53,
+    "net": 67.35,
+    "positive": 8,
+    "markets": 10,
+    "dd": [
+     9.3,
+     8.9,
+     9.4,
+     11.3,
+     6.5,
+     8.3,
+     9.4,
+     11,
+     6.8,
+     18.4
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 22,
+      "gross": 6.25,
+      "fees": 1.91,
+      "net": 4.33,
+      "pf": 1.26,
+      "win": 0.41,
+      "max_dd_pct": 9.3,
+      "exposure": 0.49
+     },
+     "ETH": {
+      "trades": 17,
+      "gross": 9.47,
+      "fees": 1.02,
+      "net": 8.46,
+      "pf": 1.79,
+      "win": 0.41,
+      "max_dd_pct": 8.9,
+      "exposure": 0.43
+     },
+     "SOL": {
+      "trades": 17,
+      "gross": 3.33,
+      "fees": 0.96,
+      "net": 2.38,
+      "pf": 1.23,
+      "win": 0.35,
+      "max_dd_pct": 9.4,
+      "exposure": 0.38
+     },
+     "LTC": {
+      "trades": 20,
+      "gross": 4.67,
+      "fees": 1.33,
+      "net": 3.35,
+      "pf": 1.3,
+      "win": 0.3,
+      "max_dd_pct": 11.3,
+      "exposure": 0.36
+     },
+     "LINK": {
+      "trades": 17,
+      "gross": 20.17,
+      "fees": 0.94,
+      "net": 19.23,
+      "pf": 4.57,
+      "win": 0.59,
+      "max_dd_pct": 6.5,
+      "exposure": 0.41
+     },
+     "AVAX": {
+      "trades": 10,
+      "gross": -2.21,
+      "fees": 0.49,
+      "net": -2.7,
+      "pf": 0.62,
+      "win": 0.1,
+      "max_dd_pct": 8.3,
+      "exposure": 0.16
+     },
+     "ADA": {
+      "trades": 13,
+      "gross": -4.88,
+      "fees": 0.6,
+      "net": -5.48,
+      "pf": 0.33,
+      "win": 0.38,
+      "max_dd_pct": 9.4,
+      "exposure": 0.22
+     },
+     "BCH": {
+      "trades": 20,
+      "gross": 1.86,
+      "fees": 0.98,
+      "net": 0.88,
+      "pf": 1.06,
+      "win": 0.5,
+      "max_dd_pct": 11,
+      "exposure": 0.47
+     },
+     "DOGE": {
+      "trades": 14,
+      "gross": 2.67,
+      "fees": 0.72,
+      "net": 1.94,
+      "pf": 1.39,
+      "win": 0.5,
+      "max_dd_pct": 6.8,
+      "exposure": 0.24
+     },
+     "XRP": {
+      "trades": 22,
+      "gross": 36.54,
+      "fees": 1.58,
+      "net": 34.96,
+      "pf": 2.66,
+      "win": 0.32,
+      "max_dd_pct": 18.4,
+      "exposure": 0.34
+     }
+    }
+   },
+   "independent": {
+    "trades": 169,
+    "gross": 92.33,
+    "fees": 8.41,
+    "net": 83.92,
+    "positive": 4,
+    "markets": 8,
+    "dd": [
+     7.1,
+     5.2,
+     8.4,
+     12.2,
+     26.1,
+     8.7,
+     4.8,
+     13.8
+    ],
+    "ci_995": [
+     -0.381,
+     1.771
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 8,
+      "gross": -3.45,
+      "fees": 0.32,
+      "net": -3.77,
+      "pf": 0.34,
+      "win": 0.13,
+      "max_dd_pct": 7.1,
+      "exposure": 0.05
+     },
+     "ATOM": {
+      "trades": 6,
+      "gross": -2.51,
+      "fees": 0.31,
+      "net": -2.82,
+      "pf": 0.33,
+      "win": 0.5,
+      "max_dd_pct": 5.2,
+      "exposure": 0.06
+     },
+     "UNI": {
+      "trades": 34,
+      "gross": 21.99,
+      "fees": 1.45,
+      "net": 20.54,
+      "pf": 2.04,
+      "win": 0.35,
+      "max_dd_pct": 8.4,
+      "exposure": 0.35
+     },
+     "AAVE": {
+      "trades": 36,
+      "gross": 3.34,
+      "fees": 1.47,
+      "net": 1.87,
+      "pf": 1.08,
+      "win": 0.36,
+      "max_dd_pct": 12.2,
+      "exposure": 0.35
+     },
+     "XLM": {
+      "trades": 43,
+      "gross": 54.98,
+      "fees": 2.69,
+      "net": 52.29,
+      "pf": 2.5,
+      "win": 0.33,
+      "max_dd_pct": 26.1,
+      "exposure": 0.32
+     },
+     "ETC": {
+      "trades": 16,
+      "gross": -1.63,
+      "fees": 0.9,
+      "net": -2.52,
+      "pf": 0.74,
+      "win": 0.31,
+      "max_dd_pct": 8.7,
+      "exposure": 0.12
+     },
+     "FIL": {
+      "trades": 5,
+      "gross": -0.35,
+      "fees": 0.21,
+      "net": -0.55,
+      "pf": 0.87,
+      "win": 0.4,
+      "max_dd_pct": 4.8,
+      "exposure": 0.05
+     },
+     "ALGO": {
+      "trades": 21,
+      "gross": 19.96,
+      "fees": 1.07,
+      "net": 18.9,
+      "pf": 2.55,
+      "win": 0.43,
+      "max_dd_pct": 13.8,
+      "exposure": 0.21
+     }
+    },
+    "by_year": {
+     "2021": 1.1,
+     "2022": -12.46,
+     "2023": 10.87,
+     "2024": 108.73,
+     "2025": 0.04,
+     "2026": -24.36
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": 71.9,
+    "trades": 169
+   },
+   "independent_080": {
+    "net": 56.67,
+    "trades": 169
+   }
+  },
+  "B1 LONG": {
+   "selected": "B1-240",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": true,
+    "c2_validation": true,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": true,
+    "c8_years": true
+   },
+   "failed": [
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs"
+   ],
+   "development": {
+    "trades": 178,
+    "gross": 26.72,
+    "fees": 26.41,
+    "net": 0.3,
+    "positive": 1,
+    "markets": 3,
+    "dd": [
+     26.2,
+     17.9,
+     16
+    ]
+   },
+   "validation": {
+    "trades": 493,
+    "gross": 79.57,
+    "fees": 76.29,
+    "net": 3.28,
+    "positive": 5,
+    "markets": 10,
+    "dd": [
+     25.7,
+     27.2,
+     12.9,
+     17,
+     13,
+     16.4,
+     12.6,
+     26.3,
+     21.9,
+     17.3
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 55,
+      "gross": 4.14,
+      "fees": 12.93,
+      "net": -8.79,
+      "pf": 0.85,
+      "win": 0.29,
+      "max_dd_pct": 25.7,
+      "exposure": 0.18
+     },
+     "ETH": {
+      "trades": 56,
+      "gross": -2.07,
+      "fees": 8.21,
+      "net": -10.28,
+      "pf": 0.81,
+      "win": 0.23,
+      "max_dd_pct": 27.2,
+      "exposure": 0.17
+     },
+     "SOL": {
+      "trades": 45,
+      "gross": 34.39,
+      "fees": 6.94,
+      "net": 27.44,
+      "pf": 1.79,
+      "win": 0.44,
+      "max_dd_pct": 12.9,
+      "exposure": 0.18
+     },
+     "LTC": {
+      "trades": 53,
+      "gross": 5.13,
+      "fees": 8.92,
+      "net": -3.8,
+      "pf": 0.93,
+      "win": 0.3,
+      "max_dd_pct": 17,
+      "exposure": 0.17
+     },
+     "LINK": {
+      "trades": 55,
+      "gross": 9.39,
+      "fees": 7.32,
+      "net": 2.07,
+      "pf": 1.04,
+      "win": 0.36,
+      "max_dd_pct": 13,
+      "exposure": 0.18
+     },
+     "AVAX": {
+      "trades": 51,
+      "gross": 8.87,
+      "fees": 6.99,
+      "net": 1.88,
+      "pf": 1.04,
+      "win": 0.31,
+      "max_dd_pct": 16.4,
+      "exposure": 0.17
+     },
+     "ADA": {
+      "trades": 43,
+      "gross": 23.39,
+      "fees": 6.26,
+      "net": 17.13,
+      "pf": 1.38,
+      "win": 0.33,
+      "max_dd_pct": 12.6,
+      "exposure": 0.15
+     },
+     "BCH": {
+      "trades": 48,
+      "gross": -15,
+      "fees": 5.8,
+      "net": -20.8,
+      "pf": 0.49,
+      "win": 0.27,
+      "max_dd_pct": 26.3,
+      "exposure": 0.16
+     },
+     "DOGE": {
+      "trades": 44,
+      "gross": 4.43,
+      "fees": 6.27,
+      "net": -1.84,
+      "pf": 0.96,
+      "win": 0.32,
+      "max_dd_pct": 21.9,
+      "exposure": 0.13
+     },
+     "XRP": {
+      "trades": 43,
+      "gross": 6.91,
+      "fees": 6.66,
+      "net": 0.26,
+      "pf": 1.01,
+      "win": 0.28,
+      "max_dd_pct": 17.3,
+      "exposure": 0.14
+     }
+    }
+   },
+   "independent": {
+    "trades": 651,
+    "gross": 51.25,
+    "fees": 84.25,
+    "net": -33,
+    "positive": 2,
+    "markets": 8,
+    "dd": [
+     15.4,
+     22,
+     36.3,
+     21.3,
+     19.1,
+     22.7,
+     17.8,
+     29.4
+    ],
+    "ci_995": [
+     -0.2916,
+     0.3301
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 67,
+      "gross": 9.54,
+      "fees": 9.69,
+      "net": -0.15,
+      "pf": 1,
+      "win": 0.36,
+      "max_dd_pct": 15.4,
+      "exposure": 0.11
+     },
+     "ATOM": {
+      "trades": 54,
+      "gross": 0.25,
+      "fees": 8.28,
+      "net": -8.03,
+      "pf": 0.85,
+      "win": 0.33,
+      "max_dd_pct": 22,
+      "exposure": 0.08
+     },
+     "UNI": {
+      "trades": 104,
+      "gross": -10.59,
+      "fees": 10.05,
+      "net": -20.63,
+      "pf": 0.76,
+      "win": 0.35,
+      "max_dd_pct": 36.3,
+      "exposure": 0.15
+     },
+     "AAVE": {
+      "trades": 109,
+      "gross": 10.08,
+      "fees": 11.66,
+      "net": -1.58,
+      "pf": 0.98,
+      "win": 0.31,
+      "max_dd_pct": 21.3,
+      "exposure": 0.16
+     },
+     "XLM": {
+      "trades": 89,
+      "gross": 23.27,
+      "fees": 13.28,
+      "net": 9.99,
+      "pf": 1.12,
+      "win": 0.29,
+      "max_dd_pct": 19.1,
+      "exposure": 0.13
+     },
+     "ETC": {
+      "trades": 82,
+      "gross": 14.44,
+      "fees": 13.7,
+      "net": 0.74,
+      "pf": 1.01,
+      "win": 0.33,
+      "max_dd_pct": 22.7,
+      "exposure": 0.12
+     },
+     "FIL": {
+      "trades": 63,
+      "gross": 3.77,
+      "fees": 8.57,
+      "net": -4.8,
+      "pf": 0.91,
+      "win": 0.37,
+      "max_dd_pct": 17.8,
+      "exposure": 0.09
+     },
+     "ALGO": {
+      "trades": 83,
+      "gross": 0.49,
+      "fees": 9.02,
+      "net": -8.53,
+      "pf": 0.88,
+      "win": 0.27,
+      "max_dd_pct": 29.4,
+      "exposure": 0.13
+     }
+    },
+    "by_year": {
+     "2021": -8.7,
+     "2022": -35.88,
+     "2023": 6.91,
+     "2024": 11.71,
+     "2025": -20.14,
+     "2026": 13.09
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -138.47,
+    "trades": 645
+   },
+   "independent_080": {
+    "net": -255.23,
+    "trades": 641
+   }
+  },
+  "R1 LONG": {
+   "selected": "R1-240-2.5",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": false,
+    "c2_validation": false,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": true,
+    "c8_years": false
+   },
+   "failed": [
+    "c1_development",
+    "c2_validation",
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs",
+    "c8_years"
+   ],
+   "development": {
+    "trades": 88,
+    "gross": 2.13,
+    "fees": 15.58,
+    "net": -13.45,
+    "positive": 1,
+    "markets": 3,
+    "dd": [
+     7.8,
+     13.8,
+     5.6
+    ]
+   },
+   "validation": {
+    "trades": 143,
+    "gross": -33.37,
+    "fees": 23.3,
+    "net": -56.67,
+    "positive": 2,
+    "markets": 10,
+    "dd": [
+     14.1,
+     11.4,
+     11.3,
+     4.5,
+     5.4,
+     6,
+     8.6,
+     10,
+     6.2,
+     12.8
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 24,
+      "gross": -7.38,
+      "fees": 6.26,
+      "net": -13.64,
+      "pf": 0.42,
+      "win": 0.46,
+      "max_dd_pct": 14.1,
+      "exposure": 0.03
+     },
+     "ETH": {
+      "trades": 21,
+      "gross": -1.32,
+      "fees": 3.93,
+      "net": -5.24,
+      "pf": 0.66,
+      "win": 0.52,
+      "max_dd_pct": 11.4,
+      "exposure": 0.03
+     },
+     "SOL": {
+      "trades": 16,
+      "gross": -7.98,
+      "fees": 2.39,
+      "net": -10.37,
+      "pf": 0.35,
+      "win": 0.31,
+      "max_dd_pct": 11.3,
+      "exposure": 0.02
+     },
+     "LTC": {
+      "trades": 13,
+      "gross": 4.26,
+      "fees": 2.23,
+      "net": 2.03,
+      "pf": 1.22,
+      "win": 0.69,
+      "max_dd_pct": 4.5,
+      "exposure": 0.02
+     },
+     "LINK": {
+      "trades": 12,
+      "gross": -3.54,
+      "fees": 1.48,
+      "net": -5.02,
+      "pf": 0.5,
+      "win": 0.42,
+      "max_dd_pct": 5.4,
+      "exposure": 0.02
+     },
+     "AVAX": {
+      "trades": 13,
+      "gross": 6.78,
+      "fees": 1.59,
+      "net": 5.19,
+      "pf": 1.95,
+      "win": 0.77,
+      "max_dd_pct": 6,
+      "exposure": 0.02
+     },
+     "ADA": {
+      "trades": 8,
+      "gross": -6.12,
+      "fees": 0.92,
+      "net": -7.04,
+      "pf": 0.22,
+      "win": 0.25,
+      "max_dd_pct": 8.6,
+      "exposure": 0.01
+     },
+     "BCH": {
+      "trades": 13,
+      "gross": -6.85,
+      "fees": 1.69,
+      "net": -8.53,
+      "pf": 0.3,
+      "win": 0.31,
+      "max_dd_pct": 10,
+      "exposure": 0.02
+     },
+     "DOGE": {
+      "trades": 10,
+      "gross": -2.22,
+      "fees": 1.1,
+      "net": -3.32,
+      "pf": 0.49,
+      "win": 0.4,
+      "max_dd_pct": 6.2,
+      "exposure": 0.02
+     },
+     "XRP": {
+      "trades": 13,
+      "gross": -9.01,
+      "fees": 1.72,
+      "net": -10.72,
+      "pf": 0.31,
+      "win": 0.31,
+      "max_dd_pct": 12.8,
+      "exposure": 0.02
+     }
+    }
+   },
+   "independent": {
+    "trades": 156,
+    "gross": -25.08,
+    "fees": 17.84,
+    "net": -42.92,
+    "positive": 0,
+    "markets": 8,
+    "dd": [
+     9,
+     9.8,
+     15.3,
+     7.6,
+     9,
+     9.7,
+     10.4,
+     5.9
+    ],
+    "ci_995": [
+     -0.5461,
+     -0.041
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 16,
+      "gross": -6.4,
+      "fees": 1.93,
+      "net": -8.34,
+      "pf": 0.43,
+      "win": 0.38,
+      "max_dd_pct": 9,
+      "exposure": 0.01
+     },
+     "ATOM": {
+      "trades": 8,
+      "gross": -6.18,
+      "fees": 0.93,
+      "net": -7.11,
+      "pf": 0.24,
+      "win": 0.25,
+      "max_dd_pct": 9.8,
+      "exposure": 0.01
+     },
+     "UNI": {
+      "trades": 29,
+      "gross": -5.2,
+      "fees": 2.92,
+      "net": -8.12,
+      "pf": 0.67,
+      "win": 0.38,
+      "max_dd_pct": 15.3,
+      "exposure": 0.02
+     },
+     "AAVE": {
+      "trades": 29,
+      "gross": 0.54,
+      "fees": 3,
+      "net": -2.46,
+      "pf": 0.89,
+      "win": 0.52,
+      "max_dd_pct": 7.6,
+      "exposure": 0.02
+     },
+     "XLM": {
+      "trades": 32,
+      "gross": 3.71,
+      "fees": 4.17,
+      "net": -0.46,
+      "pf": 0.98,
+      "win": 0.56,
+      "max_dd_pct": 9,
+      "exposure": 0.03
+     },
+     "ETC": {
+      "trades": 17,
+      "gross": -4.05,
+      "fees": 2.06,
+      "net": -6.11,
+      "pf": 0.51,
+      "win": 0.59,
+      "max_dd_pct": 9.7,
+      "exposure": 0.01
+     },
+     "FIL": {
+      "trades": 9,
+      "gross": -7.03,
+      "fees": 1.09,
+      "net": -8.13,
+      "pf": 0.23,
+      "win": 0.22,
+      "max_dd_pct": 10.4,
+      "exposure": 0.01
+     },
+     "ALGO": {
+      "trades": 16,
+      "gross": -0.45,
+      "fees": 1.73,
+      "net": -2.19,
+      "pf": 0.77,
+      "win": 0.56,
+      "max_dd_pct": 5.9,
+      "exposure": 0.01
+     }
+    },
+    "by_year": {
+     "2021": -3.92,
+     "2022": -4.75,
+     "2023": 23.16,
+     "2024": -40.07,
+     "2025": -9.79,
+     "2026": -7.56
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -63.7,
+    "trades": 156
+   },
+   "independent_080": {
+    "net": -92.72,
+    "trades": 156
+   }
+  },
+  "T1 SHORT": {
+   "selected": "T1-1440-20-10",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": false,
+    "c2_validation": false,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": true,
+    "c8_years": false
+   },
+   "failed": [
+    "c1_development",
+    "c2_validation",
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs",
+    "c8_years"
+   ],
+   "development": {
+    "trades": 48,
+    "gross": -6.69,
+    "fees": 3.57,
+    "net": -10.26,
+    "positive": 1,
+    "markets": 3,
+    "dd": [
+     11.9,
+     19.7,
+     7.7
+    ]
+   },
+   "validation": {
+    "trades": 136,
+    "gross": 1.59,
+    "fees": 9.24,
+    "net": -7.65,
+    "positive": 5,
+    "markets": 10,
+    "dd": [
+     17.3,
+     6.7,
+     10.5,
+     10.7,
+     15.7,
+     8.7,
+     10.6,
+     15.1,
+     6.4,
+     17.7
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 15,
+      "gross": -0.16,
+      "fees": 1.68,
+      "net": -1.84,
+      "pf": 0.9,
+      "win": 0.33,
+      "max_dd_pct": 17.3,
+      "exposure": 0.24
+     },
+     "ETH": {
+      "trades": 13,
+      "gross": 9.35,
+      "fees": 1,
+      "net": 8.35,
+      "pf": 1.66,
+      "win": 0.46,
+      "max_dd_pct": 6.7,
+      "exposure": 0.33
+     },
+     "SOL": {
+      "trades": 15,
+      "gross": -0.89,
+      "fees": 0.91,
+      "net": -1.8,
+      "pf": 0.87,
+      "win": 0.27,
+      "max_dd_pct": 10.5,
+      "exposure": 0.33
+     },
+     "LTC": {
+      "trades": 12,
+      "gross": 3.77,
+      "fees": 0.78,
+      "net": 2.99,
+      "pf": 1.32,
+      "win": 0.33,
+      "max_dd_pct": 10.7,
+      "exposure": 0.31
+     },
+     "LINK": {
+      "trades": 15,
+      "gross": -6.83,
+      "fees": 0.8,
+      "net": -7.63,
+      "pf": 0.54,
+      "win": 0.33,
+      "max_dd_pct": 15.7,
+      "exposure": 0.28
+     },
+     "AVAX": {
+      "trades": 11,
+      "gross": 1.29,
+      "fees": 0.64,
+      "net": 0.65,
+      "pf": 1.07,
+      "win": 0.36,
+      "max_dd_pct": 8.7,
+      "exposure": 0.27
+     },
+     "ADA": {
+      "trades": 13,
+      "gross": 1.48,
+      "fees": 0.77,
+      "net": 0.7,
+      "pf": 1.06,
+      "win": 0.31,
+      "max_dd_pct": 10.6,
+      "exposure": 0.28
+     },
+     "BCH": {
+      "trades": 16,
+      "gross": 0.71,
+      "fees": 1.01,
+      "net": -0.3,
+      "pf": 0.98,
+      "win": 0.19,
+      "max_dd_pct": 15.1,
+      "exposure": 0.26
+     },
+     "DOGE": {
+      "trades": 10,
+      "gross": 3.54,
+      "fees": 0.57,
+      "net": 2.97,
+      "pf": 1.36,
+      "win": 0.5,
+      "max_dd_pct": 6.4,
+      "exposure": 0.29
+     },
+     "XRP": {
+      "trades": 16,
+      "gross": -10.66,
+      "fees": 1.08,
+      "net": -11.75,
+      "pf": 0.42,
+      "win": 0.19,
+      "max_dd_pct": 17.7,
+      "exposure": 0.28
+     }
+    }
+   },
+   "independent": {
+    "trades": 162,
+    "gross": 0.06,
+    "fees": 9.62,
+    "net": -9.56,
+    "positive": 5,
+    "markets": 8,
+    "dd": [
+     9.1,
+     8.7,
+     7.7,
+     18.3,
+     19.7,
+     12.3,
+     9.1,
+     12.1
+    ],
+    "ci_995": [
+     -0.4079,
+     0.4345
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 14,
+      "gross": 3.18,
+      "fees": 1.01,
+      "net": 2.17,
+      "pf": 1.26,
+      "win": 0.5,
+      "max_dd_pct": 9.1,
+      "exposure": 0.16
+     },
+     "ATOM": {
+      "trades": 11,
+      "gross": 1.17,
+      "fees": 0.74,
+      "net": 0.43,
+      "pf": 1.03,
+      "win": 0.36,
+      "max_dd_pct": 8.7,
+      "exposure": 0.12
+     },
+     "UNI": {
+      "trades": 25,
+      "gross": 9.62,
+      "fees": 1.34,
+      "net": 8.28,
+      "pf": 1.41,
+      "win": 0.44,
+      "max_dd_pct": 7.7,
+      "exposure": 0.32
+     },
+     "AAVE": {
+      "trades": 29,
+      "gross": 4.42,
+      "fees": 1.5,
+      "net": 2.92,
+      "pf": 1.14,
+      "win": 0.45,
+      "max_dd_pct": 18.3,
+      "exposure": 0.33
+     },
+     "XLM": {
+      "trades": 35,
+      "gross": -13.39,
+      "fees": 2.15,
+      "net": -15.54,
+      "pf": 0.56,
+      "win": 0.34,
+      "max_dd_pct": 19.7,
+      "exposure": 0.36
+     },
+     "ETC": {
+      "trades": 20,
+      "gross": -7.41,
+      "fees": 1.39,
+      "net": -8.8,
+      "pf": 0.58,
+      "win": 0.35,
+      "max_dd_pct": 12.3,
+      "exposure": 0.17
+     },
+     "FIL": {
+      "trades": 8,
+      "gross": -3.11,
+      "fees": 0.36,
+      "net": -3.48,
+      "pf": 0.6,
+      "win": 0.38,
+      "max_dd_pct": 9.1,
+      "exposure": 0.09
+     },
+     "ALGO": {
+      "trades": 20,
+      "gross": 5.59,
+      "fees": 1.13,
+      "net": 4.47,
+      "pf": 1.32,
+      "win": 0.5,
+      "max_dd_pct": 12.1,
+      "exposure": 0.27
+     }
+    },
+    "by_year": {
+     "2021": 0.47,
+     "2022": -1.71,
+     "2023": -10.78,
+     "2024": -22.74,
+     "2025": -17.15,
+     "2026": 42.35
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -21.44,
+    "trades": 162
+   },
+   "independent_080": {
+    "net": -36.32,
+    "trades": 161
+   }
+  },
+  "T2 SHORT": {
+   "selected": "T2-1440-200",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": true,
+    "c2_validation": true,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": true,
+    "c8_years": false
+   },
+   "failed": [
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs",
+    "c8_years"
+   ],
+   "development": {
+    "trades": 47,
+    "gross": 7.43,
+    "fees": 2.67,
+    "net": 4.75,
+    "positive": 2,
+    "markets": 3,
+    "dd": [
+     7.9,
+     6.1,
+     7.6
+    ]
+   },
+   "validation": {
+    "trades": 174,
+    "gross": 19.02,
+    "fees": 9.31,
+    "net": 9.71,
+    "positive": 6,
+    "markets": 10,
+    "dd": [
+     5.6,
+     6.2,
+     7.7,
+     7.6,
+     8.3,
+     6.8,
+     6.5,
+     7,
+     8,
+     9.8
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 13,
+      "gross": 5.93,
+      "fees": 1,
+      "net": 4.93,
+      "pf": 1.65,
+      "win": 0.31,
+      "max_dd_pct": 5.6,
+      "exposure": 0.32
+     },
+     "ETH": {
+      "trades": 18,
+      "gross": -0.42,
+      "fees": 0.92,
+      "net": -1.34,
+      "pf": 0.87,
+      "win": 0.33,
+      "max_dd_pct": 6.2,
+      "exposure": 0.47
+     },
+     "SOL": {
+      "trades": 15,
+      "gross": 1.99,
+      "fees": 0.72,
+      "net": 1.28,
+      "pf": 1.13,
+      "win": 0.33,
+      "max_dd_pct": 7.7,
+      "exposure": 0.45
+     },
+     "LTC": {
+      "trades": 19,
+      "gross": 4.25,
+      "fees": 1.26,
+      "net": 2.98,
+      "pf": 1.27,
+      "win": 0.37,
+      "max_dd_pct": 7.6,
+      "exposure": 0.5
+     },
+     "LINK": {
+      "trades": 19,
+      "gross": 2.15,
+      "fees": 0.92,
+      "net": 1.23,
+      "pf": 1.12,
+      "win": 0.32,
+      "max_dd_pct": 8.3,
+      "exposure": 0.49
+     },
+     "AVAX": {
+      "trades": 13,
+      "gross": -1.7,
+      "fees": 0.62,
+      "net": -2.32,
+      "pf": 0.78,
+      "win": 0.15,
+      "max_dd_pct": 6.8,
+      "exposure": 0.37
+     },
+     "ADA": {
+      "trades": 18,
+      "gross": 5.54,
+      "fees": 0.84,
+      "net": 4.7,
+      "pf": 1.44,
+      "win": 0.44,
+      "max_dd_pct": 6.5,
+      "exposure": 0.49
+     },
+     "BCH": {
+      "trades": 21,
+      "gross": 4.17,
+      "fees": 1,
+      "net": 3.17,
+      "pf": 1.24,
+      "win": 0.33,
+      "max_dd_pct": 7,
+      "exposure": 0.43
+     },
+     "DOGE": {
+      "trades": 18,
+      "gross": -3.61,
+      "fees": 0.91,
+      "net": -4.52,
+      "pf": 0.74,
+      "win": 0.28,
+      "max_dd_pct": 8,
+      "exposure": 0.43
+     },
+     "XRP": {
+      "trades": 20,
+      "gross": 0.71,
+      "fees": 1.13,
+      "net": -0.41,
+      "pf": 0.97,
+      "win": 0.35,
+      "max_dd_pct": 9.8,
+      "exposure": 0.38
+     }
+    }
+   },
+   "independent": {
+    "trades": 246,
+    "gross": -23.25,
+    "fees": 11.56,
+    "net": -34.81,
+    "positive": 1,
+    "markets": 8,
+    "dd": [
+     6.6,
+     8.4,
+     20.5,
+     14.9,
+     15.7,
+     11.1,
+     6.2,
+     11.7
+    ],
+    "ci_995": [
+     -0.3776,
+     0.0767
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 14,
+      "gross": 10.86,
+      "fees": 0.82,
+      "net": 10.04,
+      "pf": 2.11,
+      "win": 0.57,
+      "max_dd_pct": 6.6,
+      "exposure": 0.2
+     },
+     "ATOM": {
+      "trades": 19,
+      "gross": -2.66,
+      "fees": 0.96,
+      "net": -3.62,
+      "pf": 0.72,
+      "win": 0.37,
+      "max_dd_pct": 8.4,
+      "exposure": 0.15
+     },
+     "UNI": {
+      "trades": 52,
+      "gross": -12.36,
+      "fees": 1.96,
+      "net": -14.32,
+      "pf": 0.56,
+      "win": 0.21,
+      "max_dd_pct": 20.5,
+      "exposure": 0.44
+     },
+     "AAVE": {
+      "trades": 39,
+      "gross": -6.27,
+      "fees": 1.55,
+      "net": -7.82,
+      "pf": 0.73,
+      "win": 0.28,
+      "max_dd_pct": 14.9,
+      "exposure": 0.41
+     },
+     "XLM": {
+      "trades": 49,
+      "gross": -3.31,
+      "fees": 2.7,
+      "net": -6.01,
+      "pf": 0.81,
+      "win": 0.31,
+      "max_dd_pct": 15.7,
+      "exposure": 0.48
+     },
+     "ETC": {
+      "trades": 26,
+      "gross": -0.15,
+      "fees": 1.49,
+      "net": -1.63,
+      "pf": 0.91,
+      "win": 0.38,
+      "max_dd_pct": 11.1,
+      "exposure": 0.3
+     },
+     "FIL": {
+      "trades": 12,
+      "gross": -3.38,
+      "fees": 0.5,
+      "net": -3.87,
+      "pf": 0.66,
+      "win": 0.33,
+      "max_dd_pct": 6.2,
+      "exposure": 0.13
+     },
+     "ALGO": {
+      "trades": 35,
+      "gross": -5.99,
+      "fees": 1.58,
+      "net": -7.57,
+      "pf": 0.7,
+      "win": 0.34,
+      "max_dd_pct": 11.7,
+      "exposure": 0.39
+     }
+    },
+    "by_year": {
+     "2022": 3.68,
+     "2023": -16.51,
+     "2024": -16.17,
+     "2025": -16.96,
+     "2026": 11.14
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -48.65,
+    "trades": 246
+   },
+   "independent_080": {
+    "net": -67.06,
+    "trades": 246
+   }
+  },
+  "M1 SHORT": {
+   "selected": "M1-1440-120",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": true,
+    "c2_validation": true,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": true,
+    "c8_years": false
+   },
+   "failed": [
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs",
+    "c8_years"
+   ],
+   "development": {
+    "trades": 47,
+    "gross": 19.76,
+    "fees": 2.82,
+    "net": 16.94,
+    "positive": 3,
+    "markets": 3,
+    "dd": [
+     4,
+     4.2,
+     7.7
+    ]
+   },
+   "validation": {
+    "trades": 167,
+    "gross": 22.14,
+    "fees": 8.54,
+    "net": 13.6,
+    "positive": 6,
+    "markets": 10,
+    "dd": [
+     7.6,
+     4.9,
+     6.1,
+     5.4,
+     8.2,
+     7.2,
+     4.4,
+     11.3,
+     7.1,
+     5.5
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 15,
+      "gross": 1.33,
+      "fees": 1.12,
+      "net": 0.21,
+      "pf": 1.02,
+      "win": 0.27,
+      "max_dd_pct": 7.6,
+      "exposure": 0.49
+     },
+     "ETH": {
+      "trades": 19,
+      "gross": 6.95,
+      "fees": 1.02,
+      "net": 5.93,
+      "pf": 1.6,
+      "win": 0.42,
+      "max_dd_pct": 4.9,
+      "exposure": 0.56
+     },
+     "SOL": {
+      "trades": 16,
+      "gross": 1.32,
+      "fees": 0.72,
+      "net": 0.61,
+      "pf": 1.06,
+      "win": 0.44,
+      "max_dd_pct": 6.1,
+      "exposure": 0.47
+     },
+     "LTC": {
+      "trades": 17,
+      "gross": 7.58,
+      "fees": 1.02,
+      "net": 6.56,
+      "pf": 1.8,
+      "win": 0.59,
+      "max_dd_pct": 5.4,
+      "exposure": 0.53
+     },
+     "LINK": {
+      "trades": 19,
+      "gross": 0.44,
+      "fees": 0.85,
+      "net": -0.42,
+      "pf": 0.96,
+      "win": 0.37,
+      "max_dd_pct": 8.2,
+      "exposure": 0.52
+     },
+     "AVAX": {
+      "trades": 11,
+      "gross": -0.94,
+      "fees": 0.55,
+      "net": -1.49,
+      "pf": 0.85,
+      "win": 0.27,
+      "max_dd_pct": 7.2,
+      "exposure": 0.33
+     },
+     "ADA": {
+      "trades": 12,
+      "gross": 6.41,
+      "fees": 0.57,
+      "net": 5.84,
+      "pf": 2.1,
+      "win": 0.33,
+      "max_dd_pct": 4.4,
+      "exposure": 0.42
+     },
+     "BCH": {
+      "trades": 20,
+      "gross": 3.49,
+      "fees": 0.87,
+      "net": 2.63,
+      "pf": 1.22,
+      "win": 0.4,
+      "max_dd_pct": 11.3,
+      "exposure": 0.45
+     },
+     "DOGE": {
+      "trades": 19,
+      "gross": -2.58,
+      "fees": 0.87,
+      "net": -3.45,
+      "pf": 0.77,
+      "win": 0.37,
+      "max_dd_pct": 7.1,
+      "exposure": 0.46
+     },
+     "XRP": {
+      "trades": 19,
+      "gross": -1.87,
+      "fees": 0.94,
+      "net": -2.81,
+      "pf": 0.76,
+      "win": 0.37,
+      "max_dd_pct": 5.5,
+      "exposure": 0.42
+     }
+    }
+   },
+   "independent": {
+    "trades": 209,
+    "gross": 1.46,
+    "fees": 9.3,
+    "net": -7.84,
+    "positive": 3,
+    "markets": 8,
+    "dd": [
+     4.4,
+     5.9,
+     14,
+     12.8,
+     13.1,
+     10.9,
+     5.8,
+     9.1
+    ],
+    "ci_995": [
+     -0.3292,
+     0.2853
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 11,
+      "gross": 7.36,
+      "fees": 0.53,
+      "net": 6.82,
+      "pf": 2.22,
+      "win": 0.55,
+      "max_dd_pct": 4.4,
+      "exposure": 0.16
+     },
+     "ATOM": {
+      "trades": 16,
+      "gross": 5.67,
+      "fees": 0.84,
+      "net": 4.83,
+      "pf": 1.53,
+      "win": 0.63,
+      "max_dd_pct": 5.9,
+      "exposure": 0.17
+     },
+     "UNI": {
+      "trades": 43,
+      "gross": -2.55,
+      "fees": 1.63,
+      "net": -4.18,
+      "pf": 0.85,
+      "win": 0.42,
+      "max_dd_pct": 14,
+      "exposure": 0.45
+     },
+     "AAVE": {
+      "trades": 36,
+      "gross": -1.28,
+      "fees": 1.29,
+      "net": -2.57,
+      "pf": 0.89,
+      "win": 0.44,
+      "max_dd_pct": 12.8,
+      "exposure": 0.44
+     },
+     "XLM": {
+      "trades": 40,
+      "gross": 2.72,
+      "fees": 2.03,
+      "net": 0.68,
+      "pf": 1.03,
+      "win": 0.45,
+      "max_dd_pct": 13.1,
+      "exposure": 0.49
+     },
+     "ETC": {
+      "trades": 20,
+      "gross": 0.09,
+      "fees": 1.12,
+      "net": -1.03,
+      "pf": 0.93,
+      "win": 0.4,
+      "max_dd_pct": 10.9,
+      "exposure": 0.26
+     },
+     "FIL": {
+      "trades": 9,
+      "gross": -5.36,
+      "fees": 0.34,
+      "net": -5.7,
+      "pf": 0.44,
+      "win": 0.33,
+      "max_dd_pct": 5.8,
+      "exposure": 0.11
+     },
+     "ALGO": {
+      "trades": 34,
+      "gross": -5.19,
+      "fees": 1.52,
+      "net": -6.71,
+      "pf": 0.71,
+      "win": 0.32,
+      "max_dd_pct": 9.1,
+      "exposure": 0.36
+     }
+    },
+    "by_year": {
+     "2021": -0.42,
+     "2022": -1.64,
+     "2023": -17.48,
+     "2024": -7.81,
+     "2025": 0.22,
+     "2026": 19.29
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -19.07,
+    "trades": 209
+   },
+   "independent_080": {
+    "net": -36.99,
+    "trades": 209
+   }
+  },
+  "B1 SHORT": {
+   "selected": "B1-240",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": false,
+    "c2_validation": false,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": true,
+    "c8_years": false
+   },
+   "failed": [
+    "c1_development",
+    "c2_validation",
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs",
+    "c8_years"
+   ],
+   "development": {
+    "trades": 185,
+    "gross": -12.27,
+    "fees": 25.2,
+    "net": -37.46,
+    "positive": 0,
+    "markets": 3,
+    "dd": [
+     31.1,
+     20.3,
+     15.4
+    ]
+   },
+   "validation": {
+    "trades": 477,
+    "gross": 15.37,
+    "fees": 66.08,
+    "net": -50.71,
+    "positive": 4,
+    "markets": 10,
+    "dd": [
+     23.2,
+     14.9,
+     17.7,
+     25.6,
+     12.1,
+     10.7,
+     17.3,
+     32.3,
+     9,
+     8.3
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 48,
+      "gross": -6.93,
+      "fees": 10.18,
+      "net": -17.11,
+      "pf": 0.65,
+      "win": 0.31,
+      "max_dd_pct": 23.2,
+      "exposure": 0.16
+     },
+     "ETH": {
+      "trades": 44,
+      "gross": 2.85,
+      "fees": 6.32,
+      "net": -3.47,
+      "pf": 0.9,
+      "win": 0.36,
+      "max_dd_pct": 14.9,
+      "exposure": 0.16
+     },
+     "SOL": {
+      "trades": 56,
+      "gross": 12.47,
+      "fees": 7.59,
+      "net": 4.88,
+      "pf": 1.09,
+      "win": 0.45,
+      "max_dd_pct": 17.7,
+      "exposure": 0.21
+     },
+     "LTC": {
+      "trades": 49,
+      "gross": -8.26,
+      "fees": 6.84,
+      "net": -15.09,
+      "pf": 0.67,
+      "win": 0.35,
+      "max_dd_pct": 25.6,
+      "exposure": 0.16
+     },
+     "LINK": {
+      "trades": 50,
+      "gross": 9.36,
+      "fees": 5.95,
+      "net": 3.42,
+      "pf": 1.1,
+      "win": 0.48,
+      "max_dd_pct": 12.1,
+      "exposure": 0.2
+     },
+     "AVAX": {
+      "trades": 42,
+      "gross": 3.03,
+      "fees": 4.97,
+      "net": -1.93,
+      "pf": 0.95,
+      "win": 0.43,
+      "max_dd_pct": 10.7,
+      "exposure": 0.15
+     },
+     "ADA": {
+      "trades": 47,
+      "gross": -3.94,
+      "fees": 5.33,
+      "net": -9.28,
+      "pf": 0.74,
+      "win": 0.32,
+      "max_dd_pct": 17.3,
+      "exposure": 0.17
+     },
+     "BCH": {
+      "trades": 49,
+      "gross": -15.1,
+      "fees": 5.97,
+      "net": -21.07,
+      "pf": 0.52,
+      "win": 0.27,
+      "max_dd_pct": 32.3,
+      "exposure": 0.15
+     },
+     "DOGE": {
+      "trades": 42,
+      "gross": 10.99,
+      "fees": 5.47,
+      "net": 5.51,
+      "pf": 1.17,
+      "win": 0.48,
+      "max_dd_pct": 9,
+      "exposure": 0.15
+     },
+     "XRP": {
+      "trades": 50,
+      "gross": 10.9,
+      "fees": 7.47,
+      "net": 3.43,
+      "pf": 1.09,
+      "win": 0.38,
+      "max_dd_pct": 8.3,
+      "exposure": 0.18
+     }
+    }
+   },
+   "independent": {
+    "trades": 715,
+    "gross": 20.53,
+    "fees": 83.55,
+    "net": -63.02,
+    "positive": 2,
+    "markets": 8,
+    "dd": [
+     18.5,
+     15.3,
+     19,
+     23.2,
+     15.8,
+     34,
+     22,
+     25.1
+    ],
+    "ci_995": [
+     -0.2926,
+     0.0478
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 72,
+      "gross": -0.41,
+      "fees": 8.83,
+      "net": -9.24,
+      "pf": 0.81,
+      "win": 0.44,
+      "max_dd_pct": 18.5,
+      "exposure": 0.12
+     },
+     "ATOM": {
+      "trades": 65,
+      "gross": 9.46,
+      "fees": 8.21,
+      "net": 1.25,
+      "pf": 1.03,
+      "win": 0.49,
+      "max_dd_pct": 15.3,
+      "exposure": 0.11
+     },
+     "UNI": {
+      "trades": 107,
+      "gross": 25.16,
+      "fees": 11.24,
+      "net": 13.93,
+      "pf": 1.18,
+      "win": 0.44,
+      "max_dd_pct": 19,
+      "exposure": 0.19
+     },
+     "AAVE": {
+      "trades": 117,
+      "gross": -0.95,
+      "fees": 10.78,
+      "net": -11.73,
+      "pf": 0.87,
+      "win": 0.39,
+      "max_dd_pct": 23.2,
+      "exposure": 0.19
+     },
+     "XLM": {
+      "trades": 121,
+      "gross": 10.4,
+      "fees": 16.4,
+      "net": -6,
+      "pf": 0.93,
+      "win": 0.45,
+      "max_dd_pct": 15.8,
+      "exposure": 0.21
+     },
+     "ETC": {
+      "trades": 91,
+      "gross": -8.48,
+      "fees": 12.29,
+      "net": -20.76,
+      "pf": 0.75,
+      "win": 0.34,
+      "max_dd_pct": 34,
+      "exposure": 0.14
+     },
+     "FIL": {
+      "trades": 52,
+      "gross": -2.22,
+      "fees": 6.55,
+      "net": -8.77,
+      "pf": 0.81,
+      "win": 0.29,
+      "max_dd_pct": 22,
+      "exposure": 0.08
+     },
+     "ALGO": {
+      "trades": 90,
+      "gross": -12.44,
+      "fees": 9.26,
+      "net": -21.7,
+      "pf": 0.68,
+      "win": 0.38,
+      "max_dd_pct": 25.1,
+      "exposure": 0.15
+     }
+    },
+    "by_year": {
+     "2021": -14.54,
+     "2022": 4.73,
+     "2023": -12.94,
+     "2024": 17.46,
+     "2025": -24.02,
+     "2026": -33.7
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -161.35,
+    "trades": 712
+   },
+   "independent_080": {
+    "net": -264.09,
+    "trades": 705
+   }
+  },
+  "R1 SHORT": {
+   "selected": "R1-240-2.5",
+   "status": "FAILED",
+   "criteria": {
+    "c1_development": false,
+    "c2_validation": false,
+    "c3_independent_net_and_breadth": false,
+    "c4_100_trades": true,
+    "c5_ci_995": false,
+    "c6_stress_costs": false,
+    "c7_drawdown": true,
+    "c8_years": false
+   },
+   "failed": [
+    "c1_development",
+    "c2_validation",
+    "c3_independent_net_and_breadth",
+    "c5_ci_995",
+    "c6_stress_costs",
+    "c8_years"
+   ],
+   "development": {
+    "trades": 81,
+    "gross": 12.46,
+    "fees": 16.19,
+    "net": -3.73,
+    "positive": 1,
+    "markets": 3,
+    "dd": [
+     11.5,
+     9.2,
+     8.6
+    ]
+   },
+   "validation": {
+    "trades": 241,
+    "gross": 39.06,
+    "fees": 39.15,
+    "net": -0.09,
+    "positive": 6,
+    "markets": 10,
+    "dd": [
+     7.3,
+     7.3,
+     6.3,
+     10.7,
+     6.3,
+     12.1,
+     9.2,
+     17,
+     11.3,
+     9
+    ],
+    "per_market": {
+     "BTC": {
+      "trades": 18,
+      "gross": 7.71,
+      "fees": 4.67,
+      "net": 3.04,
+      "pf": 1.27,
+      "win": 0.56,
+      "max_dd_pct": 7.3,
+      "exposure": 0.03
+     },
+     "ETH": {
+      "trades": 30,
+      "gross": 8,
+      "fees": 5.56,
+      "net": 2.45,
+      "pf": 1.11,
+      "win": 0.53,
+      "max_dd_pct": 7.3,
+      "exposure": 0.04
+     },
+     "SOL": {
+      "trades": 23,
+      "gross": 5.79,
+      "fees": 3.16,
+      "net": 2.64,
+      "pf": 1.16,
+      "win": 0.61,
+      "max_dd_pct": 6.3,
+      "exposure": 0.03
+     },
+     "LTC": {
+      "trades": 21,
+      "gross": 4.98,
+      "fees": 3.45,
+      "net": 1.53,
+      "pf": 1.12,
+      "win": 0.57,
+      "max_dd_pct": 10.7,
+      "exposure": 0.03
+     },
+     "LINK": {
+      "trades": 24,
+      "gross": 9.18,
+      "fees": 3.7,
+      "net": 5.48,
+      "pf": 1.31,
+      "win": 0.67,
+      "max_dd_pct": 6.3,
+      "exposure": 0.03
+     },
+     "AVAX": {
+      "trades": 25,
+      "gross": 9.71,
+      "fees": 3.32,
+      "net": 6.39,
+      "pf": 1.37,
+      "win": 0.64,
+      "max_dd_pct": 12.1,
+      "exposure": 0.04
+     },
+     "ADA": {
+      "trades": 23,
+      "gross": 1.6,
+      "fees": 3.17,
+      "net": -1.57,
+      "pf": 0.91,
+      "win": 0.61,
+      "max_dd_pct": 9.2,
+      "exposure": 0.03
+     },
+     "BCH": {
+      "trades": 25,
+      "gross": -13.36,
+      "fees": 3.43,
+      "net": -16.79,
+      "pf": 0.32,
+      "win": 0.32,
+      "max_dd_pct": 17,
+      "exposure": 0.04
+     },
+     "DOGE": {
+      "trades": 24,
+      "gross": 0.46,
+      "fees": 3.46,
+      "net": -3,
+      "pf": 0.86,
+      "win": 0.54,
+      "max_dd_pct": 11.3,
+      "exposure": 0.02
+     },
+     "XRP": {
+      "trades": 28,
+      "gross": 4.96,
+      "fees": 5.22,
+      "net": -0.26,
+      "pf": 0.99,
+      "win": 0.57,
+      "max_dd_pct": 9,
+      "exposure": 0.04
+     }
+    }
+   },
+   "independent": {
+    "trades": 405,
+    "gross": -27.31,
+    "fees": 63.44,
+    "net": -90.75,
+    "positive": 0,
+    "markets": 8,
+    "dd": [
+     12.3,
+     21.1,
+     17.5,
+     15.7,
+     16.9,
+     17.2,
+     17.4,
+     21
+    ],
+    "ci_995": [
+     -0.4886,
+     -0.0644
+    ],
+    "per_market": {
+     "DOT": {
+      "trades": 52,
+      "gross": 3.75,
+      "fees": 9.4,
+      "net": -5.65,
+      "pf": 0.87,
+      "win": 0.6,
+      "max_dd_pct": 12.3,
+      "exposure": 0.03
+     },
+     "ATOM": {
+      "trades": 41,
+      "gross": -8.45,
+      "fees": 7.25,
+      "net": -15.7,
+      "pf": 0.54,
+      "win": 0.46,
+      "max_dd_pct": 21.1,
+      "exposure": 0.03
+     },
+     "UNI": {
+      "trades": 54,
+      "gross": 3.65,
+      "fees": 8.06,
+      "net": -4.42,
+      "pf": 0.91,
+      "win": 0.52,
+      "max_dd_pct": 17.5,
+      "exposure": 0.03
+     },
+     "AAVE": {
+      "trades": 56,
+      "gross": -3.27,
+      "fees": 7.36,
+      "net": -10.63,
+      "pf": 0.78,
+      "win": 0.5,
+      "max_dd_pct": 15.7,
+      "exposure": 0.03
+     },
+     "XLM": {
+      "trades": 52,
+      "gross": -6.24,
+      "fees": 8.05,
+      "net": -14.3,
+      "pf": 0.65,
+      "win": 0.54,
+      "max_dd_pct": 16.9,
+      "exposure": 0.04
+     },
+     "ETC": {
+      "trades": 57,
+      "gross": 1.15,
+      "fees": 9.35,
+      "net": -8.2,
+      "pf": 0.81,
+      "win": 0.58,
+      "max_dd_pct": 17.2,
+      "exposure": 0.04
+     },
+     "FIL": {
+      "trades": 40,
+      "gross": -6.21,
+      "fees": 6.59,
+      "net": -12.79,
+      "pf": 0.64,
+      "win": 0.55,
+      "max_dd_pct": 17.4,
+      "exposure": 0.02
+     },
+     "ALGO": {
+      "trades": 53,
+      "gross": -11.69,
+      "fees": 7.38,
+      "net": -19.07,
+      "pf": 0.54,
+      "win": 0.47,
+      "max_dd_pct": 21,
+      "exposure": 0.04
+     }
+    },
+    "by_year": {
+     "2021": -14.61,
+     "2022": 30.83,
+     "2023": -42.92,
+     "2024": -35.8,
+     "2025": 6.93,
+     "2026": -35.18
+    },
+    "buy_hold": {
+     "DOT": -95.72,
+     "ATOM": -89.59,
+     "UNI": -74.8,
+     "AAVE": -60.17,
+     "XLM": -52.54,
+     "ETC": -89.96,
+     "FIL": -98.98,
+     "ALGO": -91.26
+    },
+    "fee_drag_pct_of_gross_profit": null
+   },
+   "independent_stress_040_010": {
+    "net": -158.78,
+    "trades": 404
+   },
+   "independent_080": {
+    "net": -247.82,
+    "trades": 401
+   }
+  }
+ },
+ "provenance": {
+  "BTC-USD-3600": {
+   "sha256": "30b107aba8471e05",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ETH-USD-3600": {
+   "sha256": "f0c9cea51b260a93",
+   "source": "Coinbase Exchange public candles"
+  },
+  "SOL-USD-3600": {
+   "sha256": "a0a7efc59f1cb596",
+   "source": "Coinbase Exchange public candles"
+  },
+  "BTC-USD-86400": {
+   "sha256": "5c1b32068eecbf3c",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ETH-USD-86400": {
+   "sha256": "3459bf9620c2e0e4",
+   "source": "Coinbase Exchange public candles"
+  },
+  "SOL-USD-86400": {
+   "sha256": "efa8d8828f88a970",
+   "source": "Coinbase Exchange public candles"
+  },
+  "LTC-USD-3600": {
+   "sha256": "ff439fa7e3858877",
+   "source": "Coinbase Exchange public candles"
+  },
+  "LINK-USD-3600": {
+   "sha256": "12702fb7ae97fe42",
+   "source": "Coinbase Exchange public candles"
+  },
+  "AVAX-USD-3600": {
+   "sha256": "15c34ac511e66068",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ADA-USD-3600": {
+   "sha256": "a3303d93e3639318",
+   "source": "Coinbase Exchange public candles"
+  },
+  "BCH-USD-3600": {
+   "sha256": "29ca4537ccf90823",
+   "source": "Coinbase Exchange public candles"
+  },
+  "DOGE-USD-3600": {
+   "sha256": "fae3e22cc10c4aa2",
+   "source": "Coinbase Exchange public candles"
+  },
+  "XRP-USD-3600": {
+   "sha256": "8ee6c2e80f8e2c03",
+   "source": "Coinbase Exchange public candles"
+  },
+  "DOT-USD-3600": {
+   "sha256": "bc41104ac1d23fad",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ATOM-USD-3600": {
+   "sha256": "6e348a7f18c8d098",
+   "source": "Coinbase Exchange public candles"
+  },
+  "UNI-USD-3600": {
+   "sha256": "03a14cb98cf789df",
+   "source": "Coinbase Exchange public candles"
+  },
+  "AAVE-USD-3600": {
+   "sha256": "15d7721d9316eb2e",
+   "source": "Coinbase Exchange public candles"
+  },
+  "XLM-USD-3600": {
+   "sha256": "ca264d292a5b30a5",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ETC-USD-3600": {
+   "sha256": "66dba6989ddfae5e",
+   "source": "Coinbase Exchange public candles"
+  },
+  "FIL-USD-3600": {
+   "sha256": "45d926f755694d00",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ALGO-USD-3600": {
+   "sha256": "85eb5c3860ee37dd",
+   "source": "Coinbase Exchange public candles"
+  },
+  "DOT-USD-86400": {
+   "sha256": "700d6c8fb4872c41",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ATOM-USD-86400": {
+   "sha256": "a359765a12f50411",
+   "source": "Coinbase Exchange public candles"
+  },
+  "UNI-USD-86400": {
+   "sha256": "79a21883f7fbe177",
+   "source": "Coinbase Exchange public candles"
+  },
+  "AAVE-USD-86400": {
+   "sha256": "461c3d71e970ed33",
+   "source": "Coinbase Exchange public candles"
+  },
+  "XLM-USD-86400": {
+   "sha256": "17ff2c48f9a6beab",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ETC-USD-86400": {
+   "sha256": "5ae06f5f17c323cb",
+   "source": "Coinbase Exchange public candles"
+  },
+  "FIL-USD-86400": {
+   "sha256": "dc36684db9f4424d",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ALGO-USD-86400": {
+   "sha256": "07d288d44874f562",
+   "source": "Coinbase Exchange public candles"
+  },
+  "LTC-USD-86400": {
+   "sha256": "416455521d192014",
+   "source": "Coinbase Exchange public candles"
+  },
+  "LINK-USD-86400": {
+   "sha256": "a4d2815a10c2b746",
+   "source": "Coinbase Exchange public candles"
+  },
+  "AVAX-USD-86400": {
+   "sha256": "2117835549952f7d",
+   "source": "Coinbase Exchange public candles"
+  },
+  "ADA-USD-86400": {
+   "sha256": "0e47e89add627cf2",
+   "source": "Coinbase Exchange public candles"
+  },
+  "BCH-USD-86400": {
+   "sha256": "e40d41a7cfd0db7f",
+   "source": "Coinbase Exchange public candles"
+  },
+  "DOGE-USD-86400": {
+   "sha256": "99652be1bcacc6c9",
+   "source": "Coinbase Exchange public candles"
+  },
+  "XRP-USD-86400": {
+   "sha256": "b8528b8aa8a31d2d",
+   "source": "Coinbase Exchange public candles"
+  }
+ }
+}

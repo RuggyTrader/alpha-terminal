@@ -1,0 +1,1716 @@
+{
+ "label": "RESEARCH ROUND 6 (fee-aware OTE, live 5m profiles, $20 wallet / $10 risk capped, strict acceptance; NOT PAPER results)",
+ "preregistration": "f9506dc",
+ "results": {
+  "V0": {
+   "variant": {},
+   "development": {
+    "BTC": {
+     "trades": 466,
+     "gross": -5.136,
+     "fees": 12.102,
+     "net": -17.238,
+     "net_at_0_40": -29.34,
+     "pf": 0.09,
+     "win": 0.11,
+     "long": -8.806,
+     "short": -8.432
+    },
+    "SOL": {
+     "trades": 547,
+     "gross": -0.608,
+     "fees": 12.27,
+     "net": -12.878,
+     "net_at_0_40": -25.149,
+     "pf": 0.34,
+     "win": 0.21,
+     "long": -8.817,
+     "short": -4.062
+    },
+    "ETH": {
+     "trades": 333,
+     "gross": -2.052,
+     "fees": 11.072,
+     "net": -13.124,
+     "net_at_0_40": -24.196,
+     "pf": 0.26,
+     "win": 0.15,
+     "long": -8.119,
+     "short": -5.005
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 320,
+     "gross": -2.468,
+     "fees": 12.06,
+     "net": -14.528,
+     "net_at_0_40": -26.589,
+     "pf": 0.12,
+     "win": 0.14,
+     "long": -7.181,
+     "short": -7.347
+    },
+    "SOL": {
+     "trades": 300,
+     "gross": -3.159,
+     "fees": 11.023,
+     "net": -14.182,
+     "net_at_0_40": -25.205,
+     "pf": 0.15,
+     "win": 0.18,
+     "long": -7.484,
+     "short": -6.698
+    },
+    "ETH": {
+     "trades": 320,
+     "gross": -1.466,
+     "fees": 11.904,
+     "net": -13.37,
+     "net_at_0_40": -25.274,
+     "pf": 0.21,
+     "win": 0.15,
+     "long": -7.926,
+     "short": -5.444
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 280,
+     "gross": -3.959,
+     "fees": 10.531,
+     "net": -14.49,
+     "net_at_0_40": -25.021,
+     "pf": 0.13,
+     "win": 0.11,
+     "long": -7.211,
+     "short": -7.278
+    },
+    "LINK": {
+     "trades": 321,
+     "gross": -3.683,
+     "fees": 10.689,
+     "net": -14.373,
+     "net_at_0_40": -25.062,
+     "pf": 0.18,
+     "win": 0.15,
+     "long": -6.46,
+     "short": -7.913
+    },
+    "ADA": {
+     "trades": 315,
+     "gross": -1.041,
+     "fees": 11.222,
+     "net": -12.263,
+     "net_at_0_40": -23.485,
+     "pf": 0.28,
+     "win": 0.17,
+     "long": -5.366,
+     "short": -6.897
+    },
+    "DOGE": {
+     "trades": 290,
+     "gross": -2.71,
+     "fees": 10.623,
+     "net": -13.332,
+     "net_at_0_40": -23.955,
+     "pf": 0.2,
+     "win": 0.14,
+     "long": -7.368,
+     "short": -5.964
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 220,
+     "gross": -7.124,
+     "fees": 8.21,
+     "net": -15.334,
+     "net_at_0_40": -23.544,
+     "pf": 0.08,
+     "win": 0.08,
+     "long": -7.574,
+     "short": -7.76
+    },
+    "LINK": {
+     "trades": 250,
+     "gross": -7.363,
+     "fees": 8.308,
+     "net": -15.671,
+     "net_at_0_40": -23.98,
+     "pf": 0.1,
+     "win": 0.1,
+     "long": -7.019,
+     "short": -8.652
+    },
+    "ADA": {
+     "trades": 257,
+     "gross": -4.719,
+     "fees": 8.946,
+     "net": -13.665,
+     "net_at_0_40": -22.611,
+     "pf": 0.2,
+     "win": 0.16,
+     "long": -6.243,
+     "short": -7.422
+    },
+    "DOGE": {
+     "trades": 228,
+     "gross": -6.402,
+     "fees": 8.346,
+     "net": -14.748,
+     "net_at_0_40": -23.094,
+     "pf": 0.12,
+     "win": 0.1,
+     "long": -7.8,
+     "short": -6.948
+    }
+   }
+  },
+  "V1a": {
+   "variant": {
+    "minNetRR": 1,
+    "researchCostPct": 0.2
+   },
+   "development": {
+    "BTC": {
+     "trades": 449,
+     "gross": -5.799,
+     "fees": 11.241,
+     "net": -17.039,
+     "net_at_0_40": -28.28,
+     "pf": 0.1,
+     "win": 0.13,
+     "long": -8.459,
+     "short": -8.58
+    },
+    "SOL": {
+     "trades": 195,
+     "gross": 1.706,
+     "fees": 7.592,
+     "net": -5.886,
+     "net_at_0_40": -13.477,
+     "pf": 0.66,
+     "win": 0.32,
+     "long": -4.642,
+     "short": -1.243
+    },
+    "ETH": {
+     "trades": 330,
+     "gross": -2.156,
+     "fees": 10.972,
+     "net": -13.129,
+     "net_at_0_40": -24.101,
+     "pf": 0.26,
+     "win": 0.14,
+     "long": -8.076,
+     "short": -5.053
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 295,
+     "gross": -2.855,
+     "fees": 10.89,
+     "net": -13.745,
+     "net_at_0_40": -24.635,
+     "pf": 0.16,
+     "win": 0.14,
+     "long": -6.591,
+     "short": -7.154
+    },
+    "SOL": {
+     "trades": 45,
+     "gross": -0.813,
+     "fees": 3.073,
+     "net": -3.886,
+     "net_at_0_40": -6.96,
+     "pf": 0.36,
+     "win": 0.2,
+     "long": -1.912,
+     "short": -1.974
+    },
+    "ETH": {
+     "trades": 297,
+     "gross": -1.66,
+     "fees": 11.034,
+     "net": -12.694,
+     "net_at_0_40": -23.728,
+     "pf": 0.25,
+     "win": 0.16,
+     "long": -5.734,
+     "short": -6.96
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 276,
+     "gross": -2.877,
+     "fees": 10.316,
+     "net": -13.193,
+     "net_at_0_40": -23.51,
+     "pf": 0.21,
+     "win": 0.15,
+     "long": -6.234,
+     "short": -6.96
+    },
+    "LINK": {
+     "trades": 309,
+     "gross": -3.297,
+     "fees": 10.421,
+     "net": -13.718,
+     "net_at_0_40": -24.139,
+     "pf": 0.22,
+     "win": 0.17,
+     "long": -6.394,
+     "short": -7.323
+    },
+    "ADA": {
+     "trades": 304,
+     "gross": -1.54,
+     "fees": 10.807,
+     "net": -12.347,
+     "net_at_0_40": -23.154,
+     "pf": 0.27,
+     "win": 0.16,
+     "long": -5.227,
+     "short": -7.12
+    },
+    "DOGE": {
+     "trades": 281,
+     "gross": -2.599,
+     "fees": 10.228,
+     "net": -12.827,
+     "net_at_0_40": -23.055,
+     "pf": 0.23,
+     "win": 0.17,
+     "long": -7.204,
+     "short": -5.623
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 219,
+     "gross": -6.436,
+     "fees": 8.174,
+     "net": -14.61,
+     "net_at_0_40": -22.784,
+     "pf": 0.12,
+     "win": 0.1,
+     "long": -6.902,
+     "short": -7.707
+    },
+    "LINK": {
+     "trades": 251,
+     "gross": -6.972,
+     "fees": 8.288,
+     "net": -15.259,
+     "net_at_0_40": -23.547,
+     "pf": 0.13,
+     "win": 0.13,
+     "long": -6.894,
+     "short": -8.365
+    },
+    "ADA": {
+     "trades": 250,
+     "gross": -4.853,
+     "fees": 8.65,
+     "net": -13.503,
+     "net_at_0_40": -22.153,
+     "pf": 0.21,
+     "win": 0.15,
+     "long": -5.958,
+     "short": -7.545
+    },
+    "DOGE": {
+     "trades": 221,
+     "gross": -6.017,
+     "fees": 8.105,
+     "net": -14.121,
+     "net_at_0_40": -22.226,
+     "pf": 0.15,
+     "win": 0.12,
+     "long": -7.776,
+     "short": -6.345
+    }
+   }
+  },
+  "V1b": {
+   "variant": {
+    "minNetRR": 2,
+    "researchCostPct": 0.2
+   },
+   "development": {
+    "BTC": {
+     "trades": 42,
+     "gross": -2.772,
+     "fees": 2.798,
+     "net": -5.57,
+     "net_at_0_40": -8.367,
+     "pf": 0.14,
+     "win": 0.24,
+     "long": -2.116,
+     "short": -3.454
+    },
+    "SOL": {
+     "trades": 0,
+     "gross": 0,
+     "fees": 0,
+     "net": 0,
+     "net_at_0_40": 0,
+     "pf": null,
+     "win": null,
+     "long": 0,
+     "short": 0
+    },
+    "ETH": {
+     "trades": 85,
+     "gross": 0.384,
+     "fees": 4.887,
+     "net": -4.503,
+     "net_at_0_40": -9.39,
+     "pf": 0.57,
+     "win": 0.25,
+     "long": -2.767,
+     "short": -1.736
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 8,
+     "gross": 0.564,
+     "fees": 0.618,
+     "net": -0.054,
+     "net_at_0_40": -0.672,
+     "pf": 0.95,
+     "win": 0.38,
+     "long": 0.775,
+     "short": -0.829
+    },
+    "SOL": {
+     "trades": 0,
+     "gross": 0,
+     "fees": 0,
+     "net": 0,
+     "net_at_0_40": 0,
+     "pf": null,
+     "win": null,
+     "long": 0,
+     "short": 0
+    },
+    "ETH": {
+     "trades": 47,
+     "gross": -0.072,
+     "fees": 3.174,
+     "net": -3.246,
+     "net_at_0_40": -6.42,
+     "pf": 0.46,
+     "win": 0.34,
+     "long": -0.189,
+     "short": -3.057
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 81,
+     "gross": -1.176,
+     "fees": 4.892,
+     "net": -6.067,
+     "net_at_0_40": -10.959,
+     "pf": 0.39,
+     "win": 0.26,
+     "long": -1.48,
+     "short": -4.587
+    },
+    "LINK": {
+     "trades": 125,
+     "gross": -3.569,
+     "fees": 5.52,
+     "net": -9.089,
+     "net_at_0_40": -14.608,
+     "pf": 0.37,
+     "win": 0.23,
+     "long": -2.412,
+     "short": -6.677
+    },
+    "ADA": {
+     "trades": 78,
+     "gross": -1.475,
+     "fees": 4.552,
+     "net": -6.027,
+     "net_at_0_40": -10.579,
+     "pf": 0.38,
+     "win": 0.24,
+     "long": -3.315,
+     "short": -2.712
+    },
+    "DOGE": {
+     "trades": 83,
+     "gross": -2.085,
+     "fees": 4.583,
+     "net": -6.668,
+     "net_at_0_40": -11.251,
+     "pf": 0.38,
+     "win": 0.27,
+     "long": -2.645,
+     "short": -4.023
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 81,
+     "gross": -3.39,
+     "fees": 4.635,
+     "net": -8.024,
+     "net_at_0_40": -12.659,
+     "pf": 0.28,
+     "win": 0.17,
+     "long": -2.378,
+     "short": -5.646
+    },
+    "LINK": {
+     "trades": 120,
+     "gross": -6.23,
+     "fees": 4.959,
+     "net": -11.19,
+     "net_at_0_40": -16.149,
+     "pf": 0.27,
+     "win": 0.18,
+     "long": -3.857,
+     "short": -7.333
+    },
+    "ADA": {
+     "trades": 72,
+     "gross": -3.039,
+     "fees": 4.11,
+     "net": -7.149,
+     "net_at_0_40": -11.259,
+     "pf": 0.3,
+     "win": 0.22,
+     "long": -3.708,
+     "short": -3.441
+    },
+    "DOGE": {
+     "trades": 79,
+     "gross": -3.942,
+     "fees": 4.165,
+     "net": -8.108,
+     "net_at_0_40": -12.273,
+     "pf": 0.3,
+     "win": 0.2,
+     "long": -3.348,
+     "short": -4.76
+    }
+   }
+  },
+  "V2": {
+   "variant": {
+    "beFeeOffsetPct": 0.45
+   },
+   "development": {
+    "BTC": {
+     "trades": 500,
+     "gross": -5.318,
+     "fees": 12.769,
+     "net": -18.087,
+     "net_at_0_40": -30.856,
+     "pf": 0.05,
+     "win": 0.06,
+     "long": -9.498,
+     "short": -8.589
+    },
+    "SOL": {
+     "trades": 587,
+     "gross": -1.329,
+     "fees": 13.242,
+     "net": -14.571,
+     "net_at_0_40": -27.813,
+     "pf": 0.25,
+     "win": 0.14,
+     "long": -8.827,
+     "short": -5.744
+    },
+    "ETH": {
+     "trades": 355,
+     "gross": -2.128,
+     "fees": 11.819,
+     "net": -13.947,
+     "net_at_0_40": -25.766,
+     "pf": 0.21,
+     "win": 0.11,
+     "long": -8.56,
+     "short": -5.388
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 333,
+     "gross": -2.874,
+     "fees": 12.515,
+     "net": -15.389,
+     "net_at_0_40": -27.905,
+     "pf": 0.06,
+     "win": 0.08,
+     "long": -7.474,
+     "short": -7.915
+    },
+    "SOL": {
+     "trades": 317,
+     "gross": -3.677,
+     "fees": 11.862,
+     "net": -15.538,
+     "net_at_0_40": -27.4,
+     "pf": 0.07,
+     "win": 0.09,
+     "long": -8.531,
+     "short": -7.007
+    },
+    "ETH": {
+     "trades": 331,
+     "gross": -1.847,
+     "fees": 12.362,
+     "net": -14.209,
+     "net_at_0_40": -26.571,
+     "pf": 0.16,
+     "win": 0.1,
+     "long": -7.965,
+     "short": -6.244
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 296,
+     "gross": -3.78,
+     "fees": 11.135,
+     "net": -14.915,
+     "net_at_0_40": -26.05,
+     "pf": 0.1,
+     "win": 0.07,
+     "long": -7.195,
+     "short": -7.72
+    },
+    "LINK": {
+     "trades": 338,
+     "gross": -3.694,
+     "fees": 11.202,
+     "net": -14.897,
+     "net_at_0_40": -26.099,
+     "pf": 0.15,
+     "win": 0.12,
+     "long": -6.912,
+     "short": -7.985
+    },
+    "ADA": {
+     "trades": 332,
+     "gross": -1.215,
+     "fees": 11.929,
+     "net": -13.144,
+     "net_at_0_40": -25.073,
+     "pf": 0.22,
+     "win": 0.11,
+     "long": -5.958,
+     "short": -7.186
+    },
+    "DOGE": {
+     "trades": 310,
+     "gross": -2.713,
+     "fees": 11.286,
+     "net": -13.999,
+     "net_at_0_40": -25.285,
+     "pf": 0.16,
+     "win": 0.11,
+     "long": -7.5,
+     "short": -6.499
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 226,
+     "gross": -6.957,
+     "fees": 8.506,
+     "net": -15.463,
+     "net_at_0_40": -23.969,
+     "pf": 0.07,
+     "win": 0.05,
+     "long": -7.435,
+     "short": -8.028
+    },
+    "LINK": {
+     "trades": 260,
+     "gross": -7.45,
+     "fees": 8.542,
+     "net": -15.991,
+     "net_at_0_40": -24.533,
+     "pf": 0.09,
+     "win": 0.08,
+     "long": -7.306,
+     "short": -8.685
+    },
+    "ADA": {
+     "trades": 262,
+     "gross": -5.029,
+     "fees": 9.192,
+     "net": -14.221,
+     "net_at_0_40": -23.412,
+     "pf": 0.17,
+     "win": 0.1,
+     "long": -6.479,
+     "short": -7.742
+    },
+    "DOGE": {
+     "trades": 237,
+     "gross": -6.582,
+     "fees": 8.667,
+     "net": -15.249,
+     "net_at_0_40": -23.916,
+     "pf": 0.08,
+     "win": 0.06,
+     "long": -7.854,
+     "short": -7.395
+    }
+   }
+  },
+  "V3": {
+   "variant": {
+    "tp2Ext": -1
+   },
+   "development": {
+    "BTC": {
+     "trades": 453,
+     "gross": -5.425,
+     "fees": 11.761,
+     "net": -17.186,
+     "net_at_0_40": -28.946,
+     "pf": 0.1,
+     "win": 0.11,
+     "long": -8.6,
+     "short": -8.585
+    },
+    "SOL": {
+     "trades": 463,
+     "gross": 0.03,
+     "fees": 10.572,
+     "net": -10.542,
+     "net_at_0_40": -21.114,
+     "pf": 0.46,
+     "win": 0.18,
+     "long": -6.221,
+     "short": -4.321
+    },
+    "ETH": {
+     "trades": 325,
+     "gross": -1.823,
+     "fees": 10.852,
+     "net": -12.675,
+     "net_at_0_40": -23.527,
+     "pf": 0.28,
+     "win": 0.16,
+     "long": -7.595,
+     "short": -5.08
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 317,
+     "gross": -2.136,
+     "fees": 11.866,
+     "net": -14.002,
+     "net_at_0_40": -25.868,
+     "pf": 0.15,
+     "win": 0.14,
+     "long": -6.442,
+     "short": -7.56
+    },
+    "SOL": {
+     "trades": 283,
+     "gross": -0.938,
+     "fees": 10.393,
+     "net": -11.331,
+     "net_at_0_40": -21.724,
+     "pf": 0.32,
+     "win": 0.16,
+     "long": -6.748,
+     "short": -4.583
+    },
+    "ETH": {
+     "trades": 309,
+     "gross": -0.712,
+     "fees": 11.543,
+     "net": -12.256,
+     "net_at_0_40": -23.799,
+     "pf": 0.27,
+     "win": 0.14,
+     "long": -7.525,
+     "short": -4.73
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 274,
+     "gross": -4.757,
+     "fees": 10.186,
+     "net": -14.942,
+     "net_at_0_40": -25.128,
+     "pf": 0.1,
+     "win": 0.09,
+     "long": -7.408,
+     "short": -7.534
+    },
+    "LINK": {
+     "trades": 309,
+     "gross": -3.929,
+     "fees": 10.199,
+     "net": -14.128,
+     "net_at_0_40": -24.327,
+     "pf": 0.19,
+     "win": 0.14,
+     "long": -6.458,
+     "short": -7.67
+    },
+    "ADA": {
+     "trades": 309,
+     "gross": 0.014,
+     "fees": 11.036,
+     "net": -11.022,
+     "net_at_0_40": -22.059,
+     "pf": 0.35,
+     "win": 0.17,
+     "long": -4.051,
+     "short": -6.972
+    },
+    "DOGE": {
+     "trades": 282,
+     "gross": -1.689,
+     "fees": 10.458,
+     "net": -12.147,
+     "net_at_0_40": -22.605,
+     "pf": 0.27,
+     "win": 0.14,
+     "long": -6.339,
+     "short": -5.809
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 214,
+     "gross": -7.607,
+     "fees": 7.937,
+     "net": -15.544,
+     "net_at_0_40": -23.481,
+     "pf": 0.07,
+     "win": 0.07,
+     "long": -7.775,
+     "short": -7.77
+    },
+    "LINK": {
+     "trades": 241,
+     "gross": -7.473,
+     "fees": 7.95,
+     "net": -15.424,
+     "net_at_0_40": -23.374,
+     "pf": 0.12,
+     "win": 0.1,
+     "long": -7.024,
+     "short": -8.4
+    },
+    "ADA": {
+     "trades": 253,
+     "gross": -3.828,
+     "fees": 8.846,
+     "net": -12.674,
+     "net_at_0_40": -21.52,
+     "pf": 0.26,
+     "win": 0.13,
+     "long": -5.058,
+     "short": -7.616
+    },
+    "DOGE": {
+     "trades": 226,
+     "gross": -5.373,
+     "fees": 8.322,
+     "net": -13.696,
+     "net_at_0_40": -22.018,
+     "pf": 0.18,
+     "win": 0.08,
+     "long": -7.039,
+     "short": -6.656
+    }
+   }
+  },
+  "V4": {
+   "variant": {
+    "minStopPct": 0.8
+   },
+   "development": {
+    "BTC": {
+     "trades": 195,
+     "gross": -6.194,
+     "fees": 7.735,
+     "net": -13.929,
+     "net_at_0_40": -21.664,
+     "pf": 0.11,
+     "win": 0.19,
+     "long": -5.956,
+     "short": -7.973
+    },
+    "SOL": {
+     "trades": 419,
+     "gross": 0.475,
+     "fees": 11.196,
+     "net": -10.721,
+     "net_at_0_40": -21.918,
+     "pf": 0.44,
+     "win": 0.22,
+     "long": -7.635,
+     "short": -3.086
+    },
+    "ETH": {
+     "trades": 254,
+     "gross": -3.832,
+     "fees": 8.919,
+     "net": -12.75,
+     "net_at_0_40": -21.669,
+     "pf": 0.26,
+     "win": 0.17,
+     "long": -7.073,
+     "short": -5.677
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 76,
+     "gross": -2.049,
+     "fees": 4.488,
+     "net": -6.538,
+     "net_at_0_40": -11.026,
+     "pf": 0.22,
+     "win": 0.17,
+     "long": -2.222,
+     "short": -4.315
+    },
+    "SOL": {
+     "trades": 232,
+     "gross": -2.912,
+     "fees": 9.081,
+     "net": -11.993,
+     "net_at_0_40": -21.074,
+     "pf": 0.25,
+     "win": 0.21,
+     "long": -6.615,
+     "short": -5.378
+    },
+    "ETH": {
+     "trades": 219,
+     "gross": -0.755,
+     "fees": 9.179,
+     "net": -9.934,
+     "net_at_0_40": -19.113,
+     "pf": 0.35,
+     "win": 0.24,
+     "long": -3.126,
+     "short": -6.807
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 220,
+     "gross": -0.796,
+     "fees": 9.283,
+     "net": -10.079,
+     "net_at_0_40": -19.361,
+     "pf": 0.35,
+     "win": 0.22,
+     "long": -4.006,
+     "short": -6.072
+    },
+    "LINK": {
+     "trades": 233,
+     "gross": -3.104,
+     "fees": 8.331,
+     "net": -11.435,
+     "net_at_0_40": -19.766,
+     "pf": 0.33,
+     "win": 0.19,
+     "long": -2.654,
+     "short": -8.781
+    },
+    "ADA": {
+     "trades": 229,
+     "gross": -1.692,
+     "fees": 9.084,
+     "net": -10.776,
+     "net_at_0_40": -19.86,
+     "pf": 0.33,
+     "win": 0.21,
+     "long": -4.346,
+     "short": -6.43
+    },
+    "DOGE": {
+     "trades": 200,
+     "gross": -2.694,
+     "fees": 7.747,
+     "net": -10.441,
+     "net_at_0_40": -18.188,
+     "pf": 0.34,
+     "win": 0.21,
+     "long": -4.833,
+     "short": -5.608
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 190,
+     "gross": -4.571,
+     "fees": 7.757,
+     "net": -12.328,
+     "net_at_0_40": -20.085,
+     "pf": 0.22,
+     "win": 0.15,
+     "long": -4.989,
+     "short": -7.339
+    },
+    "LINK": {
+     "trades": 208,
+     "gross": -5.839,
+     "fees": 7.168,
+     "net": -13.007,
+     "net_at_0_40": -20.174,
+     "pf": 0.24,
+     "win": 0.15,
+     "long": -3.579,
+     "short": -9.428
+    },
+    "ADA": {
+     "trades": 197,
+     "gross": -4.852,
+     "fees": 7.597,
+     "net": -12.449,
+     "net_at_0_40": -20.045,
+     "pf": 0.23,
+     "win": 0.17,
+     "long": -4.689,
+     "short": -7.76
+    },
+    "DOGE": {
+     "trades": 173,
+     "gross": -5.832,
+     "fees": 6.59,
+     "net": -12.423,
+     "net_at_0_40": -19.013,
+     "pf": 0.23,
+     "win": 0.16,
+     "long": -5.776,
+     "short": -6.647
+    }
+   }
+  },
+  "V5": {
+   "variant": {
+    "minScore": 2
+   },
+   "development": {
+    "BTC": {
+     "trades": 404,
+     "gross": -5.847,
+     "fees": 11.144,
+     "net": -16.991,
+     "net_at_0_40": -28.135,
+     "pf": 0.08,
+     "win": 0.08,
+     "long": -8.383,
+     "short": -8.608
+    },
+    "SOL": {
+     "trades": 455,
+     "gross": -1.821,
+     "fees": 11.242,
+     "net": -13.064,
+     "net_at_0_40": -24.306,
+     "pf": 0.32,
+     "win": 0.22,
+     "long": -7.632,
+     "short": -5.431
+    },
+    "ETH": {
+     "trades": 302,
+     "gross": -3.681,
+     "fees": 10.496,
+     "net": -14.177,
+     "net_at_0_40": -24.673,
+     "pf": 0.19,
+     "win": 0.13,
+     "long": -7.579,
+     "short": -6.598
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 308,
+     "gross": -2.67,
+     "fees": 11.609,
+     "net": -14.279,
+     "net_at_0_40": -25.889,
+     "pf": 0.12,
+     "win": 0.14,
+     "long": -6.186,
+     "short": -8.093
+    },
+    "SOL": {
+     "trades": 303,
+     "gross": -2.153,
+     "fees": 11.407,
+     "net": -13.56,
+     "net_at_0_40": -24.966,
+     "pf": 0.18,
+     "win": 0.17,
+     "long": -6.583,
+     "short": -6.976
+    },
+    "ETH": {
+     "trades": 291,
+     "gross": -1.32,
+     "fees": 11.53,
+     "net": -12.85,
+     "net_at_0_40": -24.379,
+     "pf": 0.22,
+     "win": 0.14,
+     "long": -7.155,
+     "short": -5.695
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 271,
+     "gross": -3.569,
+     "fees": 10.251,
+     "net": -13.82,
+     "net_at_0_40": -24.072,
+     "pf": 0.16,
+     "win": 0.14,
+     "long": -7.417,
+     "short": -6.404
+    },
+    "LINK": {
+     "trades": 305,
+     "gross": -4.058,
+     "fees": 10.321,
+     "net": -14.379,
+     "net_at_0_40": -24.7,
+     "pf": 0.18,
+     "win": 0.12,
+     "long": -7.792,
+     "short": -6.587
+    },
+    "ADA": {
+     "trades": 292,
+     "gross": -2.373,
+     "fees": 11.079,
+     "net": -13.452,
+     "net_at_0_40": -24.531,
+     "pf": 0.18,
+     "win": 0.12,
+     "long": -5.245,
+     "short": -8.207
+    },
+    "DOGE": {
+     "trades": 287,
+     "gross": -2.62,
+     "fees": 10.525,
+     "net": -13.145,
+     "net_at_0_40": -23.669,
+     "pf": 0.21,
+     "win": 0.13,
+     "long": -7.18,
+     "short": -5.964
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 219,
+     "gross": -6.279,
+     "fees": 8.288,
+     "net": -14.566,
+     "net_at_0_40": -22.854,
+     "pf": 0.11,
+     "win": 0.11,
+     "long": -7.599,
+     "short": -6.967
+    },
+    "LINK": {
+     "trades": 237,
+     "gross": -7.707,
+     "fees": 8.061,
+     "net": -15.767,
+     "net_at_0_40": -23.828,
+     "pf": 0.1,
+     "win": 0.1,
+     "long": -8.542,
+     "short": -7.226
+    },
+    "ADA": {
+     "trades": 238,
+     "gross": -5.635,
+     "fees": 8.825,
+     "net": -14.46,
+     "net_at_0_40": -23.285,
+     "pf": 0.13,
+     "win": 0.1,
+     "long": -5.898,
+     "short": -8.562
+    },
+    "DOGE": {
+     "trades": 224,
+     "gross": -6.032,
+     "fees": 8.26,
+     "net": -14.292,
+     "net_at_0_40": -22.553,
+     "pf": 0.14,
+     "win": 0.1,
+     "long": -7.835,
+     "short": -6.457
+    }
+   }
+  },
+  "V6": {
+   "variant": {
+    "minNetRR": 1,
+    "researchCostPct": 0.2,
+    "beFeeOffsetPct": 0.45,
+    "tp2Ext": -1,
+    "minStopPct": 0.8
+   },
+   "development": {
+    "BTC": {
+     "trades": 193,
+     "gross": -6.731,
+     "fees": 7.53,
+     "net": -14.261,
+     "net_at_0_40": -21.791,
+     "pf": 0.1,
+     "win": 0.2,
+     "long": -6.289,
+     "short": -7.971
+    },
+    "SOL": {
+     "trades": 357,
+     "gross": -0.343,
+     "fees": 9.368,
+     "net": -9.711,
+     "net_at_0_40": -19.079,
+     "pf": 0.49,
+     "win": 0.22,
+     "long": -6.144,
+     "short": -3.567
+    },
+    "ETH": {
+     "trades": 251,
+     "gross": -4.065,
+     "fees": 8.806,
+     "net": -12.87,
+     "net_at_0_40": -21.676,
+     "pf": 0.25,
+     "win": 0.19,
+     "long": -7.335,
+     "short": -5.535
+    }
+   },
+   "validation": {
+    "BTC": {
+     "trades": 77,
+     "gross": -1.116,
+     "fees": 4.529,
+     "net": -5.646,
+     "net_at_0_40": -10.175,
+     "pf": 0.32,
+     "win": 0.19,
+     "long": -2.072,
+     "short": -3.573
+    },
+    "SOL": {
+     "trades": 218,
+     "gross": -1.606,
+     "fees": 8.474,
+     "net": -10.08,
+     "net_at_0_40": -18.554,
+     "pf": 0.37,
+     "win": 0.18,
+     "long": -5.832,
+     "short": -4.248
+    },
+    "ETH": {
+     "trades": 212,
+     "gross": -0.44,
+     "fees": 8.752,
+     "net": -9.191,
+     "net_at_0_40": -17.943,
+     "pf": 0.41,
+     "win": 0.26,
+     "long": -2.419,
+     "short": -6.772
+    }
+   },
+   "independent": {
+    "LTC": {
+     "trades": 210,
+     "gross": -1.388,
+     "fees": 8.813,
+     "net": -10.201,
+     "net_at_0_40": -19.015,
+     "pf": 0.34,
+     "win": 0.23,
+     "long": -4.943,
+     "short": -5.258
+    },
+    "LINK": {
+     "trades": 227,
+     "gross": -2.751,
+     "fees": 8.071,
+     "net": -10.822,
+     "net_at_0_40": -18.894,
+     "pf": 0.36,
+     "win": 0.2,
+     "long": -1.494,
+     "short": -9.328
+    },
+    "ADA": {
+     "trades": 222,
+     "gross": -0.167,
+     "fees": 8.78,
+     "net": -8.947,
+     "net_at_0_40": -17.727,
+     "pf": 0.44,
+     "win": 0.22,
+     "long": -3.128,
+     "short": -5.82
+    },
+    "DOGE": {
+     "trades": 191,
+     "gross": -2.01,
+     "fees": 7.449,
+     "net": -9.459,
+     "net_at_0_40": -16.908,
+     "pf": 0.4,
+     "win": 0.21,
+     "long": -4.031,
+     "short": -5.428
+    }
+   },
+   "independent_slip015": {
+    "LTC": {
+     "trades": 187,
+     "gross": -4.923,
+     "fees": 7.55,
+     "net": -12.472,
+     "net_at_0_40": -20.022,
+     "pf": 0.21,
+     "win": 0.16,
+     "long": -5.426,
+     "short": -7.047
+    },
+    "LINK": {
+     "trades": 203,
+     "gross": -5.689,
+     "fees": 6.988,
+     "net": -12.677,
+     "net_at_0_40": -19.665,
+     "pf": 0.26,
+     "win": 0.15,
+     "long": -2.821,
+     "short": -9.856
+    },
+    "ADA": {
+     "trades": 194,
+     "gross": -3.857,
+     "fees": 7.432,
+     "net": -11.289,
+     "net_at_0_40": -18.721,
+     "pf": 0.3,
+     "win": 0.17,
+     "long": -3.604,
+     "short": -7.685
+    },
+    "DOGE": {
+     "trades": 171,
+     "gross": -4.959,
+     "fees": 6.502,
+     "net": -11.461,
+     "net_at_0_40": -17.963,
+     "pf": 0.29,
+     "win": 0.17,
+     "long": -5.351,
+     "short": -6.11
+    }
+   }
+  }
+ },
+ "verdicts": {
+  "V0": {
+   "development": {
+    "trades": 1346,
+    "net": -43.24,
+    "fees": 35.444,
+    "gross": -7.796,
+    "net_at_0_40": -78.685,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 940,
+    "net": -42.08,
+    "fees": 34.987,
+    "gross": -7.093,
+    "net_at_0_40": -77.068,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 1206,
+    "net": -54.458,
+    "fees": 43.065,
+    "gross": -11.393,
+    "net_at_0_40": -97.523,
+    "positive": 0,
+    "ci": [
+     -0.0499,
+     -0.0434
+    ]
+   },
+   "independent_slip015": {
+    "trades": 955,
+    "net": -59.418,
+    "fees": 33.81,
+    "gross": -25.608,
+    "net_at_0_40": -93.229,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  },
+  "V1a": {
+   "development": {
+    "trades": 974,
+    "net": -36.054,
+    "fees": 29.805,
+    "gross": -6.249,
+    "net_at_0_40": -65.858,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 637,
+    "net": -30.325,
+    "fees": 24.997,
+    "gross": -5.328,
+    "net_at_0_40": -55.323,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 1170,
+    "net": -52.085,
+    "fees": 41.772,
+    "gross": -10.313,
+    "net_at_0_40": -93.858,
+    "positive": 0,
+    "ci": [
+     -0.0485,
+     -0.0387
+    ]
+   },
+   "independent_slip015": {
+    "trades": 941,
+    "net": -57.493,
+    "fees": 33.217,
+    "gross": -24.278,
+    "net_at_0_40": -90.71,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  },
+  "V1b": {
+   "development": {
+    "trades": 127,
+    "net": -10.073,
+    "fees": 7.685,
+    "gross": -2.388,
+    "net_at_0_40": -17.757,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 55,
+    "net": -3.3,
+    "fees": 3.792,
+    "gross": 0.492,
+    "net_at_0_40": -7.092,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 367,
+    "net": -27.851,
+    "fees": 19.547,
+    "gross": -8.305,
+    "net_at_0_40": -47.397,
+    "positive": 0,
+    "ci": [
+     -0.0969,
+     -0.0575
+    ]
+   },
+   "independent_slip015": {
+    "trades": 352,
+    "net": -34.471,
+    "fees": 17.869,
+    "gross": -16.601,
+    "net_at_0_40": -52.34,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  },
+  "V2": {
+   "development": {
+    "trades": 1442,
+    "net": -46.605,
+    "fees": 37.83,
+    "gross": -8.775,
+    "net_at_0_40": -84.435,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 981,
+    "net": -45.136,
+    "fees": 36.739,
+    "gross": -8.398,
+    "net_at_0_40": -81.876,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 1276,
+    "net": -56.955,
+    "fees": 45.552,
+    "gross": -11.402,
+    "net_at_0_40": -102.507,
+    "positive": 0,
+    "ci": [
+     -0.0469,
+     -0.0419
+    ]
+   },
+   "independent_slip015": {
+    "trades": 985,
+    "net": -60.924,
+    "fees": 34.907,
+    "gross": -26.018,
+    "net_at_0_40": -95.83,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  },
+  "V3": {
+   "development": {
+    "trades": 1241,
+    "net": -40.403,
+    "fees": 33.185,
+    "gross": -7.218,
+    "net_at_0_40": -73.587,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 909,
+    "net": -37.589,
+    "fees": 33.802,
+    "gross": -3.786,
+    "net_at_0_40": -71.391,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 1174,
+    "net": -52.239,
+    "fees": 41.879,
+    "gross": -10.361,
+    "net_at_0_40": -94.119,
+    "positive": 0,
+    "ci": [
+     -0.0505,
+     -0.0415
+    ]
+   },
+   "independent_slip015": {
+    "trades": 934,
+    "net": -57.338,
+    "fees": 33.055,
+    "gross": -24.281,
+    "net_at_0_40": -90.393,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  },
+  "V4": {
+   "development": {
+    "trades": 868,
+    "net": -37.4,
+    "fees": 27.85,
+    "gross": -9.551,
+    "net_at_0_40": -65.251,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 527,
+    "net": -28.465,
+    "fees": 22.748,
+    "gross": -5.716,
+    "net_at_0_40": -51.213,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 882,
+    "net": -42.731,
+    "fees": 34.445,
+    "gross": -8.286,
+    "net_at_0_40": -77.175,
+    "positive": 0,
+    "ci": [
+     -0.0566,
+     -0.0415
+    ]
+   },
+   "independent_slip015": {
+    "trades": 768,
+    "net": -50.207,
+    "fees": 29.112,
+    "gross": -21.094,
+    "net_at_0_40": -79.317,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  },
+  "V5": {
+   "development": {
+    "trades": 1161,
+    "net": -44.232,
+    "fees": 32.882,
+    "gross": -11.349,
+    "net_at_0_40": -77.114,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 902,
+    "net": -40.689,
+    "fees": 34.546,
+    "gross": -6.143,
+    "net_at_0_40": -75.234,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 1155,
+    "net": -54.796,
+    "fees": 42.176,
+    "gross": -12.62,
+    "net_at_0_40": -96.972,
+    "positive": 0,
+    "ci": [
+     -0.0507,
+     -0.0435
+    ]
+   },
+   "independent_slip015": {
+    "trades": 918,
+    "net": -59.085,
+    "fees": 33.434,
+    "gross": -25.653,
+    "net_at_0_40": -92.52,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  },
+  "V6": {
+   "development": {
+    "trades": 801,
+    "net": -36.842,
+    "fees": 25.704,
+    "gross": -11.139,
+    "net_at_0_40": -62.546,
+    "positive": 0
+   },
+   "validation": {
+    "trades": 507,
+    "net": -24.917,
+    "fees": 21.755,
+    "gross": -3.162,
+    "net_at_0_40": -46.672,
+    "positive": 0
+   },
+   "independent": {
+    "trades": 850,
+    "net": -39.429,
+    "fees": 33.113,
+    "gross": -6.316,
+    "net_at_0_40": -72.544,
+    "positive": 0,
+    "ci": [
+     -0.0631,
+     -0.0364
+    ]
+   },
+   "independent_slip015": {
+    "trades": 755,
+    "net": -47.899,
+    "fees": 28.472,
+    "gross": -19.428,
+    "net_at_0_40": -76.371,
+    "positive": 0
+   },
+   "criteria": {
+    "c1_all_three_positive": false,
+    "c2_30_independent_trades": true,
+    "c3_ci_above_0": false,
+    "c4_positive_at_slip_015": false,
+    "c5_3_of_4_markets": false
+   },
+   "pass": false
+  }
+ }
+}

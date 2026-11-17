@@ -1,0 +1,6999 @@
+{
+ "label": "RESEARCH ROUND 5 (OTE on 4h / daily; Coinbase candles; production fleet backtest; strict acceptance; NOT PAPER results)",
+ "preregistration": "bac1a9d",
+ "periods": {
+  "development": [
+   1625097600000,
+   1719792000000
+  ],
+  "validation": [
+   1719792000000,
+   1794700800000
+  ]
+ },
+ "excluded": {
+  "AVAX": {
+   "development": "max gap 91.8 days"
+  },
+  "XRP": {
+   "development": "max gap 742.8 days"
+  }
+ },
+ "results": [
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 21,
+     "net": -16.23,
+     "fees": 5.36,
+     "net_at_0_40": -21.58,
+     "short_borrow_estimate": 0,
+     "pf": 0.22,
+     "win": 0.24,
+     "max_dd": 17.78
+    },
+    "validation": {
+     "trades": 20,
+     "net": 0.23,
+     "fees": 5.56,
+     "net_at_0_40": -5.33,
+     "short_borrow_estimate": 0,
+     "pf": 1.01,
+     "win": 0.4,
+     "max_dd": 14.61
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 27,
+     "net": 0.88,
+     "fees": 3.88,
+     "net_at_0_40": -3,
+     "short_borrow_estimate": 0,
+     "pf": 1.05,
+     "win": 0.44,
+     "max_dd": 9.27
+    },
+    "validation": {
+     "trades": 25,
+     "net": -17.3,
+     "fees": 4.86,
+     "net_at_0_40": -22.17,
+     "short_borrow_estimate": 0,
+     "pf": 0.35,
+     "win": 0.28,
+     "max_dd": 19.37
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 18,
+     "net": -12.3,
+     "fees": 3.54,
+     "net_at_0_40": -15.84,
+     "short_borrow_estimate": 0,
+     "pf": 0.48,
+     "win": 0.17,
+     "max_dd": 19.26
+    },
+    "validation": {
+     "trades": 20,
+     "net": -7.69,
+     "fees": 4.45,
+     "net_at_0_40": -12.14,
+     "short_borrow_estimate": 0,
+     "pf": 0.48,
+     "win": 0.35,
+     "max_dd": 12.45
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 20,
+     "net": 2.83,
+     "fees": 3.38,
+     "net_at_0_40": -0.55,
+     "short_borrow_estimate": 0,
+     "pf": 1.2,
+     "win": 0.5,
+     "max_dd": 4.19
+    },
+    "validation": {
+     "trades": 16,
+     "net": 3.17,
+     "fees": 3.48,
+     "net_at_0_40": -0.3,
+     "short_borrow_estimate": 0,
+     "pf": 1.45,
+     "win": 0.44,
+     "max_dd": 4.28
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 20,
+     "net": -3.12,
+     "fees": 2.83,
+     "net_at_0_40": -5.95,
+     "short_borrow_estimate": 0,
+     "pf": 0.84,
+     "win": 0.35,
+     "max_dd": 10.84
+    },
+    "validation": {
+     "trades": 11,
+     "net": 1,
+     "fees": 2.04,
+     "net_at_0_40": -1.04,
+     "short_borrow_estimate": 0,
+     "pf": 1.14,
+     "win": 0.36,
+     "max_dd": 3.92
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 19,
+     "net": 4.92,
+     "fees": 3.02,
+     "net_at_0_40": 1.9,
+     "short_borrow_estimate": 0,
+     "pf": 1.38,
+     "win": 0.42,
+     "max_dd": 6.55
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 12,
+     "net": 4.48,
+     "fees": 1.7,
+     "net_at_0_40": 2.78,
+     "short_borrow_estimate": 0,
+     "pf": 1.83,
+     "win": 0.5,
+     "max_dd": 2.81
+    },
+    "validation": {
+     "trades": 13,
+     "net": -2.83,
+     "fees": 1.95,
+     "net_at_0_40": -4.78,
+     "short_borrow_estimate": 0,
+     "pf": 0.35,
+     "win": 0.23,
+     "max_dd": 3.2
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -7.19,
+     "fees": 1.98,
+     "net_at_0_40": -9.16,
+     "short_borrow_estimate": 0,
+     "pf": 0.55,
+     "win": 0.23,
+     "max_dd": 12.39
+    },
+    "validation": {
+     "trades": 16,
+     "net": -4.59,
+     "fees": 3.11,
+     "net_at_0_40": -7.7,
+     "short_borrow_estimate": 0,
+     "pf": 0.7,
+     "win": 0.25,
+     "max_dd": 9.07
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 20,
+     "net": 6.24,
+     "fees": 2.91,
+     "net_at_0_40": 3.34,
+     "short_borrow_estimate": 0,
+     "pf": 1.64,
+     "win": 0.4,
+     "max_dd": 4.23
+    },
+    "validation": {
+     "trades": 18,
+     "net": -3.36,
+     "fees": 2.52,
+     "net_at_0_40": -5.88,
+     "short_borrow_estimate": 0,
+     "pf": 0.81,
+     "win": 0.39,
+     "max_dd": 12.95
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 13,
+     "net": -7.52,
+     "fees": 2.4,
+     "net_at_0_40": -9.92,
+     "short_borrow_estimate": 0,
+     "pf": 0.15,
+     "win": 0.46,
+     "max_dd": 7.59
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -11.19,
+     "fees": 3.65,
+     "net_at_0_40": -14.83,
+     "short_borrow_estimate": 1.08,
+     "pf": 0.28,
+     "win": 0.27,
+     "max_dd": 11.19
+    },
+    "validation": {
+     "trades": 11,
+     "net": 9.81,
+     "fees": 3,
+     "net_at_0_40": 6.81,
+     "short_borrow_estimate": 1.63,
+     "pf": 2.49,
+     "win": 0.55,
+     "max_dd": 2.43
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 30,
+     "net": -11.41,
+     "fees": 4.93,
+     "net_at_0_40": -16.34,
+     "short_borrow_estimate": 1.25,
+     "pf": 0.56,
+     "win": 0.23,
+     "max_dd": 16.04
+    },
+    "validation": {
+     "trades": 24,
+     "net": -4.67,
+     "fees": 5.93,
+     "net_at_0_40": -10.6,
+     "short_borrow_estimate": 1.57,
+     "pf": 0.76,
+     "win": 0.46,
+     "max_dd": 9.62
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 19,
+     "net": -6.57,
+     "fees": 3.91,
+     "net_at_0_40": -10.48,
+     "short_borrow_estimate": 2.45,
+     "pf": 0.59,
+     "win": 0.37,
+     "max_dd": 10.9
+    },
+    "validation": {
+     "trades": 9,
+     "net": -7.39,
+     "fees": 2.16,
+     "net_at_0_40": -9.55,
+     "short_borrow_estimate": 1.1,
+     "pf": 0.35,
+     "win": 0.44,
+     "max_dd": 8.32
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 20,
+     "net": -16.6,
+     "fees": 3.34,
+     "net_at_0_40": -19.94,
+     "short_borrow_estimate": 1.62,
+     "pf": 0.35,
+     "win": 0.2,
+     "max_dd": 18.02
+    },
+    "validation": {
+     "trades": 8,
+     "net": -8.33,
+     "fees": 1.45,
+     "net_at_0_40": -9.77,
+     "short_borrow_estimate": 0.82,
+     "pf": 0.11,
+     "win": 0.25,
+     "max_dd": 9.33
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 18,
+     "net": -8.04,
+     "fees": 3.07,
+     "net_at_0_40": -11.1,
+     "short_borrow_estimate": 1.57,
+     "pf": 0.49,
+     "win": 0.33,
+     "max_dd": 10.97
+    },
+    "validation": {
+     "trades": 11,
+     "net": -3.83,
+     "fees": 1.71,
+     "net_at_0_40": -5.54,
+     "short_borrow_estimate": 1.26,
+     "pf": 0.64,
+     "win": 0.36,
+     "max_dd": 10.66
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 11,
+     "net": 18.32,
+     "fees": 1.72,
+     "net_at_0_40": 16.6,
+     "short_borrow_estimate": 1.67,
+     "pf": 4.09,
+     "win": 0.55,
+     "max_dd": 3.48
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": 0.81,
+     "fees": 2.58,
+     "net_at_0_40": -1.77,
+     "short_borrow_estimate": 1.19,
+     "pf": 1.07,
+     "win": 0.38,
+     "max_dd": 6.46
+    },
+    "validation": {
+     "trades": 15,
+     "net": -2.57,
+     "fees": 2.49,
+     "net_at_0_40": -5.06,
+     "short_borrow_estimate": 1.61,
+     "pf": 0.78,
+     "win": 0.33,
+     "max_dd": 7.03
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 21,
+     "net": -4.89,
+     "fees": 3.92,
+     "net_at_0_40": -8.81,
+     "short_borrow_estimate": 1.91,
+     "pf": 0.72,
+     "win": 0.33,
+     "max_dd": 7.45
+    },
+    "validation": {
+     "trades": 12,
+     "net": -6.59,
+     "fees": 2.28,
+     "net_at_0_40": -8.87,
+     "short_borrow_estimate": 0.84,
+     "pf": 0.42,
+     "win": 0.42,
+     "max_dd": 7.35
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 17,
+     "net": -5.19,
+     "fees": 2.66,
+     "net_at_0_40": -7.85,
+     "short_borrow_estimate": 0.96,
+     "pf": 0.7,
+     "win": 0.41,
+     "max_dd": 11.15
+    },
+    "validation": {
+     "trades": 11,
+     "net": -0.62,
+     "fees": 1.96,
+     "net_at_0_40": -2.57,
+     "short_borrow_estimate": 0.81,
+     "pf": 0.95,
+     "win": 0.45,
+     "max_dd": 9.67
+    }
+   }
+  },
+  {
+   "hyp": "F0",
+   "tf": 240,
+   "variant": {},
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 15,
+     "net": 10.28,
+     "fees": 2.67,
+     "net_at_0_40": 7.61,
+     "short_borrow_estimate": 2.3,
+     "pf": 1.9,
+     "win": 0.53,
+     "max_dd": 4.55
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -10.31,
+     "fees": 3.48,
+     "net_at_0_40": -13.79,
+     "short_borrow_estimate": 0,
+     "pf": 0.3,
+     "win": 0.36,
+     "max_dd": 11.88
+    },
+    "validation": {
+     "trades": 12,
+     "net": -4.39,
+     "fees": 3.23,
+     "net_at_0_40": -7.62,
+     "short_borrow_estimate": 0,
+     "pf": 0.64,
+     "win": 0.33,
+     "max_dd": 9.45
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 8,
+     "net": -0.33,
+     "fees": 1.03,
+     "net_at_0_40": -1.36,
+     "short_borrow_estimate": 0,
+     "pf": 0.95,
+     "win": 0.63,
+     "max_dd": 4.26
+    },
+    "validation": {
+     "trades": 15,
+     "net": -8.88,
+     "fees": 2.97,
+     "net_at_0_40": -11.85,
+     "short_borrow_estimate": 0,
+     "pf": 0.43,
+     "win": 0.33,
+     "max_dd": 11.26
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -3.56,
+     "fees": 2.81,
+     "net_at_0_40": -6.37,
+     "short_borrow_estimate": 0,
+     "pf": 0.76,
+     "win": 0.21,
+     "max_dd": 12.72
+    },
+    "validation": {
+     "trades": 13,
+     "net": -5.44,
+     "fees": 3.14,
+     "net_at_0_40": -8.58,
+     "short_borrow_estimate": 0,
+     "pf": 0.42,
+     "win": 0.31,
+     "max_dd": 8.73
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 16,
+     "net": 9.81,
+     "fees": 2.48,
+     "net_at_0_40": 7.33,
+     "short_borrow_estimate": 0,
+     "pf": 2.43,
+     "win": 0.63,
+     "max_dd": 3.56
+    },
+    "validation": {
+     "trades": 6,
+     "net": 3.91,
+     "fees": 1.18,
+     "net_at_0_40": 2.73,
+     "short_borrow_estimate": 0,
+     "pf": 2.74,
+     "win": 0.5,
+     "max_dd": 1.87
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -8.37,
+     "fees": 1.71,
+     "net_at_0_40": -10.08,
+     "short_borrow_estimate": 0,
+     "pf": 0.32,
+     "win": 0.23,
+     "max_dd": 8.37
+    },
+    "validation": {
+     "trades": 7,
+     "net": 2.53,
+     "fees": 1.38,
+     "net_at_0_40": 1.15,
+     "short_borrow_estimate": 0,
+     "pf": 1.68,
+     "win": 0.43,
+     "max_dd": 2.4
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 9,
+     "net": 3.81,
+     "fees": 1.38,
+     "net_at_0_40": 2.43,
+     "short_borrow_estimate": 0,
+     "pf": 1.86,
+     "win": 0.44,
+     "max_dd": 2.32
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 2.46,
+     "fees": 0.76,
+     "net_at_0_40": 1.69,
+     "short_borrow_estimate": 0,
+     "pf": 1.68,
+     "win": 0.5,
+     "max_dd": 2.46
+    },
+    "validation": {
+     "trades": 7,
+     "net": -1.93,
+     "fees": 0.9,
+     "net_at_0_40": -2.83,
+     "short_borrow_estimate": 0,
+     "pf": 0.4,
+     "win": 0.29,
+     "max_dd": 2.46
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 10,
+     "net": -6.95,
+     "fees": 1.51,
+     "net_at_0_40": -8.46,
+     "short_borrow_estimate": 0,
+     "pf": 0.51,
+     "win": 0.2,
+     "max_dd": 12.15
+    },
+    "validation": {
+     "trades": 8,
+     "net": -2.72,
+     "fees": 1.26,
+     "net_at_0_40": -3.97,
+     "short_borrow_estimate": 0,
+     "pf": 0.67,
+     "win": 0.38,
+     "max_dd": 5.91
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": 9.01,
+     "fees": 0.79,
+     "net_at_0_40": 8.23,
+     "short_borrow_estimate": 0,
+     "pf": 2.98,
+     "win": 0.57,
+     "max_dd": 4.31
+    },
+    "validation": {
+     "trades": 8,
+     "net": -0.2,
+     "fees": 0.84,
+     "net_at_0_40": -1.04,
+     "short_borrow_estimate": 0,
+     "pf": 0.98,
+     "win": 0.38,
+     "max_dd": 3.76
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 7,
+     "net": -4.84,
+     "fees": 1.23,
+     "net_at_0_40": -6.07,
+     "short_borrow_estimate": 0,
+     "pf": 0.06,
+     "win": 0.43,
+     "max_dd": 4.92
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": -8.29,
+     "fees": 1.51,
+     "net_at_0_40": -9.8,
+     "short_borrow_estimate": 0.4,
+     "pf": 0.12,
+     "win": 0.29,
+     "max_dd": 8.29
+    },
+    "validation": {
+     "trades": 5,
+     "net": 13.86,
+     "fees": 1.23,
+     "net_at_0_40": 12.63,
+     "short_borrow_estimate": 1.15,
+     "pf": 18.72,
+     "win": 0.8,
+     "max_dd": 0.78
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -10.05,
+     "fees": 2.61,
+     "net_at_0_40": -12.66,
+     "short_borrow_estimate": 0.5,
+     "pf": 0.36,
+     "win": 0.21,
+     "max_dd": 13.67
+    },
+    "validation": {
+     "trades": 17,
+     "net": -1.03,
+     "fees": 4.09,
+     "net_at_0_40": -5.12,
+     "short_borrow_estimate": 1.21,
+     "pf": 0.93,
+     "win": 0.59,
+     "max_dd": 7.96
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": 0.24,
+     "fees": 2.61,
+     "net_at_0_40": -2.37,
+     "short_borrow_estimate": 2.07,
+     "pf": 1.03,
+     "win": 0.38,
+     "max_dd": 7.44
+    },
+    "validation": {
+     "trades": 6,
+     "net": -5.47,
+     "fees": 1.32,
+     "net_at_0_40": -6.79,
+     "short_borrow_estimate": 0.66,
+     "pf": 0.22,
+     "win": 0.5,
+     "max_dd": 5.47
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -7.73,
+     "fees": 2.5,
+     "net_at_0_40": -10.22,
+     "short_borrow_estimate": 1.35,
+     "pf": 0.54,
+     "win": 0.27,
+     "max_dd": 11.63
+    },
+    "validation": {
+     "trades": 6,
+     "net": -8.37,
+     "fees": 1.13,
+     "net_at_0_40": -9.5,
+     "short_borrow_estimate": 0.44,
+     "pf": 0.01,
+     "win": 0.17,
+     "max_dd": 8.37
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -7.74,
+     "fees": 2.25,
+     "net_at_0_40": -9.99,
+     "short_borrow_estimate": 0.92,
+     "pf": 0.31,
+     "win": 0.29,
+     "max_dd": 8.98
+    },
+    "validation": {
+     "trades": 4,
+     "net": 0.36,
+     "fees": 0.61,
+     "net_at_0_40": -0.25,
+     "short_borrow_estimate": 0.53,
+     "pf": 1.15,
+     "win": 0.5,
+     "max_dd": 2.39
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 20.56,
+     "fees": 1.52,
+     "net_at_0_40": 19.04,
+     "short_borrow_estimate": 1.63,
+     "pf": 6.59,
+     "win": 0.6,
+     "max_dd": 1.46
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 10,
+     "net": -0.59,
+     "fees": 2.16,
+     "net_at_0_40": -2.75,
+     "short_borrow_estimate": 0.77,
+     "pf": 0.94,
+     "win": 0.4,
+     "max_dd": 5.38
+    },
+    "validation": {
+     "trades": 9,
+     "net": -9.21,
+     "fees": 1.58,
+     "net_at_0_40": -10.79,
+     "short_borrow_estimate": 1.05,
+     "pf": 0,
+     "win": 0.11,
+     "max_dd": 9.21
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 17,
+     "net": -0.42,
+     "fees": 3.12,
+     "net_at_0_40": -3.53,
+     "short_borrow_estimate": 1.66,
+     "pf": 0.97,
+     "win": 0.35,
+     "max_dd": 5.75
+    },
+    "validation": {
+     "trades": 9,
+     "net": -9.76,
+     "fees": 1.71,
+     "net_at_0_40": -11.46,
+     "short_borrow_estimate": 0.41,
+     "pf": 0.12,
+     "win": 0.33,
+     "max_dd": 10.51
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -10.99,
+     "fees": 2.44,
+     "net_at_0_40": -13.43,
+     "short_borrow_estimate": 0.7,
+     "pf": 0.36,
+     "win": 0.33,
+     "max_dd": 11.94
+    },
+    "validation": {
+     "trades": 8,
+     "net": 2.15,
+     "fees": 1.61,
+     "net_at_0_40": 0.54,
+     "short_borrow_estimate": 0.51,
+     "pf": 1.25,
+     "win": 0.5,
+     "max_dd": 6.59
+    }
+   }
+  },
+  {
+   "hyp": "F1",
+   "tf": 240,
+   "variant": {},
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 12,
+     "net": 16.93,
+     "fees": 2.15,
+     "net_at_0_40": 14.78,
+     "short_borrow_estimate": 2.24,
+     "pf": 4.53,
+     "win": 0.67,
+     "max_dd": 2.35
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -9.26,
+     "fees": 3.47,
+     "net_at_0_40": -12.73,
+     "short_borrow_estimate": 0,
+     "pf": 0.4,
+     "win": 0.43,
+     "max_dd": 12.58
+    },
+    "validation": {
+     "trades": 12,
+     "net": -6.24,
+     "fees": 3.22,
+     "net_at_0_40": -9.46,
+     "short_borrow_estimate": 0,
+     "pf": 0.53,
+     "win": 0.33,
+     "max_dd": 10.49
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 8,
+     "net": 15.49,
+     "fees": 1.01,
+     "net_at_0_40": 14.48,
+     "short_borrow_estimate": 0,
+     "pf": 3.34,
+     "win": 0.63,
+     "max_dd": 4.26
+    },
+    "validation": {
+     "trades": 15,
+     "net": 14.46,
+     "fees": 3.02,
+     "net_at_0_40": 11.44,
+     "short_borrow_estimate": 0,
+     "pf": 1.89,
+     "win": 0.33,
+     "max_dd": 9.98
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -4.08,
+     "fees": 2.81,
+     "net_at_0_40": -6.89,
+     "short_borrow_estimate": 0,
+     "pf": 0.78,
+     "win": 0.21,
+     "max_dd": 16.51
+    },
+    "validation": {
+     "trades": 13,
+     "net": -8.49,
+     "fees": 3.12,
+     "net_at_0_40": -11.62,
+     "short_borrow_estimate": 0,
+     "pf": 0.31,
+     "win": 0.31,
+     "max_dd": 11.08
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 16,
+     "net": 5.91,
+     "fees": 2.47,
+     "net_at_0_40": 3.44,
+     "short_borrow_estimate": 0,
+     "pf": 1.64,
+     "win": 0.56,
+     "max_dd": 4.23
+    },
+    "validation": {
+     "trades": 6,
+     "net": 13.39,
+     "fees": 1.2,
+     "net_at_0_40": 12.2,
+     "short_borrow_estimate": 0,
+     "pf": 5.99,
+     "win": 0.5,
+     "max_dd": 1.86
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -9.48,
+     "fees": 1.71,
+     "net_at_0_40": -11.2,
+     "short_borrow_estimate": 0,
+     "pf": 0.29,
+     "win": 0.23,
+     "max_dd": 9.48
+    },
+    "validation": {
+     "trades": 7,
+     "net": 0.85,
+     "fees": 1.38,
+     "net_at_0_40": -0.52,
+     "short_borrow_estimate": 0,
+     "pf": 1.23,
+     "win": 0.43,
+     "max_dd": 2.4
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 8,
+     "net": -0.48,
+     "fees": 1.23,
+     "net_at_0_40": -1.71,
+     "short_borrow_estimate": 0,
+     "pf": 0.91,
+     "win": 0.38,
+     "max_dd": 3.07
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 1.04,
+     "fees": 0.76,
+     "net_at_0_40": 0.28,
+     "short_borrow_estimate": 0,
+     "pf": 1.28,
+     "win": 0.33,
+     "max_dd": 2.65
+    },
+    "validation": {
+     "trades": 7,
+     "net": -5.95,
+     "fees": 0.9,
+     "net_at_0_40": -6.85,
+     "short_borrow_estimate": 0,
+     "pf": 0.17,
+     "win": 0.29,
+     "max_dd": 6.32
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 9,
+     "net": 4.03,
+     "fees": 1.44,
+     "net_at_0_40": 2.59,
+     "short_borrow_estimate": 0,
+     "pf": 1.3,
+     "win": 0.22,
+     "max_dd": 13.22
+    },
+    "validation": {
+     "trades": 8,
+     "net": -2.72,
+     "fees": 1.26,
+     "net_at_0_40": -3.97,
+     "short_borrow_estimate": 0,
+     "pf": 0.67,
+     "win": 0.38,
+     "max_dd": 5.91
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": 11.67,
+     "fees": 0.79,
+     "net_at_0_40": 10.87,
+     "short_borrow_estimate": 0,
+     "pf": 3.71,
+     "win": 0.71,
+     "max_dd": 4.31
+    },
+    "validation": {
+     "trades": 8,
+     "net": 9.73,
+     "fees": 0.86,
+     "net_at_0_40": 8.87,
+     "short_borrow_estimate": 0,
+     "pf": 2.21,
+     "win": 0.38,
+     "max_dd": 3.76
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 7,
+     "net": -6.79,
+     "fees": 1.22,
+     "net_at_0_40": -8.01,
+     "short_borrow_estimate": 0,
+     "pf": 0.05,
+     "win": 0.43,
+     "max_dd": 6.86
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": -8.29,
+     "fees": 1.51,
+     "net_at_0_40": -9.8,
+     "short_borrow_estimate": 0.4,
+     "pf": 0.12,
+     "win": 0.29,
+     "max_dd": 8.29
+    },
+    "validation": {
+     "trades": 5,
+     "net": 22.52,
+     "fees": 1.22,
+     "net_at_0_40": 21.31,
+     "short_borrow_estimate": 2.36,
+     "pf": 29.79,
+     "win": 0.8,
+     "max_dd": 0.78
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -2.48,
+     "fees": 2.58,
+     "net_at_0_40": -5.06,
+     "short_borrow_estimate": 1.62,
+     "pf": 0.87,
+     "win": 0.29,
+     "max_dd": 14.81
+    },
+    "validation": {
+     "trades": 16,
+     "net": 7.25,
+     "fees": 3.73,
+     "net_at_0_40": 3.52,
+     "short_borrow_estimate": 1.82,
+     "pf": 1.52,
+     "win": 0.56,
+     "max_dd": 7.96
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -0.48,
+     "fees": 2.6,
+     "net_at_0_40": -3.08,
+     "short_borrow_estimate": 2.37,
+     "pf": 0.95,
+     "win": 0.46,
+     "max_dd": 8.34
+    },
+    "validation": {
+     "trades": 6,
+     "net": -5.47,
+     "fees": 1.32,
+     "net_at_0_40": -6.79,
+     "short_borrow_estimate": 0.66,
+     "pf": 0.22,
+     "win": 0.5,
+     "max_dd": 5.47
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -6.14,
+     "fees": 2.49,
+     "net_at_0_40": -8.63,
+     "short_borrow_estimate": 1.55,
+     "pf": 0.64,
+     "win": 0.33,
+     "max_dd": 11.1
+    },
+    "validation": {
+     "trades": 6,
+     "net": -8.37,
+     "fees": 1.13,
+     "net_at_0_40": -9.5,
+     "short_borrow_estimate": 0.44,
+     "pf": 0.01,
+     "win": 0.17,
+     "max_dd": 8.37
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -8.86,
+     "fees": 2.25,
+     "net_at_0_40": -11.11,
+     "short_borrow_estimate": 1.24,
+     "pf": 0.36,
+     "win": 0.36,
+     "max_dd": 10.1
+    },
+    "validation": {
+     "trades": 4,
+     "net": 4.65,
+     "fees": 0.6,
+     "net_at_0_40": 4.04,
+     "short_borrow_estimate": 0.72,
+     "pf": 3.05,
+     "win": 0.75,
+     "max_dd": 2.27
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 10.38,
+     "fees": 1.51,
+     "net_at_0_40": 8.87,
+     "short_borrow_estimate": 2.02,
+     "pf": 3.13,
+     "win": 0.5,
+     "max_dd": 1.36
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 10,
+     "net": 3.89,
+     "fees": 2.15,
+     "net_at_0_40": 1.74,
+     "short_borrow_estimate": 1.17,
+     "pf": 1.39,
+     "win": 0.4,
+     "max_dd": 5.38
+    },
+    "validation": {
+     "trades": 9,
+     "net": -11.76,
+     "fees": 1.58,
+     "net_at_0_40": -13.35,
+     "short_borrow_estimate": 1.08,
+     "pf": 0,
+     "win": 0.11,
+     "max_dd": 11.76
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 17,
+     "net": 0.07,
+     "fees": 3.12,
+     "net_at_0_40": -3.05,
+     "short_borrow_estimate": 2.68,
+     "pf": 1.01,
+     "win": 0.35,
+     "max_dd": 6.49
+    },
+    "validation": {
+     "trades": 9,
+     "net": -9.76,
+     "fees": 1.71,
+     "net_at_0_40": -11.46,
+     "short_borrow_estimate": 0.41,
+     "pf": 0.12,
+     "win": 0.33,
+     "max_dd": 10.51
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -10.99,
+     "fees": 2.44,
+     "net_at_0_40": -13.43,
+     "short_borrow_estimate": 0.7,
+     "pf": 0.36,
+     "win": 0.33,
+     "max_dd": 11.94
+    },
+    "validation": {
+     "trades": 8,
+     "net": 0.22,
+     "fees": 1.62,
+     "net_at_0_40": -1.39,
+     "short_borrow_estimate": 0.97,
+     "pf": 1.03,
+     "win": 0.5,
+     "max_dd": 6.59
+    }
+   }
+  },
+  {
+   "hyp": "F2",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 12,
+     "net": 24.81,
+     "fees": 2.13,
+     "net_at_0_40": 22.68,
+     "short_borrow_estimate": 3.38,
+     "pf": 5.88,
+     "win": 0.75,
+     "max_dd": 2.35
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -11.37,
+     "fees": 3.47,
+     "net_at_0_40": -14.83,
+     "short_borrow_estimate": 0,
+     "pf": 0.28,
+     "win": 0.36,
+     "max_dd": 12.93
+    },
+    "validation": {
+     "trades": 12,
+     "net": -6.24,
+     "fees": 3.22,
+     "net_at_0_40": -9.46,
+     "short_borrow_estimate": 0,
+     "pf": 0.53,
+     "win": 0.33,
+     "max_dd": 10.49
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 8,
+     "net": 11.53,
+     "fees": 1,
+     "net_at_0_40": 10.53,
+     "short_borrow_estimate": 0,
+     "pf": 2.74,
+     "win": 0.63,
+     "max_dd": 4.26
+    },
+    "validation": {
+     "trades": 15,
+     "net": -5.17,
+     "fees": 2.98,
+     "net_at_0_40": -8.14,
+     "short_borrow_estimate": 0,
+     "pf": 0.7,
+     "win": 0.27,
+     "max_dd": 9.95
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -3.19,
+     "fees": 2.81,
+     "net_at_0_40": -6,
+     "short_borrow_estimate": 0,
+     "pf": 0.82,
+     "win": 0.21,
+     "max_dd": 15.87
+    },
+    "validation": {
+     "trades": 13,
+     "net": -6.39,
+     "fees": 3.14,
+     "net_at_0_40": -9.52,
+     "short_borrow_estimate": 0,
+     "pf": 0.38,
+     "win": 0.31,
+     "max_dd": 8.97
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 16,
+     "net": 6.32,
+     "fees": 2.47,
+     "net_at_0_40": 3.85,
+     "short_borrow_estimate": 0,
+     "pf": 1.71,
+     "win": 0.63,
+     "max_dd": 4.23
+    },
+    "validation": {
+     "trades": 6,
+     "net": 9.21,
+     "fees": 1.19,
+     "net_at_0_40": 8.03,
+     "short_borrow_estimate": 0,
+     "pf": 4.43,
+     "win": 0.5,
+     "max_dd": 1.86
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -9.17,
+     "fees": 1.71,
+     "net_at_0_40": -10.88,
+     "short_borrow_estimate": 0,
+     "pf": 0.3,
+     "win": 0.23,
+     "max_dd": 9.17
+    },
+    "validation": {
+     "trades": 7,
+     "net": 0.85,
+     "fees": 1.38,
+     "net_at_0_40": -0.52,
+     "short_borrow_estimate": 0,
+     "pf": 1.23,
+     "win": 0.43,
+     "max_dd": 2.4
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 8,
+     "net": -0.48,
+     "fees": 1.23,
+     "net_at_0_40": -1.71,
+     "short_borrow_estimate": 0,
+     "pf": 0.91,
+     "win": 0.38,
+     "max_dd": 3.07
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 1.51,
+     "fees": 0.76,
+     "net_at_0_40": 0.74,
+     "short_borrow_estimate": 0,
+     "pf": 1.45,
+     "win": 0.5,
+     "max_dd": 2.18
+    },
+    "validation": {
+     "trades": 7,
+     "net": -4.37,
+     "fees": 0.9,
+     "net_at_0_40": -5.27,
+     "short_borrow_estimate": 0,
+     "pf": 0.22,
+     "win": 0.29,
+     "max_dd": 4.74
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 10,
+     "net": -2.27,
+     "fees": 1.52,
+     "net_at_0_40": -3.79,
+     "short_borrow_estimate": 0,
+     "pf": 0.85,
+     "win": 0.2,
+     "max_dd": 13.22
+    },
+    "validation": {
+     "trades": 8,
+     "net": -2.72,
+     "fees": 1.26,
+     "net_at_0_40": -3.97,
+     "short_borrow_estimate": 0,
+     "pf": 0.67,
+     "win": 0.38,
+     "max_dd": 5.91
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": 14.27,
+     "fees": 0.8,
+     "net_at_0_40": 13.47,
+     "short_borrow_estimate": 0,
+     "pf": 4.14,
+     "win": 0.57,
+     "max_dd": 4.31
+    },
+    "validation": {
+     "trades": 8,
+     "net": 5.55,
+     "fees": 0.85,
+     "net_at_0_40": 4.7,
+     "short_borrow_estimate": 0,
+     "pf": 1.69,
+     "win": 0.38,
+     "max_dd": 3.76
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 7,
+     "net": -4.84,
+     "fees": 1.23,
+     "net_at_0_40": -6.07,
+     "short_borrow_estimate": 0,
+     "pf": 0.06,
+     "win": 0.43,
+     "max_dd": 4.92
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": -8.29,
+     "fees": 1.51,
+     "net_at_0_40": -9.8,
+     "short_borrow_estimate": 0.4,
+     "pf": 0.12,
+     "win": 0.29,
+     "max_dd": 8.29
+    },
+    "validation": {
+     "trades": 5,
+     "net": 18.32,
+     "fees": 1.23,
+     "net_at_0_40": 17.1,
+     "short_borrow_estimate": 2.24,
+     "pf": 24.42,
+     "win": 0.8,
+     "max_dd": 0.78
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": 3.49,
+     "fees": 2.57,
+     "net_at_0_40": 0.92,
+     "short_borrow_estimate": 1.19,
+     "pf": 1.19,
+     "win": 0.29,
+     "max_dd": 14.81
+    },
+    "validation": {
+     "trades": 16,
+     "net": 3.26,
+     "fees": 3.74,
+     "net_at_0_40": -0.48,
+     "short_borrow_estimate": 1.72,
+     "pf": 1.23,
+     "win": 0.56,
+     "max_dd": 7.96
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": 0.24,
+     "fees": 2.61,
+     "net_at_0_40": -2.38,
+     "short_borrow_estimate": 2.07,
+     "pf": 1.03,
+     "win": 0.38,
+     "max_dd": 7.44
+    },
+    "validation": {
+     "trades": 6,
+     "net": -5.47,
+     "fees": 1.32,
+     "net_at_0_40": -6.79,
+     "short_borrow_estimate": 0.66,
+     "pf": 0.22,
+     "win": 0.5,
+     "max_dd": 5.47
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -6.98,
+     "fees": 2.49,
+     "net_at_0_40": -9.48,
+     "short_borrow_estimate": 1.5,
+     "pf": 0.59,
+     "win": 0.27,
+     "max_dd": 11.94
+    },
+    "validation": {
+     "trades": 6,
+     "net": -8.37,
+     "fees": 1.13,
+     "net_at_0_40": -9.5,
+     "short_borrow_estimate": 0.44,
+     "pf": 0.01,
+     "win": 0.17,
+     "max_dd": 8.37
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -8.85,
+     "fees": 2.25,
+     "net_at_0_40": -11.1,
+     "short_borrow_estimate": 1.24,
+     "pf": 0.36,
+     "win": 0.36,
+     "max_dd": 10.09
+    },
+    "validation": {
+     "trades": 4,
+     "net": 0.36,
+     "fees": 0.61,
+     "net_at_0_40": -0.25,
+     "short_borrow_estimate": 0.53,
+     "pf": 1.15,
+     "win": 0.5,
+     "max_dd": 2.39
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 20.41,
+     "fees": 1.52,
+     "net_at_0_40": 18.89,
+     "short_borrow_estimate": 2.17,
+     "pf": 6.46,
+     "win": 0.5,
+     "max_dd": 1.52
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 10,
+     "net": 5.19,
+     "fees": 2.15,
+     "net_at_0_40": 3.04,
+     "short_borrow_estimate": 0.85,
+     "pf": 1.51,
+     "win": 0.4,
+     "max_dd": 5.38
+    },
+    "validation": {
+     "trades": 9,
+     "net": -10.39,
+     "fees": 1.58,
+     "net_at_0_40": -11.97,
+     "short_borrow_estimate": 1.08,
+     "pf": 0,
+     "win": 0.11,
+     "max_dd": 10.39
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 17,
+     "net": 0.27,
+     "fees": 3.12,
+     "net_at_0_40": -2.84,
+     "short_borrow_estimate": 1.9,
+     "pf": 1.02,
+     "win": 0.29,
+     "max_dd": 9.85
+    },
+    "validation": {
+     "trades": 9,
+     "net": -9.76,
+     "fees": 1.71,
+     "net_at_0_40": -11.46,
+     "short_borrow_estimate": 0.41,
+     "pf": 0.12,
+     "win": 0.33,
+     "max_dd": 10.51
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -10.99,
+     "fees": 2.44,
+     "net_at_0_40": -13.43,
+     "short_borrow_estimate": 0.7,
+     "pf": 0.36,
+     "win": 0.33,
+     "max_dd": 11.94
+    },
+    "validation": {
+     "trades": 8,
+     "net": 0.24,
+     "fees": 1.62,
+     "net_at_0_40": -1.38,
+     "short_borrow_estimate": 0.91,
+     "pf": 1.03,
+     "win": 0.5,
+     "max_dd": 6.59
+    }
+   }
+  },
+  {
+   "hyp": "F2n-1.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1
+   },
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 12,
+     "net": 20.61,
+     "fees": 2.14,
+     "net_at_0_40": 18.47,
+     "short_borrow_estimate": 3.08,
+     "pf": 5.05,
+     "win": 0.75,
+     "max_dd": 2.35
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -10.91,
+     "fees": 3.45,
+     "net_at_0_40": -14.36,
+     "short_borrow_estimate": 0,
+     "pf": 0.36,
+     "win": 0.43,
+     "max_dd": 14.23
+    },
+    "validation": {
+     "trades": 12,
+     "net": -7.71,
+     "fees": 3.21,
+     "net_at_0_40": -10.93,
+     "short_borrow_estimate": 0,
+     "pf": 0.48,
+     "win": 0.33,
+     "max_dd": 11.97
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 8,
+     "net": 15.91,
+     "fees": 1.01,
+     "net_at_0_40": 14.9,
+     "short_borrow_estimate": 0,
+     "pf": 2.96,
+     "win": 0.38,
+     "max_dd": 5.77
+    },
+    "validation": {
+     "trades": 15,
+     "net": 11.71,
+     "fees": 3.13,
+     "net_at_0_40": 8.58,
+     "short_borrow_estimate": 0,
+     "pf": 1.63,
+     "win": 0.33,
+     "max_dd": 9.57
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -4.09,
+     "fees": 2.81,
+     "net_at_0_40": -6.9,
+     "short_borrow_estimate": 0,
+     "pf": 0.78,
+     "win": 0.21,
+     "max_dd": 16.51
+    },
+    "validation": {
+     "trades": 13,
+     "net": -8.06,
+     "fees": 3.12,
+     "net_at_0_40": -11.18,
+     "short_borrow_estimate": 0,
+     "pf": 0.35,
+     "win": 0.31,
+     "max_dd": 10.64
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 16,
+     "net": 5.91,
+     "fees": 2.47,
+     "net_at_0_40": 3.44,
+     "short_borrow_estimate": 0,
+     "pf": 1.64,
+     "win": 0.56,
+     "max_dd": 4.23
+    },
+    "validation": {
+     "trades": 5,
+     "net": 8.24,
+     "fees": 1.12,
+     "net_at_0_40": 7.11,
+     "short_borrow_estimate": 0,
+     "pf": 4.07,
+     "win": 0.4,
+     "max_dd": 1.86
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -9.48,
+     "fees": 1.71,
+     "net_at_0_40": -11.2,
+     "short_borrow_estimate": 0,
+     "pf": 0.29,
+     "win": 0.23,
+     "max_dd": 9.48
+    },
+    "validation": {
+     "trades": 7,
+     "net": 0.85,
+     "fees": 1.38,
+     "net_at_0_40": -0.52,
+     "short_borrow_estimate": 0,
+     "pf": 1.23,
+     "win": 0.43,
+     "max_dd": 2.4
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 8,
+     "net": -0.48,
+     "fees": 1.23,
+     "net_at_0_40": -1.71,
+     "short_borrow_estimate": 0,
+     "pf": 0.91,
+     "win": 0.38,
+     "max_dd": 3.07
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 1.04,
+     "fees": 0.76,
+     "net_at_0_40": 0.28,
+     "short_borrow_estimate": 0,
+     "pf": 1.28,
+     "win": 0.33,
+     "max_dd": 2.65
+    },
+    "validation": {
+     "trades": 7,
+     "net": -5.95,
+     "fees": 0.9,
+     "net_at_0_40": -6.85,
+     "short_borrow_estimate": 0,
+     "pf": 0.17,
+     "win": 0.29,
+     "max_dd": 6.32
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 9,
+     "net": -3.07,
+     "fees": 1.42,
+     "net_at_0_40": -4.5,
+     "short_borrow_estimate": 0,
+     "pf": 0.77,
+     "win": 0.22,
+     "max_dd": 13.22
+    },
+    "validation": {
+     "trades": 8,
+     "net": -2.72,
+     "fees": 1.26,
+     "net_at_0_40": -3.97,
+     "short_borrow_estimate": 0,
+     "pf": 0.67,
+     "win": 0.38,
+     "max_dd": 5.91
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": 11.67,
+     "fees": 0.79,
+     "net_at_0_40": 10.87,
+     "short_borrow_estimate": 0,
+     "pf": 3.71,
+     "win": 0.71,
+     "max_dd": 4.31
+    },
+    "validation": {
+     "trades": 8,
+     "net": 12.32,
+     "fees": 0.87,
+     "net_at_0_40": 11.45,
+     "short_borrow_estimate": 0,
+     "pf": 2.53,
+     "win": 0.38,
+     "max_dd": 3.76
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 7,
+     "net": -6.79,
+     "fees": 1.22,
+     "net_at_0_40": -8.01,
+     "short_borrow_estimate": 0,
+     "pf": 0.05,
+     "win": 0.43,
+     "max_dd": 6.86
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": -8.29,
+     "fees": 1.51,
+     "net_at_0_40": -9.8,
+     "short_borrow_estimate": 0.4,
+     "pf": 0.12,
+     "win": 0.29,
+     "max_dd": 8.29
+    },
+    "validation": {
+     "trades": 5,
+     "net": 25.12,
+     "fees": 1.21,
+     "net_at_0_40": 23.91,
+     "short_borrow_estimate": 2.45,
+     "pf": 33.11,
+     "win": 0.8,
+     "max_dd": 0.78
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -3.56,
+     "fees": 2.58,
+     "net_at_0_40": -6.14,
+     "short_borrow_estimate": 1.73,
+     "pf": 0.82,
+     "win": 0.29,
+     "max_dd": 15.42
+    },
+    "validation": {
+     "trades": 16,
+     "net": 9.72,
+     "fees": 3.73,
+     "net_at_0_40": 5.99,
+     "short_borrow_estimate": 2.01,
+     "pf": 1.69,
+     "win": 0.56,
+     "max_dd": 7.96
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -2.38,
+     "fees": 2.6,
+     "net_at_0_40": -4.98,
+     "short_borrow_estimate": 2.89,
+     "pf": 0.8,
+     "win": 0.38,
+     "max_dd": 9.88
+    },
+    "validation": {
+     "trades": 6,
+     "net": -5.47,
+     "fees": 1.32,
+     "net_at_0_40": -6.79,
+     "short_borrow_estimate": 0.66,
+     "pf": 0.22,
+     "win": 0.5,
+     "max_dd": 5.47
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -6.14,
+     "fees": 2.49,
+     "net_at_0_40": -8.63,
+     "short_borrow_estimate": 1.55,
+     "pf": 0.64,
+     "win": 0.33,
+     "max_dd": 11.1
+    },
+    "validation": {
+     "trades": 6,
+     "net": -8.37,
+     "fees": 1.13,
+     "net_at_0_40": -9.5,
+     "short_borrow_estimate": 0.44,
+     "pf": 0.01,
+     "win": 0.17,
+     "max_dd": 8.37
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -6.25,
+     "fees": 2.25,
+     "net_at_0_40": -8.49,
+     "short_borrow_estimate": 1.49,
+     "pf": 0.54,
+     "win": 0.43,
+     "max_dd": 9.68
+    },
+    "validation": {
+     "trades": 4,
+     "net": 4.65,
+     "fees": 0.6,
+     "net_at_0_40": 4.04,
+     "short_borrow_estimate": 0.72,
+     "pf": 3.05,
+     "win": 0.75,
+     "max_dd": 2.27
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 10.38,
+     "fees": 1.51,
+     "net_at_0_40": 8.87,
+     "short_borrow_estimate": 2.02,
+     "pf": 3.13,
+     "win": 0.5,
+     "max_dd": 1.36
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 10,
+     "net": 3.85,
+     "fees": 2.15,
+     "net_at_0_40": 1.69,
+     "short_borrow_estimate": 1.31,
+     "pf": 1.38,
+     "win": 0.4,
+     "max_dd": 5.43
+    },
+    "validation": {
+     "trades": 9,
+     "net": -12.99,
+     "fees": 1.59,
+     "net_at_0_40": -14.57,
+     "short_borrow_estimate": 1.11,
+     "pf": 0,
+     "win": 0.11,
+     "max_dd": 12.99
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 17,
+     "net": 0.07,
+     "fees": 3.12,
+     "net_at_0_40": -3.05,
+     "short_borrow_estimate": 2.68,
+     "pf": 1.01,
+     "win": 0.35,
+     "max_dd": 6.49
+    },
+    "validation": {
+     "trades": 9,
+     "net": -9.76,
+     "fees": 1.71,
+     "net_at_0_40": -11.46,
+     "short_borrow_estimate": 0.41,
+     "pf": 0.12,
+     "win": 0.33,
+     "max_dd": 10.51
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -10.99,
+     "fees": 2.44,
+     "net_at_0_40": -13.43,
+     "short_borrow_estimate": 0.7,
+     "pf": 0.36,
+     "win": 0.33,
+     "max_dd": 11.94
+    },
+    "validation": {
+     "trades": 8,
+     "net": 0.22,
+     "fees": 1.62,
+     "net_at_0_40": -1.39,
+     "short_borrow_estimate": 0.97,
+     "pf": 1.03,
+     "win": 0.5,
+     "max_dd": 6.59
+    }
+   }
+  },
+  {
+   "hyp": "F2n-2.0",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -2
+   },
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 12,
+     "net": 27.41,
+     "fees": 2.13,
+     "net_at_0_40": 25.28,
+     "short_borrow_estimate": 3.39,
+     "pf": 6.39,
+     "win": 0.75,
+     "max_dd": 2.35
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -3.26,
+     "fees": 0.25,
+     "net_at_0_40": -3.51,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 3.26
+    },
+    "validation": {
+     "trades": 1,
+     "net": -1.77,
+     "fees": 0.17,
+     "net_at_0_40": -1.94,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 1.77
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -1.31,
+     "fees": 0.17,
+     "net_at_0_40": -1.49,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 1.31
+    },
+    "validation": {
+     "trades": 4,
+     "net": -3.72,
+     "fees": 0.27,
+     "net_at_0_40": -3.99,
+     "short_borrow_estimate": 0,
+     "pf": 0.03,
+     "win": 0.25,
+     "max_dd": 3.84
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": -2.14,
+     "fees": 0.11,
+     "net_at_0_40": -2.25,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.14
+    },
+    "validation": {
+     "trades": 1,
+     "net": -2.09,
+     "fees": 0.07,
+     "net_at_0_40": -2.17,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.09
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": 0.02,
+     "fees": 0.1,
+     "net_at_0_40": -0.08,
+     "short_borrow_estimate": 0,
+     "pf": 1.01,
+     "win": 0.5,
+     "max_dd": 2.06
+    },
+    "validation": {
+     "trades": 2,
+     "net": 0.77,
+     "fees": 0.07,
+     "net_at_0_40": 0.7,
+     "short_borrow_estimate": 0,
+     "pf": 194.76,
+     "win": 0.5,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -1.51,
+     "fees": 0.11,
+     "net_at_0_40": -1.61,
+     "short_borrow_estimate": 0,
+     "pf": 0.27,
+     "win": 0.5,
+     "max_dd": 2.05
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 2,
+     "net": -3.12,
+     "fees": 0.1,
+     "net_at_0_40": -3.22,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 3.12
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": -0.44,
+     "fees": 0.03,
+     "net_at_0_40": -0.47,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 0.44
+    },
+    "validation": {
+     "trades": 4,
+     "net": -1.89,
+     "fees": 0.29,
+     "net_at_0_40": -2.18,
+     "short_borrow_estimate": 0,
+     "pf": 0.15,
+     "win": 0.5,
+     "max_dd": 2.23
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 2,
+     "net": 0.84,
+     "fees": 0.1,
+     "net_at_0_40": 0.74,
+     "short_borrow_estimate": 0,
+     "pf": 11.87,
+     "win": 0.5,
+     "max_dd": 0.08
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 1,
+     "net": -2.05,
+     "fees": 0.04,
+     "net_at_0_40": -2.1,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.05
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -4.39,
+     "fees": 0.39,
+     "net_at_0_40": -4.78,
+     "short_borrow_estimate": 0.16,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 4.39
+    },
+    "validation": {
+     "trades": 1,
+     "net": 1.03,
+     "fees": 0.08,
+     "net_at_0_40": 0.95,
+     "short_borrow_estimate": 0.52,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -0.46,
+     "fees": 0.13,
+     "net_at_0_40": -0.59,
+     "short_borrow_estimate": 0.44,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 0.46
+    },
+    "validation": {
+     "trades": 4,
+     "net": -2.11,
+     "fees": 0.47,
+     "net_at_0_40": -2.58,
+     "short_borrow_estimate": 0.44,
+     "pf": 0.13,
+     "win": 0.25,
+     "max_dd": 2.2
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": 5.72,
+     "fees": 0.06,
+     "net_at_0_40": 5.66,
+     "short_borrow_estimate": 0.24,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 1,
+     "net": -1.64,
+     "fees": 0.05,
+     "net_at_0_40": -1.68,
+     "short_borrow_estimate": 0.27,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 1.64
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": 3.02,
+     "fees": 0.06,
+     "net_at_0_40": 2.96,
+     "short_borrow_estimate": 0.72,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": 5.4,
+     "fees": 0.13,
+     "net_at_0_40": 5.27,
+     "short_borrow_estimate": 0.73,
+     "pf": 16.7,
+     "win": 0.5,
+     "max_dd": 0.34
+    },
+    "validation": {
+     "trades": 2,
+     "net": -2.18,
+     "fees": 0.16,
+     "net_at_0_40": -2.33,
+     "short_borrow_estimate": 0.18,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.18
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 2,
+     "net": -1.36,
+     "fees": 0.13,
+     "net_at_0_40": -1.49,
+     "short_borrow_estimate": 0.61,
+     "pf": 0.35,
+     "win": 0.5,
+     "max_dd": 2.1
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": 1.32,
+     "fees": 0.15,
+     "net_at_0_40": 1.18,
+     "short_borrow_estimate": 1.42,
+     "pf": 1.63,
+     "win": 0.5,
+     "max_dd": 2.12
+    },
+    "validation": {
+     "trades": 2,
+     "net": -4.24,
+     "fees": 0.19,
+     "net_at_0_40": -4.43,
+     "short_borrow_estimate": 0.09,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 4.24
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -2.42,
+     "fees": 0.18,
+     "net_at_0_40": -2.6,
+     "short_borrow_estimate": 0.29,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.42
+    },
+    "validation": {
+     "trades": 2,
+     "net": -1.41,
+     "fees": 0.22,
+     "net_at_0_40": -1.62,
+     "short_borrow_estimate": 0.06,
+     "pf": 0.35,
+     "win": 0.5,
+     "max_dd": 2.16
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -1.83,
+     "fees": 0.13,
+     "net_at_0_40": -1.96,
+     "short_borrow_estimate": 0.11,
+     "pf": 0.12,
+     "win": 0.5,
+     "max_dd": 2.08
+    },
+    "validation": {
+     "trades": 1,
+     "net": -2.1,
+     "fees": 0.08,
+     "net_at_0_40": -2.19,
+     "short_borrow_estimate": 0.02,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.1
+    }
+   }
+  },
+  {
+   "hyp": "F3",
+   "tf": 1440,
+   "variant": {},
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 2,
+     "net": -0.24,
+     "fees": 0.28,
+     "net_at_0_40": -0.51,
+     "short_borrow_estimate": 0.12,
+     "pf": 0.89,
+     "win": 0.5,
+     "max_dd": 2.19
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -3.26,
+     "fees": 0.25,
+     "net_at_0_40": -3.51,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 3.26
+    },
+    "validation": {
+     "trades": 1,
+     "net": -1.77,
+     "fees": 0.17,
+     "net_at_0_40": -1.94,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 1.77
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -3.55,
+     "fees": 0.17,
+     "net_at_0_40": -3.72,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 3.55
+    },
+    "validation": {
+     "trades": 4,
+     "net": -4.76,
+     "fees": 0.27,
+     "net_at_0_40": -5.03,
+     "short_borrow_estimate": 0,
+     "pf": 0.02,
+     "win": 0.25,
+     "max_dd": 4.88
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": -2.14,
+     "fees": 0.11,
+     "net_at_0_40": -2.25,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.14
+    },
+    "validation": {
+     "trades": 1,
+     "net": -2.09,
+     "fees": 0.07,
+     "net_at_0_40": -2.17,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.09
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": 0.02,
+     "fees": 0.1,
+     "net_at_0_40": -0.08,
+     "short_borrow_estimate": 0,
+     "pf": 1.01,
+     "win": 0.5,
+     "max_dd": 2.06
+    },
+    "validation": {
+     "trades": 1,
+     "net": 0.78,
+     "fees": 0.03,
+     "net_at_0_40": 0.75,
+     "short_borrow_estimate": 0,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -1.51,
+     "fees": 0.11,
+     "net_at_0_40": -1.61,
+     "short_borrow_estimate": 0,
+     "pf": 0.27,
+     "win": 0.5,
+     "max_dd": 2.05
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 2,
+     "net": -4.12,
+     "fees": 0.09,
+     "net_at_0_40": -4.21,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 4.12
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": -0.44,
+     "fees": 0.03,
+     "net_at_0_40": -0.47,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 0.44
+    },
+    "validation": {
+     "trades": 4,
+     "net": -1.89,
+     "fees": 0.29,
+     "net_at_0_40": -2.18,
+     "short_borrow_estimate": 0,
+     "pf": 0.15,
+     "win": 0.5,
+     "max_dd": 2.23
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 2,
+     "net": -0.31,
+     "fees": 0.1,
+     "net_at_0_40": -0.41,
+     "short_borrow_estimate": 0,
+     "pf": 0.75,
+     "win": 0.5,
+     "max_dd": 1.23
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 1,
+     "net": -2.05,
+     "fees": 0.04,
+     "net_at_0_40": -2.1,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.05
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -4.49,
+     "fees": 0.39,
+     "net_at_0_40": -4.87,
+     "short_borrow_estimate": 0.16,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 4.49
+    },
+    "validation": {
+     "trades": 1,
+     "net": 1.03,
+     "fees": 0.08,
+     "net_at_0_40": 0.95,
+     "short_borrow_estimate": 0.52,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -1.46,
+     "fees": 0.13,
+     "net_at_0_40": -1.59,
+     "short_borrow_estimate": 0.44,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 1.46
+    },
+    "validation": {
+     "trades": 4,
+     "net": -3.05,
+     "fees": 0.48,
+     "net_at_0_40": -3.52,
+     "short_borrow_estimate": 0.63,
+     "pf": 0.09,
+     "win": 0.25,
+     "max_dd": 3.05
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": 4.03,
+     "fees": 0.06,
+     "net_at_0_40": 3.96,
+     "short_borrow_estimate": 0.7,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 1,
+     "net": -2.06,
+     "fees": 0.05,
+     "net_at_0_40": -2.11,
+     "short_borrow_estimate": 0.44,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.06
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": 3.02,
+     "fees": 0.06,
+     "net_at_0_40": 2.96,
+     "short_borrow_estimate": 0.72,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": 7.38,
+     "fees": 0.12,
+     "net_at_0_40": 7.25,
+     "short_borrow_estimate": 1.23,
+     "pf": 22.46,
+     "win": 0.5,
+     "max_dd": 0.34
+    },
+    "validation": {
+     "trades": 2,
+     "net": -2.18,
+     "fees": 0.16,
+     "net_at_0_40": -2.33,
+     "short_borrow_estimate": 0.18,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.18
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 2,
+     "net": -1.36,
+     "fees": 0.13,
+     "net_at_0_40": -1.49,
+     "short_borrow_estimate": 0.61,
+     "pf": 0.35,
+     "win": 0.5,
+     "max_dd": 2.1
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": 1.32,
+     "fees": 0.15,
+     "net_at_0_40": 1.18,
+     "short_borrow_estimate": 1.42,
+     "pf": 1.63,
+     "win": 0.5,
+     "max_dd": 2.12
+    },
+    "validation": {
+     "trades": 2,
+     "net": -4.24,
+     "fees": 0.19,
+     "net_at_0_40": -4.43,
+     "short_borrow_estimate": 0.09,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 4.24
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -2.42,
+     "fees": 0.18,
+     "net_at_0_40": -2.6,
+     "short_borrow_estimate": 0.29,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.42
+    },
+    "validation": {
+     "trades": 2,
+     "net": -1.41,
+     "fees": 0.22,
+     "net_at_0_40": -1.62,
+     "short_borrow_estimate": 0.06,
+     "pf": 0.35,
+     "win": 0.5,
+     "max_dd": 2.16
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -1.83,
+     "fees": 0.13,
+     "net_at_0_40": -1.96,
+     "short_borrow_estimate": 0.11,
+     "pf": 0.12,
+     "win": 0.5,
+     "max_dd": 2.08
+    },
+    "validation": {
+     "trades": 1,
+     "net": -2.1,
+     "fees": 0.08,
+     "net_at_0_40": -2.19,
+     "short_borrow_estimate": 0.02,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.1
+    }
+   }
+  },
+  {
+   "hyp": "F3x",
+   "tf": 1440,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 2,
+     "net": -0.24,
+     "fees": 0.28,
+     "net_at_0_40": -0.51,
+     "short_borrow_estimate": 0.12,
+     "pf": 0.89,
+     "win": 0.5,
+     "max_dd": 2.19
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -6.82,
+     "fees": 3.14,
+     "net_at_0_40": -9.96,
+     "short_borrow_estimate": 0,
+     "pf": 0.48,
+     "win": 0.46,
+     "max_dd": 10.15
+    },
+    "validation": {
+     "trades": 13,
+     "net": -6,
+     "fees": 3.58,
+     "net_at_0_40": -9.58,
+     "short_borrow_estimate": 0,
+     "pf": 0.55,
+     "win": 0.38,
+     "max_dd": 10.25
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": 28.12,
+     "fees": 1.84,
+     "net_at_0_40": 26.28,
+     "short_borrow_estimate": 0,
+     "pf": 3.98,
+     "win": 0.47,
+     "max_dd": 5.45
+    },
+    "validation": {
+     "trades": 16,
+     "net": -1.58,
+     "fees": 3.32,
+     "net_at_0_40": -4.9,
+     "short_borrow_estimate": 0,
+     "pf": 0.91,
+     "win": 0.31,
+     "max_dd": 10.69
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 12,
+     "net": 0.37,
+     "fees": 2.45,
+     "net_at_0_40": -2.07,
+     "short_borrow_estimate": 0,
+     "pf": 1.03,
+     "win": 0.25,
+     "max_dd": 12.05
+    },
+    "validation": {
+     "trades": 13,
+     "net": -12.65,
+     "fees": 3.15,
+     "net_at_0_40": -15.8,
+     "short_borrow_estimate": 0,
+     "pf": 0.09,
+     "win": 0.31,
+     "max_dd": 13.32
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 12,
+     "net": 0.62,
+     "fees": 1.89,
+     "net_at_0_40": -1.26,
+     "short_borrow_estimate": 0,
+     "pf": 1.13,
+     "win": 0.58,
+     "max_dd": 4.65
+    },
+    "validation": {
+     "trades": 10,
+     "net": 17.32,
+     "fees": 2.59,
+     "net_at_0_40": 14.73,
+     "short_borrow_estimate": 0,
+     "pf": 4.45,
+     "win": 0.5,
+     "max_dd": 2.28
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -8.68,
+     "fees": 1.66,
+     "net_at_0_40": -10.33,
+     "short_borrow_estimate": 0,
+     "pf": 0.38,
+     "win": 0.23,
+     "max_dd": 8.68
+    },
+    "validation": {
+     "trades": 7,
+     "net": -0.32,
+     "fees": 1.32,
+     "net_at_0_40": -1.64,
+     "short_borrow_estimate": 0,
+     "pf": 0.91,
+     "win": 0.43,
+     "max_dd": 2.94
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 2.89,
+     "fees": 1.6,
+     "net_at_0_40": 1.29,
+     "short_borrow_estimate": 0,
+     "pf": 1.79,
+     "win": 0.5,
+     "max_dd": 1.89
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 9,
+     "net": 1.54,
+     "fees": 1.17,
+     "net_at_0_40": 0.37,
+     "short_borrow_estimate": 0,
+     "pf": 1.26,
+     "win": 0.44,
+     "max_dd": 2.84
+    },
+    "validation": {
+     "trades": 9,
+     "net": -6.5,
+     "fees": 1.37,
+     "net_at_0_40": -7.87,
+     "short_borrow_estimate": 0,
+     "pf": 0.16,
+     "win": 0.22,
+     "max_dd": 6.86
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 9,
+     "net": 4.03,
+     "fees": 1.44,
+     "net_at_0_40": 2.59,
+     "short_borrow_estimate": 0,
+     "pf": 1.3,
+     "win": 0.22,
+     "max_dd": 13.22
+    },
+    "validation": {
+     "trades": 11,
+     "net": -1.77,
+     "fees": 2.21,
+     "net_at_0_40": -3.98,
+     "short_borrow_estimate": 0,
+     "pf": 0.82,
+     "win": 0.36,
+     "max_dd": 6.88
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": 12.56,
+     "fees": 1.98,
+     "net_at_0_40": 10.58,
+     "short_borrow_estimate": 0,
+     "pf": 3.18,
+     "win": 0.57,
+     "max_dd": 3.71
+    },
+    "validation": {
+     "trades": 10,
+     "net": 24.48,
+     "fees": 1.34,
+     "net_at_0_40": 23.13,
+     "short_borrow_estimate": 0,
+     "pf": 3.63,
+     "win": 0.5,
+     "max_dd": 3.51
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 7,
+     "net": -8.02,
+     "fees": 1.46,
+     "net_at_0_40": -9.48,
+     "short_borrow_estimate": 0,
+     "pf": 0.04,
+     "win": 0.29,
+     "max_dd": 8.1
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": -8.29,
+     "fees": 1.51,
+     "net_at_0_40": -9.8,
+     "short_borrow_estimate": 0.4,
+     "pf": 0.12,
+     "win": 0.29,
+     "max_dd": 8.29
+    },
+    "validation": {
+     "trades": 7,
+     "net": 20.65,
+     "fees": 1.72,
+     "net_at_0_40": 18.92,
+     "short_borrow_estimate": 2.53,
+     "pf": 7.81,
+     "win": 0.71,
+     "max_dd": 2.66
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 17,
+     "net": -4.55,
+     "fees": 2.89,
+     "net_at_0_40": -7.44,
+     "short_borrow_estimate": 1.74,
+     "pf": 0.79,
+     "win": 0.29,
+     "max_dd": 13.47
+    },
+    "validation": {
+     "trades": 12,
+     "net": 19.58,
+     "fees": 2.82,
+     "net_at_0_40": 16.76,
+     "short_borrow_estimate": 1.18,
+     "pf": 3.08,
+     "win": 0.58,
+     "max_dd": 4.31
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 12,
+     "net": -1.56,
+     "fees": 2.3,
+     "net_at_0_40": -3.86,
+     "short_borrow_estimate": 2.08,
+     "pf": 0.85,
+     "win": 0.42,
+     "max_dd": 6.07
+    },
+    "validation": {
+     "trades": 3,
+     "net": -1.63,
+     "fees": 0.69,
+     "net_at_0_40": -2.32,
+     "short_borrow_estimate": 0.38,
+     "pf": 0.31,
+     "win": 0.67,
+     "max_dd": 2.36
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 12,
+     "net": -2.79,
+     "fees": 2.02,
+     "net_at_0_40": -4.81,
+     "short_borrow_estimate": 1.51,
+     "pf": 0.78,
+     "win": 0.33,
+     "max_dd": 9.88
+    },
+    "validation": {
+     "trades": 3,
+     "net": -4.24,
+     "fees": 0.39,
+     "net_at_0_40": -4.63,
+     "short_borrow_estimate": 0.12,
+     "pf": 0.02,
+     "win": 0.33,
+     "max_dd": 4.24
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 12,
+     "net": -8.89,
+     "fees": 2.29,
+     "net_at_0_40": -11.18,
+     "short_borrow_estimate": 1.18,
+     "pf": 0.36,
+     "win": 0.42,
+     "max_dd": 11.21
+    },
+    "validation": {
+     "trades": 3,
+     "net": 6.92,
+     "fees": 0.39,
+     "net_at_0_40": 6.53,
+     "short_borrow_estimate": 0.7,
+     "pf": 99,
+     "win": 1,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 9.36,
+     "fees": 1.53,
+     "net_at_0_40": 7.83,
+     "short_borrow_estimate": 2,
+     "pf": 2.59,
+     "win": 0.5,
+     "max_dd": 2.25
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": 2.63,
+     "fees": 1.17,
+     "net_at_0_40": 1.46,
+     "short_borrow_estimate": 0.76,
+     "pf": 1.34,
+     "win": 0.29,
+     "max_dd": 5.38
+    },
+    "validation": {
+     "trades": 6,
+     "net": -5.91,
+     "fees": 0.8,
+     "net_at_0_40": -6.71,
+     "short_borrow_estimate": 0.34,
+     "pf": 0.05,
+     "win": 0.33,
+     "max_dd": 5.91
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 12,
+     "net": 2.92,
+     "fees": 2.39,
+     "net_at_0_40": 0.53,
+     "short_borrow_estimate": 2.36,
+     "pf": 1.26,
+     "win": 0.42,
+     "max_dd": 6.01
+    },
+    "validation": {
+     "trades": 7,
+     "net": -0.02,
+     "fees": 1.23,
+     "net_at_0_40": -1.25,
+     "short_borrow_estimate": 0.56,
+     "pf": 0.99,
+     "win": 0.57,
+     "max_dd": 4.16
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 10,
+     "net": -6.97,
+     "fees": 1.7,
+     "net_at_0_40": -8.67,
+     "short_borrow_estimate": 0.39,
+     "pf": 0.39,
+     "win": 0.3,
+     "max_dd": 7.71
+    },
+    "validation": {
+     "trades": 6,
+     "net": 4.47,
+     "fees": 1.08,
+     "net_at_0_40": 3.39,
+     "short_borrow_estimate": 0.89,
+     "pf": 2.02,
+     "win": 0.67,
+     "max_dd": 4.39
+    }
+   }
+  },
+  {
+   "hyp": "F4",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618
+   },
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 22.32,
+     "fees": 1.74,
+     "net_at_0_40": 20.58,
+     "short_borrow_estimate": 2.91,
+     "pf": 5.5,
+     "win": 0.7,
+     "max_dd": 4.33
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -4.33,
+     "fees": 0.98,
+     "net_at_0_40": -5.31,
+     "short_borrow_estimate": 0,
+     "pf": 0.03,
+     "win": 0.33,
+     "max_dd": 4.46
+    },
+    "validation": {
+     "trades": 5,
+     "net": 1.6,
+     "fees": 1.26,
+     "net_at_0_40": 0.34,
+     "short_borrow_estimate": 0,
+     "pf": 1.34,
+     "win": 0.6,
+     "max_dd": 4.76
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -2.35,
+     "fees": 0.35,
+     "net_at_0_40": -2.69,
+     "short_borrow_estimate": 0,
+     "pf": 0.07,
+     "win": 0.33,
+     "max_dd": 2.35
+    },
+    "validation": {
+     "trades": 7,
+     "net": 5.68,
+     "fees": 1.27,
+     "net_at_0_40": 4.41,
+     "short_borrow_estimate": 0,
+     "pf": 1.61,
+     "win": 0.29,
+     "max_dd": 6.64
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": -2.28,
+     "fees": 0.22,
+     "net_at_0_40": -2.5,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.28
+    },
+    "validation": {
+     "trades": 6,
+     "net": -6.19,
+     "fees": 1.11,
+     "net_at_0_40": -7.29,
+     "short_borrow_estimate": 0,
+     "pf": 0.02,
+     "win": 0.17,
+     "max_dd": 6.19
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 2.21,
+     "fees": 0.76,
+     "net_at_0_40": 1.45,
+     "short_borrow_estimate": 0,
+     "pf": 1.91,
+     "win": 0.67,
+     "max_dd": 2.42
+    },
+    "validation": {
+     "trades": 2,
+     "net": -2.18,
+     "fees": 0.39,
+     "net_at_0_40": -2.57,
+     "short_borrow_estimate": 0,
+     "pf": 0.05,
+     "win": 0.5,
+     "max_dd": 2.3
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": -5.73,
+     "fees": 0.87,
+     "net_at_0_40": -6.61,
+     "short_borrow_estimate": 0,
+     "pf": 0.32,
+     "win": 0.14,
+     "max_dd": 5.73
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 5,
+     "net": 2.2,
+     "fees": 0.86,
+     "net_at_0_40": 1.34,
+     "short_borrow_estimate": 0,
+     "pf": 1.87,
+     "win": 0.6,
+     "max_dd": 1.44
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 1,
+     "net": -0.5,
+     "fees": 0.13,
+     "net_at_0_40": -0.62,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 0.5
+    },
+    "validation": {
+     "trades": 3,
+     "net": -1.76,
+     "fees": 0.37,
+     "net_at_0_40": -2.13,
+     "short_borrow_estimate": 0,
+     "pf": 0.34,
+     "win": 0.33,
+     "max_dd": 2.23
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -5.24,
+     "fees": 0.41,
+     "net_at_0_40": -5.66,
+     "short_borrow_estimate": 0,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 5.24
+    },
+    "validation": {
+     "trades": 3,
+     "net": 0.01,
+     "fees": 0.45,
+     "net_at_0_40": -0.44,
+     "short_borrow_estimate": 0,
+     "pf": 1.01,
+     "win": 0.33,
+     "max_dd": 1.54
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": 4.97,
+     "fees": 0.39,
+     "net_at_0_40": 4.58,
+     "short_borrow_estimate": 0,
+     "pf": 3.34,
+     "win": 0.67,
+     "max_dd": 2.12
+    },
+    "validation": {
+     "trades": 3,
+     "net": -0.74,
+     "fees": 0.26,
+     "net_at_0_40": -1,
+     "short_borrow_estimate": 0,
+     "pf": 0.69,
+     "win": 0.33,
+     "max_dd": 2.42
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 2,
+     "net": -0.32,
+     "fees": 0.34,
+     "net_at_0_40": -0.65,
+     "short_borrow_estimate": 0,
+     "pf": 0.19,
+     "win": 0.5,
+     "max_dd": 0.39
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 3,
+     "net": -2.45,
+     "fees": 0.61,
+     "net_at_0_40": -3.07,
+     "short_borrow_estimate": 0.3,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.45
+    },
+    "validation": {
+     "trades": 2,
+     "net": 1.87,
+     "fees": 0.33,
+     "net_at_0_40": 1.54,
+     "short_borrow_estimate": 0.43,
+     "pf": 3.39,
+     "win": 0.5,
+     "max_dd": 0.78
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 4,
+     "net": -6.14,
+     "fees": 0.66,
+     "net_at_0_40": -6.79,
+     "short_borrow_estimate": 0.08,
+     "pf": 0.08,
+     "win": 0.25,
+     "max_dd": 6.69
+    },
+    "validation": {
+     "trades": 10,
+     "net": -2.14,
+     "fees": 2.47,
+     "net_at_0_40": -4.61,
+     "short_borrow_estimate": 0.76,
+     "pf": 0.71,
+     "win": 0.6,
+     "max_dd": 4.58
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 5.4,
+     "fees": 1.4,
+     "net_at_0_40": 4.01,
+     "short_borrow_estimate": 1.05,
+     "pf": 1.93,
+     "win": 0.5,
+     "max_dd": 2.27
+    },
+    "validation": {
+     "trades": 3,
+     "net": -3.84,
+     "fees": 0.63,
+     "net_at_0_40": -4.47,
+     "short_borrow_estimate": 0.29,
+     "pf": 0.17,
+     "win": 0.33,
+     "max_dd": 3.84
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": 3.98,
+     "fees": 1.01,
+     "net_at_0_40": 2.98,
+     "short_borrow_estimate": 0.69,
+     "pf": 1.9,
+     "win": 0.57,
+     "max_dd": 2.13
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 2,
+     "net": -2.48,
+     "fees": 0.24,
+     "net_at_0_40": -2.72,
+     "short_borrow_estimate": 0.07,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 2.48
+    },
+    "validation": {
+     "trades": 0,
+     "net": 0,
+     "fees": 0,
+     "net_at_0_40": 0,
+     "short_borrow_estimate": 0,
+     "pf": null,
+     "win": null,
+     "max_dd": 0
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 5,
+     "net": 12.85,
+     "fees": 0.68,
+     "net_at_0_40": 12.16,
+     "short_borrow_estimate": 1.22,
+     "pf": 10.39,
+     "win": 0.6,
+     "max_dd": 1.3
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 5,
+     "net": 5.04,
+     "fees": 0.75,
+     "net_at_0_40": 4.29,
+     "short_borrow_estimate": 0.66,
+     "pf": 1.96,
+     "win": 0.4,
+     "max_dd": 3.11
+    },
+    "validation": {
+     "trades": 4,
+     "net": -5.01,
+     "fees": 0.76,
+     "net_at_0_40": -5.77,
+     "short_borrow_estimate": 0.61,
+     "pf": 0,
+     "win": 0,
+     "max_dd": 5.01
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 8,
+     "net": 0,
+     "fees": 1.69,
+     "net_at_0_40": -1.69,
+     "short_borrow_estimate": 1.63,
+     "pf": 1,
+     "win": 0.38,
+     "max_dd": 2.97
+    },
+    "validation": {
+     "trades": 4,
+     "net": -3.52,
+     "fees": 0.88,
+     "net_at_0_40": -4.4,
+     "short_borrow_estimate": 0.12,
+     "pf": 0.24,
+     "win": 0.5,
+     "max_dd": 4.6
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 8,
+     "net": 1.68,
+     "fees": 1.13,
+     "net_at_0_40": 0.55,
+     "short_borrow_estimate": 0.6,
+     "pf": 1.21,
+     "win": 0.5,
+     "max_dd": 5.66
+    },
+    "validation": {
+     "trades": 2,
+     "net": -2.1,
+     "fees": 0.43,
+     "net_at_0_40": -2.53,
+     "short_borrow_estimate": 0.2,
+     "pf": 0.06,
+     "win": 0.5,
+     "max_dd": 2.23
+    }
+   }
+  },
+  {
+   "hyp": "F5",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "minScore": 2
+   },
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 6,
+     "net": 22.99,
+     "fees": 1.06,
+     "net_at_0_40": 21.93,
+     "short_borrow_estimate": 1.97,
+     "pf": 11.89,
+     "win": 0.83,
+     "max_dd": 2.11
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "BTC",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -9.33,
+     "fees": 2.39,
+     "net_at_0_40": -11.72,
+     "short_borrow_estimate": 0,
+     "pf": 0.32,
+     "win": 0.43,
+     "max_dd": 11.73
+    },
+    "validation": {
+     "trades": 12,
+     "net": -6.48,
+     "fees": 2.34,
+     "net_at_0_40": -8.82,
+     "short_borrow_estimate": 0,
+     "pf": 0.39,
+     "win": 0.33,
+     "max_dd": 8.43
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "SOL",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 8,
+     "net": 8.62,
+     "fees": 0.69,
+     "net_at_0_40": 7.92,
+     "short_borrow_estimate": 0,
+     "pf": 2.34,
+     "win": 0.63,
+     "max_dd": 4.19
+    },
+    "validation": {
+     "trades": 15,
+     "net": 5.74,
+     "fees": 2.06,
+     "net_at_0_40": 3.68,
+     "short_borrow_estimate": 0,
+     "pf": 1.4,
+     "win": 0.33,
+     "max_dd": 8.71
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "ETH",
+   "side": "LONG",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -7.06,
+     "fees": 1.92,
+     "net_at_0_40": -8.98,
+     "short_borrow_estimate": 0,
+     "pf": 0.59,
+     "win": 0.21,
+     "max_dd": 15.06
+    },
+    "validation": {
+     "trades": 13,
+     "net": -8.48,
+     "fees": 2.16,
+     "net_at_0_40": -10.64,
+     "short_borrow_estimate": 0,
+     "pf": 0.23,
+     "win": 0.31,
+     "max_dd": 10.14
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "LTC",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": 3.47,
+     "fees": 1.6,
+     "net_at_0_40": 1.87,
+     "short_borrow_estimate": 0,
+     "pf": 1.53,
+     "win": 0.6,
+     "max_dd": 4.15
+    },
+    "validation": {
+     "trades": 6,
+     "net": 8.82,
+     "fees": 0.79,
+     "net_at_0_40": 8.03,
+     "short_borrow_estimate": 0,
+     "pf": 6.17,
+     "win": 0.5,
+     "max_dd": 1.17
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "LINK",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -9.01,
+     "fees": 1.13,
+     "net_at_0_40": -10.15,
+     "short_borrow_estimate": 0,
+     "pf": 0.21,
+     "win": 0.23,
+     "max_dd": 9.01
+    },
+    "validation": {
+     "trades": 7,
+     "net": -0.14,
+     "fees": 0.92,
+     "net_at_0_40": -1.05,
+     "short_borrow_estimate": 0,
+     "pf": 0.96,
+     "win": 0.43,
+     "max_dd": 2.26
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "AVAX",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 8,
+     "net": -0.87,
+     "fees": 0.82,
+     "net_at_0_40": -1.69,
+     "short_borrow_estimate": 0,
+     "pf": 0.79,
+     "win": 0.38,
+     "max_dd": 2.74
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "ADA",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 2.74,
+     "fees": 0.52,
+     "net_at_0_40": 2.22,
+     "short_borrow_estimate": 0,
+     "pf": 3.38,
+     "win": 0.5,
+     "max_dd": 0.68
+    },
+    "validation": {
+     "trades": 5,
+     "net": -5.55,
+     "fees": 0.49,
+     "net_at_0_40": -6.05,
+     "short_borrow_estimate": 0,
+     "pf": 0.13,
+     "win": 0.4,
+     "max_dd": 5.8
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "BCH",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 9,
+     "net": -0.16,
+     "fees": 0.99,
+     "net_at_0_40": -1.15,
+     "short_borrow_estimate": 0,
+     "pf": 0.99,
+     "win": 0.22,
+     "max_dd": 12.12
+    },
+    "validation": {
+     "trades": 8,
+     "net": -3.61,
+     "fees": 0.88,
+     "net_at_0_40": -4.49,
+     "short_borrow_estimate": 0,
+     "pf": 0.52,
+     "win": 0.38,
+     "max_dd": 5.31
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "DOGE",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 6,
+     "net": 6.41,
+     "fees": 0.49,
+     "net_at_0_40": 5.92,
+     "short_borrow_estimate": 0,
+     "pf": 2.53,
+     "win": 0.67,
+     "max_dd": 4.2
+    },
+    "validation": {
+     "trades": 6,
+     "net": 7.14,
+     "fees": 0.49,
+     "net_at_0_40": 6.65,
+     "short_borrow_estimate": 0,
+     "pf": 2.53,
+     "win": 0.33,
+     "max_dd": 3.37
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "XRP",
+   "side": "LONG",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 7,
+     "net": -6.54,
+     "fees": 0.82,
+     "net_at_0_40": -7.36,
+     "short_borrow_estimate": 0,
+     "pf": 0.03,
+     "win": 0.43,
+     "max_dd": 6.58
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "BTC",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 7,
+     "net": -3.22,
+     "fees": 1.07,
+     "net_at_0_40": -4.29,
+     "short_borrow_estimate": 0.73,
+     "pf": 0.36,
+     "win": 0.57,
+     "max_dd": 5.01
+    },
+    "validation": {
+     "trades": 5,
+     "net": 15.25,
+     "fees": 0.84,
+     "net_at_0_40": 14.4,
+     "short_borrow_estimate": 1.62,
+     "pf": 28.68,
+     "win": 0.8,
+     "max_dd": 0.55
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "SOL",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": -2.74,
+     "fees": 1.78,
+     "net_at_0_40": -4.53,
+     "short_borrow_estimate": 1.29,
+     "pf": 0.8,
+     "win": 0.33,
+     "max_dd": 12.84
+    },
+    "validation": {
+     "trades": 16,
+     "net": 2.99,
+     "fees": 2.45,
+     "net_at_0_40": 0.54,
+     "short_borrow_estimate": 1.46,
+     "pf": 1.26,
+     "win": 0.56,
+     "max_dd": 6.94
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "ETH",
+   "side": "SHORT",
+   "cohort": "examined",
+   "periods": {
+    "development": {
+     "trades": 13,
+     "net": -2.71,
+     "fees": 1.99,
+     "net_at_0_40": -4.7,
+     "short_borrow_estimate": 2.25,
+     "pf": 0.73,
+     "win": 0.46,
+     "max_dd": 7.88
+    },
+    "validation": {
+     "trades": 6,
+     "net": 6.82,
+     "fees": 0.83,
+     "net_at_0_40": 5.99,
+     "short_borrow_estimate": 0.58,
+     "pf": 2.53,
+     "win": 0.67,
+     "max_dd": 2.24
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "LTC",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 15,
+     "net": 1.94,
+     "fees": 1.76,
+     "net_at_0_40": 0.18,
+     "short_borrow_estimate": 1.71,
+     "pf": 1.17,
+     "win": 0.47,
+     "max_dd": 6.86
+    },
+    "validation": {
+     "trades": 6,
+     "net": -7.66,
+     "fees": 0.81,
+     "net_at_0_40": -8.47,
+     "short_borrow_estimate": 0.32,
+     "pf": 0.01,
+     "win": 0.17,
+     "max_dd": 7.66
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "LINK",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -2.82,
+     "fees": 1.56,
+     "net_at_0_40": -4.38,
+     "short_borrow_estimate": 1.68,
+     "pf": 0.61,
+     "win": 0.43,
+     "max_dd": 3.84
+    },
+    "validation": {
+     "trades": 4,
+     "net": 2.79,
+     "fees": 0.41,
+     "net_at_0_40": 2.38,
+     "short_borrow_estimate": 0.51,
+     "pf": 2.29,
+     "win": 0.75,
+     "max_dd": 2.17
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "AVAX",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 10,
+     "net": 7.74,
+     "fees": 1.05,
+     "net_at_0_40": 6.69,
+     "short_borrow_estimate": 1.44,
+     "pf": 3.33,
+     "win": 0.5,
+     "max_dd": 0.92
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "ADA",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 9,
+     "net": 3.07,
+     "fees": 1.44,
+     "net_at_0_40": 1.63,
+     "short_borrow_estimate": 0.87,
+     "pf": 1.42,
+     "win": 0.44,
+     "max_dd": 4.98
+    },
+    "validation": {
+     "trades": 9,
+     "net": -8.34,
+     "fees": 1.08,
+     "net_at_0_40": -9.41,
+     "short_borrow_estimate": 0.74,
+     "pf": 0,
+     "win": 0.11,
+     "max_dd": 8.34
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "BCH",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 17,
+     "net": 12.81,
+     "fees": 2.3,
+     "net_at_0_40": 10.51,
+     "short_borrow_estimate": 2.65,
+     "pf": 2.45,
+     "win": 0.47,
+     "max_dd": 3.59
+    },
+    "validation": {
+     "trades": 9,
+     "net": -8.55,
+     "fees": 1.14,
+     "net_at_0_40": -9.69,
+     "short_borrow_estimate": 0.39,
+     "pf": 0.1,
+     "win": 0.33,
+     "max_dd": 9.15
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "DOGE",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": {
+     "trades": 14,
+     "net": -1.15,
+     "fees": 1.57,
+     "net_at_0_40": -2.71,
+     "short_borrow_estimate": 1.11,
+     "pf": 0.84,
+     "win": 0.5,
+     "max_dd": 3.38
+    },
+    "validation": {
+     "trades": 8,
+     "net": -2.33,
+     "fees": 1.18,
+     "net_at_0_40": -3.5,
+     "short_borrow_estimate": 0.65,
+     "pf": 0.72,
+     "win": 0.5,
+     "max_dd": 5.82
+    }
+   }
+  },
+  {
+   "hyp": "F6",
+   "tf": 240,
+   "variant": {
+    "tp2Ext": -1.618,
+    "slBuf": 1,
+    "minNetRR": 1.5,
+    "researchCostPct": 0.2
+   },
+   "asset": "XRP",
+   "side": "SHORT",
+   "cohort": "new",
+   "periods": {
+    "development": null,
+    "validation": {
+     "trades": 12,
+     "net": 15.44,
+     "fees": 1.47,
+     "net_at_0_40": 13.97,
+     "short_borrow_estimate": 2.31,
+     "pf": 4.21,
+     "win": 0.75,
+     "max_dd": 2.28
+    }
+   }
+  }
+ ],
+ "benchmarks": [
+  {
+   "asset": "BTC",
+   "period": "development",
+   "trend_sma50": {
+    "net": 28.23,
+    "trades": 39,
+    "max_dd_pct": 11.5,
+    "ret_dd": 2.45
+   },
+   "buy_hold": {
+    "net": 77.85,
+    "max_dd_pct": 76.7,
+    "ret_dd": 1.02
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "BTC",
+   "period": "validation",
+   "trend_sma50": {
+    "net": 12.3,
+    "trades": 34,
+    "max_dd_pct": 6.5,
+    "ret_dd": 1.89
+   },
+   "buy_hold": {
+    "net": 1.8,
+    "max_dd_pct": 53.1,
+    "ret_dd": 0.03
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "SOL",
+   "period": "development",
+   "trend_sma50": {
+    "net": 85.87,
+    "trades": 32,
+    "max_dd_pct": 12.3,
+    "ret_dd": 6.98
+   },
+   "buy_hold": {
+    "net": 309.73,
+    "max_dd_pct": 96.3,
+    "ret_dd": 3.22
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "SOL",
+   "period": "validation",
+   "trend_sma50": {
+    "net": 6.66,
+    "trades": 32,
+    "max_dd_pct": 11,
+    "ret_dd": 0.61
+   },
+   "buy_hold": {
+    "net": -52.24,
+    "max_dd_pct": 76.3,
+    "ret_dd": -0.68
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "ETH",
+   "period": "development",
+   "trend_sma50": {
+    "net": 9.36,
+    "trades": 42,
+    "max_dd_pct": 7.6,
+    "ret_dd": 1.23
+   },
+   "buy_hold": {
+    "net": 50.01,
+    "max_dd_pct": 79.4,
+    "ret_dd": 0.63
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "ETH",
+   "period": "validation",
+   "trend_sma50": {
+    "net": 14.66,
+    "trades": 22,
+    "max_dd_pct": 4.8,
+    "ret_dd": 3.05
+   },
+   "buy_hold": {
+    "net": -48.74,
+    "max_dd_pct": 67.6,
+    "ret_dd": -0.72
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "LTC",
+   "period": "development",
+   "trend_sma50": {
+    "net": -14.27,
+    "trades": 44,
+    "max_dd_pct": 16,
+    "ret_dd": -0.89
+   },
+   "buy_hold": {
+    "net": -48.18,
+    "max_dd_pct": 84.4,
+    "ret_dd": -0.57
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "LTC",
+   "period": "validation",
+   "trend_sma50": {
+    "net": -1.93,
+    "trades": 39,
+    "max_dd_pct": 13.1,
+    "ret_dd": -0.15
+   },
+   "buy_hold": {
+    "net": -41.14,
+    "max_dd_pct": 70.2,
+    "ret_dd": -0.59
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "LINK",
+   "period": "development",
+   "trend_sma50": {
+    "net": 1.8,
+    "trades": 42,
+    "max_dd_pct": 13,
+    "ret_dd": 0.14
+   },
+   "buy_hold": {
+    "net": -27.37,
+    "max_dd_pct": 85.3,
+    "ret_dd": -0.32
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "LINK",
+   "period": "validation",
+   "trend_sma50": {
+    "net": 9.58,
+    "trades": 31,
+    "max_dd_pct": 9.4,
+    "ret_dd": 1.02
+   },
+   "buy_hold": {
+    "net": -38.03,
+    "max_dd_pct": 75.4,
+    "ret_dd": -0.5
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "AVAX",
+   "period": "validation",
+   "trend_sma50": {
+    "net": -1.7,
+    "trades": 17,
+    "max_dd_pct": 8.8,
+    "ret_dd": -0.19
+   },
+   "buy_hold": {
+    "net": -75.89,
+    "max_dd_pct": 89.1,
+    "ret_dd": -0.85
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "ADA",
+   "period": "development",
+   "trend_sma50": {
+    "net": 22.79,
+    "trades": 17,
+    "max_dd_pct": 9.3,
+    "ret_dd": 2.46
+   },
+   "buy_hold": {
+    "net": -71.87,
+    "max_dd_pct": 91.8,
+    "ret_dd": -0.78
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "ADA",
+   "period": "validation",
+   "trend_sma50": {
+    "net": 11.13,
+    "trades": 27,
+    "max_dd_pct": 13.3,
+    "ret_dd": 0.84
+   },
+   "buy_hold": {
+    "net": -62.48,
+    "max_dd_pct": 88.3,
+    "ret_dd": -0.71
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "BCH",
+   "period": "development",
+   "trend_sma50": {
+    "net": 4.42,
+    "trades": 45,
+    "max_dd_pct": 13.4,
+    "ret_dd": 0.33
+   },
+   "buy_hold": {
+    "net": -25.75,
+    "max_dd_pct": 88.6,
+    "ret_dd": -0.29
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "BCH",
+   "period": "validation",
+   "trend_sma50": {
+    "net": -6.2,
+    "trades": 42,
+    "max_dd_pct": 12.1,
+    "ret_dd": -0.51
+   },
+   "buy_hold": {
+    "net": -49.08,
+    "max_dd_pct": 70.9,
+    "ret_dd": -0.69
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "DOGE",
+   "period": "development",
+   "trend_sma50": {
+    "net": 17.49,
+    "trades": 29,
+    "max_dd_pct": 10.8,
+    "ret_dd": 1.63
+   },
+   "buy_hold": {
+    "net": -51.3,
+    "max_dd_pct": 84.5,
+    "ret_dd": -0.61
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "DOGE",
+   "period": "validation",
+   "trend_sma50": {
+    "net": 14.58,
+    "trades": 22,
+    "max_dd_pct": 7.9,
+    "ret_dd": 1.84
+   },
+   "buy_hold": {
+    "net": -54.1,
+    "max_dd_pct": 87.7,
+    "ret_dd": -0.62
+   },
+   "cash": {
+    "net": 0
+   }
+  },
+  {
+   "asset": "XRP",
+   "period": "validation",
+   "trend_sma50": {
+    "net": 44.67,
+    "trades": 34,
+    "max_dd_pct": 17,
+    "ret_dd": 2.63
+   },
+   "buy_hold": {
+    "net": 91.34,
+    "max_dd_pct": 74.3,
+    "ret_dd": 1.23
+   },
+   "cash": {
+    "net": 0
+   }
+  }
+ ],
+ "verdicts": {
+  "F0 LONG": {
+   "development": {
+    "n": 5,
+    "net": 3.24,
+    "at040": -9.54,
+    "dd": 34.46,
+    "trades": 85,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": -9.21,
+    "at040": -27.72,
+    "dd": 47.56,
+    "trades": 106,
+    "positive": 3,
+    "ci": [
+     -0.489,
+     0.348
+    ],
+    "ret_dd": -0.19
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F0 SHORT": {
+   "development": {
+    "n": 5,
+    "net": -33.91,
+    "at040": -49.47,
+    "dd": 54.05,
+    "trades": 89,
+    "positive": 1
+   },
+   "validation": {
+    "n": 7,
+    "net": 6.66,
+    "at040": -7.6,
+    "dd": 52.07,
+    "trades": 83,
+    "positive": 2,
+    "ci": [
+     -0.376,
+     0.564
+    ],
+    "ret_dd": 0.13
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F1 LONG": {
+   "development": {
+    "n": 5,
+    "net": 5.96,
+    "at040": -1.29,
+    "dd": 30.85,
+    "trades": 52,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": 0.56,
+    "at040": -7.6,
+    "dd": 23.64,
+    "trades": 52,
+    "positive": 3,
+    "ci": [
+     -0.489,
+     0.609
+    ],
+    "ret_dd": 0.02
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": true,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F1 SHORT": {
+   "development": {
+    "n": 5,
+    "net": -27.47,
+    "at040": -39.92,
+    "dd": 43.68,
+    "trades": 71,
+    "positive": 0
+   },
+   "validation": {
+    "n": 7,
+    "net": 12.66,
+    "at040": 2.36,
+    "dd": 40.88,
+    "trades": 58,
+    "positive": 4,
+    "ci": [
+     -0.418,
+     0.953
+    ],
+    "ret_dd": 0.31
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": true,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F2 LONG": {
+   "development": {
+    "n": 5,
+    "net": 13.17,
+    "at040": 5.98,
+    "dd": 33.89,
+    "trades": 51,
+    "positive": 4
+   },
+   "validation": {
+    "n": 7,
+    "net": 8.03,
+    "at040": 0.01,
+    "dd": 30.18,
+    "trades": 51,
+    "positive": 3,
+    "ci": [
+     -0.628,
+     1.284
+    ],
+    "ret_dd": 0.27
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": true,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": true,
+    "c7_beats_trend_and_cash": false,
+    "c6_neighbours": true
+   },
+   "pass": false
+  },
+  "F2 SHORT": {
+   "development": {
+    "n": 5,
+    "net": -22.03,
+    "at040": -34.48,
+    "dd": 45.01,
+    "trades": 71,
+    "positive": 2
+   },
+   "validation": {
+    "n": 7,
+    "net": 10.17,
+    "at040": -0.11,
+    "dd": 43.21,
+    "trades": 58,
+    "positive": 4,
+    "ci": [
+     -0.52,
+     1.049
+    ],
+    "ret_dd": 0.24
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false,
+    "c6_neighbours": true
+   },
+   "pass": false
+  },
+  "F2n-1.0 LONG": {
+   "development": {
+    "n": 5,
+    "net": 10.66,
+    "at040": 3.39,
+    "dd": 33.11,
+    "trades": 52,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": 3.2,
+    "at040": -4.81,
+    "dd": 26.66,
+    "trades": 51,
+    "positive": 3,
+    "ci": [
+     -0.547,
+     0.917
+    ],
+    "ret_dd": 0.12
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": true,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F2n-1.0 SHORT": {
+   "development": {
+    "n": 5,
+    "net": -21.36,
+    "at040": -33.81,
+    "dd": 49.2,
+    "trades": 71,
+    "positive": 2
+   },
+   "validation": {
+    "n": 7,
+    "net": 13.1,
+    "at040": 2.8,
+    "dd": 42.12,
+    "trades": 58,
+    "positive": 4,
+    "ci": [
+     -0.461,
+     1.097
+    ],
+    "ret_dd": 0.31
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": true,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F2n-2.0 LONG": {
+   "development": {
+    "n": 5,
+    "net": 6.07,
+    "at040": -1.11,
+    "dd": 33.89,
+    "trades": 51,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": 5.47,
+    "at040": -2.5,
+    "dd": 30.18,
+    "trades": 50,
+    "positive": 3,
+    "ci": [
+     -0.671,
+     1.135
+    ],
+    "ret_dd": 0.18
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": true,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F2n-2.0 SHORT": {
+   "development": {
+    "n": 5,
+    "net": -19.46,
+    "at040": -31.91,
+    "dd": 44.64,
+    "trades": 71,
+    "positive": 2
+   },
+   "validation": {
+    "n": 7,
+    "net": 11.54,
+    "at040": 1.27,
+    "dd": 44.44,
+    "trades": 58,
+    "positive": 4,
+    "ci": [
+     -0.544,
+     1.155
+    ],
+    "ret_dd": 0.26
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": true,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F3 LONG": {
+   "development": {
+    "n": 5,
+    "net": -1.93,
+    "at040": -2.16,
+    "dd": 4.55,
+    "trades": 5,
+    "positive": 1
+   },
+   "validation": {
+    "n": 7,
+    "net": -5.45,
+    "at040": -6.06,
+    "dd": 7.48,
+    "trades": 11,
+    "positive": 2,
+    "ci": [
+     -1.161,
+     0.111
+    ],
+    "ret_dd": -0.73
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": false,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F3 SHORT": {
+   "development": {
+    "n": 5,
+    "net": 5.49,
+    "at040": 4.85,
+    "dd": 6.96,
+    "trades": 9,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": -11.53,
+    "at040": -12.57,
+    "dd": 14.97,
+    "trades": 11,
+    "positive": 0,
+    "ci": [
+     -1.873,
+     -0.112
+    ],
+    "ret_dd": -0.77
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": false,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F3x LONG": {
+   "development": {
+    "n": 5,
+    "net": -1.93,
+    "at040": -2.16,
+    "dd": 4.55,
+    "trades": 5,
+    "positive": 1
+   },
+   "validation": {
+    "n": 7,
+    "net": -7.59,
+    "at040": -8.15,
+    "dd": 9.63,
+    "trades": 10,
+    "positive": 1,
+    "ci": [
+     -1.489,
+     0.013
+    ],
+    "ret_dd": -0.79
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": false,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F3x SHORT": {
+   "development": {
+    "n": 5,
+    "net": 7.47,
+    "at040": 6.83,
+    "dd": 6.96,
+    "trades": 9,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": -11.53,
+    "at040": -12.57,
+    "dd": 14.97,
+    "trades": 11,
+    "positive": 0,
+    "ci": [
+     -1.873,
+     -0.112
+    ],
+    "ret_dd": -0.77
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": false,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F4 LONG": {
+   "development": {
+    "n": 5,
+    "net": 10.07,
+    "at040": 1.95,
+    "dd": 33.1,
+    "trades": 57,
+    "positive": 4
+   },
+   "validation": {
+    "n": 7,
+    "net": 28.08,
+    "at040": 16.18,
+    "dd": 32.46,
+    "trades": 64,
+    "positive": 3,
+    "ci": [
+     -0.379,
+     1.387
+    ],
+    "ret_dd": 0.87
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": true,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": true,
+    "c7_beats_trend_and_cash": true
+   },
+   "pass": false
+  },
+  "F4 SHORT": {
+   "development": {
+    "n": 5,
+    "net": -13.1,
+    "at040": -22.67,
+    "dd": 40.19,
+    "trades": 53,
+    "positive": 2
+   },
+   "validation": {
+    "n": 7,
+    "net": 32.9,
+    "at040": 25.74,
+    "dd": 25.28,
+    "trades": 45,
+    "positive": 4,
+    "ci": [
+     -0.202,
+     1.698
+    ],
+    "ret_dd": 1.3
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": true,
+    "c7_beats_trend_and_cash": true
+   },
+   "pass": false
+  },
+  "F5 LONG": {
+   "development": {
+    "n": 5,
+    "net": -4.29,
+    "at040": -6.86,
+    "dd": 16.01,
+    "trades": 20,
+    "positive": 2
+   },
+   "validation": {
+    "n": 7,
+    "net": -2.79,
+    "at040": -5.45,
+    "dd": 10.32,
+    "trades": 18,
+    "positive": 2,
+    "ci": [
+     -0.819,
+     0.498
+    ],
+    "ret_dd": -0.27
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": false,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F5 SHORT": {
+   "development": {
+    "n": 5,
+    "net": 8.22,
+    "at040": 3.41,
+    "dd": 16.35,
+    "trades": 30,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": 25.21,
+    "at040": 21.39,
+    "dd": 15.25,
+    "trades": 21,
+    "positive": 2,
+    "ci": [
+     -0.342,
+     3.305
+    ],
+    "ret_dd": 1.65
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": true,
+    "c2_markets_positive": false,
+    "c3_30_trades": false,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": true,
+    "c7_beats_trend_and_cash": true
+   },
+   "pass": false
+  },
+  "F6 LONG": {
+   "development": {
+    "n": 5,
+    "net": 3.45,
+    "at040": -1.29,
+    "dd": 30.16,
+    "trades": 49,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": -0.75,
+    "at040": -5.96,
+    "dd": 27.23,
+    "trades": 47,
+    "positive": 2,
+    "ci": [
+     -0.652,
+     0.818
+    ],
+    "ret_dd": -0.03
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  },
+  "F6 SHORT": {
+   "development": {
+    "n": 5,
+    "net": 13.85,
+    "at040": 5.23,
+    "dd": 22.65,
+    "trades": 69,
+    "positive": 3
+   },
+   "validation": {
+    "n": 7,
+    "net": -0.91,
+    "at040": -8.03,
+    "dd": 36.34,
+    "trades": 58,
+    "positive": 3,
+    "ci": [
+     -0.541,
+     0.611
+    ],
+    "ret_dd": -0.03
+   },
+   "criteria": {
+    "c1_dev_and_val_positive": false,
+    "c2_markets_positive": false,
+    "c3_30_trades": true,
+    "c4_ci_above_0": false,
+    "c5_positive_at_040": false,
+    "c7_beats_trend_and_cash": false
+   },
+   "pass": false
+  }
+ },
+ "trend_benchmark_new_validation": {
+  "net": 70.13,
+  "dd": 81.6,
+  "ret_dd": 0.86
+ }
+}

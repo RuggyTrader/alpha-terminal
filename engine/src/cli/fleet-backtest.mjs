@@ -55,10 +55,11 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
   const ledger = new FleetLedgerSim({ bots: bots.map((b) => ({ id: b.id, group: b.group, priority: b.priority })), main, feePct, slippagePct, ...limits });
   for (const a of allocations) { const r = ledger.allocate(a.group, a.amountUsd); if (!r.ok) throw new Error(`allocation refused: ${r.code}`); }
   const run = bots.map((b) => {
-    const instrument = getInstrument(b.symbol);
-    const S = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs, fill,
+    const instrument = b.instrument ?? getInstrument(b.symbol); // research may pass a verified spec for an extra market
+    const S = createState({ symbol: b.symbol, symProps: b.symProps, timeframeMin: b.intervalMin, inputs: b.inputs, fill,
       sizing: { mode: "dollar", riskUSD: b.riskUSD, feePct, priceBufferPct, simulatedShort: true, symbol: b.symbol, instrument, limits } });
-    const M = createState({ symbol: b.symbol, timeframeMin: b.intervalMin, inputs: b.inputs }); // reference: fixed $10, TradingView semantics
+    if (typeof b.gate === "function") S.researchGate = b.gate; // research-only market filter (round 4)
+    const M = createState({ symbol: b.symbol, symProps: b.symProps, timeframeMin: b.intervalMin, inputs: b.inputs }); // reference: fixed $10, TradingView semantics
     return { b, S, M, step: b.intervalMin * 60_000, refused: {}, refusals: [], lastOrder: null, skipped: {}, mirrorClosed: 0, mirror: [] };
   });
   const timeline = [];
@@ -76,7 +77,7 @@ export function runFleetBacktest({ bots, main = 0, allocations = [], feePct = 0.
       if (e.type === "ENTRY_FILL") {
         const side = e.side === 1 ? "LONG" : "SHORT";
         const entryPx = fillModel === "strategy" ? e.price : k.c;
-        const code = live ? ledger.open(b.id, side, e.qty, entryPx, { openTime: k.t, symbol: b.symbol, riskUSD: b.riskUSD, instrument: getInstrument(b.symbol) }) : "WARMUP";
+        const code = live ? ledger.open(b.id, side, e.qty, entryPx, { openTime: k.t, symbol: b.symbol, riskUSD: b.riskUSD, instrument: b.instrument ?? getInstrument(b.symbol) }) : "WARMUP";
         if (code && live) {
           // Full evidence for every refusal: the planned order (sizing at placement) against the ledger's fill.
           const w = ledger.wallet[b.id], o = r.lastOrder, notional = e.qty * k.c * (1 + (side === "LONG" ? 1 : -1) * slippagePct / 100);

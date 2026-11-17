@@ -90,3 +90,50 @@ Source: `docs/research/round4/`. Production fleet backtest, strict acceptance, f
 | C5 4h + wider target −0.618 / −1.0 / −1.618 | SOL LONG −1.618: +15.49 / +14.46 (8 / 15 trades); other markets and neighbours fail | not accepted: too few trades, one market; carried forward as a hypothesis |
 | C6 volatility-adjusted stop + fee-aware reward | mixed, ≤ 13 trades | failed |
 | C7 stricter confluence, minScore 2 / 3 | ≤ 10 trades | failed: too few trades |
+
+## Round 5 (2026-11-16): OTE / Fibonacci on 4h and daily, seven new markets
+
+Source: `docs/research/round5/` (pre-registration `bac1a9d`, before any run). These are pooled results on LTC, LINK, AVAX, ADA, BCH, DOGE and XRP, with $100 per market, 0.20% fee + 0.05% slippage, and strict acceptance timing.
+
+| Candidate | Development / validation net (validation trades, markets positive) | Verdict |
+|---|---|---|
+| F0 original OTE 4h, LONG / SHORT | +3.24 / −9.21 (106, 3/7); −33.91 / +6.66 (83, 2/7) | fails |
+| F1 4h + daily EMA50, LONG / SHORT | +5.96 / +0.56; −27.47 / +12.66 | fails |
+| **F2 4h + daily EMA50 + −1.618 target, LONG** (round-4 SOL lead) | +13.17 / +8.03 (51, 3/7); CI per trade [−0.63, 1.28]; +0.01 at 0.40% | **fails; the SOL result is not confirmed on new markets** (LTC and DOGE carry it) |
+| F2 SHORT, and neighbours −1.0 / −2.0 | development negative for SHORT; LONG neighbours +3.20 / +5.47 in validation | fails |
+| F3 daily OTE + weekly EMA20 (± −1.618), both sides | 10–11 validation trades; validation −5.45 to −11.53 | fails; too few trades |
+| F4 OTE pullback inside BTC MA-50 trend, LONG | +10.07 / +28.08 (64, 3/7); CI [−0.38, 1.39] | fails; simple trend following made +70.13 on the same markets |
+| F4 SHORT | −13.10 / +32.90 (45, 4/7) | fails (development negative) |
+| F5 + PD confluence minScore 2, LONG / SHORT | −4.29 / −2.79 (18); +8.22 / +25.21 (21, 2/7) | fails; too few trades |
+| F6 volatility stop + fee-aware reward, LONG / SHORT | +3.45 / −0.75; +13.85 / −0.91 | fails |
+
+Conclusion: OTE timing showed no demonstrated value over simple trend following, and no hybrid OTE candidate qualifies for a forward trial.
+
+## Round 6 (2026-11-16): fee-aware OTE variants, live 5m profiles
+
+Source: `docs/research/round6/` (pre-registration `f9506dc`, before any run). Sizing is as live ($20 wallet, $10 risk capped), with strict acceptance and 0.20% fee + 0.05% slippage. Independent data: LTC, LINK, ADA, DOGE 5m, 2024-07 → 2026-11.
+
+| Candidate | Independent gross before fees / net (trades) | Verdict |
+|---|---|---|
+| V0 baseline | −11.39 / −54.46 (1206) | fails; negative before fees |
+| V1a / V1b fee-aware minimum reward (minNetRR 1.0 / 2.0) | −10.31 / −52.09 (1170); −8.31 / −27.85 (367) | fails; fewer trades only |
+| V2 fee-aware break-even (entry ± 0.45%) | −11.40 / −56.96 (1276) | fails; slightly worse than baseline |
+| V3 target −1.0 | −10.36 / −52.24 (1174) | fails |
+| V4 stop ≥ 0.8% | −8.29 / −42.73 (882) | fails |
+| V5 minScore 2 | −12.62 / −54.80 (1155) | fails |
+| V6 combined | −6.32 / −39.43 (850) | fails; no independent market positive, CI entirely below 0 |
+
+Conclusion: the 5m OTE strategy has no edge before costs on independent markets, so fee-aware rules reduce losses only by trading less.
+
+## Round 7 (2026-11-16): different strategy families
+
+Source: `docs/research/round7/` (pre-registration `255a351`, before any run). Independent set: 8 never-used markets. Costs: 0.20% + 0.05% slippage.
+
+| Candidate | Independent net (trades, + of 8) | Status |
+|---|---|---|
+| T1 LONG Donchian 55/20, 4h | +275.8 (601, 5/8) | INCONCLUSIVE: breadth, 99.5% CI and drawdown fail; XLM is 85% of the net |
+| M1 LONG 30-day momentum, 1d | +83.9 (169, 4/8) | INCONCLUSIVE: breadth and CI fail; concentrated in 2024 |
+| T2 LONG SMA200, 4h | −18.1 (1293, 2/8) | FAILED |
+| B1 LONG squeeze breakout, 4h | −33.0 (651, 2/8) | FAILED |
+| R1 LONG mean reversion, 4h | −42.9 (156, 0/8) | FAILED |
+| All five SHORT candidates (T1, T2, M1, B1, R1) | −7.8 to −90.8 | FAILED |
