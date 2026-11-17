@@ -69,8 +69,30 @@ function fromR7(file) {
   });
 }
 
+// Round 8 (docs/research/round8/PREREGISTRATION.md): SPECIFIED until r8-results.json exists, then its frozen verdicts.
+const R8_SPEC = [
+  { id: "R8-T1-240-55-20", name: "T1 LONG portfolio (Donchian 55/20, 4h)", family: "Breakout / trend", timeframes: ["4h"] },
+  { id: "R8-M1-1440-30", name: "M1 LONG portfolio (30-day momentum)", family: "Momentum", timeframes: ["1d"] },
+  { id: "R8-P3-1440-30-3", name: "P3 cross-sectional rotation (top 3 by 30-day return)", family: "Multi-asset selection", timeframes: ["1d"] },
+];
+export function fromR8(file) {
+  const j = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : null;
+  return R8_SPEC.map((sp) => {
+    const base = { ...sp, version: j ? `frozen @ ${j.code_version ?? "?"}` : "frozen (pre-registered 2026-11-17)", markets: ["20 untouched markets (see pre-registration)"],
+      data: "Coinbase public candles + Kraken minimums", periods: { independent: "20 untouched markets 2021-07–2026-11 (untouched markets, not untouched time)" },
+      costs: "0.20% + 0.05% (stress 0.40% + 0.10%); shared $100, scenario B primary", source: "docs/research/round8/PREREGISTRATION.md" };
+    const c = j?.candidates?.[sp.id];
+    if (!c) return { ...base, results: {}, status: "SPECIFIED", failure: "pre-registered; not yet run (no exchange data access in the Mac session that wrote it)" };
+    const B = c.untouched.scenarios.B.selected;
+    return { ...base, results: { independent: { net: B.net, gross: B.gross, fees: B.fees, trades: B.trades, max_dd_pct: B.max_dd_pct, executable_pct: B.executable_pct, ci995_monthly: c.untouched.acceptance.ci_monthly_995 },
+      stress_040_010: c.untouched.scenarios.B.stress.net, scenario_A_executable_pct: c.untouched.scenarios.A.selected.executable_pct },
+      fee_drag: B.gross > 0 ? `${((B.fees / B.gross) * 100).toFixed(0)}% of gross` : `fees ${B.fees} on gross ${B.gross}`,
+      status: c.status === "ELIGIBLE FOR FURTHER VALIDATION" ? c.status : "FAILED", failure: c.status === "ELIGIBLE FOR FURTHER VALIDATION" ? null : `failed: ${c.failed.join(", ")}`, source: "docs/research/round8/REPORT.md" };
+  });
+}
+
 export function buildRegistry(root) {
-  const list = [...HISTORY, ...fromR6(join(root, "round6", "r6-results.json")), ...fromR7(join(root, "round7", "r7-results.json"))].map(validate);
+  const list = [...HISTORY, ...fromR6(join(root, "round6", "r6-results.json")), ...fromR7(join(root, "round7", "r7-results.json")), ...fromR8(join(root, "round8", "r8-results.json"))].map(validate);
   return { generated_at: new Date().toISOString(), statuses: STATUSES, note: "Research registry. No candidate here is connected to execution; ranking is by evidence status, never by backtest profit.", candidates: list };
 }
 
@@ -89,6 +111,7 @@ export function comparison(reg) {
   md += `  - long-only trend and momentum (round 7 T1 and M1, INCONCLUSIVE): positive out of sample, but concentrated;\n`;
   md += `  - the BTC daily MA-50 trend (Candidate B): its forward PAPER trial is deployed but not started.\n`;
   md += `  - **Next evidence must come from data not yet used** (forward data or a new pre-registered portfolio hypothesis).\n`;
+  md += `  - Round 8 (pre-registered 2026-11-17): T1 / M1 / P3 as one shared $100 portfolio on 20 untouched markets, with Kraken minimums and sizing scenarios A–D; the same three are registered for the forward shadow (\`docs/research/forward/\`).\n`;
   return md;
 }
 

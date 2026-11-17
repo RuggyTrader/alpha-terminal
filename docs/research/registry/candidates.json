@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-16T20:08:39.510Z",
+ "generated_at": "2026-11-17T17:53:22.606Z",
  "statuses": [
   "IDEA",
   "SPECIFIED",
@@ -1291,6 +1291,69 @@
    "status": "FAILED",
    "failure": "failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years",
    "source": "docs/research/round7/REPORT.md"
+  },
+  {
+   "id": "R8-T1-240-55-20",
+   "name": "T1 LONG portfolio (Donchian 55/20, 4h)",
+   "family": "Breakout / trend",
+   "timeframes": [
+    "4h"
+   ],
+   "version": "frozen (pre-registered 2026-11-17)",
+   "markets": [
+    "20 untouched markets (see pre-registration)"
+   ],
+   "data": "Coinbase public candles + Kraken minimums",
+   "periods": {
+    "independent": "20 untouched markets 2021-07–2026-11 (untouched markets, not untouched time)"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%); shared $100, scenario B primary",
+   "source": "docs/research/round8/PREREGISTRATION.md",
+   "results": {},
+   "status": "SPECIFIED",
+   "failure": "pre-registered; not yet run (no exchange data access in the Mac session that wrote it)"
+  },
+  {
+   "id": "R8-M1-1440-30",
+   "name": "M1 LONG portfolio (30-day momentum)",
+   "family": "Momentum",
+   "timeframes": [
+    "1d"
+   ],
+   "version": "frozen (pre-registered 2026-11-17)",
+   "markets": [
+    "20 untouched markets (see pre-registration)"
+   ],
+   "data": "Coinbase public candles + Kraken minimums",
+   "periods": {
+    "independent": "20 untouched markets 2021-07–2026-11 (untouched markets, not untouched time)"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%); shared $100, scenario B primary",
+   "source": "docs/research/round8/PREREGISTRATION.md",
+   "results": {},
+   "status": "SPECIFIED",
+   "failure": "pre-registered; not yet run (no exchange data access in the Mac session that wrote it)"
+  },
+  {
+   "id": "R8-P3-1440-30-3",
+   "name": "P3 cross-sectional rotation (top 3 by 30-day return)",
+   "family": "Multi-asset selection",
+   "timeframes": [
+    "1d"
+   ],
+   "version": "frozen (pre-registered 2026-11-17)",
+   "markets": [
+    "20 untouched markets (see pre-registration)"
+   ],
+   "data": "Coinbase public candles + Kraken minimums",
+   "periods": {
+    "independent": "20 untouched markets 2021-07–2026-11 (untouched markets, not untouched time)"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%); shared $100, scenario B primary",
+   "source": "docs/research/round8/PREREGISTRATION.md",
+   "results": {},
+   "status": "SPECIFIED",
+   "failure": "pre-registered; not yet run (no exchange data access in the Mac session that wrote it)"
   }
  ]
 }

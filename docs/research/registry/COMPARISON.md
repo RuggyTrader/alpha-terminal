@@ -1,4 +1,4 @@
-# Strategy candidate comparison (generated 2026-11-16T20:08:39.510Z)
+# Strategy candidate comparison (generated 2026-11-17T17:53:22.606Z)
 
 Research only. Sorted by **evidence status**, not by profit. There is no "proven" status. ELIGIBLE FOR FURTHER VALIDATION means only that a candidate may be proposed for a separate, owner-approved forward PAPER trial.
 
@@ -7,6 +7,9 @@ Research only. Sorted by **evidence status**, not by profit. There is no "proven
 | INCONCLUSIVE | BTC daily MA-50 trend (Candidate B) | Trend following | — | — | — | — | positive on examined markets only; forward PAPER trial deployed but NOT started (needs the owner) |
 | INCONCLUSIVE | T1 LONG (T1-240-55-20) | Breakout / trend | +275.76 | +194.69 | +369.44 | 31% of gross | failed: c3_independent_net_and_breadth, c5_ci_995, c7_drawdown |
 | INCONCLUSIVE | M1 LONG (M1-1440-30) | Momentum | +83.92 | +67.35 | +84.66 | 9% of gross | failed: c3_independent_net_and_breadth, c5_ci_995 |
+| SPECIFIED | T1 LONG portfolio (Donchian 55/20, 4h) | Breakout / trend | — | — | — | — | pre-registered; not yet run (no exchange data access in the Mac session that wrote it) |
+| SPECIFIED | M1 LONG portfolio (30-day momentum) | Momentum | — | — | — | — | pre-registered; not yet run (no exchange data access in the Mac session that wrote it) |
+| SPECIFIED | P3 cross-sectional rotation (top 3 by 30-day return) | Multi-asset selection | — | — | — | — | pre-registered; not yet run (no exchange data access in the Mac session that wrote it) |
 | FAILED | Original OTE (four live bots) | OTE / Fibonacci | — | -40.8 | — | — | negative net expectancy after fees; edge before fees 0.01–0.06% of turnover |
 | FAILED | OTE + fee-aware / EMA / ATR / higher-timeframe filters | OTE / Fibonacci | — | -1.77 | — | — | losses cut only by removing trades |
 | FAILED | Hybrid OTE (regime / trend filters, 5m–4h) | OTE / Fibonacci | — | — | — | — | no candidate met criteria |
@@ -28,7 +31,7 @@ Research only. Sorted by **evidence status**, not by profit. There is no "proven
 | FAILED | B1 SHORT (B1-240) | Volatility breakout | -63.02 | -50.71 | -37.46 | 407% of gross | failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years |
 | FAILED | R1 SHORT (R1-240-2.5) | Mean reversion | -90.75 | -0.09 | -3.73 | fees 63.44 on gross -27.31 | failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years |
 
-**Counts:** IDEA 0 · SPECIFIED 0 · TESTING 0 · FAILED 20 · INCONCLUSIVE 3 · ELIGIBLE FOR FURTHER VALIDATION 0
+**Counts:** IDEA 0 · SPECIFIED 3 · TESTING 0 · FAILED 20 · INCONCLUSIVE 3 · ELIGIBLE FOR FURTHER VALIDATION 0
 
 ## Retire, and deserve more research
 
@@ -37,3 +40,4 @@ Research only. Sorted by **evidence status**, not by profit. There is no "proven
   - long-only trend and momentum (round 7 T1 and M1, INCONCLUSIVE): positive out of sample, but concentrated;
   - the BTC daily MA-50 trend (Candidate B): its forward PAPER trial is deployed but not started.
   - **Next evidence must come from data not yet used** (forward data or a new pre-registered portfolio hypothesis).
+  - Round 8 (pre-registered 2026-11-17): T1 / M1 / P3 as one shared $100 portfolio on 20 untouched markets, with Kraken minimums and sizing scenarios A–D; the same three are registered for the forward shadow (`docs/research/forward/`).

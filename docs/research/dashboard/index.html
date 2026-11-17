@@ -1,0 +1,113 @@
+<!doctype html><meta charset="utf-8">
+<title>ALPHA Research Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f3f0ea;--panel:#fff;--ink:#16130f;--muted:#857d71;--line:rgba(22,19,15,.09);--accent:#f2661b;--pos:#12965a;--neg:#d9443a;--warn:#c96a12;--font:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,Arial,sans-serif;--mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f0d0b;--panel:#1a1714;--ink:#f4efe6;--muted:#a1988b;--line:rgba(255,240,220,.08);--pos:#40d98a;--neg:#ff7b6f;--warn:#f2a24c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f0d0b;--panel:#1a1714;--ink:#f4efe6;--muted:#a1988b;--line:rgba(255,240,220,.08);--pos:#40d98a;--neg:#ff7b6f;--warn:#f2a24c;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--font);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 48px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;align-items:center;gap:14px}.mark{width:38px;height:38px;border-radius:10px;background:#16130f;color:var(--accent);display:grid;place-items:center;font-weight:900;font-size:22px;flex:none}
+h1{margin:0;font-size:26px;font-weight:850;letter-spacing:-.02em}h2{margin:8px 0 0;font-size:18px}.tag{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--accent)}
+.banner{border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);background:color-mix(in srgb,var(--warn) 9%,var(--panel));border-radius:14px;padding:12px 16px;max-width:95ch}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat span{display:block;font-size:11px;font-weight:750;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}.stat b{font-size:26px;font-weight:850}
+.note{margin:0;color:var(--muted);max-width:95ch}.tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:860px}table.narrow{min-width:520px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}td.num{text-align:right;font-weight:800;white-space:nowrap}
+td .sub{display:block;font-size:12px;color:var(--muted);font-weight:500;white-space:normal}td.why{font-size:13px;max-width:340px}.pos{color:var(--pos)}.neg{color:var(--neg)}
+.pill{display:inline-block;font-size:10.5px;font-weight:850;letter-spacing:.06em;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.pill.bad{background:color-mix(in srgb,var(--neg) 14%,transparent);color:var(--neg)}.pill.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.pill.ok{background:color-mix(in srgb,var(--pos) 14%,transparent);color:var(--pos)}.pill.muted{background:var(--line);color:var(--muted)}
+footer{font-size:12px;color:var(--muted)}code{font-family:var(--mono);font-size:12px}
+</style>
+<div class="wrap">
+<header><div class="mark" aria-hidden="true">α</div><div><div class="tag">ALPHA TERMINAL · RESEARCH ONLY</div><h1>Strategy research dashboard</h1></div></header>
+<div class="banner"><b>Not funded PAPER performance.</b> Every figure here is a research backtest or a hypothetical forward shadow. None is connected to the PAPER engine, the ledger or any bot, and none is a profit claim. There is no "proven" status: the strongest is <b>Eligible</b>, meaning that the owner may consider a separate trial.</div>
+<section class="summary"><div class="stat"><span>Candidates</span><b>26</b></div><div class="stat"><span>Eligible</span><b class="">0</b></div>
+<div class="stat"><span>Inconclusive</span><b>3</b></div><div class="stat"><span>Failed</span><b class="neg">20</b></div><div class="stat"><span>Pre-registered, not run</span><b>3</b></div></section>
+<h2>Round 8: shared-account portfolio on untouched markets</h2><p class="note"><b>Pre-registered, not yet run.</b> The round-8 pre-registration and tested tooling are committed. The run needs public Coinbase and Kraken data, which the Mac session that built this page could not reach. Run <code>node src/research/r8/download-all.mjs</code>, <code>r8/kraken-minimums.mjs</code>, then <code>r8/run.mjs</code>.</p>
+<h2>Account size and Kraken order minimums</h2><p class="note">With 2% risk per trade, a trade reaches the exchange minimum only when <b>wallet equity ≥ minimum order × stop distance ÷ 2%</b>. Red cells need more than a $20 bot wallet. Higher-timeframe strategies use wider stops, so under the per-bot $20 model they mostly cannot trade. Shared-account scenarios B–D are tested in round 8; the real allocation is unchanged.</p>
+<div class="tablebox"><table class="narrow"><thead><tr><th>Minimum wallet equity for one trade</th><th>2% stop</th><th>5% stop</th><th>10% stop</th><th>15% stop</th></tr></thead><tbody><tr><td><b>$5</b> minimum order</td><td class="num pos">$5</td><td class="num pos">$13</td><td class="num neg">$25</td><td class="num neg">$38</td></tr><tr><td><b>$10</b> minimum order</td><td class="num pos">$10</td><td class="num neg">$25</td><td class="num neg">$50</td><td class="num neg">$75</td></tr><tr><td><b>$20</b> minimum order</td><td class="num pos">$20</td><td class="num neg">$50</td><td class="num neg">$100</td><td class="num neg">$150</td></tr></tbody></table></div>
+<h2>Forward shadow (hypothetical, new data only)</h2><p class="note"><b>Registered, not yet collecting.</b> RESEARCH-FWD-T1, RESEARCH-FWD-M1, RESEARCH-FWD-P3 start 2026-11-18T00:00:00Z. Nothing can be concluded before 180 forward days and 30 closed trades.</p>
+<h2>All candidates, by evidence</h2><div class="tablebox"><table><thead><tr><th>Status</th><th>Candidate</th><th>Independent net</th><th>Validation net</th><th>Fee drag</th><th>Research failure reason</th></tr></thead><tbody><tr data-status="INCONCLUSIVE"><td><span class="pill warn">INCONCLUSIVE</span></td>
+<td><b>BTC daily MA-50 trend (Candidate B)</b><span class="sub">Trend following · 1d</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num ">—</td><td>—</td><td class="why">positive on examined markets only; forward PAPER trial deployed but NOT started (needs the owner)</td></tr><tr data-status="INCONCLUSIVE"><td><span class="pill warn">INCONCLUSIVE</span></td>
+<td><b>T1 LONG (T1-240-55-20)</b><span class="sub">Breakout / trend · 4h</span></td>
+<td class="num pos">+$275.76<span class="sub">601 trades</span></td>
+<td class="num pos">+$194.69</td><td>31% of gross</td><td class="why">failed: c3_independent_net_and_breadth, c5_ci_995, c7_drawdown</td></tr><tr data-status="INCONCLUSIVE"><td><span class="pill warn">INCONCLUSIVE</span></td>
+<td><b>M1 LONG (M1-1440-30)</b><span class="sub">Momentum · 1d</span></td>
+<td class="num pos">+$83.92<span class="sub">169 trades</span></td>
+<td class="num pos">+$67.35</td><td>9% of gross</td><td class="why">failed: c3_independent_net_and_breadth, c5_ci_995</td></tr><tr data-status="SPECIFIED"><td><span class="pill muted">SPECIFIED</span></td>
+<td><b>T1 LONG portfolio (Donchian 55/20, 4h)</b><span class="sub">Breakout / trend · 4h</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num ">—</td><td>—</td><td class="why">pre-registered; not yet run (no exchange data access in the Mac session that wrote it)</td></tr><tr data-status="SPECIFIED"><td><span class="pill muted">SPECIFIED</span></td>
+<td><b>M1 LONG portfolio (30-day momentum)</b><span class="sub">Momentum · 1d</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num ">—</td><td>—</td><td class="why">pre-registered; not yet run (no exchange data access in the Mac session that wrote it)</td></tr><tr data-status="SPECIFIED"><td><span class="pill muted">SPECIFIED</span></td>
+<td><b>P3 cross-sectional rotation (top 3 by 30-day return)</b><span class="sub">Multi-asset selection · 1d</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num ">—</td><td>—</td><td class="why">pre-registered; not yet run (no exchange data access in the Mac session that wrote it)</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>Original OTE (four live bots)</b><span class="sub">OTE / Fibonacci · 1m, 5m</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num neg">−$40.80</td><td>—</td><td class="why">negative net expectancy after fees; edge before fees 0.01–0.06% of turnover</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE + fee-aware / EMA / ATR / higher-timeframe filters</b><span class="sub">OTE / Fibonacci · 1m, 5m, 15m, 30m, 60m</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num neg">−$1.77</td><td>—</td><td class="why">losses cut only by removing trades</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>Hybrid OTE (regime / trend filters, 5m–4h)</b><span class="sub">OTE / Fibonacci · 5m, 15m, 1h, 4h</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num ">—</td><td>—</td><td class="why">no candidate met criteria</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 4h / daily with trend filters, new markets</b><span class="sub">OTE / Fibonacci · 4h, 1d</span></td>
+<td class="num ">—<span class="sub"></span></td>
+<td class="num ">—</td><td>—</td><td class="why">breadth and significance; simple trend beat OTE</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V0</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$54.46<span class="sub">1206 trades</span></td>
+<td class="num neg">−$42.08</td><td>fees 43.065 vs gross -11.393</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V1a</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$52.09<span class="sub">1170 trades</span></td>
+<td class="num neg">−$30.32</td><td>fees 41.772 vs gross -10.313</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V1b</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$27.85<span class="sub">367 trades</span></td>
+<td class="num neg">−$3.30</td><td>fees 19.547 vs gross -8.305</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V2</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$56.95<span class="sub">1276 trades</span></td>
+<td class="num neg">−$45.14</td><td>fees 45.552 vs gross -11.402</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V3</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$52.24<span class="sub">1174 trades</span></td>
+<td class="num neg">−$37.59</td><td>fees 41.879 vs gross -10.361</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V4</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$42.73<span class="sub">882 trades</span></td>
+<td class="num neg">−$28.46</td><td>fees 34.445 vs gross -8.286</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V5</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$54.80<span class="sub">1155 trades</span></td>
+<td class="num neg">−$40.69</td><td>fees 42.176 vs gross -12.62</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>OTE 5m fee-aware variant V6</b><span class="sub">OTE / Fibonacci · 5m</span></td>
+<td class="num neg">−$39.43<span class="sub">850 trades</span></td>
+<td class="num neg">−$24.92</td><td>fees 33.113 vs gross -6.316</td><td class="why">failed: c1_all_three_positive, c3_ci_above_0, c4_positive_at_slip_015, c5_3_of_4_markets; negative before fees</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>T2 LONG (T2-240-200)</b><span class="sub">Trend following · 4h</span></td>
+<td class="num neg">−$18.08<span class="sub">1293 trades</span></td>
+<td class="num neg">−$24.48</td><td>115% of gross</td><td class="why">failed: c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c7_drawdown, c8_years</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>B1 LONG (B1-240)</b><span class="sub">Volatility breakout · 4h</span></td>
+<td class="num neg">−$33.00<span class="sub">651 trades</span></td>
+<td class="num pos">+$3.28</td><td>164% of gross</td><td class="why">failed: c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>R1 LONG (R1-240-2.5)</b><span class="sub">Mean reversion · 4h</span></td>
+<td class="num neg">−$42.92<span class="sub">156 trades</span></td>
+<td class="num neg">−$56.67</td><td>fees 17.84 on gross -25.08</td><td class="why">failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>T1 SHORT (T1-1440-20-10)</b><span class="sub">Breakout / trend · 1d</span></td>
+<td class="num neg">−$9.56<span class="sub">162 trades</span></td>
+<td class="num neg">−$7.65</td><td>16033% of gross</td><td class="why">failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>T2 SHORT (T2-1440-200)</b><span class="sub">Trend following · 1d</span></td>
+<td class="num neg">−$34.81<span class="sub">246 trades</span></td>
+<td class="num pos">+$9.71</td><td>fees 11.56 on gross -23.25</td><td class="why">failed: c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>M1 SHORT (M1-1440-120)</b><span class="sub">Momentum · 1d</span></td>
+<td class="num neg">−$7.84<span class="sub">209 trades</span></td>
+<td class="num pos">+$13.60</td><td>637% of gross</td><td class="why">failed: c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>B1 SHORT (B1-240)</b><span class="sub">Volatility breakout · 4h</span></td>
+<td class="num neg">−$63.02<span class="sub">715 trades</span></td>
+<td class="num neg">−$50.71</td><td>407% of gross</td><td class="why">failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years</td></tr><tr data-status="FAILED"><td><span class="pill bad">FAILED</span></td>
+<td><b>R1 SHORT (R1-240-2.5)</b><span class="sub">Mean reversion · 4h</span></td>
+<td class="num neg">−$90.75<span class="sub">405 trades</span></td>
+<td class="num neg">−$0.09</td><td>fees 63.44 on gross -27.31</td><td class="why">failed: c1_development, c2_validation, c3_independent_net_and_breadth, c5_ci_995, c6_stress_costs, c8_years</td></tr></tbody></table></div>
+<footer>Generated 2026-11-17T17:53:14.168Z from <code>docs/research/registry</code>, <code>docs/research/round8</code> and <code>docs/research/forward</code>. Costs: 0.20% per fill + 0.05% slippage unless stated.</footer>
+</div>
