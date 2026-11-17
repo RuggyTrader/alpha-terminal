@@ -136,7 +136,7 @@ See `FAILED-CANDIDATES.md` (updated for rounds 8 and 9) and `registry/candidates
 | Results and reports | commit of this report |
 
 - **Code:** `engine/src/research/r7/bt.mjs` (backtester), `r8/xsmom.mjs` (rotation), `r9/families.mjs`, `r9/run.mjs`.
-- **Tests:** `engine/test/r7-backtester`, `r8-rotation`, `r9-families` (23 tests).
+- **Tests:** `engine/test/r7-backtester`, `r8-rotation`, `r9-families`, `research-registry` (26 tests).
 
 ## 16. Best candidate for further validation
 
