@@ -158,6 +158,15 @@ and any **accepted pending order** on ALPHA-02/04.
 
 **No strategy has demonstrated credible positive net expectancy. Nothing should be activated.**
 
+## 6b. Tests on the Mac (2026-11-17, Node 22.23.5, macOS arm64)
+
+| Suite | Result |
+|---|---|
+| Engine `npm test` | **302 pass, 0 fail, 7 skipped** (Windows launcher) |
+| Research (r7 + r8 + forward + registry + dashboard) | **49/49** |
+| Frontend `vitest` | **257/257**; `npm run build` (tsc + vite) OK |
+| Worker `npm test` (after the frontend build) | **366/366** |
+
 ## 7. Continuing on the Windows PC
 
 ```bash
