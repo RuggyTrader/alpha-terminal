@@ -161,7 +161,9 @@ describe("GET /api/dashboard/outages", () => {
   it("is protected (401 without credentials) and read-only; with credentials it returns the classification and episodes", async () => {
     const H = await loadHandlers("./src/dashboard_api", ["handleDashboardApi"]);
     const w = world();
-    w.report("ALPHA-01", 1, 2);
+    // the endpoint reads the REAL clock: write a heartbeat that is fresh now (not relative to the fixed NOW)
+    const fresh = new Date().toISOString();
+    w.db.raw.prepare(`INSERT OR REPLACE INTO app_meta (key, value) VALUES ('engine_status:ALPHA-01', ?)`).run(JSON.stringify({ bot_id: "ALPHA-01", received_at: fresh, last_candle_time: fresh }));
     const env = { DB: w.db, ADMIN_SECRET: "test-only-admin" };
     const call = (headers, method = "GET") => H.handleDashboardApi(new Request("http://x/api/dashboard/outages", { method, headers }), env, "/api/dashboard/outages", new URLSearchParams());
     assert.equal((await call({})).status, 401);
