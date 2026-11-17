@@ -62,9 +62,12 @@ function pool(rs, capital = CAP) {
   const nets = rs.flatMap((r) => r.nets), trades = rs.flatMap((r) => r.trades_list), gp = sum(trades.filter((t) => t.gross > 0).map((t) => t.gross));
   const w = nets.filter((v) => v > 0), l = nets.filter((v) => v <= 0);
   // daily pooled equity -> Sharpe (annualised, 365)
-  const byDay = new Map();
-  for (const r of rs) { const last = new Map(); for (const p of r.curve) last.set(Math.floor(p.t / DAY), p.eq); for (const [d, e] of last) byDay.set(d, (byDay.get(d) ?? 0) + e); }
-  const days = [...byDay.keys()].sort((a, b) => a - b), rets = [];
+  // each market's end-of-day equity, FORWARD-FILLED after its data ends (a market leaving must not look like a loss)
+  const perM = rs.map((r) => { const last = new Map(); for (const p of r.curve) last.set(Math.floor(p.t / DAY), p.eq); return last; });
+  const allDays = [...new Set(perM.flatMap((mp) => [...mp.keys()]))].sort((a, b) => a - b), byDay = new Map();
+  const cur = perM.map(() => capital);
+  for (const d of allDays) { perM.forEach((mp, k) => { if (mp.has(d)) cur[k] = mp.get(d); }); byDay.set(d, sum(cur)); }
+  const days = allDays, rets = [];
   for (let i = 1; i < days.length; i++) rets.push(byDay.get(days[i]) / byDay.get(days[i - 1]) - 1);
   const mu = rets.length ? sum(rets) / rets.length : 0, sd = rets.length > 1 ? Math.sqrt(sum(rets.map((x) => (x - mu) ** 2)) / (rets.length - 1)) : 0;
   return { markets: rs.length, trades: nets.length, gross: r2(sum(rs.map((r) => r.gross))), fees: r2(sum(rs.map((r) => r.fees))), net: r2(sum(rs.map((r) => r.net))),

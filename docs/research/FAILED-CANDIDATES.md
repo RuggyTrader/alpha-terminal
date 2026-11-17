@@ -129,3 +129,15 @@ Source: `docs/research/round8/` (pre-registration `931cf8a`, before the data dow
 | Candidate | Independent net | Status |
 |---|---|---|
 | X1 rotation, 30-day return, top 2, weekly, 1d | −96.5 (buy-and-hold −89.9), drawdown 97% | FAILED: every independent gate fails. Development +136.6 and validation +15.9 did not transfer to smaller markets; 2022 reversals were ruinous |
+
+## Round 9 (2026-11-17): strategy discovery tournament
+
+Source: `docs/research/round9/` (pre-registration `7288171`, code `7fc53ef`, both before any run; reproduced byte-identical). Independent set: 15 never-used markets. Run at $20 per market (the real wallet size) with Kraken minimums.
+
+| Candidate | Independent net ($20; $100) | Status |
+|---|---|---|
+| F1 BTC-regime Donchian 4h 55/20 | +26.8; +147.3 | INCONCLUSIVE: CI includes 0, 7/15 markets, concentrated, 92% of signals below Kraken minimums at $20 |
+| F3 regime-adaptive 4h | +52.5; −88.1 | INCONCLUSIVE: the $20 result is a minimum-size selection artifact; FET is 96% of the net |
+| F5 BTC-regime relative strength 1d | +10.6; −34.0 | INCONCLUSIVE: 19 entries, CI includes 0, a neighbour is negative |
+| F4 reversion after extreme bars 4h | +0.3; −5.2 | FAILED: negative in development, validation and at stress costs |
+| F2 volatility-normalised momentum 1d | — | FAILED: under 30 development trades at $20 |

@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-17T00:13:22.697Z",
+ "generated_at": "2026-11-17T01:09:31.212Z",
  "statuses": [
   "IDEA",
   "SPECIFIED",
@@ -1337,6 +1337,251 @@
    "status": "FAILED",
    "failure": "independent −96.5 (worse than buy-and-hold −89.9), drawdown 97%, bootstrap CI includes 0, positive in 2 of 5 years",
    "source": "docs/research/round8/REPORT.md"
+  },
+  {
+   "id": "R9-F1",
+   "name": "BTC-regime Donchian breakout 4h 55/20 (F1)",
+   "family": "Trend following",
+   "version": "round 9 pre-registered (7288171, code 7fc53ef)",
+   "markets": [
+    "AXS",
+    "ENJ",
+    "CHZ",
+    "SUSHI",
+    "1INCH",
+    "STORJ",
+    "ANKR",
+    "KNC",
+    "UMA",
+    "BAL",
+    "ZRX",
+    "LRC",
+    "QNT",
+    "FET",
+    "NMR"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase 1h/1d 2021–2026; independent markets never used before",
+   "periods": {
+    "development": "2021-07–2024-07 (8 liquid)",
+    "validation": "2024-07–2026-11",
+    "independent": "2022-01–2026-11 (15 untouched)"
+   },
+   "costs": "0.20% + 0.05%; $20 per market; Kraken minimums",
+   "results": {
+    "development": {
+     "net": 50.21,
+     "trades": 148
+    },
+    "validation": {
+     "net": 54.75,
+     "note": "6/8 markets +"
+    },
+    "independent": {
+     "net": 26.75,
+     "trades": 129,
+     "positive_markets": "7/15"
+    }
+   },
+   "fee_drag": "7.86% of gross profit",
+   "status": "INCONCLUSIVE",
+   "failure": "CI includes 0, 7/15 markets, concentrated (QNT, SUSHI), 92% of signals infeasible at $20; positive at $100 (+147) and stress, neighbours positive",
+   "source": "docs/research/round9/REPORT.md"
+  },
+  {
+   "id": "R9-F2",
+   "name": "Volatility-normalised momentum 1d (F2)",
+   "family": "Momentum",
+   "version": "round 9 pre-registered (7288171, code 7fc53ef)",
+   "markets": [
+    "AXS",
+    "ENJ",
+    "CHZ",
+    "SUSHI",
+    "1INCH",
+    "STORJ",
+    "ANKR",
+    "KNC",
+    "UMA",
+    "BAL",
+    "ZRX",
+    "LRC",
+    "QNT",
+    "FET",
+    "NMR"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase 1h/1d 2021–2026; independent markets never used before",
+   "periods": {
+    "development": "2021-07–2024-07 (8 liquid)",
+    "validation": "2024-07–2026-11",
+    "independent": "2022-01–2026-11 (15 untouched)"
+   },
+   "costs": "0.20% + 0.05%; $20 per market; Kraken minimums",
+   "results": {},
+   "fee_drag": null,
+   "status": "FAILED",
+   "failure": "no configuration reached 30 development trades at $20 (order minimums)",
+   "source": "docs/research/round9/REPORT.md"
+  },
+  {
+   "id": "R9-F3",
+   "name": "Regime-adaptive trend/range 4h ER 0.3 (F3)",
+   "family": "Regime-adaptive",
+   "version": "round 9 pre-registered (7288171, code 7fc53ef)",
+   "markets": [
+    "AXS",
+    "ENJ",
+    "CHZ",
+    "SUSHI",
+    "1INCH",
+    "STORJ",
+    "ANKR",
+    "KNC",
+    "UMA",
+    "BAL",
+    "ZRX",
+    "LRC",
+    "QNT",
+    "FET",
+    "NMR"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase 1h/1d 2021–2026; independent markets never used before",
+   "periods": {
+    "development": "2021-07–2024-07 (8 liquid)",
+    "validation": "2024-07–2026-11",
+    "independent": "2022-01–2026-11 (15 untouched)"
+   },
+   "costs": "0.20% + 0.05%; $20 per market; Kraken minimums",
+   "results": {
+    "development": {
+     "net": 37.55,
+     "trades": 491
+    },
+    "validation": {
+     "net": 12.38,
+     "note": "4/8 markets +"
+    },
+    "independent": {
+     "net": 52.51,
+     "trades": 478,
+     "positive_markets": "4/15"
+    }
+   },
+   "fee_drag": "10.03% of gross profit",
+   "status": "INCONCLUSIVE",
+   "failure": "$20 profit is a minimum-size selection artifact: −88 at $100; FET 96% of net; drawdown 55%",
+   "source": "docs/research/round9/REPORT.md"
+  },
+  {
+   "id": "R9-F4",
+   "name": "Reversion after extreme bars 4h k=3 (F4)",
+   "family": "Mean reversion",
+   "version": "round 9 pre-registered (7288171, code 7fc53ef)",
+   "markets": [
+    "AXS",
+    "ENJ",
+    "CHZ",
+    "SUSHI",
+    "1INCH",
+    "STORJ",
+    "ANKR",
+    "KNC",
+    "UMA",
+    "BAL",
+    "ZRX",
+    "LRC",
+    "QNT",
+    "FET",
+    "NMR"
+   ],
+   "timeframes": [
+    "4h"
+   ],
+   "data": "Coinbase 1h/1d 2021–2026; independent markets never used before",
+   "periods": {
+    "development": "2021-07–2024-07 (8 liquid)",
+    "validation": "2024-07–2026-11",
+    "independent": "2022-01–2026-11 (15 untouched)"
+   },
+   "costs": "0.20% + 0.05%; $20 per market; Kraken minimums",
+   "results": {
+    "development": {
+     "net": -0.5,
+     "trades": 60
+    },
+    "validation": {
+     "net": -1.19,
+     "note": "2/8 markets +"
+    },
+    "independent": {
+     "net": 0.34,
+     "trades": 41,
+     "positive_markets": "5/15"
+    }
+   },
+   "fee_drag": "22.12% of gross profit",
+   "status": "FAILED",
+   "failure": "negative in development and validation; negative at stress costs",
+   "source": "docs/research/round9/REPORT.md"
+  },
+  {
+   "id": "R9-F5",
+   "name": "BTC-regime relative strength 1d L30 top-3 (F5)",
+   "family": "Cross-sectional momentum (portfolio)",
+   "version": "round 9 pre-registered (7288171, code 7fc53ef)",
+   "markets": [
+    "AXS",
+    "ENJ",
+    "CHZ",
+    "SUSHI",
+    "1INCH",
+    "STORJ",
+    "ANKR",
+    "KNC",
+    "UMA",
+    "BAL",
+    "ZRX",
+    "LRC",
+    "QNT",
+    "FET",
+    "NMR"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase 1h/1d 2021–2026; independent markets never used before",
+   "periods": {
+    "development": "2021-07–2024-07 (8 liquid)",
+    "validation": "2024-07–2026-11",
+    "independent": "2022-01–2026-11 (15 untouched)"
+   },
+   "costs": "0.20% + 0.05%; $20 per market; Kraken minimums",
+   "results": {
+    "development": {
+     "net": 22.45,
+     "trades": 34
+    },
+    "validation": {
+     "net": 8.45,
+     "note": "portfolio"
+    },
+    "independent": {
+     "net": 10.55,
+     "trades": 19
+    }
+   },
+   "fee_drag": null,
+   "status": "INCONCLUSIVE",
+   "failure": "19 entries only; CI includes 0; −34 at $100; L90 neighbour negative",
+   "source": "docs/research/round9/REPORT.md"
   }
  ]
 }

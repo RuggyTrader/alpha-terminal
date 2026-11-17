@@ -1,0 +1,1298 @@
+{
+ "label": "RESEARCH ROUND 9 (strategy discovery tournament; Coinbase candles; conservative bar backtester; NOT PAPER results)",
+ "preregistration": "docs/research/round9/PREREGISTRATION.md (7288171)",
+ "capital_per_market_usd": 20,
+ "costs": {
+  "primary": {
+   "feePct": 0.2,
+   "slipPct": 0.05
+  },
+  "stress": {
+   "feePct": 0.4,
+   "slipPct": 0.1
+  },
+  "instant": {
+   "feePct": 0.8,
+   "slipPct": 0.05
+  }
+ },
+ "kraken_minimums": {
+  "AXS": [
+   6,
+   0.5
+  ],
+  "ENJ": [
+   200,
+   0.5
+  ],
+  "CHZ": [
+   400,
+   0.5
+  ],
+  "SUSHI": [
+   25,
+   0.5
+  ],
+  "1INCH": [
+   60,
+   0.5
+  ],
+  "STORJ": [
+   250,
+   0.5
+  ],
+  "SKL": null,
+  "ANKR": [
+   1300,
+   0.5
+  ],
+  "KNC": [
+   45,
+   0.5
+  ],
+  "UMA": [
+   15,
+   0.5
+  ],
+  "BAL": [
+   40,
+   0.5
+  ],
+  "ZRX": [
+   50,
+   0.5
+  ],
+  "LRC": [
+   600,
+   0.5
+  ],
+  "QNT": [
+   0.025,
+   0.5
+  ],
+  "FET": [
+   18,
+   0.5
+  ],
+  "NMR": [
+   0.5,
+   0.5
+  ],
+  "BTC": [
+   0.00006,
+   0.5
+  ],
+  "ETH": [
+   0.002,
+   0.5
+  ],
+  "SOL": [
+   0.05,
+   0.5
+  ],
+  "LTC": [
+   0.08,
+   0.5
+  ],
+  "LINK": [
+   0.35,
+   0.5
+  ],
+  "XRP": [
+   4,
+   0.5
+  ],
+  "ADA": [
+   20,
+   0.5
+  ],
+  "AVAX": [
+   0.5,
+   0.5
+  ]
+ },
+ "universes": {
+  "development": [
+   "BTC",
+   "ETH",
+   "SOL",
+   "LTC",
+   "LINK",
+   "XRP",
+   "ADA",
+   "AVAX"
+  ],
+  "independent": [
+   "AXS",
+   "ENJ",
+   "CHZ",
+   "SUSHI",
+   "1INCH",
+   "STORJ",
+   "ANKR",
+   "KNC",
+   "UMA",
+   "BAL",
+   "ZRX",
+   "LRC",
+   "QNT",
+   "FET",
+   "NMR"
+  ],
+  "independent_excluded": {
+   "SKL": "not listed on Kraken (USD)"
+  }
+ },
+ "development_all": {
+  "F1-240-20-10": {
+   "markets": 8,
+   "trades": 281,
+   "gross": 42.72,
+   "fees": 13.83,
+   "net": 28.89,
+   "net_pct_of_capital": 18.06,
+   "positive": 5,
+   "win_rate": 0.28,
+   "profit_factor": 1.38,
+   "expectancy": 0.1028,
+   "sharpe_daily_ann": 0.61,
+   "fee_drag_pct_of_gross_profit": 12.7,
+   "avg_hold_bars": 23.54,
+   "exposure": 0.14,
+   "max_dd_pct": [
+    18.61,
+    21.7,
+    16.3,
+    25.82,
+    29.91,
+    32.77,
+    23.09,
+    20.64
+   ],
+   "signals": 448,
+   "skipped_min": 167
+  },
+  "F1-240-55-20": {
+   "markets": 8,
+   "trades": 148,
+   "gross": 57.47,
+   "fees": 7.26,
+   "net": 50.21,
+   "net_pct_of_capital": 31.38,
+   "positive": 6,
+   "win_rate": 0.26,
+   "profit_factor": 2.01,
+   "expectancy": 0.3393,
+   "sharpe_daily_ann": 1.02,
+   "fee_drag_pct_of_gross_profit": 7.11,
+   "avg_hold_bars": 34.65,
+   "exposure": 0.11,
+   "max_dd_pct": [
+    11.9,
+    15.19,
+    16.36,
+    21.59,
+    21.75,
+    31.72,
+    20.5,
+    13.77
+   ],
+   "signals": 244,
+   "skipped_min": 96
+  },
+  "F1-1440-20-10": {
+   "markets": 8,
+   "trades": 29,
+   "gross": 25.22,
+   "fees": 0.64,
+   "net": 24.58,
+   "net_pct_of_capital": 15.36,
+   "positive": 5,
+   "win_rate": 0.62,
+   "profit_factor": 6.99,
+   "expectancy": 0.8475,
+   "sharpe_daily_ann": 0.91,
+   "fee_drag_pct_of_gross_profit": 2.21,
+   "avg_hold_bars": 33.1,
+   "exposure": 0.13,
+   "max_dd_pct": [
+    7.03,
+    8.94,
+    16.77,
+    3.64,
+    7.79,
+    9.21,
+    8.94,
+    0
+   ],
+   "signals": 120,
+   "skipped_min": 91
+  },
+  "F1-1440-55-20": {
+   "markets": 8,
+   "trades": 21,
+   "gross": 21.13,
+   "fees": 0.47,
+   "net": 20.66,
+   "net_pct_of_capital": 12.91,
+   "positive": 5,
+   "win_rate": 0.48,
+   "profit_factor": 6.28,
+   "expectancy": 0.9838,
+   "sharpe_daily_ann": 0.8,
+   "fee_drag_pct_of_gross_profit": 1.88,
+   "avg_hold_bars": 43.71,
+   "exposure": 0.11,
+   "max_dd_pct": [
+    8.59,
+    12.14,
+    16.77,
+    0,
+    8.1,
+    7.93,
+    13.9,
+    0
+   ],
+   "signals": 73,
+   "skipped_min": 52
+  },
+  "F2-1440-30-0.5": {
+   "markets": 8,
+   "trades": 24,
+   "gross": 12.83,
+   "fees": 0.34,
+   "net": 12.49,
+   "net_pct_of_capital": 7.8,
+   "positive": 4,
+   "win_rate": 0.54,
+   "profit_factor": 7.29,
+   "expectancy": 0.5202,
+   "sharpe_daily_ann": 1.1,
+   "fee_drag_pct_of_gross_profit": 2.32,
+   "avg_hold_bars": 22.88,
+   "exposure": 0.07,
+   "max_dd_pct": [
+    3.77,
+    3.13,
+    9.28,
+    0,
+    5.46,
+    3.46,
+    0,
+    0
+   ],
+   "signals": 149,
+   "skipped_min": 125
+  },
+  "F2-1440-30-1": {
+   "markets": 8,
+   "trades": 15,
+   "gross": 10.93,
+   "fees": 0.22,
+   "net": 10.71,
+   "net_pct_of_capital": 6.69,
+   "positive": 4,
+   "win_rate": 0.53,
+   "profit_factor": 9.94,
+   "expectancy": 0.714,
+   "sharpe_daily_ann": 1.07,
+   "fee_drag_pct_of_gross_profit": 1.84,
+   "avg_hold_bars": 24.4,
+   "exposure": 0.04,
+   "max_dd_pct": [
+    4.09,
+    2.62,
+    9.28,
+    0,
+    5.46,
+    3.03,
+    0,
+    0
+   ],
+   "signals": 96,
+   "skipped_min": 81
+  },
+  "F2-1440-90-0.5": {
+   "markets": 8,
+   "trades": 18,
+   "gross": 4.86,
+   "fees": 0.25,
+   "net": 4.62,
+   "net_pct_of_capital": 2.89,
+   "positive": 2,
+   "win_rate": 0.39,
+   "profit_factor": 3.2,
+   "expectancy": 0.2566,
+   "sharpe_daily_ann": 0.69,
+   "fee_drag_pct_of_gross_profit": 3.62,
+   "avg_hold_bars": 25.39,
+   "exposure": 0.06,
+   "max_dd_pct": [
+    6.88,
+    4.54,
+    6.79,
+    0,
+    0,
+    3.37,
+    0,
+    0
+   ],
+   "signals": 193,
+   "skipped_min": 175
+  },
+  "F2-1440-90-1": {
+   "markets": 8,
+   "trades": 8,
+   "gross": 1.76,
+   "fees": 0.11,
+   "net": 1.65,
+   "net_pct_of_capital": 1.03,
+   "positive": 1,
+   "win_rate": 0.5,
+   "profit_factor": 3.54,
+   "expectancy": 0.2064,
+   "sharpe_daily_ann": 0.54,
+   "fee_drag_pct_of_gross_profit": 4.74,
+   "avg_hold_bars": 31,
+   "exposure": 0.03,
+   "max_dd_pct": [
+    4.71,
+    0,
+    1.13,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "signals": 120,
+   "skipped_min": 112
+  },
+  "F3-240-0.3": {
+   "markets": 8,
+   "trades": 491,
+   "gross": 60.02,
+   "fees": 22.48,
+   "net": 37.55,
+   "net_pct_of_capital": 23.47,
+   "positive": 6,
+   "win_rate": 0.36,
+   "profit_factor": 1.31,
+   "expectancy": 0.0765,
+   "sharpe_daily_ann": 0.69,
+   "fee_drag_pct_of_gross_profit": 13.38,
+   "avg_hold_bars": 19.5,
+   "exposure": 0.2,
+   "max_dd_pct": [
+    28.42,
+    25.46,
+    31.27,
+    26.1,
+    24.89,
+    24.07,
+    21.34,
+    25.31
+   ],
+   "signals": 970,
+   "skipped_min": 479
+  },
+  "F3-240-0.4": {
+   "markets": 8,
+   "trades": 417,
+   "gross": 40.82,
+   "fees": 18.33,
+   "net": 22.49,
+   "net_pct_of_capital": 14.06,
+   "positive": 6,
+   "win_rate": 0.39,
+   "profit_factor": 1.22,
+   "expectancy": 0.0539,
+   "sharpe_daily_ann": 0.55,
+   "fee_drag_pct_of_gross_profit": 14.11,
+   "avg_hold_bars": 17.31,
+   "exposure": 0.15,
+   "max_dd_pct": [
+    27.27,
+    27.46,
+    33.92,
+    33.23,
+    23.98,
+    26.26,
+    27.24,
+    22.89
+   ],
+   "signals": 868,
+   "skipped_min": 451
+  },
+  "F4-60-3": {
+   "markets": 8,
+   "trades": 357,
+   "gross": -0.37,
+   "fees": 16.96,
+   "net": -17.34,
+   "net_pct_of_capital": -10.83,
+   "positive": 3,
+   "win_rate": 0.48,
+   "profit_factor": 0.6,
+   "expectancy": -0.0486,
+   "sharpe_daily_ann": -1.85,
+   "fee_drag_pct_of_gross_profit": 48.83,
+   "avg_hold_bars": 8,
+   "exposure": 0.02,
+   "max_dd_pct": [
+    42.28,
+    33.7,
+    8.48,
+    9.78,
+    7.72,
+    8.62,
+    14.99,
+    3.19
+   ],
+   "signals": 451,
+   "skipped_min": 94
+  },
+  "F4-60-4": {
+   "markets": 8,
+   "trades": 113,
+   "gross": -6.34,
+   "fees": 5.44,
+   "net": -11.77,
+   "net_pct_of_capital": -7.36,
+   "positive": 3,
+   "win_rate": 0.4,
+   "profit_factor": 0.35,
+   "expectancy": -0.1042,
+   "sharpe_daily_ann": -2.16,
+   "fee_drag_pct_of_gross_profit": 62.51,
+   "avg_hold_bars": 8.42,
+   "exposure": 0.01,
+   "max_dd_pct": [
+    23.85,
+    23.27,
+    12.36,
+    3.31,
+    5.76,
+    1.75,
+    5.9,
+    1.38
+   ],
+   "signals": 140,
+   "skipped_min": 27
+  },
+  "F4-240-3": {
+   "markets": 8,
+   "trades": 60,
+   "gross": 1.24,
+   "fees": 1.74,
+   "net": -0.5,
+   "net_pct_of_capital": -0.31,
+   "positive": 3,
+   "win_rate": 0.57,
+   "profit_factor": 0.92,
+   "expectancy": -0.0083,
+   "sharpe_daily_ann": -0.12,
+   "fee_drag_pct_of_gross_profit": 24.86,
+   "avg_hold_bars": 6.85,
+   "exposure": 0.01,
+   "max_dd_pct": [
+    6.27,
+    4.42,
+    2.81,
+    2.28,
+    3.72,
+    0.66,
+    0.7,
+    0.09
+   ],
+   "signals": 95,
+   "skipped_min": 35
+  },
+  "F4-240-4": {
+   "markets": 8,
+   "trades": 16,
+   "gross": -0.06,
+   "fees": 0.48,
+   "net": -0.55,
+   "net_pct_of_capital": -0.34,
+   "positive": 3,
+   "win_rate": 0.5,
+   "profit_factor": 0.74,
+   "expectancy": -0.0342,
+   "sharpe_daily_ann": -0.27,
+   "fee_drag_pct_of_gross_profit": 27.94,
+   "avg_hold_bars": 8.56,
+   "exposure": 0,
+   "max_dd_pct": [
+    3.09,
+    3.63,
+    0.04,
+    1.3,
+    2.25,
+    0.45,
+    0,
+    0
+   ],
+   "signals": 28,
+   "skipped_min": 12
+  },
+  "F5-1440-30-top3": {
+   "net": 22.45,
+   "entries": 34,
+   "mdd_pct": 24.74
+  },
+  "F5-1440-90-top3": {
+   "net": 9.97,
+   "entries": 24,
+   "mdd_pct": 36.44
+  }
+ },
+ "candidates": {
+  "F1": {
+   "selected": "F1-240-55-20",
+   "status": "INCONCLUSIVE",
+   "gates": {
+    "g1_development": true,
+    "g2_validation": true,
+    "g3_independent_and_breadth": false,
+    "g4_sample_100": true,
+    "g5_ci99": false,
+    "g6_stress": true,
+    "g7_drawdown": true,
+    "g8_years": true,
+    "g9_concentration": false,
+    "g10_neighbours": true,
+    "g11_feasible_80pct": false
+   },
+   "failed": [
+    "g3_independent_and_breadth",
+    "g5_ci99",
+    "g9_concentration",
+    "g11_feasible_80pct"
+   ],
+   "development": {
+    "markets": 8,
+    "trades": 148,
+    "gross": 57.47,
+    "fees": 7.26,
+    "net": 50.21,
+    "net_pct_of_capital": 31.38,
+    "positive": 6,
+    "win_rate": 0.26,
+    "profit_factor": 2.01,
+    "expectancy": 0.3393,
+    "sharpe_daily_ann": 1.02,
+    "fee_drag_pct_of_gross_profit": 7.11,
+    "avg_hold_bars": 34.65,
+    "exposure": 0.11,
+    "max_dd_pct": [
+     11.9,
+     15.19,
+     16.36,
+     21.59,
+     21.75,
+     31.72,
+     20.5,
+     13.77
+    ],
+    "signals": 244,
+    "skipped_min": 96
+   },
+   "validation": {
+    "markets": 8,
+    "trades": 152,
+    "gross": 63.3,
+    "fees": 8.54,
+    "net": 54.75,
+    "net_pct_of_capital": 34.22,
+    "positive": 6,
+    "win_rate": 0.34,
+    "profit_factor": 2.03,
+    "expectancy": 0.3602,
+    "sharpe_daily_ann": 1.1,
+    "fee_drag_pct_of_gross_profit": 7.71,
+    "avg_hold_bars": 32.3,
+    "exposure": 0.12,
+    "max_dd_pct": [
+     22.78,
+     15.05,
+     11.08,
+     21.03,
+     18.37,
+     31.48,
+     11.73,
+     6.85
+    ],
+    "signals": 363,
+    "skipped_min": 211,
+    "per_market": {
+     "BTC": -2.12,
+     "ETH": 2.9,
+     "SOL": 4.91,
+     "LTC": 4.61,
+     "LINK": 2.04,
+     "XRP": 38.13,
+     "ADA": -1.69,
+     "AVAX": 5.98
+    }
+   },
+   "independent": {
+    "markets": 15,
+    "trades": 129,
+    "gross": 32.05,
+    "fees": 5.3,
+    "net": 26.75,
+    "net_pct_of_capital": 8.92,
+    "positive": 7,
+    "win_rate": 0.26,
+    "profit_factor": 1.69,
+    "expectancy": 0.2074,
+    "sharpe_daily_ann": 0.37,
+    "fee_drag_pct_of_gross_profit": 7.86,
+    "avg_hold_bars": 24.28,
+    "exposure": 0.02,
+    "max_dd_pct": [
+     12.31,
+     0,
+     10,
+     21.63,
+     17.06,
+     0,
+     16.03,
+     33.06,
+     16.35,
+     4.56,
+     16.47,
+     0,
+     36.84,
+     12.31,
+     20.18
+    ],
+    "signals": 1647,
+    "skipped_min": 1518,
+    "ci99_per_trade": [
+     -0.1504,
+     0.8235
+    ],
+    "per_market": {
+     "AXS": 0.53,
+     "ENJ": 0,
+     "CHZ": -0.76,
+     "SUSHI": 10.49,
+     "1INCH": -3.41,
+     "STORJ": 0,
+     "ANKR": 1.31,
+     "KNC": 4.26,
+     "UMA": -2.24,
+     "BAL": -0.85,
+     "ZRX": 2.05,
+     "LRC": 0,
+     "QNT": 14.22,
+     "FET": 3.95,
+     "NMR": -2.8
+    },
+    "by_year": {
+     "2023": 14.75,
+     "2024": -3.66,
+     "2025": 1.09,
+     "2026": 14.56
+    },
+    "top_market_net": 14.22,
+    "top_trade_net": 19.74,
+    "buy_hold": {
+     "AXS": -19.86,
+     "ENJ": -18.37,
+     "CHZ": -19.32,
+     "SUSHI": -19.68,
+     "1INCH": -19.46,
+     "STORJ": -19.65,
+     "ANKR": -19.36,
+     "KNC": -18.51,
+     "UMA": -19.44,
+     "BAL": -19.87,
+     "ZRX": -18.05,
+     "LRC": -19.9,
+     "QNT": -4.05,
+     "FET": -14.94,
+     "NMR": -15.08
+    }
+   },
+   "independent_stress": {
+    "net": 15.03,
+    "trades": 125
+   },
+   "independent_080": {
+    "net": 9.34
+   },
+   "independent_100usd": {
+    "net": 147.33,
+    "trades": 423,
+    "skipped_min": 574
+   },
+   "neighbours": [
+    {
+     "id": "F1-240-20-10",
+     "net": 26.77
+    },
+    {
+     "id": "F1-1440-20-10",
+     "net": 9.59
+    },
+    {
+     "id": "F1-1440-55-20",
+     "net": 4.26
+    }
+   ]
+  },
+  "F2": {
+   "selected": null,
+   "status": "FAILED",
+   "reason": "no configuration with >= 30 development trades"
+  },
+  "F3": {
+   "selected": "F3-240-0.3",
+   "status": "INCONCLUSIVE",
+   "gates": {
+    "g1_development": true,
+    "g2_validation": true,
+    "g3_independent_and_breadth": false,
+    "g4_sample_100": true,
+    "g5_ci99": false,
+    "g6_stress": true,
+    "g7_drawdown": false,
+    "g8_years": true,
+    "g9_concentration": false,
+    "g10_neighbours": true,
+    "g11_feasible_80pct": false
+   },
+   "failed": [
+    "g3_independent_and_breadth",
+    "g5_ci99",
+    "g7_drawdown",
+    "g9_concentration",
+    "g11_feasible_80pct"
+   ],
+   "development": {
+    "markets": 8,
+    "trades": 491,
+    "gross": 60.02,
+    "fees": 22.48,
+    "net": 37.55,
+    "net_pct_of_capital": 23.47,
+    "positive": 6,
+    "win_rate": 0.36,
+    "profit_factor": 1.31,
+    "expectancy": 0.0765,
+    "sharpe_daily_ann": 0.69,
+    "fee_drag_pct_of_gross_profit": 13.38,
+    "avg_hold_bars": 19.5,
+    "exposure": 0.2,
+    "max_dd_pct": [
+     28.42,
+     25.46,
+     31.27,
+     26.1,
+     24.89,
+     24.07,
+     21.34,
+     25.31
+    ],
+    "signals": 970,
+    "skipped_min": 479
+   },
+   "validation": {
+    "markets": 8,
+    "trades": 492,
+    "gross": 36.01,
+    "fees": 23.63,
+    "net": 12.38,
+    "net_pct_of_capital": 7.74,
+    "positive": 4,
+    "win_rate": 0.36,
+    "profit_factor": 1.1,
+    "expectancy": 0.0252,
+    "sharpe_daily_ann": 0.31,
+    "fee_drag_pct_of_gross_profit": 16.12,
+    "avg_hold_bars": 16.2,
+    "exposure": 0.19,
+    "max_dd_pct": [
+     35.29,
+     29.22,
+     26.46,
+     41.09,
+     30.37,
+     25.19,
+     19.3,
+     14.69
+    ],
+    "signals": 949,
+    "skipped_min": 457,
+    "per_market": {
+     "BTC": -4.34,
+     "ETH": 3.2,
+     "SOL": -1.45,
+     "LTC": -7.13,
+     "LINK": 0.72,
+     "XRP": 19.1,
+     "ADA": 2.29,
+     "AVAX": -0.01
+    }
+   },
+   "independent": {
+    "markets": 15,
+    "trades": 478,
+    "gross": 72.82,
+    "fees": 20.31,
+    "net": 52.51,
+    "net_pct_of_capital": 17.5,
+    "positive": 4,
+    "win_rate": 0.33,
+    "profit_factor": 1.37,
+    "expectancy": 0.1098,
+    "sharpe_daily_ann": 0.57,
+    "fee_drag_pct_of_gross_profit": 10.03,
+    "avg_hold_bars": 15.91,
+    "exposure": 0.05,
+    "max_dd_pct": [
+     16.09,
+     0,
+     8.98,
+     25.02,
+     17.39,
+     0,
+     21.89,
+     44.54,
+     22.61,
+     6.58,
+     24.63,
+     8.75,
+     54.69,
+     23.92,
+     55.24
+    ],
+    "signals": 3980,
+    "skipped_min": 3502,
+    "ci99_per_trade": [
+     -0.059,
+     0.3341
+    ],
+    "per_market": {
+     "AXS": -0.52,
+     "ENJ": 0,
+     "CHZ": -0.92,
+     "SUSHI": 10.27,
+     "1INCH": -2.63,
+     "STORJ": 0,
+     "ANKR": -0.76,
+     "KNC": 2.75,
+     "UMA": -3.38,
+     "BAL": -1.32,
+     "ZRX": -1.03,
+     "LRC": -0.07,
+     "QNT": 8.2,
+     "FET": 50.16,
+     "NMR": -8.26
+    },
+    "by_year": {
+     "2022": 5.43,
+     "2023": 29.39,
+     "2024": 16.41,
+     "2025": -4.67,
+     "2026": 5.95
+    },
+    "top_market_net": 50.16,
+    "top_trade_net": 17.82,
+    "buy_hold": {
+     "AXS": -19.86,
+     "ENJ": -18.37,
+     "CHZ": -19.32,
+     "SUSHI": -19.68,
+     "1INCH": -19.46,
+     "STORJ": -19.65,
+     "ANKR": -19.36,
+     "KNC": -18.51,
+     "UMA": -19.44,
+     "BAL": -19.87,
+     "ZRX": -18.05,
+     "LRC": -19.9,
+     "QNT": -4.05,
+     "FET": -14.94,
+     "NMR": -15.08
+    }
+   },
+   "independent_stress": {
+    "net": 29.62,
+    "trades": 460
+   },
+   "independent_080": {
+    "net": -0.5
+   },
+   "independent_100usd": {
+    "net": -88.06,
+    "trades": 1252,
+    "skipped_min": 1645
+   },
+   "neighbours": [
+    {
+     "id": "F3-240-0.4",
+     "net": 37.14
+    }
+   ]
+  },
+  "F4": {
+   "selected": "F4-240-3",
+   "status": "FAILED",
+   "gates": {
+    "g1_development": false,
+    "g2_validation": false,
+    "g3_independent_and_breadth": false,
+    "g4_sample_100": false,
+    "g5_ci99": false,
+    "g6_stress": false,
+    "g7_drawdown": true,
+    "g8_years": false,
+    "g9_concentration": false,
+    "g10_neighbours": false,
+    "g11_feasible_80pct": false
+   },
+   "failed": [
+    "g1_development",
+    "g2_validation",
+    "g3_independent_and_breadth",
+    "g4_sample_100",
+    "g5_ci99",
+    "g6_stress",
+    "g8_years",
+    "g9_concentration",
+    "g10_neighbours",
+    "g11_feasible_80pct"
+   ],
+   "development": {
+    "markets": 8,
+    "trades": 60,
+    "gross": 1.24,
+    "fees": 1.74,
+    "net": -0.5,
+    "net_pct_of_capital": -0.31,
+    "positive": 3,
+    "win_rate": 0.57,
+    "profit_factor": 0.92,
+    "expectancy": -0.0083,
+    "sharpe_daily_ann": -0.12,
+    "fee_drag_pct_of_gross_profit": 24.86,
+    "avg_hold_bars": 6.85,
+    "exposure": 0.01,
+    "max_dd_pct": [
+     6.27,
+     4.42,
+     2.81,
+     2.28,
+     3.72,
+     0.66,
+     0.7,
+     0.09
+    ],
+    "signals": 95,
+    "skipped_min": 35
+   },
+   "validation": {
+    "markets": 8,
+    "trades": 40,
+    "gross": 0.33,
+    "fees": 1.51,
+    "net": -1.19,
+    "net_pct_of_capital": -0.74,
+    "positive": 2,
+    "win_rate": 0.55,
+    "profit_factor": 0.77,
+    "expectancy": -0.0297,
+    "sharpe_daily_ann": -0.36,
+    "fee_drag_pct_of_gross_profit": 31.06,
+    "avg_hold_bars": 6.67,
+    "exposure": 0.01,
+    "max_dd_pct": [
+     2.44,
+     5.07,
+     3.33,
+     2.55,
+     4.31,
+     0.64,
+     2.03,
+     2.53
+    ],
+    "signals": 86,
+    "skipped_min": 46,
+    "per_market": {
+     "BTC": 0.52,
+     "ETH": -1.01,
+     "SOL": -0.27,
+     "LTC": 0.44,
+     "LINK": -0.21,
+     "XRP": -0.13,
+     "ADA": -0.33,
+     "AVAX": -0.2
+    }
+   },
+   "independent": {
+    "markets": 15,
+    "trades": 41,
+    "gross": 1.31,
+    "fees": 0.97,
+    "net": 0.34,
+    "net_pct_of_capital": 0.11,
+    "positive": 5,
+    "win_rate": 0.61,
+    "profit_factor": 1.1,
+    "expectancy": 0.0083,
+    "sharpe_daily_ann": 0.08,
+    "fee_drag_pct_of_gross_profit": 22.12,
+    "avg_hold_bars": 5.12,
+    "exposure": 0,
+    "max_dd_pct": [
+     0,
+     0,
+     0,
+     0.48,
+     1.01,
+     0,
+     0.06,
+     2.67,
+     1.14,
+     0,
+     0,
+     0,
+     6.29,
+     2.17,
+     3.72
+    ],
+    "signals": 351,
+    "skipped_min": 310,
+    "ci99_per_trade": [
+     -0.0945,
+     0.0993
+    ],
+    "per_market": {
+     "AXS": 0,
+     "ENJ": 0,
+     "CHZ": 0,
+     "SUSHI": 0.1,
+     "1INCH": 0.89,
+     "STORJ": 0,
+     "ANKR": 0.03,
+     "KNC": -0.53,
+     "UMA": 0.58,
+     "BAL": 0,
+     "ZRX": 0,
+     "LRC": 0,
+     "QNT": -0.58,
+     "FET": -0.22,
+     "NMR": 0.07
+    },
+    "by_year": {
+     "2022": -0.38,
+     "2023": -0.3,
+     "2024": -0.19,
+     "2025": 0.44,
+     "2026": 0.77
+    },
+    "top_market_net": 0.89,
+    "top_trade_net": 0.43,
+    "buy_hold": {
+     "AXS": -19.86,
+     "ENJ": -18.37,
+     "CHZ": -19.32,
+     "SUSHI": -19.68,
+     "1INCH": -19.46,
+     "STORJ": -19.65,
+     "ANKR": -19.36,
+     "KNC": -18.51,
+     "UMA": -19.44,
+     "BAL": -19.87,
+     "ZRX": -18.05,
+     "LRC": -19.9,
+     "QNT": -4.05,
+     "FET": -14.94,
+     "NMR": -15.08
+    }
+   },
+   "independent_stress": {
+    "net": -0.87,
+    "trades": 40
+   },
+   "independent_080": {
+    "net": -2.56
+   },
+   "independent_100usd": {
+    "net": -5.22,
+    "trades": 153,
+    "skipped_min": 196
+   },
+   "neighbours": [
+    {
+     "id": "F4-60-3",
+     "net": -13.03
+    },
+    {
+     "id": "F4-60-4",
+     "net": -4.76
+    },
+    {
+     "id": "F4-240-4",
+     "net": -0.06
+    }
+   ]
+  },
+  "F5": {
+   "selected": "F5-1440-30-top3",
+   "status": "INCONCLUSIVE",
+   "gates": {
+    "g1_development": true,
+    "g2_validation": true,
+    "g3_independent": true,
+    "g4_sample_30_entries": false,
+    "g5_ci99": false,
+    "g6_stress": true,
+    "g7_drawdown_40": true,
+    "g8_years": true,
+    "g9_concentration": false,
+    "g10_neighbours": false,
+    "g11_feasible_80pct": false
+   },
+   "failed": [
+    "g4_sample_30_entries",
+    "g5_ci99",
+    "g9_concentration",
+    "g10_neighbours",
+    "g11_feasible_80pct"
+   ],
+   "development": {
+    "net": 22.45,
+    "entries": 34,
+    "mdd_pct": 24.74
+   },
+   "validation": {
+    "net": 8.45,
+    "entries": 32,
+    "mdd_pct": 22.75
+   },
+   "independent": {
+    "net": 10.55,
+    "fees": 0.68,
+    "entries": 19,
+    "skipped_min": 192,
+    "mdd_pct": 32.27,
+    "exposure": 0.17,
+    "by_year": {
+     "2022": 0,
+     "2023": 5.31,
+     "2024": -3.1,
+     "2025": 5.04,
+     "2026": 3.3
+    },
+    "pnl_by_market": {
+     "1INCH": 0,
+     "ANKR": 0.57,
+     "AXS": 0,
+     "BAL": -1.45,
+     "CHZ": 0,
+     "ENJ": 0,
+     "FET": 5.13,
+     "KNC": 0.61,
+     "LRC": 0,
+     "NMR": 0.67,
+     "QNT": 0.96,
+     "STORJ": 0,
+     "SUSHI": 1.37,
+     "UMA": 0,
+     "ZRX": 2.7
+    },
+    "bootstrap_weekly_99": {
+     "lo": -0.00289,
+     "mean": 0.0021,
+     "hi": 0.00793
+    }
+   },
+   "independent_stress": {
+    "net": 9.62
+   },
+   "independent_080": {
+    "net": 8.38
+   },
+   "independent_100usd": {
+    "net": -33.99,
+    "skipped_min": 99
+   },
+   "neighbours": [
+    {
+     "id": "F5-1440-90-top3",
+     "net": -1.12
+    }
+   ],
+   "buy_hold_independent": {
+    "AXS": -19.86,
+    "ENJ": -18.37,
+    "CHZ": -19.32,
+    "SUSHI": -19.68,
+    "1INCH": -19.46,
+    "STORJ": -19.65,
+    "ANKR": -19.36,
+    "KNC": -18.51,
+    "UMA": -19.44,
+    "BAL": -19.87,
+    "ZRX": -18.05,
+    "LRC": -19.9,
+    "QNT": -4.05,
+    "FET": -14.94,
+    "NMR": -15.08
+   }
+  }
+ },
+ "provenance": {
+  "BTC-USD-86400": "5c1b32068eecbf3c",
+  "AXS-USD-86400": "b79d9b308740c9ce",
+  "AXS-USD-3600": "2299be8642704e86",
+  "ENJ-USD-86400": "2aa0177d16a15e7d",
+  "ENJ-USD-3600": "c098485567ee7feb",
+  "CHZ-USD-86400": "e91d5654c17c5725",
+  "CHZ-USD-3600": "9eea17644cc86216",
+  "SUSHI-USD-86400": "443f881a463d03a1",
+  "SUSHI-USD-3600": "bdaccd83d90843f3",
+  "1INCH-USD-86400": "ff7a220426dc6bbe",
+  "1INCH-USD-3600": "7c28b926668c1b65",
+  "STORJ-USD-86400": "436de7d9c5a51dd5",
+  "STORJ-USD-3600": "f20239653ec5e4ae",
+  "ANKR-USD-86400": "584b7e5ac48157ea",
+  "ANKR-USD-3600": "f056ccf8170239c1",
+  "KNC-USD-86400": "075bacef92e7956b",
+  "KNC-USD-3600": "bb2fa64c0b8db3b5",
+  "UMA-USD-86400": "cd0637a348e77804",
+  "UMA-USD-3600": "46ee1376f6a7bf57",
+  "BAL-USD-86400": "d9657cb15438dd9e",
+  "BAL-USD-3600": "a991c5b3048c7c02",
+  "ZRX-USD-86400": "c92f73b5ac841bec",
+  "ZRX-USD-3600": "5a6654058b3b099c",
+  "LRC-USD-86400": "a301f96b9c5d1048",
+  "LRC-USD-3600": "5720b559e51d5787",
+  "QNT-USD-86400": "991ef4b9a2ac5ed3",
+  "QNT-USD-3600": "b2e1d972d2d5a933",
+  "FET-USD-86400": "8391c29f18abe7d0",
+  "FET-USD-3600": "2abcd168741cbc5a",
+  "NMR-USD-86400": "0cfe8bbd4d572530",
+  "NMR-USD-3600": "8dc6e16c28edb13c",
+  "BTC-USD-3600": "30b107aba8471e05",
+  "ETH-USD-3600": "f0c9cea51b260a93",
+  "SOL-USD-3600": "a0a7efc59f1cb596",
+  "LTC-USD-3600": "ff439fa7e3858877",
+  "LINK-USD-3600": "12702fb7ae97fe42",
+  "XRP-USD-3600": "8ee6c2e80f8e2c03",
+  "ADA-USD-3600": "a3303d93e3639318",
+  "AVAX-USD-3600": "15c34ac511e66068",
+  "ETH-USD-86400": "3459bf9620c2e0e4",
+  "SOL-USD-86400": "efa8d8828f88a970",
+  "LTC-USD-86400": "416455521d192014",
+  "LINK-USD-86400": "a4d2815a10c2b746",
+  "XRP-USD-86400": "b8528b8aa8a31d2d",
+  "ADA-USD-86400": "0e47e89add627cf2",
+  "AVAX-USD-86400": "2117835549952f7d"
+ }
+}
