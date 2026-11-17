@@ -122,7 +122,7 @@ export async function outageStatus(db: D1Database, now = Date.now()) {
     const rep = reps.get(bot.bot_id) as { received_at?: string; last_candle_time?: string; ledger_check?: { entries_paused?: boolean } } | undefined;
     const cond = assess(rep ?? null, Number(bot.timeframe_min) || 5, now);
     const paused = !!bot.entries_paused || rep?.ledger_check?.entries_paused === true;
-    return { bot_id: bot.bot_id, name: DISPLAY_NAMES[bot.bot_id] ?? bot.name, state: !rep ? "NO_REPORT" : cond ?? (paused ? "PAUSED" : "ONLINE"), paused,
+    return { bot_id: bot.bot_id, name: DISPLAY_NAMES[bot.bot_id] ?? bot.name, state: !rep || !Number.isFinite(Date.parse(String(rep.received_at ?? ""))) ? "NO_REPORT" : cond ?? (paused ? "PAUSED" : "ONLINE"), paused,
       last_report_at: rep?.received_at ?? null, last_candle_time: rep?.last_candle_time ?? null };
   });
 }

@@ -113,6 +113,9 @@ describe("reporting delayed, escalation and the live classification", () => {
     w.report("ALPHA-04", 40, 41);
     const s = Object.fromEntries((await O.outageStatus(w.db, NOW)).map((x) => [x.bot_id, x.state]));
     assert.deepEqual(s, { "ALPHA-01": "PAUSED", "ALPHA-02": "MARKET_DATA_STALE", "ALPHA-03": "REPORT_DELAYED", "ALPHA-04": "ENGINE_OFFLINE" });
+    // a malformed heartbeat is never shown as ONLINE
+    w.db.raw.prepare(`UPDATE app_meta SET value = '{not json' WHERE key = 'engine_status:ALPHA-02'`).run();
+    assert.equal((await O.outageStatus(w.db, NOW)).find((x) => x.bot_id === "ALPHA-02").state, "NO_REPORT");
   });
 });
 
