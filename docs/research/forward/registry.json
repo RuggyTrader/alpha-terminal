@@ -1,0 +1,157 @@
+{
+ "label": "RESEARCH FORWARD SHADOW REGISTRY (hypothetical; separate from funded PAPER; never submits orders)",
+ "note": "All three round-8 candidates are registered BEFORE any round-8 historical result exists, so the forward sample cannot be selected on the historical outcome. start_at is after registration; no candle at or after start_at existed in this repository when it was written. Nothing here may be edited after start_at except to add new candidates with a later start_at.",
+ "warmup_from": {
+  "3600": "2026-10-01T00:00:00Z",
+  "86400": "2026-08-01T00:00:00Z"
+ },
+ "candidates": [
+  {
+   "id": "RESEARCH-FWD-T1",
+   "source_candidate": "R8-T1-240-55-20",
+   "registered_at": "2026-11-17T17:49:50Z",
+   "start_at": "2026-11-18T00:00:00Z",
+   "basket": [
+    "GRT",
+    "CRV",
+    "SNX",
+    "COMP",
+    "BAT",
+    "ZEC",
+    "XTZ",
+    "MANA",
+    "SAND",
+    "AXS",
+    "CHZ",
+    "1INCH",
+    "YFI",
+    "SUSHI",
+    "LRC",
+    "ICP",
+    "ENJ",
+    "STORJ",
+    "BAL",
+    "QNT",
+    "BTC",
+    "ETH",
+    "SOL"
+   ],
+   "scenario": "B",
+   "capital": 100,
+   "min_days": 180,
+   "min_trades": 30,
+   "acceptance": {
+    "min_days": 180,
+    "min_trades": 30,
+    "criteria": [
+     "net > 0 at selected costs (0.20% + 0.05%)",
+     "net > 0 at stress costs (0.40% + 0.10%)",
+     "net > equal-weight buy-and-hold of the same basket OR max drawdown at most half of buy-and-hold's",
+     "max drawdown <= 30%",
+     "executable setups >= 60%",
+     "no single market > 40% of profitable-market profit"
+    ],
+    "on_pass": "ELIGIBLE FOR AN OWNER DECISION on a separate PAPER trial (never automatic)",
+    "on_fail": "FAILED; recorded in FAILED-CANDIDATES.md"
+   }
+  },
+  {
+   "id": "RESEARCH-FWD-M1",
+   "source_candidate": "R8-M1-1440-30",
+   "registered_at": "2026-11-17T17:49:50Z",
+   "start_at": "2026-11-18T00:00:00Z",
+   "basket": [
+    "GRT",
+    "CRV",
+    "SNX",
+    "COMP",
+    "BAT",
+    "ZEC",
+    "XTZ",
+    "MANA",
+    "SAND",
+    "AXS",
+    "CHZ",
+    "1INCH",
+    "YFI",
+    "SUSHI",
+    "LRC",
+    "ICP",
+    "ENJ",
+    "STORJ",
+    "BAL",
+    "QNT",
+    "BTC",
+    "ETH",
+    "SOL"
+   ],
+   "scenario": "B",
+   "capital": 100,
+   "min_days": 180,
+   "min_trades": 30,
+   "acceptance": {
+    "min_days": 180,
+    "min_trades": 30,
+    "criteria": [
+     "net > 0 at selected costs (0.20% + 0.05%)",
+     "net > 0 at stress costs (0.40% + 0.10%)",
+     "net > equal-weight buy-and-hold of the same basket OR max drawdown at most half of buy-and-hold's",
+     "max drawdown <= 30%",
+     "executable setups >= 60%",
+     "no single market > 40% of profitable-market profit"
+    ],
+    "on_pass": "ELIGIBLE FOR AN OWNER DECISION on a separate PAPER trial (never automatic)",
+    "on_fail": "FAILED; recorded in FAILED-CANDIDATES.md"
+   }
+  },
+  {
+   "id": "RESEARCH-FWD-P3",
+   "source_candidate": "R8-P3-1440-30-3",
+   "registered_at": "2026-11-17T17:49:50Z",
+   "start_at": "2026-11-18T00:00:00Z",
+   "basket": [
+    "GRT",
+    "CRV",
+    "SNX",
+    "COMP",
+    "BAT",
+    "ZEC",
+    "XTZ",
+    "MANA",
+    "SAND",
+    "AXS",
+    "CHZ",
+    "1INCH",
+    "YFI",
+    "SUSHI",
+    "LRC",
+    "ICP",
+    "ENJ",
+    "STORJ",
+    "BAL",
+    "QNT",
+    "BTC",
+    "ETH",
+    "SOL"
+   ],
+   "scenario": "B",
+   "capital": 100,
+   "min_days": 180,
+   "min_trades": 30,
+   "acceptance": {
+    "min_days": 180,
+    "min_trades": 30,
+    "criteria": [
+     "net > 0 at selected costs (0.20% + 0.05%)",
+     "net > 0 at stress costs (0.40% + 0.10%)",
+     "net > equal-weight buy-and-hold of the same basket OR max drawdown at most half of buy-and-hold's",
+     "max drawdown <= 30%",
+     "executable setups >= 60%",
+     "no single market > 40% of profitable-market profit"
+    ],
+    "on_pass": "ELIGIBLE FOR AN OWNER DECISION on a separate PAPER trial (never automatic)",
+    "on_fail": "FAILED; recorded in FAILED-CANDIDATES.md"
+   }
+  }
+ ]
+}
