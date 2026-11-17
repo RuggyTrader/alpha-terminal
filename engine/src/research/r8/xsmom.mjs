@@ -5,7 +5,8 @@
 const DAY = 86_400_000;
 
 /** series: { [market]: [{t,o,h,l,c}] } (daily, UTC). Returns the equity path, trades, weekly returns and per-market P&L. */
-export function rotate(series, { L, K, from, to, feePct = 0.2, slipPct = 0.05, capital = 100, minNotional = 0.5, rebalanceDays = 7 }) {
+// Optional (round 9 F5): eligible(m, t) filters candidates at a decision; minQty { [m]: qty } adds Kraken order minimums.
+export function rotate(series, { L, K, from, to, feePct = 0.2, slipPct = 0.05, capital = 100, minNotional = 0.5, rebalanceDays = 7, eligible = null, minQty = {} }) {
   const markets = Object.keys(series).sort();
   const byT = {};
   const lastT = {};
@@ -17,7 +18,7 @@ export function rotate(series, { L, K, from, to, feePct = 0.2, slipPct = 0.05, c
   const pos = new Map(); // market -> { qty, cost }
   const pnl = Object.fromEntries(markets.map((m) => [m, 0]));
   const trades = [];
-  let entries = 0, fees = 0, grossTraded = 0, pending = null, investedDays = 0;
+  let skippedMin = 0, entries = 0, fees = 0, grossTraded = 0, pending = null, investedDays = 0;
   const equityAt = (t, field = "c") => cash + [...pos].reduce((a, [m, p]) => { const b = byT[m].get(t) ?? lastBar(m, t); return a + p.qty * (b ? b[field] : 0); }, 0);
   // the latest bar at or before t (a missing day is valued at the previous close, never at zero)
   const lastBar = (m, t) => { for (let k = 1; k <= 3650; k++) { const b = byT[m].get(t - k * DAY); if (b) return b; } return null; };
@@ -41,7 +42,7 @@ export function rotate(series, { L, K, from, to, feePct = 0.2, slipPct = 0.05, c
         const b = byT[m].get(t); if (!b) continue; // no bar today: not bought (never at a stale price)
         const px = b.o * (1 + s), budget = Math.min(eq / K, cash);
         const notional = budget / (1 + f);
-        if (notional < minNotional) continue;
+        if (notional < minNotional || notional / px < (minQty[m] ?? 0)) { skippedMin++; continue; }
         const fee = notional * f, qty = notional / px;
         cash -= notional + fee; fees += fee; grossTraded += notional; entries++;
         pos.set(m, { qty, cost: notional + fee });
@@ -62,6 +63,7 @@ export function rotate(series, { L, K, from, to, feePct = 0.2, slipPct = 0.05, c
       for (const m of markets) {
         const now = byT[m].get(t), then = byT[m].get(t - L * DAY);
         if (!now || !then) continue;
+        if (eligible && !eligible(m, t)) continue;
         const r = now.c / then.c - 1;
         if (r > 0) scored.push([m, r]);
       }
@@ -81,7 +83,7 @@ export function rotate(series, { L, K, from, to, feePct = 0.2, slipPct = 0.05, c
   const final = path.at(-1)?.equity ?? capital;
   const byYear = {};
   for (let i = 1; i < path.length; i++) { const y = new Date(path[i].t).getUTCFullYear(); byYear[y] = (byYear[y] ?? 0) + path[i].equity - path[i - 1].equity; }
-  return { net: final - capital, final, fees, grossTraded, entries, trades, weekly, mdd, pnl, byYear, exposure: investedDays / Math.max(1, days.length), path };
+  return { net: final - capital, final, fees, grossTraded, entries, skippedMin, trades, weekly, mdd, pnl, byYear, exposure: investedDays / Math.max(1, days.length), path };
 }
 
 /** Equal-weight buy-and-hold of the markets with a bar on the first day (bought at that open, marked at the last close). */

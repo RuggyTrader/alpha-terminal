@@ -14,7 +14,7 @@ export function backtest(bars, make, { side = "LONG", capital = 100, riskPct = 2
   const decide = make(bars, side);
   let cash = capital, pos = null, pending = null; // pending: { kind: "ENTER", stop } | { kind: "EXIT" } decided at the previous close
   const trades = [], curve = [];
-  let peak = capital, maxDD = 0, exposed = 0, counted = 0;
+  let peak = capital, maxDD = 0, exposed = 0, counted = 0, signals = 0, skippedMin = 0; // signals: entries attempted; skippedMin: below the exchange minimum
   const close = (i, px, kind) => {
     const exitPx = px, gross = dir * (exitPx - pos.entryPrice) * pos.qty, exitFee = exitPx * pos.qty * fee;
     cash += gross - exitFee;
@@ -30,12 +30,13 @@ export function backtest(bars, make, { side = "LONG", capital = 100, riskPct = 2
         const px = b.o * (1 + dir * slip), risk = Math.abs(px - pending.stop);
         const stopOk = dir === 1 ? pending.stop < px : pending.stop > px;
         if (stopOk && risk > 0) {
+          signals++;
           let qty = Math.min((cash * riskPct / 100) / risk, (cash / (1 + fee)) / px);
           if (qty >= minQty && qty * px >= minNotional && qty > 0) {
             const entryFee = px * qty * fee;
             cash -= entryFee;
             pos = { side, entryIdx: i, entryPrice: px, qty, stop: pending.stop, entryFee, bars: 0 };
-          }
+          } else skippedMin++;
         }
       }
       pending = null;
@@ -60,7 +61,7 @@ export function backtest(bars, make, { side = "LONG", capital = 100, riskPct = 2
   }
   // an open position at the end is closed at the last close (no fee advantage: it pays exit fee and slippage)
   if (pos) close(bars.length - 1, bars.at(-1).c * (1 - dir * slip), "end");
-  return { trades, curve, final: cash, maxDD, exposure: counted ? exposed / counted : 0 };
+  return { trades, curve, final: cash, maxDD, exposure: counted ? exposed / counted : 0, signals, skippedMin };
 }
 
 const sum = (x) => x.reduce((a, b) => a + b, 0);
