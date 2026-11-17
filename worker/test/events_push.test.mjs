@@ -58,7 +58,9 @@ function makeD1({ upTo = 6 } = {}) {
       queries++;
       raw.exec("BEGIN");
       try {
-        const res = list.map((s) => { const r = raw.prepare(s.sql).run(...s.args); return { meta: { changes: Number(r.changes) } }; });
+        // like D1: a SELECT in a batch returns its rows (read paths batch through d1_autobatch.ts)
+        const res = list.map((s) => /^\s*(SELECT|WITH)\b/i.test(s.sql) ? { results: raw.prepare(s.sql).all(...s.args).map((r) => ({ ...r })), meta: {} }
+          : (() => { const r = raw.prepare(s.sql).run(...s.args); return { meta: { changes: Number(r.changes) } }; })());
         raw.exec("COMMIT");
         return res;
       } catch (e) {

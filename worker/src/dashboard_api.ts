@@ -5,6 +5,7 @@ import { allocationPreview, botPendingOrders } from "./bot_ledger";
 import { fleetSection } from "./bots";
 import { botTradeProof, botTrades } from "./bot_trades";
 import { alertPayloads, storyOf } from "./trade_story";
+import { autoBatch } from "./d1_autobatch";
 import { activityFeed } from "./events";
 import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
@@ -1145,7 +1146,30 @@ async function getActivity(
 // FULL DASHBOARD SNAPSHOT
 // ============================================================
 
-async function getDashboardSnapshot(
+// The full snapshot, polled every 7 s by the open app. Same readers and SQL as the reference below, but their reads go
+// through autoBatch: ~25 separate D1 round trips become a few batches (worker/test/dashboard_batched.test.mjs proves the
+// output is identical). The mark refresh (which writes) still runs first and unbatched.
+export async function getDashboardSnapshot(
+  env: DashboardEnv,
+  limit: number
+) {
+  await refreshMarksSafely(env);
+  const DB = autoBatch(env.DB);
+  const benv = { ...env, DB } as DashboardEnv;
+  const [summary, alerts, risk, orders, trades, activity, portfolio] = await Promise.all([
+    getSummary(benv, false),
+    getAlerts(benv, limit),
+    getRiskDecisions(benv, limit),
+    getOrders(benv, limit),
+    getTrades(benv, limit),
+    getActivity(benv, limit),
+    portfolioSection(DB, env as unknown as Record<string, string>),
+  ]);
+  return { ...summary, portfolio, recent: { alerts, risk, orders, trades, activity } };
+}
+
+/** The previous, per-statement implementation: kept as the reference for the equivalence test. */
+export async function getDashboardSnapshotReference(
   env: DashboardEnv,
   limit: number
 ) {

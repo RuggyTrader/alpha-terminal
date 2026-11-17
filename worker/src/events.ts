@@ -10,6 +10,7 @@
 // This module runs AFTER the response (ctx.waitUntil): a failure here never blocks a signal, a fill or ingestion.
 
 import { authorizePaperAction, hasValidSession, sameOriginOk } from "./auth_session";
+import { autoBatch } from "./d1_autobatch";
 import { allowedEndpoint, sendPush, validKeys, type VapidConfig } from "./webpush";
 
 export interface EventsEnv {
@@ -452,11 +453,19 @@ export async function activityFeed(db: D1Database, limit = 30, before: string | 
   // hidden ONLY when its own fill event is in this same response, so an execution never disappears from the feed.
   // Refusals, processing and errors have no fill and are always shown.
   const presented = new Set<string>();
-  if (t.has("trade_events")) {
-    const srcLegacy = `CASE WHEN e.event_key LIKE 'FILL:%' THEN (SELECT pf.alert_id FROM paper_fills pf WHERE pf.id = CAST(substr(e.event_key, 6) AS INTEGER)) END`;
-    const srcBot = t.has("bot_fills") ? `CASE WHEN e.event_key LIKE 'BOTFILL:%' THEN (SELECT bf.fill_id FROM bot_fills bf WHERE bf.id = CAST(substr(e.event_key, 9) AS INTEGER)) END` : "NULL";
-    for (const e of (await db.prepare(`SELECT e.*, ${srcLegacy} AS src_alert, ${srcBot} AS src_order FROM trade_events e WHERE e.kind <> 'TEST'${b ? " AND e.occurred_at <= ?" : ""} ORDER BY ${b ? "e.occurred_at DESC, e.id DESC" : "e.id DESC"} LIMIT ?`)
-      .bind(...(b ? [b, n] : [n])).all<EventRow & { src_alert: string | null; src_order: string | null }>()).results) {
+  const q = autoBatch(db);
+  const srcLegacy = `CASE WHEN e.event_key LIKE 'FILL:%' THEN (SELECT pf.alert_id FROM paper_fills pf WHERE pf.id = CAST(substr(e.event_key, 6) AS INTEGER)) END`;
+  const srcBot = t.has("bot_fills") ? `CASE WHEN e.event_key LIKE 'BOTFILL:%' THEN (SELECT bf.fill_id FROM bot_fills bf WHERE bf.id = CAST(substr(e.event_key, 9) AS INTEGER)) END` : "NULL";
+  const [evR, alR, boR, hb, maR] = await Promise.all([
+    t.has("trade_events") ? q.prepare(`SELECT e.*, ${srcLegacy} AS src_alert, ${srcBot} AS src_order FROM trade_events e WHERE e.kind <> 'TEST'${b ? " AND e.occurred_at <= ?" : ""} ORDER BY ${b ? "e.occurred_at DESC, e.id DESC" : "e.id DESC"} LIMIT ?`)
+      .bind(...(b ? [b, n] : [n])).all<EventRow & { src_alert: string | null; src_order: string | null }>() : null,
+    q.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason FROM alerts${b ? " WHERE received_at <= ?" : ""} ORDER BY ${b ? "received_at DESC, id DESC" : "id DESC"} LIMIT ?`).bind(...(b ? [b, n] : [n])).all<Obj>(),
+    t.has("bot_orders") ? q.prepare(`SELECT o.order_id, o.bot_id, o.action, o.symbol, o.status, o.code, o.message, o.received_at, b.name, b.timeframe_min FROM bot_orders o JOIN bots b ON b.bot_id = o.bot_id${b ? " WHERE o.received_at <= ?" : ""} ORDER BY o.received_at DESC LIMIT ?`).bind(...(b ? [b, n] : [n])).all<Obj>() : null,
+    q.prepare(`SELECT value FROM app_meta WHERE key = 'engine_status'`).first<{ value: string }>(),
+    t.has("mirror_accounts") ? q.prepare(`SELECT account_id, symbol, engine_health_json FROM mirror_accounts`).all<Obj>() : null,
+  ]);
+  if (evR) {
+    for (const e of evR.results) {
       const m = message(e, DEFAULT_PREFS);
       let warm = false;
       try { warm = Boolean(e.detail_json && JSON.parse(e.detail_json)?.warmup_history === true); } catch { warm = false; }
@@ -467,7 +476,7 @@ export async function activityFeed(db: D1Database, limit = 30, before: string | 
         ...(refs.length ? { refs } : {}) });
     }
   }
-  for (const a of (await db.prepare(`SELECT id, alert_id, received_at, symbol, action, status, response_code, rejection_reason FROM alerts${b ? " WHERE received_at <= ?" : ""} ORDER BY ${b ? "received_at DESC, id DESC" : "id DESC"} LIMIT ?`).bind(...(b ? [b, n] : [n])).all<Obj>()).results) {
+  for (const a of alR.results) {
     // ONE status mapping, shared with the Trades page (signalState): processing and error are never shown as accepted.
     const st = signalState(String(a.status), a.response_code === null ? null : String(a.response_code));
     if (st.tone === "ok" && presented.has(String(a.alert_id))) continue; // shown once, as its fill event
@@ -476,8 +485,8 @@ export async function activityFeed(db: D1Database, limit = 30, before: string | 
       url: `/trades?signal=${encodeURIComponent(String(a.alert_id))}` });
   }
   // Fleet bot orders (migration 0007), under the SAME order id the engine, the ledger and the trade proof use.
-  if ((await tables(db)).has("bot_orders")) {
-    for (const o of (await db.prepare(`SELECT o.order_id, o.bot_id, o.action, o.symbol, o.status, o.code, o.message, o.received_at, b.name, b.timeframe_min FROM bot_orders o JOIN bots b ON b.bot_id = o.bot_id${b ? " WHERE o.received_at <= ?" : ""} ORDER BY o.received_at DESC LIMIT ?`).bind(...(b ? [b, n] : [n])).all<Obj>()).results) {
+  if (boR) {
+    for (const o of boR.results) {
       const ok = o.status === "ACCEPTED";
       if (ok && presented.has(String(o.order_id))) continue; // shown once, as its fill event
       items.push({ id: `O${String(o.order_id)}`, at: String(o.received_at), source: "funded", symbol: String(o.symbol),
@@ -486,7 +495,6 @@ export async function activityFeed(db: D1Database, limit = 30, before: string | 
         url: `/bots?bot=${encodeURIComponent(String(o.bot_id))}` });
     }
   }
-  const hb = await db.prepare(`SELECT value FROM app_meta WHERE key = 'engine_status'`).first<{ value: string }>();
   if (hb) {
     try {
       const s = JSON.parse(hb.value) as Obj;
@@ -494,8 +502,8 @@ export async function activityFeed(db: D1Database, limit = 30, before: string | 
         title: `${s.symbol} candle ${String(s.last_candle_time).slice(11, 16)} processed`, outcome: String(s.status_text ?? ""), tone: "muted", url: "/engine" });
     } catch { /* malformed heartbeat: nothing shown */ }
   }
-  if (t.has("mirror_accounts")) {
-    for (const a of (await db.prepare(`SELECT account_id, symbol, engine_health_json FROM mirror_accounts`).all<Obj>()).results) {
+  if (maR) {
+    for (const a of maR.results) {
       let gaps: Obj[] = [];
       try { gaps = (JSON.parse(String(a.engine_health_json ?? "{}")).observation_gaps ?? []) as Obj[]; } catch { gaps = []; }
       for (const g of gaps.slice(-3)) items.push({ id: `G${a.account_id}${g.from}`, at: String(g.processed_at ?? g.to), source: "system", symbol: String(a.symbol),
