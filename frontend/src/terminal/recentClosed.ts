@@ -10,6 +10,7 @@ export interface ClosedCard {
   symbol: string;
   side: "LONG" | "SHORT";
   net: number;               // ledger net after its recorded fees
+  gross: number | null;      // recorded result before fees (null when not recorded)
   /** Net ÷ entry notional (qty × entry price), from the recorded figures; null when they are missing. */
   returnPct: number | null;
   closedAt: string;
@@ -28,7 +29,7 @@ export function closedCards(rows: BotTradeRow[] | null | undefined, max = 4): Cl
     seen.add(key);
     const side = String(r.side).toUpperCase() === "SHORT" ? "SHORT" : "LONG";
     const notional = Number(r.qty) * Number(r.entry_price);
-    out.push({ key, botId: r.bot_id, symbol: r.symbol, side, net: r.net_usd, returnPct: notional > 0 ? (r.net_usd / notional) * 100 : null,
+    out.push({ key, botId: r.bot_id, symbol: r.symbol, side, net: r.net_usd, gross: r.gross_usd ?? null, returnPct: notional > 0 ? (r.net_usd / notional) * 100 : null,
       closedAt: r.closed_at, openedAt: r.opened_at, url: r.proof_url });
   }
   // newest completion first; ties broken by the stable key so the order never flickers between polls

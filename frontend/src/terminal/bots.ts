@@ -30,7 +30,7 @@ export interface BotEngineReport {
   received_at?: string | null;
   position?: { side: string; qty: number; entry: number | null; stop: number | null; tp2?: number | null } | null;
   strategy_state?: StrategyState | null;
-  ledger_check?: { status?: string; issues?: string[] } | null;
+  ledger_check?: { status?: string; issues?: string[]; at?: string | null; entries_paused?: boolean } | null;
   sizing?: { mode?: string; risk_usd?: number | null; capital_usd?: number | null; last?: { status?: string; code?: string | null; qty?: number | null; risk_actual_usd?: number | null; notional_usd?: number | null; capped?: boolean; explanation?: string | null } | null } | null;
   last_error?: { at?: string; message?: string } | null;
 }
@@ -116,7 +116,8 @@ export function botState(b: Pick<Bot, "status" | "timeframe" | "entries_paused" 
   const tf = Number(String(b.timeframe).replace(/\D/g, "")) || 5;
   const age = Math.max(0, (nowMs - at) / 1000);
   const live = age <= tf * 120 + 120 ? "ONLINE" : age <= 1800 ? "STALE" : "OFFLINE";
-  return live === "ONLINE" && b.entries_paused ? "PAUSED" : live;
+  // paused by the Worker owner control, or by the engine's own setting (ENGINE_PAUSED_BOTS, reported in its heartbeat)
+  return live === "ONLINE" && (b.entries_paused || b.engine?.ledger_check?.entries_paused === true) ? "PAUSED" : live;
 }
 
 export const STATE_TONE: Record<BotState, "ok" | "warn" | "bad" | "muted"> = {
@@ -129,9 +130,20 @@ export function botPhase(b: Bot, nowMs: number): { phase: string; detail: string
   if (s === "PROPOSED") return { phase: "Proposed, not running", detail: null, live: false };
   if (s === "DISABLED") return { phase: "Disabled", detail: null, live: false };
   if (s === "NO_REPORT") return { phase: "No engine report yet", detail: null, live: false };
-  if (s === "OFFLINE") return { phase: "Offline", detail: b.engine?.received_at ? `last report ${b.engine.received_at.slice(11, 16)} UTC` : null, live: false };
+  if (s === "OFFLINE") return { phase: "Disconnected", detail: b.engine?.received_at ? `no engine report since ${b.engine.received_at.slice(11, 16)} UTC` : null, live: false };
   const pos = b.open_positions[0];
-  if (pos) return { phase: `Managing ${pos.side}`, detail: `${pos.qty} @ ${pos.entry_price}${pos.stop ? ` · stop ${pos.stop}` : ""}`, live: s === "ONLINE" };
+  const paused = pauseSource(b);
+  if (pos) return { phase: `Managing ${pos.side}${paused ? " (entries paused)" : ""}`, detail: `${pos.qty} @ ${pos.entry_price}${pos.stop ? ` · stop ${pos.stop}` : ""}`, live: s === "ONLINE" };
+  // Paused: the strategy keeps scanning (and may simulate a setup internally), but NOTHING is sent: never show its
+  // internal order as a pending order.
+  if (s === "PAUSED") return { phase: "Paused · scanning only", detail: `new entries paused ${paused}; no orders are sent, exits stay managed`, live: true };
+  if (s === "STALE") return { phase: "Report delayed", detail: b.engine?.received_at ? `last engine report ${b.engine.received_at.slice(11, 16)} UTC` : null, live: false };
+  // Connected, but its market data has stopped advancing (e.g. the exchange feed is late): not "Scanning".
+  const lastCandle = Date.parse(String(b.engine?.last_candle_time ?? ""));
+  const tf = Number(String(b.timeframe).replace(/\D/g, "")) || 5;
+  if (Number.isFinite(lastCandle) && nowMs - lastCandle > (tf * 3 + 3) * 60_000) {
+    return { phase: "Market data delayed", detail: `engine connected; last candle ${String(b.engine?.last_candle_time).slice(11, 16)} UTC`, live: false };
+  }
   // Bot ledger: a position only the engine holds comes from its warm-up history (never sent, never a PAPER trade).
   if (b.ledger_api === "bot" && b.engine?.position) return { phase: "Waiting for the next setup", detail: "the strategy is finishing a trade from its warm-up history (not a PAPER trade)", live: s === "ONLINE" };
   const st = b.engine?.strategy_state;
@@ -140,7 +152,13 @@ export function botPhase(b: Bot, nowMs: number): { phase: string; detail: string
     return { phase: "Limit order pending", detail: `${o.side} ${o.limit === null ? "market" : level(o.limit, b.symbol)}${o.stop ? ` · stop ${level(o.stop, b.symbol)}` : ""}${o.tp ? ` · target ${level(o.tp, b.symbol)}` : ""}`, live: s === "ONLINE" };
   }
   if (st?.direction) return { phase: `${st.direction} setup forming`, detail: st.setup_bars !== null && st.max_age_bars ? `${st.setup_bars}/${st.max_age_bars} bars` : null, live: s === "ONLINE" };
-  return { phase: s === "STALE" ? "Stale report" : "Scanning", detail: b.engine?.last_candle_time ? `last candle ${b.engine.last_candle_time.slice(11, 16)} UTC` : null, live: s === "ONLINE" };
+  return { phase: "Scanning", detail: b.engine?.last_candle_time ? `last candle ${b.engine.last_candle_time.slice(11, 16)} UTC` : null, live: s === "ONLINE" };
+}
+
+/** Who paused new entries: the owner (Worker control), the engine (ENGINE_PAUSED_BOTS), both, or null. */
+export function pauseSource(b: Pick<Bot, "entries_paused" | "engine">): string | null {
+  const worker = !!b.entries_paused, engine = b.engine?.ledger_check?.entries_paused === true;
+  return worker && engine ? "by the owner and at the engine" : worker ? "by the owner" : engine ? "at the engine" : null;
 }
 
 /** One pipeline line per bot, e.g. "ALPHA 02 · SOLUSD 5m · Limit order pending". */

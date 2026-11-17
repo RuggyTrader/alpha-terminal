@@ -40,7 +40,7 @@ const isoOrNull = (v: unknown): string | null => {
 };
 
 /** Keeps only known fields with the right types; anything else in the payload is dropped. */
-function clean(s: Record<string, unknown>) {
+export function clean(s: Record<string, unknown>) {
   const pos = s.position && typeof s.position === "object" ? (s.position as Record<string, unknown>) : null;
   const trades = s.trades && typeof s.trades === "object" ? (s.trades as Record<string, unknown>) : {};
   const outbox = s.outbox && typeof s.outbox === "object" ? (s.outbox as Record<string, unknown>) : {};
@@ -73,6 +73,8 @@ function clean(s: Record<string, unknown>) {
     ledger_check: chk && ["OK", "DIVERGED", "UNVERIFIED"].includes(String(chk.status)) ? {
       status: String(chk.status), at: isoOrNull(chk.at),
       issues: Array.isArray(chk.issues) ? chk.issues.slice(0, 5).map((x) => str(x, 200)).filter((x): x is string => x !== null) : [],
+      // the engine's own entry pause (ENGINE_PAUSED_BOTS), so the dashboard can show it; display only
+      ...(chk.entries_paused === true ? { entries_paused: true } : {}),
     } : null,
     last_rejection: rej ? { id: str(rej.id, 80), action: str(rej.action, 8), status: str(rej.status, 12), code: str(rej.code, 40), reason: str(rej.reason, 200) } : null,
     last_error: err ? { at: isoOrNull(err.at), where: str(err.where, 20), message: str(err.message, 200) } : null,

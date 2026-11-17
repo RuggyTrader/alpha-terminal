@@ -5,7 +5,7 @@
 // transfers, restarts or live trading — those live in authenticated controls. Text typed by the user is matched, never
 // executed or interpreted as instructions.
 
-import { botPhase, botState, type Bot, type Fleet } from "./bots";
+import { botPhase, botState, engineStatus, type Bot, type Fleet } from "./bots";
 import { BOT_DISPLAY, displayName } from "./botNames";
 import type { ClosedCard } from "./recentClosed";
 
@@ -75,6 +75,43 @@ export function answer(question: string, fleet: Fleet | null, nowMs: number, con
       evidence: ranked.map((b) => ({ label: b.bot_id, value: `net ${sgn(b.paper.net_usd)} · gross ${sgn(b.paper.gross_usd)} · fees ${usd(b.paper.fees_usd)} · PF ${b.paper.profit_factor?.toFixed(2) ?? "n/a"} · ${b.paper.trades} trades` })), known: true };
   }
 
+  // Pause state: both layers, from the records (the Worker's owner flag and the engine's own reported setting).
+  if (!bot && /\bpaus/.test(s)) {
+    const rows = active.map((b) => ({ b, worker: b.entries_paused, engine: b.engine?.ledger_check?.entries_paused === true }));
+    const paused = rows.filter((r) => r.worker || r.engine);
+    if (!paused.length) return { text: "No bot has new entries paused in the records I have.", evidence: rows.map((r) => ({ label: r.b.name, value: "entries enabled (Worker and engine)" })), known: true };
+    return { text: paused.map((r) => `${r.b.name}: new entries paused${r.worker && r.engine ? " (Worker and engine)" : r.engine ? " by the engine (the Worker's owner pause is not set)" : " by the Worker owner control"}; exits and stop management continue.`).join(" "),
+      evidence: rows.map((r) => ({ label: r.b.name, value: `Worker pause ${r.worker ? "on" : "off"} · engine pause ${r.engine ? "on" : "off"}` })), known: true };
+  }
+  // Reliability: per-bot engine report age, market data, ledger reconciliation (never "online" from reachability alone).
+  if (!bot && /\b(stale|reconcil|mismatch|diverg|health|reliab|outage|downtime|working properly|any problems?|issues?)\b/.test(s)) {
+    const lines = active.map((b) => {
+      const es = engineStatus(b, nowMs), lc = b.engine?.ledger_check;
+      const ledger = lc ? `ledger check ${lc.status}${lc.issues?.length ? ` (${lc.issues[0]})` : ""}` : "no ledger check reported";
+      return `${b.name}: ${es.label} (${botPhase(b, nowMs).phase}); ${ledger}; last engine report ${b.engine?.received_at ? b.engine.received_at.slice(0, 16).replace("T", " ") + " UTC" : "none"}.`;
+    });
+    return { text: lines.join(" "), evidence: active.map((b) => ({ label: b.name, value: engineStatus(b, nowMs).detail })), known: true };
+  }
+  // Fee drag over the loaded closed trades: which trades were profitable before fees but not after.
+  if (!bot && /(before fees|fee drag|eaten by fees|fees? (cost|ate|took)|gross)/.test(s)) {
+    const rows = extra.closed;
+    if (!rows) return { text: `${UNKNOWN} The trade history has not loaded yet.`, evidence: [], known: false };
+    const t = groupTotalsOf(active);
+    if (!t.trades) return { text: "No funded trade has closed yet.", evidence: [], known: true };
+    const flipped = rows.filter((c) => c.gross !== null && c.gross !== undefined && c.gross > 0 && c.net <= 0);
+    return { text: `Across ${t.trades} closed funded trades the bots made ${sgn(t.gross)} before fees and paid ${usd(t.fees)} in fees, for ${sgn(t.net)} net.${t.gross > 0 ? ` Fees took ${((t.fees / t.gross) * 100).toFixed(0)}% of the gross result.` : ""}${flipped.length ? ` ${flipped.length} of the ${rows.length} loaded trades were profitable before fees and lost after them.` : ""}`,
+      evidence: active.map((b) => ({ label: b.name, value: `gross ${sgn(b.paper.gross_usd)} · fees ${usd(b.paper.fees_usd)} · net ${sgn(b.paper.net_usd)}` })), known: true };
+  }
+  // Research history (backtests and research reports, never forward or live results).
+  if (!bot && /(research|backtest|why.*(ote|strateg).*(fail|los|not work)|strategy (results|findings)|profitable strategy)/.test(s)) {
+    return { text: "Historical research only (backtests, not PAPER or live results): every OTE / Fibonacci variant tested in rounds 1–6 failed out of sample; on independent 5m data it lost even before fees (round 6). In round 7, long-only trend (Donchian) and momentum rules were positive out of sample but concentrated in a few large trends, so they are INCONCLUSIVE, not validated. Round 8 (momentum rotation) FAILED. Round 9 (five families on 15 untouched markets, sized for the real ~$20 wallets) found no passing strategy: the regime-filtered Donchian breakout was the most robust but is INCONCLUSIVE, and about 90% of its signals are below Kraken order minimums at $20. No strategy has met the pre-registered acceptance criteria.",
+      evidence: [{ label: "Round 6", value: "docs/research/round6/REPORT.md" }, { label: "Round 7", value: "docs/research/round7/REPORT.md" }, { label: "Round 9", value: "docs/research/round9/REPORT.md" }, { label: "Mission", value: "docs/research/STRATEGY-DISCOVERY-MISSION.md" }, { label: "Registry", value: "docs/research/registry/COMPARISON.md" }], known: true };
+  }
+  if (!bot && /\blast (update|verified|refresh)|how (old|fresh|recent)\b/.test(s)) {
+    return { text: `The fleet records were generated at ${fleet.generated_at ? fleet.generated_at.slice(0, 19).replace("T", " ") + " UTC" : "an unknown time"}. ${active.map((b) => `${b.name}'s last engine report: ${b.engine?.received_at ? b.engine.received_at.slice(11, 19) + " UTC" : "none"}`).join("; ")}.`,
+      evidence: [{ label: "Fleet snapshot", value: fleet.generated_at ?? "unknown" }], known: true };
+  }
+
   // Portfolio-level questions (funded PAPER, the bots' own ledger figures; mirror and research never included)
   if (!bot && /\b(portfolio|account|overall|total|my p&l|my pnl)\b/.test(s) && /\b(down|up|losing|lost|negative|why|how)\b/.test(s) && !/offline|online|running|alive|stale/.test(s)) {
     const t = groupTotalsOf(active);
@@ -110,8 +147,9 @@ export function answer(question: string, fleet: Fleet | null, nowMs: number, con
   }
 
   // Engine health
-  if (/offline|online|down|running|alive|stale/.test(s) && !bot) {
-    return { text: active.map((b) => `${b.name}: ${botState(b, nowMs)}`).join(" · "), evidence: active.map((b) => ({ label: b.bot_id, value: `last report ${b.engine?.received_at ?? "none"} · last candle ${b.engine?.last_candle_time ?? "none"}` })), known: true };
+  if (/offline|online|down|running|alive|stale|disconnect|delayed|outage/.test(s) && !bot) {
+    // the phase distinguishes a disconnected engine, a delayed report, delayed market data and a paused (still scanning) bot
+    return { text: active.map((b) => { const ph = botPhase(b, nowMs); return `${b.name}: ${ph.phase}${ph.detail ? ` (${ph.detail})` : ""}`; }).join(" · "), evidence: active.map((b) => ({ label: b.bot_id, value: `last report ${b.engine?.received_at ?? "none"} · last candle ${b.engine?.last_candle_time ?? "none"}` })), known: true };
   }
   if (/missing candle|gap/.test(s)) {
     return { text: `${UNKNOWN} The fleet view records each bot's latest processed candle, not a gap list; the Strategy Mirror page lists observation gaps.`, evidence: active.map((b) => ({ label: b.bot_id, value: `last candle ${b.engine?.last_candle_time ?? "none"}` })), known: false };

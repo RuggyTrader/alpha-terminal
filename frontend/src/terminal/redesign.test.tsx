@@ -206,3 +206,37 @@ describe("navigation and scalability", () => {
     expect(many.filter((b) => matchesStatus(b, "attention", NOW)).length).toBe(0);
   });
 });
+
+describe("assistant: pause, reliability, fee drag, research, freshness (records only)", () => {
+  const paused = bot({ bot_id: "ALPHA-01", name: "SOL Flare", timeframe: "1m", engine: { ...bot().engine!, last_candle_time: "2026-11-16T04:58:00Z", ledger_check: { status: "OK", issues: [], entries_paused: true } } });
+  const diverged = bot({ bot_id: "ALPHA-03", name: "BTC Hash", group: "BITCOIN", symbol: "BTCUSD", timeframe: "1m", engine: { ...bot().engine!, last_candle_time: "2026-11-16T04:58:00Z", ledger_check: { status: "DIVERGED", issues: ["the ledger has a pending order X that the engine is not working; cancelling it"] } },
+    paper: { ...PAPER0, trades: 2, gross_usd: 0.1, fees_usd: 0.16, net_usd: -0.06 } });
+  const f = fleet([paused, diverged, bot()]);
+  it("reports both pause layers truthfully; the engine pause shows the bot as PAUSED", () => {
+    const a = answer("Which bots are paused?", f, NOW);
+    expect(a.text).toContain("SOL Flare: new entries paused by the engine (the Worker's owner pause is not set)");
+    expect(a.text).not.toContain("BTC Hash: new entries paused");
+    expect(matchesStatus(paused, "attention", NOW)).toBe(true);
+  });
+  it("reliability lists each bot's status and ledger reconciliation, including issues", () => {
+    const a = answer("Are there any problems?", f, NOW);
+    expect(a.text).toContain("BTC Hash");
+    expect(a.text).toContain("ledger check DIVERGED (the ledger has a pending order X");
+  });
+  it("fee drag uses the recorded gross and fees; says when history is missing", () => {
+    expect(answer("How much did fees eat before fees?", f, NOW).known).toBe(false);
+    const c = closedCards([row({ trade_id: "F1", gross_usd: 0.066, net_usd: -0.013 }), row({ trade_id: "F2", gross_usd: -0.03, net_usd: -0.11, closed_at: "2026-11-16T03:00:00Z" })]);
+    const t = answer("What is my fee drag?", f, NOW, null, { closed: c }).text;
+    expect(t).toContain("made +$0.10 before fees and paid $0.16 in fees");
+    expect(t).toContain("1 of the 2 loaded trades were profitable before fees and lost after them");
+  });
+  it("research answers are labelled historical and cite the reports; no profitability claim", () => {
+    const a = answer("Why did the OTE strategy fail?", f, NOW);
+    expect(a.text).toMatch(/Historical research only/);
+    expect(a.text).toMatch(/INCONCLUSIVE, not validated/);
+    expect(a.evidence.some((e) => /round7/.test(e.value))).toBe(true);
+  });
+  it("freshness answer gives the snapshot and engine report times", () => {
+    expect(answer("When was the last update?", f, NOW).text).toContain("2026-11-16 05:00:00 UTC");
+  });
+});

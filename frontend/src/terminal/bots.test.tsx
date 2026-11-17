@@ -51,6 +51,28 @@ describe("bot state comes from the bot's own telemetry only", () => {
     const pos = bot({ open_positions: [{ trade_id: "T1", symbol: "SOLUSD", side: "SHORT", qty: 0.5, entry_price: 157, stop: 160, tp: 149, collateral_usd: 78.5, opened_at: "2026-11-12T05:40:00Z", mark_price: 156, mark_at: null }] });
     expect(pipelineLine(pos, NOW)).toBe("ALPHA 02 · SOLUSD 5m · Managing SHORT");
   });
+  it("paused, scanning, delayed data, delayed report and disconnected are told apart (2026-11-17)", () => {
+    const pendingSetup = { direction: "LONG" as const, leg_start: 140, leg_end: 150, setup_bars: 3, max_age_bars: 50, pending_order: { side: "LONG" as const, qty: 0.5, limit: 145, stop: 140, tp: 155 }, current_stop: null, break_even_done: false, trailing: false };
+    // engine-paused bot whose strategy simulates an order internally: NOT shown as a pending order
+    const ep = bot({ engine: { ...bot().engine, strategy_state: pendingSetup, ledger_check: { status: "OK", entries_paused: true } } });
+    expect(botPhase(ep, NOW).phase).toBe("Paused · scanning only");
+    expect(botPhase(ep, NOW).detail).toContain("at the engine");
+    expect(botPhase(ep, NOW).detail).toContain("no orders are sent");
+    expect(botPhase(bot({ entries_paused: true }), NOW).detail).toContain("by the owner");
+    expect(botPhase(bot({ entries_paused: true, engine: { ...bot().engine, ledger_check: { entries_paused: true } } }), NOW).detail).toContain("by the owner and at the engine");
+    // paused with an open position: still managed
+    const posP = bot({ entries_paused: true, open_positions: [{ trade_id: "T1", symbol: "SOLUSD", side: "LONG", qty: 0.5, entry_price: 145, stop: 140, tp: 155, collateral_usd: 72.5, opened_at: "2026-11-12T05:40:00Z", mark_price: 146, mark_at: null }] });
+    expect(botPhase(posP, NOW).phase).toBe("Managing LONG (entries paused)");
+    // connected (fresh report) but the last candle is old: market data delayed, not "Scanning"
+    expect(botPhase(bot({ engine: { ...bot().engine, last_candle_time: "2026-11-12T05:30:00Z" } }), NOW).phase).toBe("Market data delayed");
+    expect(botPhase(bot({ engine: { ...bot().engine, last_candle_time: "2026-11-12T05:45:00Z" } }), NOW).phase).toBe("Scanning");
+    // report older than two candles: delayed; older than 30 min: disconnected
+    expect(botPhase(bot({ engine: { ...bot().engine, received_at: "2026-11-12T05:45:00Z" } }), NOW).phase).toBe("Report delayed");
+    const off = botPhase(bot({ engine: { ...bot().engine, received_at: "2026-11-12T05:00:00Z" } }), NOW);
+    expect(off.phase).toBe("Disconnected");
+    expect(off.detail).toBe("no engine report since 05:00 UTC");
+    expect(off.live).toBe(false);
+  });
   it("group totals add funded PAPER figures only, never the mirror", () => {
     const a = bot({ paper: { ...PAPER0, trades: 2, gross_usd: 3, fees_usd: 1, net_usd: 2 }, mirror: [{ account_id: "m", trades: 40, gross: 300, net_modelled: -100, last_candle_time: null, hypothetical: true }] });
     const b = bot({ bot_id: "ALPHA-01", paper: { ...PAPER0, trades: 1, gross_usd: -1, fees_usd: 0.5, net_usd: -1.5 } });
@@ -219,5 +241,36 @@ describe("a position only the engine holds (warm-up history, production ALPHA-03
     const out = html(b);
     expect(out).not.toContain("Position open");
     expect(out).toContain("warm-up history (not a PAPER trade)");
+  });
+});
+
+describe("current fleet situation (2026-11-17): engine-paused pair with the Worker pause pending", () => {
+  const engineOk = bot().engine!;
+  const fleetNow = [
+    bot({ bot_id: "ALPHA-01", name: "ALPHA 01", timeframe: "1m", ledger_api: "bot", entries_paused: false, engine: { ...engineOk, last_candle_time: "2026-11-12T05:58:00Z", ledger_check: { status: "OK", entries_paused: true },
+      strategy_state: { direction: "LONG", leg_start: 1, leg_end: 2, setup_bars: 1, max_age_bars: 9, pending_order: { side: "LONG" as const, qty: 1, limit: 145, stop: 140, tp: 155 }, current_stop: null, break_even_done: false, trailing: false } } }),
+    bot({ bot_id: "ALPHA-02", name: "ALPHA 02", ledger_api: "bot", engine: { ...engineOk, last_candle_time: "2026-11-12T05:20:00Z" } }), // connected, candles stopped
+    bot({ bot_id: "ALPHA-03", name: "ALPHA 03", symbol: "BTCUSD", timeframe: "1m", ledger_api: "bot", entries_paused: false, engine: { ...engineOk, last_candle_time: "2026-11-12T05:58:00Z", ledger_check: { status: "OK", entries_paused: true } } }),
+    bot({ bot_id: "ALPHA-04", name: "ALPHA 04", symbol: "BTCUSD", ledger_api: "bot", engine: { ...engineOk, received_at: "2026-11-12T04:30:00Z" } }), // no report for 90 min
+  ];
+  it("SOL Flare and BTC Hash read 'Paused · scanning only' at the engine, never a pending order, while the Worker pause is off", () => {
+    for (const b of [fleetNow[0], fleetNow[2]]) {
+      const p = botPhase(b, NOW);
+      expect(p.phase).toBe("Paused · scanning only");
+      expect(p.detail).toContain("at the engine");
+      expect(p.detail).not.toContain("by the owner");
+    }
+  });
+  it("the assistant tells paused, delayed market data and a disconnected engine apart, from the records", () => {
+    const t = answer("Is any bot offline or disconnected?", fleet(fleetNow), NOW).text;
+    expect(t).toMatch(/Paused · scanning only \(new entries paused at the engine/);
+    expect(t).toContain("Market data delayed");
+    expect(t).toContain("Disconnected (no engine report since 04:30 UTC)");
+  });
+  it("the research answer reports round 9 and never claims a validated strategy", () => {
+    const a = answer("Did the research find a profitable strategy?", fleet(fleetNow), NOW);
+    expect(a.text).toContain("Round 9");
+    expect(a.text).toContain("No strategy has met the pre-registered acceptance criteria");
+    expect(a.evidence.map((e) => e.value)).toContain("docs/research/STRATEGY-DISCOVERY-MISSION.md");
   });
 });
