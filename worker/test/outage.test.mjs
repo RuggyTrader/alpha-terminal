@@ -10,7 +10,7 @@ import { loadHandlers, makeD1 } from "../scripts/dashboard-profile.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 let O;
-before(async () => { O = await loadHandlers("./src/outage", ["checkEngineOutages", "assess", "offlineAfterMs", "recentOutages"]); });
+before(async () => { O = await loadHandlers("./src/outage", ["checkEngineOutages", "assess", "offlineAfterMs", "recentOutages", "outageStatus"]); });
 
 const NOW = Date.parse("2026-11-17T02:00:00Z"), MIN = 60_000;
 const iso = (ms) => new Date(ms).toISOString();
@@ -35,6 +35,8 @@ describe("engine outage detection", () => {
     assert.equal(O.assess({ received_at: iso(NOW - 16 * MIN), last_candle_time: iso(NOW - 20 * MIN) }, 5, NOW), "ENGINE_OFFLINE");
     assert.equal(O.assess({ received_at: iso(NOW - 1 * MIN), last_candle_time: iso(NOW - 25 * MIN) }, 5, NOW), "MARKET_DATA_STALE");
     assert.equal(O.assess({ received_at: iso(NOW - 1 * MIN), last_candle_time: iso(NOW - 6 * MIN) }, 5, NOW), null);
+    assert.equal(O.assess({ received_at: iso(NOW - 13 * MIN), last_candle_time: iso(NOW - 14 * MIN) }, 5, NOW), "REPORT_DELAYED");
+    assert.equal(O.assess({ received_at: iso(NOW - 5 * MIN), last_candle_time: iso(NOW - 5 * MIN) }, 1, NOW), "REPORT_DELAYED");
   });
   it("healthy fleet (including an engine-paused bot that keeps reporting): nothing opened, nothing sent", async () => {
     const w = world();
@@ -89,6 +91,31 @@ describe("engine outage detection", () => {
   });
 });
 
+describe("reporting delayed, escalation and the live classification", () => {
+  it("a late report is RECORDED but never pushed; if it continues it escalates to ENGINE_OFFLINE, which is pushed once", async () => {
+    const w = world();
+    for (const b of ["ALPHA-01", "ALPHA-02", "ALPHA-03"]) w.report(b, 1, 2);
+    w.report("ALPHA-04", 13, 14); // 5m bot: delayed (> 12 min), not offline (<= 15 min)
+    await w.run();
+    assert.deepEqual(w.rows().map((x) => [x.bot_id, x.kind, x.ended_at === null]), [["ALPHA-04", "REPORT_DELAYED", true]]);
+    assert.equal(w.sent.length, 0, "no push for a delayed report");
+    await w.run(NOW + 3 * MIN); // now 16 min without a report: offline
+    const r = w.rows();
+    assert.deepEqual(r.map((x) => [x.kind, x.ended_at === null]), [["REPORT_DELAYED", false], ["ENGINE_OFFLINE", true]]);
+    assert.equal(w.sent.length, 2, "one offline alert per device");
+    assert.match(w.sent[0].title, /engine offline · BTC Atlas/);
+  });
+  it("classification: ONLINE, PAUSED (engine reporting), REPORT_DELAYED, MARKET_DATA_STALE, ENGINE_OFFLINE", async () => {
+    const w = world();
+    w.report("ALPHA-01", 1, 2, { ledger_check: { entries_paused: true } });
+    w.report("ALPHA-02", 1, 30);
+    w.report("ALPHA-03", 5, 6);
+    w.report("ALPHA-04", 40, 41);
+    const s = Object.fromEntries((await O.outageStatus(w.db, NOW)).map((x) => [x.bot_id, x.state]));
+    assert.deepEqual(s, { "ALPHA-01": "PAUSED", "ALPHA-02": "MARKET_DATA_STALE", "ALPHA-03": "REPORT_DELAYED", "ALPHA-04": "ENGINE_OFFLINE" });
+  });
+});
+
 describe("migration 0009 is purely additive", () => {
   it("every table and index from 0001-0008 is unchanged; it adds only engine_outages and its index", () => {
     const files = readdirSync(join(ROOT, "migrations")).filter((f) => /^\d{4}_/.test(f)).sort();
@@ -100,5 +127,23 @@ describe("migration 0009 is purely additive", () => {
     assert.deepEqual(after.filter((x) => !/engine_outages/.test(x.name)), before);
     assert.deepEqual(after.filter((x) => /engine_outages/.test(x.name)).map((x) => x.name).sort(), ["engine_outages", "idx_engine_outages_open"]);
     assert.doesNotMatch(readFileSync(join(ROOT, "migrations", "0009_engine_outages.sql"), "utf8"), /\b(DROP|ALTER|DELETE|UPDATE|INSERT)\b/i);
+  });
+});
+
+describe("GET /api/dashboard/outages", () => {
+  it("is protected (401 without credentials) and read-only; with credentials it returns the classification and episodes", async () => {
+    const H = await loadHandlers("./src/dashboard_api", ["handleDashboardApi"]);
+    const w = world();
+    w.report("ALPHA-01", 1, 2);
+    const env = { DB: w.db, ADMIN_SECRET: "test-only-admin" };
+    const call = (headers, method = "GET") => H.handleDashboardApi(new Request("http://x/api/dashboard/outages", { method, headers }), env, "/api/dashboard/outages", new URLSearchParams());
+    assert.equal((await call({})).status, 401);
+    assert.equal((await call({ "x-admin-secret": "wrong" })).status, 401);
+    assert.equal((await call({ "x-admin-secret": "test-only-admin" }, "POST")).status, 405);
+    const ok = await call({ "x-admin-secret": "test-only-admin" });
+    assert.equal(ok.status, 200);
+    const j = await ok.json();
+    assert.equal(j.data.bots.find((b) => b.bot_id === "ALPHA-01").state, "ONLINE");
+    assert.deepEqual(j.data.episodes, []);
   });
 });

@@ -11,7 +11,9 @@
 import { vapidOf, type EventsEnv } from "./events";
 import { sendPush, type PushOutcome } from "./webpush";
 
-export type OutageKind = "ENGINE_OFFLINE" | "MARKET_DATA_STALE";
+export type OutageKind = "ENGINE_OFFLINE" | "REPORT_DELAYED" | "MARKET_DATA_STALE";
+/** Kinds that notify devices. REPORT_DELAYED is recorded only (it escalates to ENGINE_OFFLINE, which notifies). */
+export const NOTIFY: Record<OutageKind, boolean> = { ENGINE_OFFLINE: true, MARKET_DATA_STALE: true, REPORT_DELAYED: false };
 type Send = (sub: { endpoint: string; p256dh: string; auth: string }, payload: unknown) => Promise<PushOutcome>;
 interface BotRow { bot_id: string; name: string; symbol: string; timeframe_min: number }
 interface OpenRow { id: number; bot_id: string; kind: OutageKind; started_at: string; alerted_at: string | null }
@@ -19,6 +21,8 @@ interface OpenRow { id: number; bot_id: string; kind: OutageKind; started_at: st
 const MIN = 60_000;
 export const offlineAfterMs = (tfMin: number) => Math.max(10 * MIN, 3 * tfMin * MIN);
 export const staleAfterMs = (tfMin: number) => (3 * tfMin + 3) * MIN;
+/** The dashboard's own ONLINE limit (engine_status.ts): two candles + 2 minutes. */
+export const delayedAfterMs = (tfMin: number) => (2 * tfMin + 2) * MIN;
 // Display aliases (frontend/src/terminal/botNames.ts), so a notification names the bot the owner knows.
 export const DISPLAY_NAMES: Record<string, string> = { "ALPHA-01": "SOL Flare", "ALPHA-02": "SOL Orbit", "ALPHA-03": "BTC Hash", "ALPHA-04": "BTC Atlas" };
 const hhmm = (iso: string | null | undefined) => (iso ? `${iso.slice(11, 16)} UTC` : "unknown");
@@ -28,6 +32,7 @@ export function assess(report: { received_at?: string; last_candle_time?: string
   const at = Date.parse(String(report?.received_at ?? ""));
   if (!Number.isFinite(at)) return null; // never reported: not an outage (a bot that has not started)
   if (now - at > offlineAfterMs(tfMin)) return "ENGINE_OFFLINE";
+  if (now - at > delayedAfterMs(tfMin)) return "REPORT_DELAYED";
   const candle = Date.parse(String(report?.last_candle_time ?? ""));
   if (Number.isFinite(candle) && now - candle > staleAfterMs(tfMin)) return "MARKET_DATA_STALE";
   return null;
@@ -56,7 +61,7 @@ export async function checkEngineOutages(env: EventsEnv & { DB: D1Database }, op
   for (const bot of bots) {
     const rep = reports.get(bot.bot_id) ?? null;
     const cond = assess(rep as { received_at?: string; last_candle_time?: string } | null, Number(bot.timeframe_min) || 5, now);
-    for (const kind of ["ENGINE_OFFLINE", "MARKET_DATA_STALE"] as OutageKind[]) {
+    for (const kind of ["ENGINE_OFFLINE", "REPORT_DELAYED", "MARKET_DATA_STALE"] as OutageKind[]) {
       const row = open.find((x) => x.bot_id === bot.bot_id && x.kind === kind);
       if (cond === kind && !row) {
         writes.push(db.prepare(`INSERT OR IGNORE INTO engine_outages (bot_id, kind, started_at, last_report_at) VALUES (?, ?, ?, ?)`).bind(bot.bot_id, kind, iso, (rep?.received_at as string) ?? null));
@@ -64,13 +69,13 @@ export async function checkEngineOutages(env: EventsEnv & { DB: D1Database }, op
         out.opened++;
       } else if (cond !== kind && row) {
         writes.push(db.prepare(`UPDATE engine_outages SET ended_at = ? WHERE id = ? AND ended_at IS NULL`).bind(iso, row.id));
-        if (row.alerted_at) recovered.push({ bot, kind, started: row.started_at });
+        if (row.alerted_at && NOTIFY[kind]) recovered.push({ bot, kind, started: row.started_at });
         out.closed++;
       }
     }
   }
   if (writes.length) await db.batch(writes);
-  if (!newly.length && !recovered.length) return out;
+  if (!newly.some((n) => NOTIFY[n.kind]) && !recovered.length) return out;
 
   // ---- notifications: one message per device per tick, listing every bot affected ----
   const name = (b: BotRow) => (opts.names ?? DISPLAY_NAMES)[b.bot_id] ?? b.name;
@@ -98,10 +103,28 @@ export async function checkEngineOutages(env: EventsEnv & { DB: D1Database }, op
   }
   out.devices = devices;
   const marks: D1PreparedStatement[] = [];
-  for (const n of newly) { marks.push(db.prepare(`UPDATE engine_outages SET alerted_at = ?, alert_devices = ? WHERE bot_id = ? AND kind = ? AND started_at = ?`).bind(iso, devices, n.bot.bot_id, n.kind, iso)); out.alerts++; }
+  for (const n of newly.filter((x) => NOTIFY[x.kind])) { marks.push(db.prepare(`UPDATE engine_outages SET alerted_at = ?, alert_devices = ? WHERE bot_id = ? AND kind = ? AND started_at = ?`).bind(iso, devices, n.bot.bot_id, n.kind, iso)); out.alerts++; }
   for (const r of recovered) { marks.push(db.prepare(`UPDATE engine_outages SET recovery_alerted_at = ? WHERE bot_id = ? AND kind = ? AND started_at = ?`).bind(iso, r.bot.bot_id, r.kind, r.started)); out.recoveries++; }
   if (marks.length) await db.batch(marks);
   return out;
+}
+
+/** Current classification of every ACTIVE bot (read-only): ONLINE, PAUSED (entries paused, engine reporting),
+ *  REPORT_DELAYED, MARKET_DATA_STALE, ENGINE_OFFLINE or NO_REPORT. */
+export async function outageStatus(db: D1Database, now = Date.now()) {
+  const [b, r] = await db.batch([
+    db.prepare(`SELECT bot_id, name, timeframe_min, entries_paused FROM bots WHERE status = 'ACTIVE' ORDER BY bot_id`),
+    db.prepare(`SELECT key, value FROM app_meta WHERE key LIKE 'engine_status:%'`),
+  ]);
+  const reps = new Map((r.results ?? []).map((x) => { const row = x as { key: string; value: string }; let v: Record<string, unknown> = {}; try { v = JSON.parse(row.value); } catch { /* ignored */ } return [row.key.slice(14), v]; }));
+  return (b.results ?? []).map((x) => {
+    const bot = x as { bot_id: string; name: string; timeframe_min: number; entries_paused: number };
+    const rep = reps.get(bot.bot_id) as { received_at?: string; last_candle_time?: string; ledger_check?: { entries_paused?: boolean } } | undefined;
+    const cond = assess(rep ?? null, Number(bot.timeframe_min) || 5, now);
+    const paused = !!bot.entries_paused || rep?.ledger_check?.entries_paused === true;
+    return { bot_id: bot.bot_id, name: DISPLAY_NAMES[bot.bot_id] ?? bot.name, state: !rep ? "NO_REPORT" : cond ?? (paused ? "PAUSED" : "ONLINE"), paused,
+      last_report_at: rep?.received_at ?? null, last_candle_time: rep?.last_candle_time ?? null };
+  });
 }
 
 /** Recent episodes for the dashboard / assistant (read-only). */

@@ -6,6 +6,7 @@ import { fleetSection } from "./bots";
 import { botTradeProof, botTrades } from "./bot_trades";
 import { alertPayloads, storyOf } from "./trade_story";
 import { autoBatch } from "./d1_autobatch";
+import { outageStatus, recentOutages } from "./outage";
 import { activityFeed } from "./events";
 import { mirrorDashboard, mirrorOverview, mirrorTradeProof, mirrorTrades } from "./mirror";
 import {
@@ -1324,6 +1325,10 @@ export async function handleDashboardApi(
     // Forward PAPER trial (isolated research account, never part of the portfolio). Read-only.
     if (pathname === "/api/dashboard/trial") {
       return json({ ok: true, data: await trialReport(env.DB) });
+    }
+    if (pathname === "/api/dashboard/outages") {
+      // engine outage monitor (outage.ts): current classification + recent episodes; read-only, admin session required above
+      return json({ ok: true, data: { generated_at: new Date().toISOString(), bots: await outageStatus(env.DB), episodes: await recentOutages(env.DB) } });
     }
     if (pathname === "/api/dashboard/bots") {
       return json({ ok: true, data: await fleetSection(env.DB) });
