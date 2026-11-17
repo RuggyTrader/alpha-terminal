@@ -82,3 +82,15 @@ All four configurations are reported.
 - **Fail:** FAILED, recorded in `FAILED-CANDIDATES.md` and in the registry.
 - **Partly positive but failing a gate:** INCONCLUSIVE.
 - **Not allowed:** changing a threshold, a market, a period or the grid after results, or re-running with new settings to rescue the result.
+
+## Addendum A1 (2026-11-17, after the download, BEFORE any run)
+
+The download showed:
+- **NEAR** history starts 2022-09-01 and **SAND** 2022-05-26. Both are excluded by the data rule above, leaving **10 independent markets**.
+- **MKR** history ends 2026-01-12, when Coinbase stopped the product.
+
+**A mechanical rule was needed for data that ends.** It was fixed before any round-8 result was seen:
+- A held market whose data ends is **sold at its last available close**, with the selected costs, and is no longer eligible.
+- A missing day is valued at the previous close.
+
+No threshold, market list, period or grid was changed.
