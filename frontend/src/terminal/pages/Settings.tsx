@@ -157,6 +157,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
         <div className="li"><span>Engine diagnostics (host, supervisor, ledger check, health)</span><Link className="link" to="/engine">Engine →</Link></div>
         <div className="li"><span>Research: Strategy Mirror and hypothetical comparisons (never actual PAPER results)</span><Link className="link" to="/research">Research →</Link></div>
         <div className="li"><span>Research trial: {TRIAL_DISPLAY_NAME} (BTC daily trend forward trial, its own research account)</span><Link className="link" to="/research/trial">Trial →</Link></div>
+        <div className="li"><span>Research: S3 shadow test (simulated research account, BTC + ETH; start it here)</span><Link className="link" to="/research/trial">S3 shadow →</Link></div>
         <Fold title="Execution costs (read-only)">
           <Row k="Bot ledger fee model">Ndax-equivalent 0.20% per fill</Row>
           {!p ? <Row k="Legacy cost profile">{NA}</Row>
