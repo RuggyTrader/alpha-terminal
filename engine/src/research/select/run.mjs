@@ -28,8 +28,8 @@ const CANDIDATES = {
 const scaled = (rule, f) => (bars) => { const d = rule(bars); return (i) => { const w = d(i); return w === null || w === undefined ? w : w * f; }; };
 
 /** $100 shared portfolio, equal sleeves; returns portfolio metrics. */
-function portfolio(markets, rule, [from, to], cost, { threshold = 0, capital = 100, bandOnActual = false } = {}) {
-  const per = capital / markets.length, sleeves = markets.map((m) => ({ m, r: runSleeve(series(m), rule, { capital: per, from, to, threshold, bandOnActual, ...cost, minQty: KMIN[m][0], minNotional: KMIN[m][1] }) }));
+function portfolio(markets, rule, [from, to], cost, { threshold = 0, capital = 100, bandOnActual = false, skipInfeasible = false, minUsdBy = null } = {}) {
+  const per = capital / markets.length, sleeves = markets.map((m) => ({ m, r: runSleeve(series(m), rule, { capital: per, from, to, threshold, bandOnActual, skipInfeasible, minUsd: minUsdBy?.[m] ?? 0, ...cost, minQty: KMIN[m][0], minNotional: KMIN[m][1] }) }));
   const days = []; for (let t = Math.ceil(from / DAY) * DAY; t < to; t += DAY) days.push(t);
   const maps = sleeves.map((s) => new Map(s.r.curve.map((p) => [p.t, p.eq])));
   const cur = sleeves.map(() => per), eq = [];
@@ -102,6 +102,20 @@ const lastClose = (m) => series(m).at(-1).c;
 const sleeveNow = (m, n) => (100 / n) * f2;   // the largest position a sleeve would hold at exposure f2
 out.two_pct_drawdown_corrected = { candidate: "S3 (actual-weight band)", exposure_fraction: +f2.toFixed(4), untouched: lean(c2u), seen: lean(c2s),
   kraken_feasibility_at_latest_prices: Object.fromEntries(SM.map((m) => { const minUsd = Math.max(KMIN[m][0] * lastClose(m), KMIN[m][1]); return [m, { max_position_usd: +sleeveNow(m, SM.length).toFixed(2), min_order_usd: +minUsd.toFixed(2), feasible: sleeveNow(m, SM.length) >= minUsd }]; })) };
+// ---- POST-HOC ILLUSTRATIONS (NOT validation: computed after seeing the results; no parameter was chosen from them) ----
+// The forward PAPER trial configuration: BTC + ETH, one shared $100 ($50 sleeves), corrected S3, and TODAY's Kraken
+// minimum order in USD enforced (orders below it are skipped, full exits always allowed). Plus an exposure frontier:
+// the same weights scaled by f, to show what a smaller drawdown costs. These are deterministic scalings, not fits.
+const TRIAL = ["BTC", "ETH"];
+const minUsdBy = Object.fromEntries(TRIAL.map((m) => [m, Math.max(KMIN[m][0] * lastClose(m), KMIN[m][1])]));
+const trialRun = (f, win) => portfolio(TRIAL, f === 1 ? CANDIDATES.S3.rule : scaled(CANDIDATES.S3.rule, f), win, COST.primary, { threshold: 0.1 * f, bandOnActual: true, skipInfeasible: true, minUsdBy });
+out.post_hoc = { note: "NOT independent validation: illustrations computed after the results were known; no parameter was selected from them", minimum_order_usd_today: Object.fromEntries(Object.entries(minUsdBy).map(([k, v]) => [k, +v.toFixed(2)])), frontier: {} };
+for (const f of [1, 0.5, 0.25]) {
+  const u = trialRun(f, UNTOUCHED), s = trialRun(f, SEEN);
+  out.post_hoc.frontier[`exposure_${f}`] = { untouched: { net: u.net, cagr_pct: u.cagr_pct, mdd_pct: u.mdd_pct, sharpe: u.sharpe, orders: u.orders, skipped_below_minimum: u.orders_infeasible },
+    seen_btc_eth: { net: s.net, cagr_pct: s.cagr_pct, mdd_pct: s.mdd_pct, sharpe: s.sharpe, orders: s.orders, skipped_below_minimum: s.orders_infeasible, years: s.years } };
+  console.error(`POST-HOC trial config f=${f}: untouched CAGR ${u.cagr_pct}% MDD ${u.mdd_pct}% Sharpe ${u.sharpe} skipped ${u.orders_infeasible}/${u.orders} | seen(BTC+ETH) CAGR ${s.cagr_pct}% MDD ${s.mdd_pct}% Sharpe ${s.sharpe} skipped ${s.orders_infeasible}/${s.orders}`);
+}
 console.error(`SENSITIVITY S3 actual band: untouched net ${s3u.net} CAGR ${s3u.cagr_pct}% MDD ${s3u.mdd_pct}% Sharpe ${s3u.sharpe} | stress ${s3us.net} | seen ${s3s.net} MDD ${s3s.mdd_pct}% | boot lo ${s3b.lo.toFixed(5)}`);
 console.error(`2% corrected: exposure ${f2.toFixed(4)} -> untouched CAGR ${c2u.cagr_pct}% MDD ${c2u.mdd_pct}% | seen CAGR ${c2s.cagr_pct}% MDD ${c2s.mdd_pct}% | feasibility ${JSON.stringify(out.two_pct_drawdown_corrected.kraken_feasibility_at_latest_prices)}`);
 writeFileSync(arg("out", "select-results.json"), JSON.stringify(out, null, 1));

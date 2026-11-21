@@ -56,6 +56,19 @@ describe("rebalancing band (sensitivity option)", () => {
   });
 });
 
+describe("exchange minimums (execution realism)", () => {
+  it("skipInfeasible: a re-size below the USD minimum is skipped (position unchanged); a full exit is always allowed", () => {
+    const bars = mk(lin(40, 100, 0.1));
+    const plan = () => () => (i) => (i < 1 ? null : i < 20 ? 0.5 : i < 30 ? 0.45 : 0);
+    const r = runSleeve(bars, plan(), { capital: 10, threshold: 0.01, bandOnActual: true, skipInfeasible: true, minUsd: 3 });
+    const resize = r.orders.find((o) => o.side === "SELL" && o.notional < 3);
+    assert.ok(resize && resize.skipped, "the small trim was skipped");
+    const exit = r.orders.at(-1);
+    assert.equal(exit.side, "SELL"); assert.equal(exit.skipped, false, "the full exit went through");
+    assert.ok(Math.abs(r.final - r.curve.at(-1).eq) < 1e-9);
+  });
+});
+
 describe("rules", () => {
   it("S1 holds only above the SMA; S4 exits on the M-day low", () => {
     const bars = mk([...lin(210, 100, 0.5), ...lin(60, 205, -2)]);

@@ -584,5 +584,92 @@
     "feasible": false
    }
   }
+ },
+ "post_hoc": {
+  "note": "NOT independent validation: illustrations computed after the results were known; no parameter was selected from them",
+  "minimum_order_usd_today": {
+   "BTC": 3.85,
+   "ETH": 3.54
+  },
+  "frontier": {
+   "exposure_1": {
+    "untouched": {
+     "net": 2675.02,
+     "cagr_pct": 84.64,
+     "mdd_pct": 40.53,
+     "sharpe": 2.085,
+     "orders": 196,
+     "skipped_below_minimum": 0
+    },
+    "seen_btc_eth": {
+     "net": 101.16,
+     "cagr_pct": 13.66,
+     "mdd_pct": 26.32,
+     "sharpe": 0.604,
+     "orders": 186,
+     "skipped_below_minimum": 16,
+     "years": {
+      "2021": -3.7,
+      "2022": -4.05,
+      "2023": 47.74,
+      "2024": 82.42,
+      "2025": -11.29,
+      "2026": -9.96
+     }
+    }
+   },
+   "exposure_0.5": {
+    "untouched": {
+     "net": 483.02,
+     "cagr_pct": 38.45,
+     "mdd_pct": 21.19,
+     "sharpe": 2.144,
+     "orders": 241,
+     "skipped_below_minimum": 34
+    },
+    "seen_btc_eth": {
+     "net": 50.33,
+     "cagr_pct": 7.75,
+     "mdd_pct": 13.7,
+     "sharpe": 0.601,
+     "orders": 491,
+     "skipped_below_minimum": 345,
+     "years": {
+      "2021": -1.43,
+      "2022": -2.08,
+      "2023": 23.81,
+      "2024": 35.33,
+      "2025": -2.64,
+      "2026": -2.66
+     }
+    }
+   },
+   "exposure_0.25": {
+    "untouched": {
+     "net": 156.72,
+     "cagr_pct": 19,
+     "mdd_pct": 11.17,
+     "sharpe": 2.212,
+     "orders": 661,
+     "skipped_below_minimum": 512
+    },
+    "seen_btc_eth": {
+     "net": 28.4,
+     "cagr_pct": 4.68,
+     "mdd_pct": 7.46,
+     "sharpe": 0.661,
+     "orders": 1315,
+     "skipped_below_minimum": 1216,
+     "years": {
+      "2021": 0.46,
+      "2022": -1.05,
+      "2023": 13.9,
+      "2024": 16.53,
+      "2025": -0.53,
+      "2026": -0.91
+     }
+    }
+   }
+  }
  }
 }

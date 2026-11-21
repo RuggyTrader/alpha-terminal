@@ -7,7 +7,7 @@ export const DAY = 86_400_000;
 // bandOnActual (sensitivity, disclosed after the first run): compare the new target with the position's ACTUAL weight at
 // the decision close (a standard rebalancing band), instead of with the last executed target (the pre-registered
 // implementation, which never re-sizes for price drift).
-export function runSleeve(bars, rule, { capital, from = -Infinity, to = Infinity, feePct = 0.2, slipPct = 0.05, threshold = 0, minQty = 0, minNotional = 0, bandOnActual = false }) {
+export function runSleeve(bars, rule, { capital, from = -Infinity, to = Infinity, feePct = 0.2, slipPct = 0.05, threshold = 0, minQty = 0, minNotional = 0, bandOnActual = false, skipInfeasible = false, minUsd = 0 }) {
   const fee = feePct / 100, slip = slipPct / 100, decide = rule(bars);
   let cash = capital, qty = 0, w = 0, pending = null, open = null;
   const curve = [], trips = [], orders = [];
@@ -24,8 +24,13 @@ export function runSleeve(bars, rule, { capital, from = -Infinity, to = Infinity
         if (buy) dq = Math.min(dq, cash / (px * (1 + fee)));           // never spend cash we do not have
         else dq = Math.min(dq, qty);
         const notional = dq * px, f = notional * fee;
-        orders.push({ t: b.t, side: buy ? "BUY" : "SELL", qty: dq, notional, feasible: dq >= minQty && notional >= minNotional });
-        if (dq > 0) {
+        // minUsd: a fixed USD minimum (e.g. today's Kraken minimum at today's prices) on top of the coin/cost minimums.
+        // A full exit (selling the whole position) is always allowed, as on the exchange a position below the minimum
+        // could otherwise never be closed; only partial re-sizes and entries are skipped.
+        const fullExit = !buy && Math.abs(dq - qty) < 1e-12;
+        const feasible = dq >= minQty && notional >= minNotional && (notional >= minUsd || fullExit);
+        orders.push({ t: b.t, side: buy ? "BUY" : "SELL", qty: dq, notional, feasible, skipped: skipInfeasible && !feasible });
+        if (dq > 0 && !(skipInfeasible && !feasible)) {
           if (buy) { cash -= notional + f; qty += dq; } else { cash += notional - f; qty -= dq; }
           fees += f; traded += notional;
           if (buy && !open) open = { t: b.t, cost: notional + f, proceeds: 0 };
