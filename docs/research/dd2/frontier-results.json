@@ -1,0 +1,1113 @@
+{
+ "generated_by": "engine/src/research/dd2/frontier.mjs",
+ "preregistration": "docs/research/dd2/FRONTIER-PREREGISTRATION.md",
+ "caps": [
+  2,
+  3,
+  5,
+  10,
+  15
+ ],
+ "frontier": [
+  {
+   "cap_pct": 2,
+   "population": {
+    "training_eligible": 472,
+    "consistent_in_val_and_test": 169,
+    "survival_pct": 35.81
+   },
+   "candidates": [
+    {
+     "id": "BTC · M L56 th0.05 k2 trail r0.25% cb0",
+     "train": {
+      "final": 111.52,
+      "net": 11.52,
+      "cagr_pct": 2.2,
+      "dd_pct": 1.717,
+      "trades": 97,
+      "fees": 2.55
+     },
+     "validation": {
+      "final": 102.13,
+      "net": 2.13,
+      "cagr_pct": 0.85,
+      "dd_pct": 1.24,
+      "trades": 20,
+      "fees": 0.63
+     },
+     "test": {
+      "final": 102.57,
+      "net": 2.57,
+      "cagr_pct": 0.75,
+      "dd_pct": 1.524,
+      "trades": 24,
+      "fees": 0.9
+     },
+     "full_2016_2026": {
+      "final": 119.27,
+      "net": 19.27,
+      "cagr_pct": 1.63,
+      "dd_pct": 1.717,
+      "trades": 148,
+      "fees": 4.54
+     },
+     "consistent": true,
+     "decay": 0.34,
+     "neighbours": "2/10",
+     "neighbours_share": 0.2,
+     "p_dd_over_cap": 0.41,
+     "stress_cost_test_net": 2.27,
+     "label": "FRAGILE"
+    },
+    {
+     "id": "BTC+ETH+SOL · B N55 M10 k2 trail r0.25% cb0",
+     "train": {
+      "final": 110.12,
+      "net": 10.12,
+      "cagr_pct": 1.94,
+      "dd_pct": 1.788,
+      "trades": 52,
+      "fees": 1.45
+     },
+     "validation": {
+      "final": 101.8,
+      "net": 1.8,
+      "cagr_pct": 0.72,
+      "dd_pct": 1.253,
+      "trades": 10,
+      "fees": 0.28
+     },
+     "test": {
+      "final": 105.58,
+      "net": 5.58,
+      "cagr_pct": 1.62,
+      "dd_pct": 1.385,
+      "trades": 13,
+      "fees": 0.45
+     },
+     "full_2016_2026": {
+      "final": 117.67,
+      "net": 17.67,
+      "cagr_pct": 1.51,
+      "dd_pct": 1.788,
+      "trades": 80,
+      "fees": 2.43
+     },
+     "consistent": true,
+     "decay": 0.83,
+     "neighbours": "3/9",
+     "neighbours_share": 0.33,
+     "p_dd_over_cap": 0.063,
+     "stress_cost_test_net": 5.45,
+     "label": "FRAGILE"
+    },
+    {
+     "id": "BTC+ETH+SOL · B N55 M20 k2 trail r0.25% cb0",
+     "train": {
+      "final": 110.12,
+      "net": 10.12,
+      "cagr_pct": 1.94,
+      "dd_pct": 1.788,
+      "trades": 52,
+      "fees": 1.45
+     },
+     "validation": {
+      "final": 101.8,
+      "net": 1.8,
+      "cagr_pct": 0.72,
+      "dd_pct": 1.253,
+      "trades": 10,
+      "fees": 0.28
+     },
+     "test": {
+      "final": 106.05,
+      "net": 6.05,
+      "cagr_pct": 1.75,
+      "dd_pct": 1.385,
+      "trades": 13,
+      "fees": 0.46
+     },
+     "full_2016_2026": {
+      "final": 118.2,
+      "net": 18.2,
+      "cagr_pct": 1.55,
+      "dd_pct": 1.788,
+      "trades": 80,
+      "fees": 2.43
+     },
+     "consistent": true,
+     "decay": 0.9,
+     "neighbours": "3/9",
+     "neighbours_share": 0.33,
+     "p_dd_over_cap": 0.051,
+     "stress_cost_test_net": 5.91,
+     "label": "FRAGILE"
+    },
+    {
+     "id": "BTC+ETH+SOL · M L56 th0.05 k1.5 trail r0.1% cb0",
+     "train": {
+      "final": 110.3,
+      "net": 10.3,
+      "cagr_pct": 1.98,
+      "dd_pct": 1.382,
+      "trades": 210,
+      "fees": 2.63
+     },
+     "validation": {
+      "final": 101.64,
+      "net": 1.64,
+      "cagr_pct": 0.65,
+      "dd_pct": 0.787,
+      "trades": 27,
+      "fees": 0.45
+     },
+     "test": {
+      "final": 101.93,
+      "net": 1.93,
+      "cagr_pct": 0.57,
+      "dd_pct": 0.897,
+      "trades": 14,
+      "fees": 0.25
+     },
+     "full_2016_2026": {
+      "final": 116.86,
+      "net": 16.86,
+      "cagr_pct": 1.44,
+      "dd_pct": 1.382,
+      "trades": 257,
+      "fees": 3.5
+     },
+     "consistent": true,
+     "decay": 0.29,
+     "neighbours": "6/8",
+     "neighbours_share": 0.75,
+     "p_dd_over_cap": 0.022,
+     "stress_cost_test_net": 1.86,
+     "label": "ROBUST"
+    },
+    {
+     "id": "BTC · T n20 k2 trail r0.25% cb0",
+     "train": {
+      "final": 108.98,
+      "net": 8.98,
+      "cagr_pct": 1.73,
+      "dd_pct": 1.577,
+      "trades": 88,
+      "fees": 2.62
+     },
+     "validation": {
+      "final": 101.62,
+      "net": 1.62,
+      "cagr_pct": 0.64,
+      "dd_pct": 1.785,
+      "trades": 28,
+      "fees": 0.81
+     },
+     "test": {
+      "final": 102.66,
+      "net": 2.66,
+      "cagr_pct": 0.78,
+      "dd_pct": 1.103,
+      "trades": 27,
+      "fees": 1.04
+     },
+     "full_2016_2026": {
+      "final": 113.39,
+      "net": 13.39,
+      "cagr_pct": 1.16,
+      "dd_pct": 2.061,
+      "trades": 152,
+      "fees": 4.91
+     },
+     "consistent": true,
+     "decay": 0.45,
+     "neighbours": "3/7",
+     "neighbours_share": 0.43,
+     "p_dd_over_cap": 0.533,
+     "stress_cost_test_net": 2.38,
+     "label": "FRAGILE"
+    }
+   ]
+  },
+  {
+   "cap_pct": 3,
+   "population": {
+    "training_eligible": 751,
+    "consistent_in_val_and_test": 321,
+    "survival_pct": 42.74
+   },
+   "candidates": [
+    {
+     "id": "BTC+ETH+SOL · M L14 th0.1 k1.5 trail r0.25% cb0",
+     "train": {
+      "final": 116.58,
+      "net": 16.58,
+      "cagr_pct": 3.11,
+      "dd_pct": 2.868,
+      "trades": 183,
+      "fees": 4.86
+     },
+     "validation": {
+      "final": 107.84,
+      "net": 7.84,
+      "cagr_pct": 3.07,
+      "dd_pct": 2.249,
+      "trades": 50,
+      "fees": 1.43
+     },
+     "test": {
+      "final": 110.44,
+      "net": 10.44,
+      "cagr_pct": 2.98,
+      "dd_pct": 3.197,
+      "trades": 47,
+      "fees": 2.06
+     },
+     "full_2016_2026": {
+      "final": 139.56,
+      "net": 39.56,
+      "cagr_pct": 3.11,
+      "dd_pct": 3.897,
+      "trades": 302,
+      "fees": 9.89
+     },
+     "consistent": false,
+     "decay": 0.96,
+     "neighbours": "2/7",
+     "neighbours_share": 0.29,
+     "p_dd_over_cap": 0.185,
+     "stress_cost_test_net": 9.69,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · B N20 M10 k1.5 trail r0.25% cb0",
+     "train": {
+      "final": 117.17,
+      "net": 17.17,
+      "cagr_pct": 3.22,
+      "dd_pct": 2.111,
+      "trades": 105,
+      "fees": 4.11
+     },
+     "validation": {
+      "final": 107.24,
+      "net": 7.24,
+      "cagr_pct": 2.84,
+      "dd_pct": 2.567,
+      "trades": 32,
+      "fees": 1.1
+     },
+     "test": {
+      "final": 109.71,
+      "net": 9.71,
+      "cagr_pct": 2.78,
+      "dd_pct": 2.664,
+      "trades": 41,
+      "fees": 2.01
+     },
+     "full_2016_2026": {
+      "final": 137.43,
+      "net": 37.43,
+      "cagr_pct": 2.97,
+      "dd_pct": 3.612,
+      "trades": 196,
+      "fees": 8.61
+     },
+     "consistent": true,
+     "decay": 0.86,
+     "neighbours": "5/7",
+     "neighbours_share": 0.71,
+     "p_dd_over_cap": 0.166,
+     "stress_cost_test_net": 8.72,
+     "label": "ROBUST"
+    },
+    {
+     "id": "BTC+ETH+SOL · V n100 tv5% cb1.5",
+     "train": {
+      "final": 119.16,
+      "net": 19.16,
+      "cagr_pct": 3.56,
+      "dd_pct": 2.532,
+      "trades": 238,
+      "fees": 1.96
+     },
+     "validation": {
+      "final": 104.18,
+      "net": 4.18,
+      "cagr_pct": 1.65,
+      "dd_pct": 2.555,
+      "trades": 34,
+      "fees": 0.38
+     },
+     "test": {
+      "final": 97.99,
+      "net": -2.01,
+      "cagr_pct": -0.6,
+      "dd_pct": 2.914,
+      "trades": 38,
+      "fees": 0.65
+     },
+     "full_2016_2026": {
+      "final": 116.12,
+      "net": 16.12,
+      "cagr_pct": 1.38,
+      "dd_pct": 4.929,
+      "trades": 334,
+      "fees": 3.59
+     },
+     "consistent": false,
+     "decay": -0.17,
+     "neighbours": "0/3",
+     "neighbours_share": 0,
+     "p_dd_over_cap": 0.221,
+     "stress_cost_test_net": -2.15,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · T n50 k2 trail r0.25% cb0",
+     "train": {
+      "final": 109.55,
+      "net": 9.55,
+      "cagr_pct": 1.84,
+      "dd_pct": 2.042,
+      "trades": 78,
+      "fees": 1.96
+     },
+     "validation": {
+      "final": 102.65,
+      "net": 2.65,
+      "cagr_pct": 1.05,
+      "dd_pct": 2.34,
+      "trades": 31,
+      "fees": 0.79
+     },
+     "test": {
+      "final": 104.81,
+      "net": 4.81,
+      "cagr_pct": 1.4,
+      "dd_pct": 1.253,
+      "trades": 23,
+      "fees": 0.92
+     },
+     "full_2016_2026": {
+      "final": 120.89,
+      "net": 20.89,
+      "cagr_pct": 1.76,
+      "dd_pct": 2.567,
+      "trades": 143,
+      "fees": 4.24
+     },
+     "consistent": true,
+     "decay": 0.76,
+     "neighbours": "4/8",
+     "neighbours_share": 0.5,
+     "p_dd_over_cap": 0.023,
+     "stress_cost_test_net": 4.54,
+     "label": "ROBUST"
+    },
+    {
+     "id": "BTC+ETH+SOL · T n20 k2 trail r0.25% cb0",
+     "train": {
+      "final": 117.44,
+      "net": 17.44,
+      "cagr_pct": 3.26,
+      "dd_pct": 2.951,
+      "trades": 159,
+      "fees": 4.1
+     },
+     "validation": {
+      "final": 101.93,
+      "net": 1.93,
+      "cagr_pct": 0.77,
+      "dd_pct": 2.701,
+      "trades": 61,
+      "fees": 1.5
+     },
+     "test": {
+      "final": 108.83,
+      "net": 8.83,
+      "cagr_pct": 2.54,
+      "dd_pct": 2.163,
+      "trades": 43,
+      "fees": 1.61
+     },
+     "full_2016_2026": {
+      "final": 141.25,
+      "net": 41.25,
+      "cagr_pct": 3.23,
+      "dd_pct": 4.332,
+      "trades": 310,
+      "fees": 9.67
+     },
+     "consistent": true,
+     "decay": 0.78,
+     "neighbours": "3/7",
+     "neighbours_share": 0.43,
+     "p_dd_over_cap": 0.194,
+     "stress_cost_test_net": 8.38,
+     "label": "FRAGILE"
+    }
+   ]
+  },
+  {
+   "cap_pct": 5,
+   "population": {
+    "training_eligible": 1077,
+    "consistent_in_val_and_test": 501,
+    "survival_pct": 46.52
+   },
+   "candidates": [
+    {
+     "id": "BTC+ETH+SOL · M L56 th0.05 k1.5 trail r0.25% cb0",
+     "train": {
+      "final": 128.82,
+      "net": 28.82,
+      "cagr_pct": 5.19,
+      "dd_pct": 3.422,
+      "trades": 239,
+      "fees": 7.34
+     },
+     "validation": {
+      "final": 106.92,
+      "net": 6.92,
+      "cagr_pct": 2.72,
+      "dd_pct": 3.11,
+      "trades": 68,
+      "fees": 2.28
+     },
+     "test": {
+      "final": 107.72,
+      "net": 7.72,
+      "cagr_pct": 2.23,
+      "dd_pct": 4.185,
+      "trades": 93,
+      "fees": 4.29
+     },
+     "full_2016_2026": {
+      "final": 148.53,
+      "net": 48.53,
+      "cagr_pct": 3.7,
+      "dd_pct": 5.567,
+      "trades": 457,
+      "fees": 18.53
+     },
+     "consistent": true,
+     "decay": 0.43,
+     "neighbours": "4/9",
+     "neighbours_share": 0.44,
+     "p_dd_over_cap": 0.462,
+     "stress_cost_test_net": 6.45,
+     "label": "FRAGILE"
+    },
+    {
+     "id": "BTC+ETH+SOL · M L56 th0 k1.5 trail r0.25% cb0",
+     "train": {
+      "final": 127.73,
+      "net": 27.73,
+      "cagr_pct": 5.01,
+      "dd_pct": 4.382,
+      "trades": 275,
+      "fees": 8.84
+     },
+     "validation": {
+      "final": 106.76,
+      "net": 6.76,
+      "cagr_pct": 2.65,
+      "dd_pct": 4.092,
+      "trades": 88,
+      "fees": 2.92
+     },
+     "test": {
+      "final": 107.51,
+      "net": 7.51,
+      "cagr_pct": 2.17,
+      "dd_pct": 6.19,
+      "trades": 124,
+      "fees": 5.71
+     },
+     "full_2016_2026": {
+      "final": 146.84,
+      "net": 46.84,
+      "cagr_pct": 3.59,
+      "dd_pct": 7.593,
+      "trades": 559,
+      "fees": 23.39
+     },
+     "consistent": false,
+     "decay": 0.43,
+     "neighbours": "3/8",
+     "neighbours_share": 0.38,
+     "p_dd_over_cap": 0.308,
+     "stress_cost_test_net": 6.07,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · V n200 tv5% cb0",
+     "train": {
+      "final": 135.38,
+      "net": 35.38,
+      "cagr_pct": 6.24,
+      "dd_pct": 4.064,
+      "trades": 240,
+      "fees": 1.16
+     },
+     "validation": {
+      "final": 106.33,
+      "net": 6.33,
+      "cagr_pct": 2.49,
+      "dd_pct": 2.831,
+      "trades": 21,
+      "fees": 0.21
+     },
+     "test": {
+      "final": 109.86,
+      "net": 9.86,
+      "cagr_pct": 2.82,
+      "dd_pct": 6.012,
+      "trades": 47,
+      "fees": 0.8
+     },
+     "full_2016_2026": {
+      "final": 153.06,
+      "net": 53.06,
+      "cagr_pct": 3.99,
+      "dd_pct": 6.862,
+      "trades": 322,
+      "fees": 2.59
+     },
+     "consistent": false,
+     "decay": 0.45,
+     "neighbours": "0/3",
+     "neighbours_share": 0,
+     "p_dd_over_cap": 0.003,
+     "stress_cost_test_net": 9.64,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC · B N20 M10 k2 trail r0.5% cb0",
+     "train": {
+      "final": 125.04,
+      "net": 25.04,
+      "cagr_pct": 4.57,
+      "dd_pct": 2.462,
+      "trades": 44,
+      "fees": 3.27
+     },
+     "validation": {
+      "final": 104.25,
+      "net": 4.25,
+      "cagr_pct": 1.68,
+      "dd_pct": 3.692,
+      "trades": 18,
+      "fees": 0.99
+     },
+     "test": {
+      "final": 101.94,
+      "net": 1.94,
+      "cagr_pct": 0.57,
+      "dd_pct": 3.36,
+      "trades": 26,
+      "fees": 1.76
+     },
+     "full_2016_2026": {
+      "final": 132.1,
+      "net": 32.1,
+      "cagr_pct": 2.59,
+      "dd_pct": 3.692,
+      "trades": 90,
+      "fees": 6.89
+     },
+     "consistent": true,
+     "decay": 0.12,
+     "neighbours": "5/8",
+     "neighbours_share": 0.63,
+     "p_dd_over_cap": 0.117,
+     "stress_cost_test_net": 1.43,
+     "label": "FRAGILE"
+    },
+    {
+     "id": "BTC+ETH+SOL · V n100 tv5% cb0",
+     "train": {
+      "final": 133.86,
+      "net": 33.86,
+      "cagr_pct": 6,
+      "dd_pct": 3.025,
+      "trades": 290,
+      "fees": 2.09
+     },
+     "validation": {
+      "final": 103.45,
+      "net": 3.45,
+      "cagr_pct": 1.37,
+      "dd_pct": 4.029,
+      "trades": 61,
+      "fees": 0.75
+     },
+     "test": {
+      "final": 114.26,
+      "net": 14.26,
+      "cagr_pct": 4.02,
+      "dd_pct": 5.615,
+      "trades": 62,
+      "fees": 1.15
+     },
+     "full_2016_2026": {
+      "final": 150.72,
+      "net": 50.72,
+      "cagr_pct": 3.84,
+      "dd_pct": 6.222,
+      "trades": 471,
+      "fees": 5.65
+     },
+     "consistent": false,
+     "decay": 0.67,
+     "neighbours": "0/3",
+     "neighbours_share": 0,
+     "p_dd_over_cap": 0.065,
+     "stress_cost_test_net": 14.09,
+     "label": "OVERFITTED/FAILED"
+    }
+   ]
+  },
+  {
+   "cap_pct": 10,
+   "population": {
+    "training_eligible": 1335,
+    "consistent_in_val_and_test": 688,
+    "survival_pct": 51.54
+   },
+   "candidates": [
+    {
+     "id": "BTC+ETH+SOL · M L14 th0.1 k2 trail r1% cb0",
+     "train": {
+      "final": 166.12,
+      "net": 66.12,
+      "cagr_pct": 10.67,
+      "dd_pct": 9.996,
+      "trades": 151,
+      "fees": 13.01
+     },
+     "validation": {
+      "final": 145,
+      "net": 45,
+      "cagr_pct": 16.05,
+      "dd_pct": 9.443,
+      "trades": 77,
+      "fees": 7.2
+     },
+     "test": {
+      "final": 126.27,
+      "net": 26.27,
+      "cagr_pct": 7.15,
+      "dd_pct": 17.678,
+      "trades": 107,
+      "fees": 12.39
+     },
+     "full_2016_2026": {
+      "final": 295.32,
+      "net": 195.32,
+      "cagr_pct": 10.47,
+      "dd_pct": 17.678,
+      "trades": 345,
+      "fees": 54.8
+     },
+     "consistent": false,
+     "decay": 0.67,
+     "neighbours": "1/7",
+     "neighbours_share": 0.14,
+     "p_dd_over_cap": 0.404,
+     "stress_cost_test_net": 22.92,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC · B N20 M10 k1.5 trail r1% cb0",
+     "train": {
+      "final": 147.32,
+      "net": 47.32,
+      "cagr_pct": 8.05,
+      "dd_pct": 6.299,
+      "trades": 58,
+      "fees": 12.01
+     },
+     "validation": {
+      "final": 117.08,
+      "net": 17.08,
+      "cagr_pct": 6.52,
+      "dd_pct": 7.094,
+      "trades": 19,
+      "fees": 2.84
+     },
+     "test": {
+      "final": 105.77,
+      "net": 5.77,
+      "cagr_pct": 1.68,
+      "dd_pct": 8.771,
+      "trades": 31,
+      "fees": 5.9
+     },
+     "full_2016_2026": {
+      "final": 181.99,
+      "net": 81.99,
+      "cagr_pct": 5.66,
+      "dd_pct": 8.771,
+      "trades": 109,
+      "fees": 26.45
+     },
+     "consistent": true,
+     "decay": 0.21,
+     "neighbours": "4/6",
+     "neighbours_share": 0.67,
+     "p_dd_over_cap": 0.13,
+     "stress_cost_test_net": 4.15,
+     "label": "FRAGILE"
+    },
+    {
+     "id": "BTC · M L56 th0.05 k1.5 trail r1% cb0",
+     "train": {
+      "final": 164.04,
+      "net": 64.04,
+      "cagr_pct": 10.39,
+      "dd_pct": 9.959,
+      "trades": 134,
+      "fees": 20.83
+     },
+     "validation": {
+      "final": 116.95,
+      "net": 16.95,
+      "cagr_pct": 6.48,
+      "dd_pct": 7.861,
+      "trades": 46,
+      "fees": 6.08
+     },
+     "test": {
+      "final": 101.38,
+      "net": 1.38,
+      "cagr_pct": 0.41,
+      "dd_pct": 13.679,
+      "trades": 80,
+      "fees": 14.46
+     },
+     "full_2016_2026": {
+      "final": 195.46,
+      "net": 95.46,
+      "cagr_pct": 6.35,
+      "dd_pct": 13.679,
+      "trades": 260,
+      "fees": 58.54
+     },
+     "consistent": false,
+     "decay": 0.04,
+     "neighbours": "2/8",
+     "neighbours_share": 0.25,
+     "p_dd_over_cap": 0.691,
+     "stress_cost_test_net": -2.4,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · V n200 tv10% cb0",
+     "train": {
+      "final": 180.37,
+      "net": 80.37,
+      "cagr_pct": 12.51,
+      "dd_pct": 7.984,
+      "trades": 264,
+      "fees": 2.75
+     },
+     "validation": {
+      "final": 110.29,
+      "net": 10.29,
+      "cagr_pct": 4,
+      "dd_pct": 6.512,
+      "trades": 50,
+      "fees": 0.82
+     },
+     "test": {
+      "final": 112.79,
+      "net": 12.79,
+      "cagr_pct": 3.63,
+      "dd_pct": 8.835,
+      "trades": 92,
+      "fees": 2.48
+     },
+     "full_2016_2026": {
+      "final": 229.78,
+      "net": 129.78,
+      "cagr_pct": 7.95,
+      "dd_pct": 9.46,
+      "trades": 484,
+      "fees": 10.9
+     },
+     "consistent": true,
+     "decay": 0.29,
+     "neighbours": "2/4",
+     "neighbours_share": 0.5,
+     "p_dd_over_cap": 0,
+     "stress_cost_test_net": 12.65,
+     "label": "ROBUST"
+    },
+    {
+     "id": "BTC · B N20 M10 k2 trail r1% cb0",
+     "train": {
+      "final": 155.33,
+      "net": 55.33,
+      "cagr_pct": 9.2,
+      "dd_pct": 4.802,
+      "trades": 44,
+      "fees": 6.95
+     },
+     "validation": {
+      "final": 108.34,
+      "net": 8.34,
+      "cagr_pct": 3.26,
+      "dd_pct": 7.251,
+      "trades": 18,
+      "fees": 1.98
+     },
+     "test": {
+      "final": 102.73,
+      "net": 2.73,
+      "cagr_pct": 0.8,
+      "dd_pct": 6.612,
+      "trades": 27,
+      "fees": 3.66
+     },
+     "full_2016_2026": {
+      "final": 172.43,
+      "net": 72.43,
+      "cagr_pct": 5.14,
+      "dd_pct": 7.251,
+      "trades": 90,
+      "fees": 16.24
+     },
+     "consistent": true,
+     "decay": 0.09,
+     "neighbours": "5/7",
+     "neighbours_share": 0.71,
+     "p_dd_over_cap": 0.108,
+     "stress_cost_test_net": 1.69,
+     "label": "FRAGILE"
+    }
+   ]
+  },
+  {
+   "cap_pct": 15,
+   "population": {
+    "training_eligible": 1434,
+    "consistent_in_val_and_test": 778,
+    "survival_pct": 54.25
+   },
+   "candidates": [
+    {
+     "id": "BTC+ETH+SOL · M L28 th0.1 k1.5 trail r1% cb0",
+     "train": {
+      "final": 225.63,
+      "net": 125.63,
+      "cagr_pct": 17.65,
+      "dd_pct": 14.114,
+      "trades": 207,
+      "fees": 29.39
+     },
+     "validation": {
+      "final": 144.76,
+      "net": 44.76,
+      "cagr_pct": 15.98,
+      "dd_pct": 8.424,
+      "trades": 91,
+      "fees": 10.33
+     },
+     "test": {
+      "final": 124.87,
+      "net": 24.87,
+      "cagr_pct": 6.8,
+      "dd_pct": 19.469,
+      "trades": 153,
+      "fees": 24.27
+     },
+     "full_2016_2026": {
+      "final": 386.7,
+      "net": 286.7,
+      "cagr_pct": 13.24,
+      "dd_pct": 20.836,
+      "trades": 461,
+      "fees": 129.04
+     },
+     "consistent": false,
+     "decay": 0.39,
+     "neighbours": "1/7",
+     "neighbours_share": 0.14,
+     "p_dd_over_cap": 0.166,
+     "stress_cost_test_net": 17.89,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · B N20 M10 k2 trail r1% cb0",
+     "train": {
+      "final": 191.95,
+      "net": 91.95,
+      "cagr_pct": 13.91,
+      "dd_pct": 8.393,
+      "trades": 83,
+      "fees": 11.31
+     },
+     "validation": {
+      "final": 141.57,
+      "net": 41.57,
+      "cagr_pct": 14.94,
+      "dd_pct": 12.243,
+      "trades": 44,
+      "fees": 5.08
+     },
+     "test": {
+      "final": 113.06,
+      "net": 13.06,
+      "cagr_pct": 3.7,
+      "dd_pct": 18.45,
+      "trades": 78,
+      "fees": 9.64
+     },
+     "full_2016_2026": {
+      "final": 309.96,
+      "net": 209.96,
+      "cagr_pct": 10.96,
+      "dd_pct": 18.172,
+      "trades": 207,
+      "fees": 47.89
+     },
+     "consistent": false,
+     "decay": 0.27,
+     "neighbours": "3/7",
+     "neighbours_share": 0.43,
+     "p_dd_over_cap": 0.034,
+     "stress_cost_test_net": 10.43,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · B N20 M20 k2 trail r1% cb0",
+     "train": {
+      "final": 191.89,
+      "net": 91.89,
+      "cagr_pct": 13.91,
+      "dd_pct": 8.392,
+      "trades": 83,
+      "fees": 11.31
+     },
+     "validation": {
+      "final": 141.57,
+      "net": 41.57,
+      "cagr_pct": 14.94,
+      "dd_pct": 12.243,
+      "trades": 44,
+      "fees": 5.08
+     },
+     "test": {
+      "final": 115.63,
+      "net": 15.63,
+      "cagr_pct": 4.39,
+      "dd_pct": 18.45,
+      "trades": 77,
+      "fees": 9.54
+     },
+     "full_2016_2026": {
+      "final": 316.93,
+      "net": 216.93,
+      "cagr_pct": 11.19,
+      "dd_pct": 18.172,
+      "trades": 206,
+      "fees": 47.6
+     },
+     "consistent": false,
+     "decay": 0.32,
+     "neighbours": "3/7",
+     "neighbours_share": 0.43,
+     "p_dd_over_cap": 0,
+     "stress_cost_test_net": 12.97,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · M L56 th0.1 k1.5 trail r1% cb0",
+     "train": {
+      "final": 238.89,
+      "net": 138.89,
+      "cagr_pct": 19,
+      "dd_pct": 13.295,
+      "trades": 218,
+      "fees": 32.15
+     },
+     "validation": {
+      "final": 126.62,
+      "net": 26.62,
+      "cagr_pct": 9.92,
+      "dd_pct": 12.111,
+      "trades": 103,
+      "fees": 11.6
+     },
+     "test": {
+      "final": 127.94,
+      "net": 27.94,
+      "cagr_pct": 7.57,
+      "dd_pct": 25.594,
+      "trades": 186,
+      "fees": 28.72
+     },
+     "full_2016_2026": {
+      "final": 373.25,
+      "net": 273.25,
+      "cagr_pct": 12.87,
+      "dd_pct": 25.594,
+      "trades": 517,
+      "fees": 143.98
+     },
+     "consistent": false,
+     "decay": 0.4,
+     "neighbours": "1/7",
+     "neighbours_share": 0.14,
+     "p_dd_over_cap": 0.676,
+     "stress_cost_test_net": 19.85,
+     "label": "OVERFITTED/FAILED"
+    },
+    {
+     "id": "BTC+ETH+SOL · T n20 k3 trail r1% cb0",
+     "train": {
+      "final": 173.37,
+      "net": 73.37,
+      "cagr_pct": 11.62,
+      "dd_pct": 8.055,
+      "trades": 163,
+      "fees": 13.28
+     },
+     "validation": {
+      "final": 117.86,
+      "net": 17.86,
+      "cagr_pct": 6.81,
+      "dd_pct": 14.017,
+      "trades": 115,
+      "fees": 7.26
+     },
+     "test": {
+      "final": 126.2,
+      "net": 26.2,
+      "cagr_pct": 7.13,
+      "dd_pct": 11.642,
+      "trades": 159,
+      "fees": 13.47
+     },
+     "full_2016_2026": {
+      "final": 250.25,
+      "net": 150.25,
+      "cagr_pct": 8.8,
+      "dd_pct": 16.031,
+      "trades": 497,
+      "fees": 58.55
+     },
+     "consistent": true,
+     "decay": 0.61,
+     "neighbours": "2/5",
+     "neighbours_share": 0.4,
+     "p_dd_over_cap": 0,
+     "stress_cost_test_net": 23,
+     "label": "FRAGILE"
+    }
+   ]
+  }
+ ]
+}
