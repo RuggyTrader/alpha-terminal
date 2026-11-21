@@ -87,15 +87,17 @@ export async function trialReport(db: D1Database) {
 }
 
 /** One-time owner activation (passphrase checked by the caller): PROPOSED -> ACTIVE. Idempotent. */
-export async function activateTrial(db: D1Database) {
-  const a = await db.prepare(`SELECT status FROM trial_accounts WHERE account_id = ?`).bind(ACCOUNT_ID).first<{ status: string }>().catch(() => null);
-  if (!a) return { ok: false, code: "TRIAL_NOT_INSTALLED", message: "the trial account does not exist (migration 0008 not applied)" };
+export const ACTIVATABLE = Object.freeze([ACCOUNT_ID, "TRIAL-S3-SHADOW"]);
+export async function activateTrial(db: D1Database, account: string = ACCOUNT_ID) {
+  if (!ACTIVATABLE.includes(account)) return { ok: false, code: "UNKNOWN_TRIAL", message: "unknown trial account" };
+  const a = await db.prepare(`SELECT status FROM trial_accounts WHERE account_id = ?`).bind(account).first<{ status: string }>().catch(() => null);
+  if (!a) return { ok: false, code: "TRIAL_NOT_INSTALLED", message: `the trial account ${account} does not exist (its migration is not applied)` };
   if (a.status === "ACTIVE") return { ok: true, duplicate: true, status: "ACTIVE" };
   if (a.status !== "PROPOSED") return { ok: false, code: "TRIAL_NOT_PROPOSED", message: `the trial is ${a.status}` };
   const now = new Date().toISOString();
   await db.batch([
-    db.prepare(`UPDATE trial_accounts SET status = 'ACTIVE', activated_at = ? WHERE account_id = ? AND status = 'PROPOSED'`).bind(now, ACCOUNT_ID),
-    db.prepare(`INSERT INTO trial_events (account_id, at, kind, detail_json) VALUES (?, ?, 'ACTIVATED', ?)`).bind(ACCOUNT_ID, now, JSON.stringify({ by: "owner (passphrase)" })),
+    db.prepare(`UPDATE trial_accounts SET status = 'ACTIVE', activated_at = ? WHERE account_id = ? AND status = 'PROPOSED'`).bind(now, account),
+    db.prepare(`INSERT INTO trial_events (account_id, at, kind, detail_json) VALUES (?, ?, 'ACTIVATED', ?)`).bind(account, now, JSON.stringify({ by: "owner (passphrase)" })),
   ]);
   return { ok: true, status: "ACTIVE", activated_at: now, note: "the first decision is made at the first daily close (00:00 UTC) after activation" };
 }

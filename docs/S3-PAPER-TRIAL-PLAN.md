@@ -1,101 +1,67 @@
-# S3 forward PAPER trial: configuration, reuse and remaining work (PREPARED, NOT ACTIVE)
+# S3 research-only forward SHADOW test (PREPARED, NOT ACTIVE, NOT DEPLOYED)
 
-**Branch:** `trial/s3-paper`, from the live Worker release (`9a3ac16` = Worker `03385dd2`). Not deployed, not activated.
+**Branch:** `trial/s3-paper` (local only), from the live Worker release (`9a3ac16` = Worker `03385dd2`).
 
-**Status:** S3 is the leading research candidate (`research/strategy-select`). It is **not** approved as the final strategy, and **not** shown to be profitable going forward.
+**Status:** S3 is a research **candidate**, not an approved final strategy, and not shown to be profitable going forward.
+The owner's 2 % drawdown objective stays in force. **No drawdown exception is approved** (in particular, not 30 %).
 
-## Frozen configuration (`worker/src/trial/s3.ts`, `PARAMS`)
+## What it is
+
+A fully **simulated** $100 account (BTC $50 + ETH $50 sleeves) run by the Worker's existing every-minute cron with the
+frozen S3 rule. It never reads or writes the production portfolio, any funded PAPER ledger, the bots, the mirror or the
+0008 trial's rows. Nothing is sent to an exchange.
 
 | Setting | Value |
 |---|---|
-| Strategy | S3-SMA200-VOL40 v1, daily (UTC close), long only, no leverage, no shorting |
-| Account | ONE isolated, shared **$100** PAPER research account (never the production portfolio); equal sleeves **BTC $50 / ETH $50** |
-| Target weight per asset | 1{close > SMA(200)} × min(1, 0.40 / annualised 30-day realised volatility) |
-| Re-sizing | at the next open, when \|target − actual weight\| ≥ 0.10, or when entering or leaving |
-| Costs | 0.20% fee per fill (production PAPER model) + 0.05% slippage |
-| Minimum orders | Kraken AssetPairs (BTC 0.00006, ETH 0.002, cost ≥ $0.50), plus the USD value of the coin minimum at the current price. Partial re-sizes below it are **skipped and recorded**; a full exit is always attempted |
-| Data | Kraken public OHLC (the Worker's existing `krakenOhlc` + `validate`) |
+| Strategy | S3-SMA200-VOL40 v1 (`worker/src/trial/s3.ts`, frozen `PARAMS`), daily at the UTC close, long only, no leverage |
+| Target weight | 1{close > SMA(200)} × min(1, 0.40 / annualised 30-day realised volatility) |
+| Re-sizing | corrected actual-weight band: when \|target − actual weight\| ≥ 0.10, or when entering or leaving |
+| Fills | market order accepted at the close; fills at the open of the first Kraken candle **starting after acceptance** |
+| Costs | 0.20 % fee per fill + 0.05 % slippage |
+| Exchange rules | Kraken minimums (BTC 0.00006, ETH 0.002, cost ≥ $0.50); quantity floored to the lot step (1e-8); partial re-sizes below the minimum are **skipped and recorded**; a full exit always trades |
+| Data | Kraken public OHLC (`krakenOhlc` + `validate`, now per pair) |
+| Recorded | per asset and day: close, SMA, volatility, target, actual weight, cash, holdings, equity; per day: account equity, daily return, peak, drawdown; every order with its execution evidence (signal day, acceptance time, fill candle and interval, daily/candle open, fill price, raw and rounded quantity, fee, the minimums applied, skip reason, how late it was recorded) |
+| Drawdown alerts | **2 %** (the owner's objective) and **30 %** (reporting threshold). **Alerts only**: recorded as events and shown in the report. **Neither is an approved trading risk limit, and neither stops or changes the simulation** |
+| Outages | pending orders fill from Kraken history at the first candle after acceptance (coarser candles, recorded late); decisions from closes missed during an outage are recorded as MISSED, never back-dated |
 
-**What S3 would do now** (last candle 2026-11-14): BTC 64,119 < SMA 72,973 and ETH 1,768 < SMA 2,145, so the target is **0 (cash)** for both. A forward trial may wait weeks or months before its first order.
+## Implementation (smallest, reusing the existing trial infrastructure)
 
-## What is reused unchanged
-
-| Component | Why it fits |
+| Piece | File |
 |---|---|
-| Worker cron (every minute, independent of the PC) | already runs the BTC MA-50 trial |
-| `trial/trial.ts` helpers: `krakenOhlc`, `validate` (gap and OHLC checks), fills at the first candle **starting after acceptance**, outage replay that never back-dates market orders | the execution model S3 needs |
-| `trial_accounts` table | holds the S3 account (status PROPOSED until owner activation) |
-| `trial/report.ts` + `/api/dashboard/trial` + Trial panel + one-time owner activation | reporting and activation |
-| Research backtester and data (`research/strategy-select`) | golden file, parity, daily reconciliation |
+| Shared order sizing with lot rounding (`planOrder`), signal values (`signalAt`) | `worker/src/trial/s3.ts` (research parity unchanged) |
+| Runner + read-only report | `worker/src/trial/s3_runner.ts` |
+| Additive migration: 4 `trial_alloc_*` tables + one PROPOSED `trial_accounts` row | `worker/migrations/0010_s3_shadow.sql` |
+| Cron call (no-op until migrated AND activated) | `worker/src/index.ts` |
+| Report `GET /api/dashboard/trial/s3`; activation via the existing `/api/paper/trial-activate` with `account: "TRIAL-S3-SHADOW"` | `dashboard_api.ts`, `portfolio.ts`, `trial/report.ts` |
 
-## Already done on this branch
+Reused unchanged: the cron, `trial_accounts` (status, lock, run log), `trial_events`, `krakenOhlc`/`validate`, the
+outage interval selection, the one-time owner activation.
 
-- `worker/src/trial/s3.ts`: frozen settings, the exact research formulas, order rules, and the daily replay.
-- `worker/test/trial_s3_parity.test.mjs` (5 tests):
-  - the module reproduces the research backtest **exactly**: 144 orders, daily equity, fees and final equity on real Coinbase BTC/ETH candles from 2022-01 to 2026-11;
-  - no lookahead;
-  - order and minimum rules;
-  - the frozen settings.
-  - A mutation (40% → 41% volatility target) fails it.
-- Fixtures: `ETH-USD-1d-coinbase.json` (public candles, the same file as the research data) and `s3-golden.json` (generated by the research implementation).
+## Verification
 
-## Remaining before a fully automated PAPER bot runs (estimate ≈ 1 focused session)
+`worker/test/trial_s3_shadow.test.mjs` drives the **real runner** through 2022-01 .. 2026-11 of real BTC/ETH daily
+candles (≈ 1,780 days, minute-level clock) and requires:
 
-1. **Additive migration 0010.** The existing trial tables only allow one all-in position with a stop (`ENTRY`/`EXIT`, one open position per account), so they cannot record re-sizing. Two new tables:
-   - `trial_alloc_orders`: asset, side, qty, target and actual weight, accepted_at, fill candle, fill price, fee, and a status of PENDING / FILLED / SKIPPED_MIN / MISSED;
-   - `trial_alloc_equity`: per day, cash, holdings per asset, closes, equity.
+1. **Research configuration:** every order (fill day, side, quantity, notional, skip), every daily equity mark, fees and
+   final equity identical to the research backtest (golden file; the independent implementation reproduces the same
+   backtest to the cent).
+2. **Live configuration** (lot rounding + Kraken's own minimums): identical to the trial module's replay; within cents
+   of the research backtest.
+3. Account equity, daily returns, peak and drawdown; alerts (2 % fires, 30 % does not on this history; a TEST crash
+   fires both and the simulation continues); outage catch-up without back-dating; data gaps; idleness; overlap lock;
+   activation gating; complete table isolation; additive migration (`migrations.test.mjs`).
 
-   No existing table changes. The S3 account row goes into `trial_accounts` as PROPOSED.
-2. **Runner `trial/s3_runner.ts`** (inside the existing cron):
-   - at each completed daily candle: validate it, compute the targets, accept market orders;
-   - fill each at the first Kraken candle starting after acceptance, with slippage and fee, or skip below the minimum;
-   - mark equity;
-   - an overlap lock and idempotent order ids, as the existing trial has.
-3. **Safety halts:** status `HALTED` with a reason; no orders until reviewed. Triggers:
-   - a candle that fails validation;
-   - a missing or stale daily candle;
-   - a fill price outside its candle;
-   - negative cash;
-   - holdings or equity that don't reconcile;
-   - the daily shadow check (below) diverging;
-   - forward drawdown above **30%** (stop and review; no automatic strategy switching).
-4. **Daily shadow reconciliation:** each day, replay the research rule (`replaySleeve`) over the trial's own recorded candles and require identical targets and orders. Any difference halts the trial.
-5. **Report:** extend `/api/dashboard/trial` and the Trial panel with the S3 account (holdings per asset, equity, orders including skipped ones, shadow-check status), labelled as an isolated research account and never mixed into portfolio figures.
-6. **Tests:**
-   - runner integration on **recorded real Kraken candles** (accelerated replay, below);
-   - halt cases (bad candle, gap, stale data);
-   - overlapping cron runs;
-   - outage replay;
-   - minimum skips;
-   - migration additive-only.
-7. **Activation:** requires the owner's approval of the migration and Worker deploy, then the existing one-time activation.
+## Remaining before activation
 
-## How execution is verified quickly, without pretending a short trial proves profitability
+1. Owner approval to apply migration 0010 to the production D1 and deploy the Worker containing the runner.
+2. Owner activation (one passphrase action). The first decision is the first daily close after activation.
+3. Optional, not built: a Trial-panel view of the S3 report (the JSON endpoint exists) and push notifications for the
+   alerts (they are recorded and reported).
 
-1. **Accelerated replay (before activation):**
-   - the real runner code is driven through **months of recorded real Kraken candles** in a test, with the clock advanced minute by minute;
-   - it must produce exactly the orders and equity of `replaySleeve` for the same days.
+## How to read the results
 
-   This exercises entries, re-sizes, exits, minimum skips and outages in minutes. It is the functional proof.
-2. **Daily shadow check (live):** every live day is reconciled against the research replay, so a silent divergence halts the trial.
-3. **Functional acceptance after 2–4 weeks live:**
-   - every daily close was processed on time;
-   - no unexplained skip;
-   - fees and equity reconcile with prices;
-   - zero shadow divergences.
-
-   That shows the **plumbing** works. **It says nothing about profitability**, especially since S3 may hold cash the whole time.
-4. **Performance evaluation:** only after **≥ 6–12 months** and a meaningful number of re-sizes and round trips, against the backtest's expected range (2021–26: about 13.7% CAGR, 26% max drawdown, Sharpe 0.6 for BTC+ETH). It is reported with uncertainty, never as proof.
-
-## Risk objective (owner decision needed)
-
-- **The < 2% drawdown target is not achievable at $100.** It needs about 5% exposure, which gives positions below Kraken's minimum orders and returns of about 1–3% a year.
-- **Post-hoc illustration (not validation):**
-  - 50% exposure: about 14–21% max drawdown, 7.8% CAGR in 2021–26;
-  - 25% exposure: about 7–11% max drawdown, 4.7% CAGR.
-- At $100, most of the reduced-exposure re-sizes fall below the minimum order and are skipped, so volatility targeting mostly stops working at small exposure.
-- **Realistic choice:**
-  - accept roughly a 25–30% drawdown at full S3 exposure; or
-  - choose a lower exposure with proportionally lower return, ideally with more capital so re-sizes can execute.
-
-  The frozen PAPER trial uses **full S3 exposure** unless the owner decides otherwise **before** activation; the setting is never changed during the trial.
+* 2–4 weeks: proves the plumbing (every close processed, fills and fees reconcile, no unexplained skip). It says
+  nothing about profitability, and S3 currently targets cash (both assets below their 200-day averages).
+* ≥ 6–12 months: compare with the backtest range (2021–26: ≈ 13.7 % CAGR, 26 % max drawdown, Sharpe 0.6), with
+  uncertainty, never as proof. Any proposal to relax the 2 % objective must come with a comparison of net returns,
+  risk and realistic alternatives for the owner's approval.

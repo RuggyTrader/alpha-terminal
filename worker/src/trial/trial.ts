@@ -26,12 +26,12 @@ export interface TrialEnv { DB: D1Database; KRAKEN_API_BASE?: string }
 
 const krakenBase = (b?: string) => (/^http:\/\/(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/.test((b ?? "").replace(/\/+$/, "")) ? b!.replace(/\/+$/, "") : "https://api.kraken.com");
 
-/** Completed, validated Kraken OHLC candles for XBTUSD (the forming candle is never returned). */
-export function krakenOhlc(env: TrialEnv, nowMs: number): OhlcFn {
+/** Completed, validated Kraken OHLC candles for `pair` (default XBTUSD; the forming candle is never returned). */
+export function krakenOhlc(env: TrialEnv, nowMs: number, pair: string = PARAMS.pair): OhlcFn {
   return async (intervalMin, sinceMs) => {
     try {
       const since = sinceMs === null ? "" : `&since=${Math.floor(sinceMs / 1000) - intervalMin * 60}`;
-      const r = await fetch(`${krakenBase(env.KRAKEN_API_BASE)}/0/public/OHLC?pair=${PARAMS.pair}&interval=${intervalMin}${since}`, { signal: AbortSignal.timeout(8000) });
+      const r = await fetch(`${krakenBase(env.KRAKEN_API_BASE)}/0/public/OHLC?pair=${pair}&interval=${intervalMin}${since}`, { signal: AbortSignal.timeout(8000) });
       const raw = (await r.json()) as { error?: string[]; result?: Record<string, unknown> };
       if (raw.error?.length || !raw.result) return { ok: false, message: (raw.error ?? ["no result"]).join("; ").slice(0, 160) };
       const rows = Object.entries(raw.result).find(([k, v]) => k !== "last" && Array.isArray(v))?.[1] as unknown[][] | undefined;

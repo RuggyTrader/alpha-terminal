@@ -216,7 +216,7 @@ export async function handlePaperApi(request: Request, env: PortfolioEnv, pathna
   if (denied) return denied;
   if (pathname === "/api/paper/fund") return fund(env, body);
   // One-time owner activation of the isolated forward PAPER trial (it never touches the portfolio).
-  if (pathname === "/api/paper/trial-activate") { const r = await activateTrial(env.DB); return json(r, r.ok ? 200 : 422); }
+  if (pathname === "/api/paper/trial-activate") { const r = await activateTrial(env.DB, typeof body.account === "string" ? body.account : undefined); return json(r, r.ok ? 200 : 422); }
   if (pathname === "/api/paper/transfer") return transfer(env, body);
   if (pathname === "/api/paper/risk") return applyRisk(env, body);
   // Fleet bots (bot_ledger.ts): equal-split group allocation, per-bot dollar risk, pause/resume new entries.

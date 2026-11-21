@@ -1,5 +1,6 @@
 import { handleCandles } from "./candles";
 import { trialReport } from "./trial/report";
+import { s3ShadowReport } from "./trial/s3_runner";
 import { lifetimePerformance } from "./performance";
 import { allocationPreview, botPendingOrders } from "./bot_ledger";
 import { fleetSection } from "./bots";
@@ -1323,6 +1324,10 @@ export async function handleDashboardApi(
     // The bot fleet (bots.ts): every registered bot with its own ledger figures, engine report and, separately, its
     // hypothetical Strategy Mirror results. Read-only.
     // Forward PAPER trial (isolated research account, never part of the portfolio). Read-only.
+    // S3 research-only shadow test (simulated, isolated). Read-only.
+    if (pathname === "/api/dashboard/trial/s3") {
+      return json({ ok: true, data: await s3ShadowReport(env.DB) });
+    }
     if (pathname === "/api/dashboard/trial") {
       return json({ ok: true, data: await trialReport(env.DB) });
     }

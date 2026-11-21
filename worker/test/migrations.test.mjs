@@ -14,9 +14,29 @@ const sql = (name) => readFileSync(join(DIR, name), "utf8");
 const cols = (db, t) => Object.fromEntries(db.prepare(`PRAGMA table_info(${t})`).all().map((c) => [c.name, c]));
 
 describe("migrations from a fresh 0001", () => {
-  it("are exactly 0001 to 0009 (no staged or irreversible migration; 0009 engine_outages is additive)", () => {
+  it("are exactly 0001 to 0010 (no staged or irreversible migration; 0009 engine_outages and 0010 S3 shadow are additive)", () => {
     assert.deepEqual(readdirSync(DIR).filter((f) => f.endsWith(".sql")).sort(),
-      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql", "0009_engine_outages.sql"]);
+      ["0001_initial.sql", "0002_alpha_paper_ledger.sql", "0003_paper_portfolio.sql", "0004_paper_execution_costs.sql", "0005_strategy_mirror.sql", "0006_events_and_push.sql", "0007_bots.sql", "0008_trial.sql", "0009_engine_outages.sql", "0010_s3_shadow.sql"]);
+  });
+
+  it("0010 (S3 shadow test) is purely additive: every existing table, index and row is unchanged except ONE new PROPOSED trial_accounts row; it adds only trial_alloc_* objects", () => {
+    const db = new DatabaseSync(":memory:");
+    for (const f of readdirSync(DIR).filter((f) => f.endsWith(".sql") && f < "0010").sort()) db.exec(sql(f));
+    db.exec("UPDATE trial_accounts SET status = 'ACTIVE', activated_at = '2026-11-16T00:00:00Z'"); // an active 0008 trial must be untouched
+    const schema = () => db.prepare("SELECT type, name, tbl_name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name").all().map((r) => ({ ...r }));
+    const dump = () => Object.fromEntries(db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all().map((r) => [r.name, JSON.stringify(db.prepare(`SELECT * FROM "${r.name}"`).all())]));
+    const before = schema(), rowsBefore = dump();
+    db.exec(sql("0010_s3_shadow.sql"));
+    db.exec(sql("0010_s3_shadow.sql")); // re-applying is harmless (IF NOT EXISTS / OR IGNORE)
+    const after = schema(), rowsAfter = dump();
+    for (const o of before) assert.deepEqual(after.find((x) => x.type === o.type && x.name === o.name), o, `${o.type} ${o.name} unchanged`);
+    const added = after.filter((x) => !before.some((o) => o.type === x.type && o.name === x.name));
+    assert.ok(added.length >= 4);
+    for (const x of added) assert.match(x.tbl_name, /^trial_alloc_/, `${x.type} ${x.name} belongs to the S3 shadow test`);
+    for (const [t, rows] of Object.entries(rowsBefore)) if (t !== "trial_accounts") assert.equal(rowsAfter[t], rows, `${t} rows unchanged`);
+    const accts = db.prepare("SELECT account_id, status, activated_at FROM trial_accounts ORDER BY account_id").all().map((r) => ({ ...r }));
+    assert.deepEqual(accts, [{ account_id: "TRIAL-BTC-MA50", status: "ACTIVE", activated_at: "2026-11-16T00:00:00Z" }, { account_id: "TRIAL-S3-SHADOW", status: "PROPOSED", activated_at: null }]);
+    assert.deepEqual(db.prepare("SELECT asset, cash_usd, qty FROM trial_alloc_sleeves ORDER BY asset").all().map((r) => ({ ...r })), [{ asset: "BTC", cash_usd: 50, qty: 0 }, { asset: "ETH", cash_usd: 50, qty: 0 }]);
   });
 
   it("0008 (forward trial) is purely additive: every existing table and index is unchanged; it adds only trial_* objects", () => {
