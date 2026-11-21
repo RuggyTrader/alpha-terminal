@@ -92,3 +92,74 @@ The result is essentially the same. **The forward trial should use the actual-we
 - **Monitoring (no automatic switching):** compare the forward drawdown and the weight path with the backtest. **Stop and review** if the forward drawdown exceeds 30%, or if signals diverge from the reproducible backtest of the same days.
 
 Nothing is implemented in production.
+
+## Verification (2026-11-21, after the owner's review)
+
+### 1. Independent reproduction of corrected S3
+
+`engine/test/select-s3-independent.test.mjs` is a separate implementation that shares **no code** with `src/research/select/` (its own data merge, indicators, execution and accounting). It reproduces the reported corrected-S3 figures **to the cent**:
+
+| | Net | Max DD | Sharpe |
+|---|---|---|---|
+| Untouched | +$2,675.02 | 40.53% | 2.085 |
+| Seen | +$96.70 | 23.85% | 0.627 |
+| Stress, untouched | +$2,500.45 | — | — |
+
+The main run reproduces byte-identically from a fresh process.
+
+### 2. Bias and accounting checks
+
+| Check | Result |
+|---|---|
+| Lookahead | the decision at close i uses bars 0..i only; the trade is at open i+1. Unit tests alter later candles and prove the earlier curve and decisions are unchanged |
+| Data | no invalid candles; BTC and SOL have no gaps; ETH pre-2021 has one 3-day gap (kept, not filled) |
+| Accounting | equity = cash + coins × close; cash never negative; round-trip nets sum to the final P&L; fees = 0.20% of traded notional |
+| Survivorship and asset choice | not removable. Disclosed |
+
+### 3. Costs and minimum orders
+
+- **Fees and slippage:** 0.20% + 0.05% on every fill, and 0.40% + 0.10% in the stress test.
+- **A real flaw found:** the original backtester *flagged* orders below Kraken's minimum but still *executed* them.
+  - Fixed as an option: such orders are now **skipped**, and a full exit is always allowed.
+- **Re-run with today's minimums** (BTC ≈ $3.85, ETH ≈ $3.54) in the trial configuration (BTC + ETH, $50 each):
+  - untouched: 0 of 196 orders skipped (results unchanged);
+  - 2021–26: 16 of 186 skipped; CAGR 13.66%, max DD 26.3%, Sharpe 0.60.
+
+### 4. Did the trimming fix invalidate the acceptance?
+
+**No.** Corrected S3 passes all seven gates on the untouched period:
+
+| Gate | Result |
+|---|---|
+| G1 | net +$2,675 and stress +$2,500 |
+| G2 | Sharpe 2.09 ≥ buy-and-hold 1.51 |
+| G3 | 4 of 5 years positive (2018 negative) |
+| G4 | the best year is 39% of the net |
+| G5 | neighbours +$1,539 / +$4,338 |
+| G6 | seen period +$96.7 |
+| G7 | bootstrap lower bound 0.00485 > 0 |
+
+### 5. Can drawdown be cut substantially and still leave meaningful returns?
+
+**Only proportionally.** These are deterministic exposure scalings computed after the results, **not validation**, and no parameter was chosen from them:
+
+| Exposure | Untouched: CAGR / max DD / Sharpe | 2021–26: CAGR / max DD / Sharpe |
+|---|---|---|
+| 100% | 84.6% / 40.5% / 2.09 | 13.7% / 26.3% / 0.60 |
+| 50% | 38.5% / 21.2% / 2.14 | 7.8% / 13.7% / 0.60 |
+| 25% | 19.0% / 11.2% / 2.21 | 4.7% / 7.5% / 0.66 |
+
+- Return scales down with drawdown, and Sharpe barely changes. **There is no free lunch.**
+- At $100, reduced exposure makes most re-sizes fall below the minimum order (2021–26: 345 of 491 skipped at 50%, 1,216 of 1,315 at 25%).
+- **The 2% target is not achievable at $100.**
+- Choosing a lower vol target or exposure *now*, on the same data, would be optimisation on the holdout. Any such choice must be fixed **before** the forward trial, and judged only on forward data.
+
+### 6. Validated vs post-test results
+
+| Category | Results |
+|---|---|
+| **Independently validated** (pre-registered, untouched 2016–21) | S1–S4 as pre-registered: all gates pass; S3 selected |
+| **Post-test revision, disclosed** | corrected rebalancing band (S3 actual-weight); skipping sub-minimum orders; the exposure frontier; the trial configuration (BTC+ETH only, $50 sleeves) |
+| **Seen data (consistency only)** | everything from 2021-06 on; it was examined in earlier rounds |
+
+**The honest expectation for S3 going forward** is closer to the 2021–26 seen-period figures than to 2016–21: about 13% CAGR, a 25% drawdown and a Sharpe near 0.6. In that period 3 of 6 calendar years were negative and the gains came in 2023–24. **This is not a profitability claim.**
