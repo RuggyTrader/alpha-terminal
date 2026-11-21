@@ -149,6 +149,7 @@ describe("S3 shadow runner: behaviour", () => {
     const s = setup(REAL, { proposed: true });
     assert.deepEqual(await s.run(FROM + DAY + 90_000), { ran: false, reason: "not active" });
     assert.equal(s.db.trace.filter((x) => !/^\s*SELECT/i.test(x)).length, 0);
+    assert.equal(s.db.trace.length, 1, "inactive: exactly one read per scheduled run");
     const bare = d1(readFileSync(join(HERE, "..", "migrations", "0008_trial.sql"), "utf8"));
     assert.deepEqual(await R.runS3Shadow({ DB: bare }, FROM, async () => ({ ok: false })), { ran: false, reason: "not installed" });
   });
@@ -168,7 +169,7 @@ describe("S3 shadow runner: behaviour", () => {
     const s = setup();
     await replay(s, FROM, FROM + 120 * DAY);
     const touched = new Set(s.db.trace.flatMap((x) => [...x.matchAll(/\b(?:FROM|INTO|UPDATE|JOIN)\s+([a-z_]+)/gi)].map((m) => m[1])));
-    assert.deepEqual([...touched].sort(), ["sqlite_master", "trial_accounts", "trial_alloc_days", "trial_alloc_equity", "trial_alloc_orders", "trial_alloc_sleeves", "trial_events"]);
+    assert.deepEqual([...touched].sort(), ["trial_accounts", "trial_alloc_days", "trial_alloc_equity", "trial_alloc_orders", "trial_alloc_sleeves", "trial_events"]);
     for (const x of s.db.trace.filter((x) => /trial_accounts|trial_events/.test(x) && !/^\s*SELECT 1 AS x/.test(x))) assert.ok(/account_id = \?|\(account_id,/.test(x), `scoped to the account: ${x.slice(0, 80)}`);
     assert.ok(q(s, `SELECT * FROM trial_events WHERE account_id <> 'TRIAL-S3-SHADOW'`).length === 0);
     assert.equal(q(s, `SELECT status FROM trial_accounts WHERE account_id = 'TRIAL-BTC-MA50'`)[0].status, "PROPOSED", "the 0008 trial is untouched");
@@ -192,7 +193,7 @@ describe("S3 shadow runner: behaviour", () => {
     await o.run(first + DAY + 90_000); // the close is processed, the order accepted
     assert.ok(q(o, `SELECT COUNT(*) n FROM trial_alloc_orders WHERE status = 'PENDING'`)[0].n >= 1);
     // the Worker is down for 4 days; the next run catches up
-    for (let k = 0; k < 3; k++) await o.run(first + 5 * DAY + 2 * 3600_000 + k * MIN);
+    for (let k = 0; k < 6; k++) await o.run(first + 5 * DAY + 2 * 3600_000 + k * MIN);
     const late = q(o, `SELECT * FROM trial_alloc_orders WHERE signal_candle_t = ? AND status IN ('FILLED', 'SKIPPED_MIN')`, first);
     assert.ok(late.length >= 1);
     for (const x of late) { assert.equal(x.fill_interval_min, 15); assert.ok(x.fill_candle_t >= Date.parse(x.accepted_at)); assert.ok(x.recorded_late_min > 5); }

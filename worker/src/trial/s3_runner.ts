@@ -38,10 +38,11 @@ const event = (db: D1Database, nowMs: number, kind: string, detail: unknown) =>
 /** One scheduled run. Idempotent and safe to overlap (lock); everything it does is recorded. */
 export async function runS3Shadow(env: TrialEnv, nowMs = Date.now(), ohlcFor: OhlcForPair = (pair) => krakenOhlc(env, nowMs, pair), opts: S3Options = {}) {
   const db = env.DB;
-  const has = await db.prepare(`SELECT 1 AS x FROM sqlite_master WHERE type = 'table' AND name = 'trial_alloc_sleeves'`).first().catch(() => null);
-  if (!has) return { ran: false, reason: "not installed" };
-  const acct0 = await db.prepare(`SELECT status, last_daily_t FROM trial_accounts WHERE account_id = ? AND status = 'ACTIVE'`).bind(A).first<Acct>();
-  if (!acct0) return { ran: false, reason: "not active" };
+  // ONE primary-key read per minute while inactive (the S3 row exists only after migration 0010; before it, or if the
+  // table is missing, the read fails or finds nothing and the run ends here).
+  const acct0 = await db.prepare(`SELECT status, last_daily_t FROM trial_accounts WHERE account_id = ?`).bind(A).first<Acct>().catch(() => null);
+  if (!acct0) return { ran: false, reason: "not installed" };
+  if (acct0.status !== "ACTIVE") return { ran: false, reason: "not active" };
   // The common case costs two reads: nothing pending and no daily close due -> nothing to do, nothing written.
   if (acct0.last_daily_t !== null && nowMs < acct0.last_daily_t + 2 * DAY + MIN) {
     const p = await db.prepare(`SELECT COUNT(*) AS n FROM trial_alloc_orders WHERE account_id = ? AND status = 'PENDING'`).bind(A).first<{ n: number }>();
@@ -90,8 +91,10 @@ async function step(db: D1Database, nowMs: number, ohlcFor: OhlcForPair, o: Requ
   }
   // 1) pending market orders fill first (a daily close is never processed while an earlier order is unfilled)
   if (!(await fillPending(db, nowMs, ohlcFor, o, log))) return;
-  // 2) due daily closes, at most 3 per run (D1 queries per invocation are limited)
-  for (let guard = 0; guard < 3; guard++) {
+  // 2) at most ONE due daily close per run: the scheduled invocation is shared with the 0008 trial and outage checks
+  //    (D1 queries per invocation are limited), so S3 never takes more than about 12 of them; after an outage the
+  //    next minutes catch up one day each.
+  for (let guard = 0; guard < 1; guard++) {
     acct = (await db.prepare(`SELECT status, last_daily_t FROM trial_accounts WHERE account_id = ?`).bind(A).first<Acct>())!;
     const day = acct.last_daily_t! + DAY;
     if (nowMs < day + DAY + MIN) break;
