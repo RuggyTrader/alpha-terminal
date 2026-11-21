@@ -46,6 +46,16 @@ describe("allocation backtester", () => {
   });
 });
 
+describe("rebalancing band (sensitivity option)", () => {
+  it("bandOnActual re-sizes a drifting position back to its target; the pre-registered mode does not", () => {
+    const bars = mk(lin(120, 100, 3)); // price triples: a 0.2 position drifts towards ~0.4
+    const fixed = () => () => (i) => (i < 1 ? null : 0.2);
+    const a = runSleeve(bars, fixed(), { capital: 100, threshold: 0.1 }), b = runSleeve(bars, fixed(), { capital: 100, threshold: 0.1, bandOnActual: true });
+    assert.equal(a.orders.length, 1, "pre-registered mode: bought once, never re-sized");
+    assert.ok(b.orders.length > 1 && b.orders.slice(1).every((o) => o.side === "SELL"), "actual-weight band trims the drift");
+  });
+});
+
 describe("rules", () => {
   it("S1 holds only above the SMA; S4 exits on the M-day low", () => {
     const bars = mk([...lin(210, 100, 0.5), ...lin(60, 205, -2)]);

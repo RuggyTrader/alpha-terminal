@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-17T01:09:31.212Z",
+ "generated_at": "2026-11-21T19:32:37.741Z",
  "statuses": [
   "IDEA",
   "SPECIFIED",
@@ -1582,6 +1582,142 @@
    "status": "INCONCLUSIVE",
    "failure": "19 entries only; CI includes 0; −34 at $100; L90 neighbour negative",
    "source": "docs/research/round9/REPORT.md"
+  },
+  {
+   "id": "SEL-S1",
+   "name": "SMA-200 trend filter (S1)",
+   "family": "Trend following (allocation)",
+   "version": "strategy-select pre-registered (d6d9c1f, code e4e6627)",
+   "markets": [
+    "BTC",
+    "ETH"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase daily; untouched 2016-01..2021-05 (never used before); seen 2021-06..2026-11 incl. SOL",
+   "periods": {
+    "independent": "2016-01-01..2021-05-31 (untouched)",
+    "validation": "2021-06-01..2026-11-14 (seen, consistency only)"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%); $100 shared portfolio",
+   "results": {
+    "independent": {
+     "net": 19302,
+     "trades": 25,
+     "note": "MDD 73.64%, Sharpe 1.718"
+    },
+    "validation": {
+     "net": 93.23,
+     "note": "seen period MDD 40.15%"
+    }
+   },
+   "fee_drag": null,
+   "status": "ELIGIBLE FOR FURTHER VALIDATION",
+   "failure": "passed all gates but not selected (lower Sharpe than S3); same caveats",
+   "source": "docs/research/strategy-select/REPORT.md"
+  },
+  {
+   "id": "SEL-S2",
+   "name": "12-week time-series momentum (S2)",
+   "family": "Momentum",
+   "version": "strategy-select pre-registered (d6d9c1f, code e4e6627)",
+   "markets": [
+    "BTC",
+    "ETH"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase daily; untouched 2016-01..2021-05 (never used before); seen 2021-06..2026-11 incl. SOL",
+   "periods": {
+    "independent": "2016-01-01..2021-05-31 (untouched)",
+    "validation": "2021-06-01..2026-11-14 (seen, consistency only)"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%); $100 shared portfolio",
+   "results": {
+    "independent": {
+     "net": 25931.41,
+     "trades": 25,
+     "note": "MDD 67.39%, Sharpe 1.779"
+    },
+    "validation": {
+     "net": 16.5,
+     "note": "seen period MDD 57.9%"
+    }
+   },
+   "fee_drag": null,
+   "status": "ELIGIBLE FOR FURTHER VALIDATION",
+   "failure": "passed all gates but not selected (lower Sharpe than S3); same caveats",
+   "source": "docs/research/strategy-select/REPORT.md"
+  },
+  {
+   "id": "SEL-S3",
+   "name": "SMA-200 trend + 40% volatility target (S3)",
+   "family": "Trend following (allocation)",
+   "version": "strategy-select pre-registered (d6d9c1f, code e4e6627)",
+   "markets": [
+    "BTC",
+    "ETH"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase daily; untouched 2016-01..2021-05 (never used before); seen 2021-06..2026-11 incl. SOL",
+   "periods": {
+    "independent": "2016-01-01..2021-05-31 (untouched)",
+    "validation": "2021-06-01..2026-11-14 (seen, consistency only)"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%); $100 shared portfolio",
+   "results": {
+    "independent": {
+     "net": 3128.3,
+     "trades": 25,
+     "note": "MDD 41.72%, Sharpe 2.075"
+    },
+    "validation": {
+     "net": 88.25,
+     "note": "seen period MDD 23.72%"
+    }
+   },
+   "fee_drag": null,
+   "status": "ELIGIBLE FOR FURTHER VALIDATION",
+   "failure": "SELECTED for a forward PAPER trial proposal (best risk-adjusted). Not proven: regime (2016-21 bull), survivorship, few trends. <2% DD objective infeasible at $100",
+   "source": "docs/research/strategy-select/REPORT.md"
+  },
+  {
+   "id": "SEL-S4",
+   "name": "Turtle breakout 55/20 (S4)",
+   "family": "Trend following",
+   "version": "strategy-select pre-registered (d6d9c1f, code e4e6627)",
+   "markets": [
+    "BTC",
+    "ETH"
+   ],
+   "timeframes": [
+    "1d"
+   ],
+   "data": "Coinbase daily; untouched 2016-01..2021-05 (never used before); seen 2021-06..2026-11 incl. SOL",
+   "periods": {
+    "independent": "2016-01-01..2021-05-31 (untouched)",
+    "validation": "2021-06-01..2026-11-14 (seen, consistency only)"
+   },
+   "costs": "0.20% + 0.05% (stress 0.40% + 0.10%); $100 shared portfolio",
+   "results": {
+    "independent": {
+     "net": 7541.79,
+     "trades": 26,
+     "note": "MDD 58.57%, Sharpe 1.586"
+    },
+    "validation": {
+     "net": 314.88,
+     "note": "seen period MDD 47.6%"
+    }
+   },
+   "fee_drag": null,
+   "status": "ELIGIBLE FOR FURTHER VALIDATION",
+   "failure": "passed all gates but not selected (lower Sharpe than S3); same caveats",
+   "source": "docs/research/strategy-select/REPORT.md"
   }
  ]
 }

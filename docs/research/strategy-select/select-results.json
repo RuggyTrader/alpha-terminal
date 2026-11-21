@@ -1,0 +1,588 @@
+{
+ "preregistration": "docs/research/strategy-select/PREREGISTRATION.md (d6d9c1f)",
+ "windows": {
+  "untouched": "2016-01-01..2021-05-31 (BTC, ETH)",
+  "seen": "2021-06-01..2026-11-14 (BTC, ETH, SOL)"
+ },
+ "costs": {
+  "primary": {
+   "feePct": 0.2,
+   "slipPct": 0.05
+  },
+  "stress": {
+   "feePct": 0.4,
+   "slipPct": 0.1
+  }
+ },
+ "results": {
+  "S1": {
+   "pass": true,
+   "gates": {
+    "G1_net_and_stress": true,
+    "G2_risk_adjusted_vs_buy_hold": true,
+    "G3_3_of_5_years_positive": true,
+    "G4_no_year_over_70pct": true,
+    "G5_neighbours_positive": true,
+    "G6_seen_period_positive": true,
+    "G7_bootstrap_98_75_lower_gt_0": true
+   },
+   "failed": [],
+   "untouched": {
+    "net": 19302,
+    "cagr_pct": 164.35,
+    "mdd_pct": 73.64,
+    "sharpe": 1.718,
+    "profit_factor": 9.72,
+    "round_trips": 25,
+    "fees": 137,
+    "exposure_pct": 62.7,
+    "years": {
+     "2016": 75.12,
+     "2017": 4668,
+     "2018": -2114.14,
+     "2019": 490.47,
+     "2020": 4147.51,
+     "2021": 12035.04
+    },
+    "orders": 49,
+    "orders_infeasible": 0,
+    "per_market": {
+     "BTC": 3459.58,
+     "ETH": 15842.42
+    }
+   },
+   "untouched_stress": {
+    "net": 18076.94,
+    "cagr_pct": 161.19,
+    "mdd_pct": 74.89
+   },
+   "seen": {
+    "net": 93.23,
+    "cagr_pct": 12.82,
+    "mdd_pct": 40.15,
+    "sharpe": 0.508,
+    "profit_factor": 1.77,
+    "round_trips": 64,
+    "fees": 13.05,
+    "exposure_pct": 47,
+    "years": {
+     "2021": -6.37,
+     "2022": -12.1,
+     "2023": 88.54,
+     "2024": 55.19,
+     "2025": -29.71,
+     "2026": -2.32
+    },
+    "orders": 128,
+    "orders_infeasible": 0,
+    "per_market": {
+     "BTC": 29.48,
+     "ETH": 33.34,
+     "SOL": 30.41
+    }
+   },
+   "neighbours": {
+    "S1-150": 25552.34,
+    "S1-250": 15929.47
+   },
+   "bootstrap_weekly_98_75": {
+    "lo": 0.00682,
+    "mean": 0.02392,
+    "hi": 0.04414
+   },
+   "positive_full_years": 4
+  },
+  "S2": {
+   "pass": true,
+   "gates": {
+    "G1_net_and_stress": true,
+    "G2_risk_adjusted_vs_buy_hold": true,
+    "G3_3_of_5_years_positive": true,
+    "G4_no_year_over_70pct": true,
+    "G5_neighbours_positive": true,
+    "G6_seen_period_positive": true,
+    "G7_bootstrap_98_75_lower_gt_0": true
+   },
+   "failed": [],
+   "untouched": {
+    "net": 25931.41,
+    "cagr_pct": 179.08,
+    "mdd_pct": 67.39,
+    "sharpe": 1.779,
+    "profit_factor": 9.38,
+    "round_trips": 25,
+    "fees": 135.28,
+    "exposure_pct": 61,
+    "years": {
+     "2016": 24.58,
+     "2017": 3864.18,
+     "2018": -990.91,
+     "2019": 1804.62,
+     "2020": 3602.72,
+     "2021": 17626.22
+    },
+    "orders": 49,
+    "orders_infeasible": 0,
+    "per_market": {
+     "BTC": 4148.11,
+     "ETH": 21783.29
+    }
+   },
+   "untouched_stress": {
+    "net": 24364.23,
+    "cagr_pct": 175.9,
+    "mdd_pct": 67.85
+   },
+   "seen": {
+    "net": 16.5,
+    "cagr_pct": 2.84,
+    "mdd_pct": 57.9,
+    "sharpe": 0.276,
+    "profit_factor": 1.12,
+    "round_trips": 50,
+    "fees": 7.43,
+    "exposure_pct": 50.7,
+    "years": {
+     "2021": -5.42,
+     "2022": -25.23,
+     "2023": 33.16,
+     "2024": 58.66,
+     "2025": -18.74,
+     "2026": -25.93
+    },
+    "orders": 100,
+    "orders_infeasible": 0,
+    "per_market": {
+     "BTC": 7.54,
+     "ETH": -15.26,
+     "SOL": 24.21
+    }
+   },
+   "neighbours": {
+    "S2-56": 13317.22,
+    "S2-112": 16611.91
+   },
+   "bootstrap_weekly_98_75": {
+    "lo": 0.00824,
+    "mean": 0.02526,
+    "hi": 0.04633
+   },
+   "positive_full_years": 4
+  },
+  "S3": {
+   "pass": true,
+   "gates": {
+    "G1_net_and_stress": true,
+    "G2_risk_adjusted_vs_buy_hold": true,
+    "G3_3_of_5_years_positive": true,
+    "G4_no_year_over_70pct": true,
+    "G5_neighbours_positive": true,
+    "G6_seen_period_positive": true,
+    "G7_bootstrap_98_75_lower_gt_0": true
+   },
+   "failed": [],
+   "untouched": {
+    "net": 3128.3,
+    "cagr_pct": 89.87,
+    "mdd_pct": 41.72,
+    "sharpe": 2.075,
+    "profit_factor": 11.39,
+    "round_trips": 25,
+    "fees": 40.1,
+    "exposure_pct": 62.7,
+    "years": {
+     "2016": 66.27,
+     "2017": 860.44,
+     "2018": -173.01,
+     "2019": 209.45,
+     "2020": 1216.47,
+     "2021": 948.68
+    },
+    "orders": 177,
+    "orders_infeasible": 0,
+    "per_market": {
+     "BTC": 1515.66,
+     "ETH": 1612.64
+    }
+   },
+   "untouched_stress": {
+    "net": 2969.52,
+    "cagr_pct": 88.11,
+    "mdd_pct": 42.82
+   },
+   "seen": {
+    "net": 88.25,
+    "cagr_pct": 12.28,
+    "mdd_pct": 23.72,
+    "sharpe": 0.589,
+    "profit_factor": 2.3,
+    "round_trips": 64,
+    "fees": 10.16,
+    "exposure_pct": 47,
+    "years": {
+     "2021": -2.8,
+     "2022": -6.23,
+     "2023": 52.43,
+     "2024": 59.46,
+     "2025": -7.8,
+     "2026": -6.82
+    },
+    "orders": 241,
+    "orders_infeasible": 16,
+    "per_market": {
+     "BTC": 30.95,
+     "ETH": 34.68,
+     "SOL": 22.63
+    }
+   },
+   "neighbours": {
+    "S3-0.30": 1738.06,
+    "S3-0.50": 4752.33
+   },
+   "bootstrap_weekly_98_75": {
+    "lo": 0.00508,
+    "mean": 0.01373,
+    "hi": 0.02421
+   },
+   "positive_full_years": 4
+  },
+  "S4": {
+   "pass": true,
+   "gates": {
+    "G1_net_and_stress": true,
+    "G2_risk_adjusted_vs_buy_hold": true,
+    "G3_3_of_5_years_positive": true,
+    "G4_no_year_over_70pct": true,
+    "G5_neighbours_positive": true,
+    "G6_seen_period_positive": true,
+    "G7_bootstrap_98_75_lower_gt_0": true
+   },
+   "failed": [],
+   "untouched": {
+    "net": 7541.79,
+    "cagr_pct": 122.59,
+    "mdd_pct": 58.57,
+    "sharpe": 1.586,
+    "profit_factor": 18.59,
+    "round_trips": 26,
+    "fees": 50.21,
+    "exposure_pct": 39.7,
+    "years": {
+     "2016": 16.27,
+     "2017": 1024.31,
+     "2018": -239.86,
+     "2019": 338.37,
+     "2020": 1402.48,
+     "2021": 5000.23
+    },
+    "orders": 52,
+    "orders_infeasible": 0,
+    "per_market": {
+     "BTC": 853.33,
+     "ETH": 6688.45
+    }
+   },
+   "untouched_stress": {
+    "net": 7115.9,
+    "cagr_pct": 120.25,
+    "mdd_pct": 58.95
+   },
+   "seen": {
+    "net": 314.88,
+    "cagr_pct": 29.77,
+    "mdd_pct": 47.6,
+    "sharpe": 0.823,
+    "profit_factor": 1.89,
+    "round_trips": 45,
+    "fees": 21.12,
+    "exposure_pct": 32,
+    "years": {
+     "2021": 91.23,
+     "2022": -31.7,
+     "2023": 365.89,
+     "2024": 32.72,
+     "2025": -135.05,
+     "2026": -8.22
+    },
+    "orders": 90,
+    "orders_infeasible": 0,
+    "per_market": {
+     "BTC": 12.34,
+     "ETH": 31.93,
+     "SOL": 270.61
+    }
+   },
+   "neighbours": {
+    "S4-40/20": 6012.59,
+    "S4-70/30": 14820.06
+   },
+   "bootstrap_weekly_98_75": {
+    "lo": 0.00375,
+    "mean": 0.02028,
+    "hi": 0.04152
+   },
+   "positive_full_years": 4
+  }
+ },
+ "provenance": {
+  "BTC-USD-86400-pre2021.json": "80f819d12fbee702",
+  "BTC-USD-86400.json": "5c1b32068eecbf3c",
+  "ETH-USD-86400-pre2021.json": "02e2d0547828ba7d",
+  "ETH-USD-86400.json": "3459bf9620c2e0e4",
+  "SOL-USD-86400.json": "efa8d8828f88a970",
+  "LTC-USD-86400-pre2021.json": "33d92a2ca0b259a3",
+  "LTC-USD-86400.json": "416455521d192014",
+  "BCH-USD-86400-pre2021.json": "738d7085f36696cb",
+  "BCH-USD-86400.json": "e40d41a7cfd0db7f",
+  "ETC-USD-86400-pre2021.json": "c10bd5f25099779f",
+  "ETC-USD-86400.json": "5ae06f5f17c323cb",
+  "XLM-USD-86400-pre2021.json": "7ec5237f2f475f5e",
+  "XLM-USD-86400.json": "17ff2c48f9a6beab"
+ },
+ "buy_hold": {
+  "untouched": {
+   "net": 14411.9,
+   "cagr_pct": 150.55,
+   "mdd_pct": 90.12,
+   "sharpe": 1.506,
+   "profit_factor": null,
+   "round_trips": 2,
+   "fees": 0.2,
+   "exposure_pct": 99.9,
+   "years": {
+    "2016": 42.31,
+    "2017": 4249.82,
+    "2018": -3475.54,
+    "2019": 390.16,
+    "2020": 4803.49,
+    "2021": 8401.67
+   },
+   "orders": 2,
+   "orders_infeasible": 0,
+   "per_market": {
+    "BTC": 4217.71,
+    "ETH": 10194.18
+   }
+  },
+  "seen": {
+   "net": 39.84,
+   "cagr_pct": 6.33,
+   "mdd_pct": 88.48,
+   "sharpe": 0.44,
+   "profit_factor": 4.62,
+   "round_trips": 3,
+   "fees": 0.2,
+   "exposure_pct": 99.9,
+   "years": {
+    "2021": 131.93,
+    "2022": -193.43,
+    "2023": 114.61,
+    "2024": 133.21,
+    "2025": -64.33,
+    "2026": -82.15
+   },
+   "orders": 3,
+   "orders_infeasible": 0,
+   "per_market": {
+    "BTC": 24.78,
+    "ETH": -11.01,
+    "SOL": 26.07
+   }
+  }
+ },
+ "selected": "S3",
+ "lead": "S3",
+ "two_pct_drawdown": {
+  "candidate": "S3",
+  "exposure_fraction": 0.0479,
+  "untouched": {
+   "net": 110.14,
+   "cagr_pct": 14.69,
+   "mdd_pct": 39.5,
+   "sharpe": 0.808,
+   "profit_factor": 39.17,
+   "round_trips": 25,
+   "fees": 0.35,
+   "exposure_pct": 62.7,
+   "years": {
+    "2016": 1.51,
+    "2017": 116.73,
+    "2018": -40.54,
+    "2019": 1.32,
+    "2020": 8.31,
+    "2021": 22.82
+   },
+   "orders": 49,
+   "orders_infeasible": 2,
+   "per_market": {
+    "BTC": 23,
+    "ETH": 87.14
+   }
+  },
+  "orders_infeasible_share": 0.041
+ },
+ "secondary": {
+  "LTC": {
+   "net": 1087.76,
+   "mdd_pct": 42.42,
+   "sharpe": 1.28,
+   "buy_hold_net": 5081.79,
+   "buy_hold_mdd_pct": 93.64
+  },
+  "BCH": {
+   "net": 32.91,
+   "mdd_pct": 49.33,
+   "sharpe": 0.423,
+   "buy_hold_net": -81.29,
+   "buy_hold_mdd_pct": 97.97
+  },
+  "ETC": {
+   "net": 70.49,
+   "mdd_pct": 60.76,
+   "sharpe": 0.663,
+   "buy_hold_net": 361.44,
+   "buy_hold_mdd_pct": 77.28
+  },
+  "XLM": {
+   "net": 89.27,
+   "mdd_pct": 31.99,
+   "sharpe": 0.942,
+   "buy_hold_net": 277.18,
+   "buy_hold_mdd_pct": 76.95
+  }
+ },
+ "sensitivity_S3_actual_weight_band": {
+  "untouched": {
+   "net": 2675.02,
+   "cagr_pct": 84.64,
+   "mdd_pct": 40.53,
+   "sharpe": 2.085,
+   "profit_factor": 10.68,
+   "round_trips": 25,
+   "fees": 38.08,
+   "exposure_pct": 62.7,
+   "years": {
+    "2016": 67.35,
+    "2017": 766.16,
+    "2018": -182.55,
+    "2019": 208.9,
+    "2020": 1045.41,
+    "2021": 769.76
+   },
+   "orders": 196,
+   "orders_infeasible": 0,
+   "per_market": {
+    "BTC": 1414.71,
+    "ETH": 1260.31
+   }
+  },
+  "untouched_stress": {
+   "net": 2500.45,
+   "mdd_pct": 41.75
+  },
+  "seen": {
+   "net": 96.7,
+   "cagr_pct": 13.19,
+   "mdd_pct": 23.85,
+   "sharpe": 0.627,
+   "profit_factor": 2.33,
+   "round_trips": 64,
+   "fees": 10.74,
+   "exposure_pct": 47,
+   "years": {
+    "2021": -1.21,
+    "2022": -6.35,
+    "2023": 53.79,
+    "2024": 66.5,
+    "2025": -7.18,
+    "2026": -8.85
+   },
+   "orders": 253,
+   "orders_infeasible": 16,
+   "per_market": {
+    "BTC": 33.41,
+    "ETH": 36.22,
+    "SOL": 27.07
+   }
+  },
+  "bootstrap_weekly_98_75": {
+   "lo": 0.00485,
+   "mean": 0.01303,
+   "hi": 0.02287
+  },
+  "neighbours": {
+   "S3-0.30": 1538.71,
+   "S3-0.50": 4338.45
+  }
+ },
+ "two_pct_drawdown_corrected": {
+  "candidate": "S3 (actual-weight band)",
+  "exposure_fraction": 0.0493,
+  "untouched": {
+   "net": 19.65,
+   "cagr_pct": 3.37,
+   "mdd_pct": 2.25,
+   "sharpe": 2.173,
+   "profit_factor": 14.39,
+   "round_trips": 25,
+   "fees": 0.27,
+   "exposure_pct": 62.7,
+   "years": {
+    "2016": 2.34,
+    "2017": 9.79,
+    "2018": -1.1,
+    "2019": 1.27,
+    "2020": 4.74,
+    "2021": 2.6
+   },
+   "orders": 242,
+   "orders_infeasible": 184,
+   "per_market": {
+    "BTC": 10.02,
+    "ETH": 9.63
+   }
+  },
+  "seen": {
+   "net": 4.51,
+   "cagr_pct": 0.81,
+   "mdd_pct": 1.22,
+   "sharpe": 0.675,
+   "profit_factor": 2.89,
+   "round_trips": 64,
+   "fees": 0.36,
+   "exposure_pct": 47,
+   "years": {
+    "2021": -0.09,
+    "2022": -0.31,
+    "2023": 2.61,
+    "2024": 2.37,
+    "2025": 0.03,
+    "2026": -0.11
+   },
+   "orders": 303,
+   "orders_infeasible": 296,
+   "per_market": {
+    "BTC": 1.46,
+    "ETH": 1.68,
+    "SOL": 1.37
+   }
+  },
+  "kraken_feasibility_at_latest_prices": {
+   "BTC": {
+    "max_position_usd": 1.64,
+    "min_order_usd": 3.85,
+    "feasible": false
+   },
+   "ETH": {
+    "max_position_usd": 1.64,
+    "min_order_usd": 3.54,
+    "feasible": false
+   },
+   "SOL": {
+    "max_position_usd": 1.64,
+    "min_order_usd": 3.51,
+    "feasible": false
+   }
+  }
+ }
+}

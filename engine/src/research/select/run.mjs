@@ -28,8 +28,8 @@ const CANDIDATES = {
 const scaled = (rule, f) => (bars) => { const d = rule(bars); return (i) => { const w = d(i); return w === null || w === undefined ? w : w * f; }; };
 
 /** $100 shared portfolio, equal sleeves; returns portfolio metrics. */
-function portfolio(markets, rule, [from, to], cost, { threshold = 0, capital = 100 } = {}) {
-  const per = capital / markets.length, sleeves = markets.map((m) => ({ m, r: runSleeve(series(m), rule, { capital: per, from, to, threshold, ...cost, minQty: KMIN[m][0], minNotional: KMIN[m][1] }) }));
+function portfolio(markets, rule, [from, to], cost, { threshold = 0, capital = 100, bandOnActual = false } = {}) {
+  const per = capital / markets.length, sleeves = markets.map((m) => ({ m, r: runSleeve(series(m), rule, { capital: per, from, to, threshold, bandOnActual, ...cost, minQty: KMIN[m][0], minNotional: KMIN[m][1] }) }));
   const days = []; for (let t = Math.ceil(from / DAY) * DAY; t < to; t += DAY) days.push(t);
   const maps = sleeves.map((s) => new Map(s.r.curve.map((p) => [p.t, p.eq])));
   const cur = sleeves.map(() => per), eq = [];
@@ -84,6 +84,26 @@ const capped = portfolio(UM, scaled(L.rule, f), UNTOUCHED, COST.primary, L);
 out.two_pct_drawdown = { candidate: lead[0], exposure_fraction: +f.toFixed(4), untouched: lean(capped), orders_infeasible_share: capped.orders ? +(capped.orders_infeasible / capped.orders).toFixed(3) : null };
 // secondary independent markets (pre-2021), each as its own $100, for the lead
 out.secondary = Object.fromEntries(["LTC", "BCH", "ETC", "XLM"].map((m) => { const s = series(m).filter((b) => b.t < UNTOUCHED[1]); if (s.length < 730) return [m, "excluded: < 2 years before 2021-06"]; const a = portfolio([m], L.rule, [s[0].t, UNTOUCHED[1]], COST.primary, L), bh = portfolio([m], BUYHOLD(), [s[0].t, UNTOUCHED[1]], COST.primary); return [m, { net: a.net, mdd_pct: a.mdd_pct, sharpe: a.sharpe, buy_hold_net: bh.net, buy_hold_mdd_pct: bh.mdd_pct }]; }));
+// ---- SENSITIVITY (added after the first run, disclosed; never changes the selection above) ----
+// The pre-registered S3 implementation compares a new target with the last executed target, so it never re-sizes for
+// price drift; that also broke the 2% scaling (a 4.8% position grew with the price). The standard reading of a
+// rebalancing band compares the target with the position's ACTUAL weight. Both are reported.
+const s3a = { ...CANDIDATES.S3, bandOnActual: true };
+const s3u = portfolio(UM, s3a.rule, UNTOUCHED, COST.primary, s3a), s3us = portfolio(UM, s3a.rule, UNTOUCHED, COST.stress, s3a), s3s = portfolio(SM, s3a.rule, SEEN, COST.primary, s3a);
+const s3b = blockBootstrap(s3u.weekly, { block: 4, n: 10_000, alpha: 0.0125 });
+out.sensitivity_S3_actual_weight_band = { untouched: lean(s3u), untouched_stress: { net: s3us.net, mdd_pct: s3us.mdd_pct }, seen: lean(s3s), bootstrap_weekly_98_75: { lo: +s3b.lo.toFixed(5), mean: +s3b.mean.toFixed(5), hi: +s3b.hi.toFixed(5) },
+  neighbours: Object.fromEntries(Object.entries(CANDIDATES.S3.neighbours).map(([k, r]) => [k, portfolio(UM, r, UNTOUCHED, COST.primary, s3a).net])) };
+// 2% drawdown objective, corrected: re-size relative to the scaled exposure (threshold x f) against the ACTUAL weight
+const fixF = (mdd) => Math.min(1, 2 / mdd);
+const f2 = fixF(s3u.mdd_pct);
+const c2u = portfolio(UM, scaled(CANDIDATES.S3.rule, f2), UNTOUCHED, COST.primary, { threshold: 0.1 * f2, bandOnActual: true });
+const c2s = portfolio(SM, scaled(CANDIDATES.S3.rule, f2), SEEN, COST.primary, { threshold: 0.1 * f2, bandOnActual: true });
+const lastClose = (m) => series(m).at(-1).c;
+const sleeveNow = (m, n) => (100 / n) * f2;   // the largest position a sleeve would hold at exposure f2
+out.two_pct_drawdown_corrected = { candidate: "S3 (actual-weight band)", exposure_fraction: +f2.toFixed(4), untouched: lean(c2u), seen: lean(c2s),
+  kraken_feasibility_at_latest_prices: Object.fromEntries(SM.map((m) => { const minUsd = Math.max(KMIN[m][0] * lastClose(m), KMIN[m][1]); return [m, { max_position_usd: +sleeveNow(m, SM.length).toFixed(2), min_order_usd: +minUsd.toFixed(2), feasible: sleeveNow(m, SM.length) >= minUsd }]; })) };
+console.error(`SENSITIVITY S3 actual band: untouched net ${s3u.net} CAGR ${s3u.cagr_pct}% MDD ${s3u.mdd_pct}% Sharpe ${s3u.sharpe} | stress ${s3us.net} | seen ${s3s.net} MDD ${s3s.mdd_pct}% | boot lo ${s3b.lo.toFixed(5)}`);
+console.error(`2% corrected: exposure ${f2.toFixed(4)} -> untouched CAGR ${c2u.cagr_pct}% MDD ${c2u.mdd_pct}% | seen CAGR ${c2s.cagr_pct}% MDD ${c2s.mdd_pct}% | feasibility ${JSON.stringify(out.two_pct_drawdown_corrected.kraken_feasibility_at_latest_prices)}`);
 writeFileSync(arg("out", "select-results.json"), JSON.stringify(out, null, 1));
 console.error(`selected: ${out.selected ?? "NONE"}; lead: ${out.lead}; 2% DD needs exposure ${f.toFixed(3)} -> untouched CAGR ${capped.cagr_pct}% MDD ${capped.mdd_pct}% infeasible orders ${capped.orders_infeasible}/${capped.orders}`);
 console.error("secondary:", JSON.stringify(out.secondary));

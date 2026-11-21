@@ -4,7 +4,10 @@
 // OPEN, paying fee + slippage on the traded notional. Equity is marked at every close. No leverage, no shorting.
 export const DAY = 86_400_000;
 
-export function runSleeve(bars, rule, { capital, from = -Infinity, to = Infinity, feePct = 0.2, slipPct = 0.05, threshold = 0, minQty = 0, minNotional = 0 }) {
+// bandOnActual (sensitivity, disclosed after the first run): compare the new target with the position's ACTUAL weight at
+// the decision close (a standard rebalancing band), instead of with the last executed target (the pre-registered
+// implementation, which never re-sizes for price drift).
+export function runSleeve(bars, rule, { capital, from = -Infinity, to = Infinity, feePct = 0.2, slipPct = 0.05, threshold = 0, minQty = 0, minNotional = 0, bandOnActual = false }) {
   const fee = feePct / 100, slip = slipPct / 100, decide = rule(bars);
   let cash = capital, qty = 0, w = 0, pending = null, open = null;
   const curve = [], trips = [], orders = [];
@@ -41,7 +44,8 @@ export function runSleeve(bars, rule, { capital, from = -Infinity, to = Infinity
     if (target !== null && target !== undefined && inWin && i + 1 < bars.length) {
       const tw = Math.max(0, Math.min(1, target));
       const crosses = (w === 0) !== (tw === 0);                           // entering or leaving always trades
-      if (crosses || Math.abs(tw - w) >= threshold) { if (tw !== w) pending = tw; }
+      const eqC = cash + qty * b.c, actual = eqC > 0 ? (qty * b.c) / eqC : 0, ref = bandOnActual ? actual : w;
+      if (crosses || Math.abs(tw - ref) >= threshold) { if (tw !== w || (bandOnActual && Math.abs(tw - actual) >= threshold)) pending = tw; }
     }
   }
   if (open) trips.push({ entryT: open.t, exitT: null, net: open.proceeds - open.cost + qty * (curve.at(-1)?.eq !== undefined ? bars.find((x) => x.t === curve.at(-1).t).c : 0) });
