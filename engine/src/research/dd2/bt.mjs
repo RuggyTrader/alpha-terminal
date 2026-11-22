@@ -40,11 +40,11 @@ export function signals(K, spec) {
 }
 
 /**
- * assets: [{ name, K: bars, minQty }]. spec: { family, p, k, trail, r, cb } (V: p.n, p.tv, cb).
+ * assets: [{ name, K: bars, minQty, minUsd? }] (minUsd: an optional USD minimum per order, e.g. today's Kraken minimum value). spec: { family, p, k, trail, r, cb } (V: p.n, p.tv, cb).
  * opt: { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5 }.
  */
 export function backtest(assets, spec, opt) {
-  const { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5 } = opt;
+  const { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5, audit = null } = opt;
   const n = assets.length, cap = 1 / n;
   const S = assets.map((a) => signals(a.K, spec));
   const idx = assets.map((a) => new Map(a.K.map((k, i) => [k.t, i])));
@@ -55,8 +55,9 @@ export function backtest(assets, spec, opt) {
   const band = spec.family === "V" ? 0.1 * Math.min(1, spec.p.tv / 0.4) * cap : 0;
   const mark = (t, field) => assets.reduce((s, a, j) => { if (!pos[j]) return s; const i = idx[j].get(t); const px = i !== undefined ? a.K[i][field] : last[j]; return s + pos[j].qty * px; }, cash);
   const floorQ = (q) => Math.floor(q / STEP + 1e-9) * STEP;
-  const sell = (j, px, t, reason) => {
+  const sell = (j, px, t, reason, ref) => {
     const p = pos[j], notional = p.qty * px, f = notional * fee;
+    audit?.push({ t, asset: assets[j].name, side: "SELL", kind: reason, px, ref, qty: p.qty, notional, fee: f, full: true });
     cash += notional - f; fees += f; orders++; traded += notional;
     if (p.open) { trades.push({ asset: assets[j].name, entryT: p.entryT, exitT: t, net: p.proceeds + notional - f - p.cost, reason }); }
     pos[j] = null;
@@ -66,7 +67,7 @@ export function backtest(assets, spec, opt) {
     for (let j = 0; j < n; j++) {
       const i = idx[j].get(t); if (i === undefined || !pend[j]) continue;
       const k = assets[j].K[i], o = pend[j]; pend[j] = null;
-      if (o.type === "EXIT") { if (pos[j]) sell(j, k.o * (1 - slip), t, o.reason); continue; }
+      if (o.type === "EXIT") { if (pos[j]) sell(j, k.o * (1 - slip), t, o.reason, { open: k.o, decidedT: o.t }); continue; }
       const eqOpen = mark(t, "o");
       if (o.type === "ENTRY") {
         if (pos[j]) continue;
@@ -74,23 +75,24 @@ export function backtest(assets, spec, opt) {
         if (!(dist > 0)) continue;
         let q = Math.min((spec.r / 100) * eqOpen / dist, (cap * eqOpen) / px, cash / (px * (1 + fee)));
         q = floorQ(q);
-        if (!(q >= assets[j].minQty && q * px >= minCost)) { skipped++; continue; }
+        if (!(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
         const notional = q * px, f = notional * fee;
         cash -= notional + f; fees += f; orders++; traded += notional;
+        audit?.push({ t, asset: assets[j].name, side: "BUY", kind: "ENTRY", px, ref: { open: k.o, decidedT: o.t, atr: o.atr, eqOpen, cashAfter: cash }, qty: q, notional, fee: f, stop: px - dist });
         pos[j] = { qty: q, entryT: t, entryI: i, cost: notional + f, proceeds: 0, stop: px - dist, best: k.c, open: true };
       } else if (o.type === "TARGET") { // V: move to target weight of total equity
         const cur = pos[j] ? pos[j].qty * k.o : 0, delta = o.w * eqOpen - cur;
         if (Math.abs(delta) < 1e-9) continue;
         if (delta > 0) {
           const px = k.o * (1 + slip); let q = floorQ(Math.min(delta / px, cash / (px * (1 + fee))));
-          if (!(q >= assets[j].minQty && q * px >= minCost)) { skipped++; continue; }
+          if (!(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
           const notional = q * px, f = notional * fee; cash -= notional + f; fees += f; orders++; traded += notional;
           if (pos[j]) { pos[j].qty += q; pos[j].cost += notional + f; pos[j].w = o.w; }
           else pos[j] = { qty: q, entryT: t, entryI: i, cost: notional + f, proceeds: 0, stop: -Infinity, best: k.c, open: true, w: o.w };
         } else {
           const px = k.o * (1 - slip), full = o.w === 0;
           let q = full ? pos[j].qty : floorQ(Math.min(-delta / px, pos[j].qty));
-          if (!full && !(q >= assets[j].minQty && q * px >= minCost)) { skipped++; continue; }
+          if (!full && !(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
           if (full || pos[j].qty - q < 1e-12) { sell(j, px, t, "TARGET_0"); continue; }
           const notional = q * px, f = notional * fee; cash += notional - f; fees += f; orders++; traded += notional;
           pos[j].qty -= q; pos[j].proceeds += notional - f; pos[j].w = o.w;
@@ -101,7 +103,7 @@ export function backtest(assets, spec, opt) {
     for (let j = 0; j < n; j++) {
       const i = idx[j].get(t); if (i === undefined || !pos[j] || !(pos[j].stop > -Infinity)) continue;
       const k = assets[j].K[i];
-      if (k.l <= pos[j].stop) sell(j, Math.min(k.o, pos[j].stop) * (1 - stopSlip), t, "STOP");
+      if (k.l <= pos[j].stop) sell(j, Math.min(k.o, pos[j].stop) * (1 - stopSlip), t, "STOP", { open: k.o, low: k.l, stop: pos[j].stop });
     }
     // 3) marks
     for (let j = 0; j < n; j++) { const i = idx[j].get(t); if (i !== undefined) last[j] = assets[j].K[i].c; }
@@ -113,7 +115,7 @@ export function backtest(assets, spec, opt) {
     // 4) circuit breaker: while holding, a close at or below peak x (1 - cb) exits everything at the next open and blocks
     //    entries for 30 days (the peak is never reset, so drawdown stays honest; in cash it cannot re-trigger)
     if (spec.cb && pos.some(Boolean) && eqC <= peak * (1 - spec.cb / 100)) {
-      for (let j = 0; j < n; j++) if (pos[j]) pend[j] = { type: "EXIT", reason: "CIRCUIT_BREAKER" }; else pend[j] = null;
+      for (let j = 0; j < n; j++) if (pos[j]) pend[j] = { type: "EXIT", reason: "CIRCUIT_BREAKER", t }; else pend[j] = null;
       blockUntil = t + 30 * DAY;
       continue;
     }
@@ -130,8 +132,8 @@ export function backtest(assets, spec, opt) {
       }
       if (pos[j]) {
         if (spec.trail && s.atr[i] !== null) { pos[j].best = Math.max(pos[j].best, k.c); pos[j].stop = Math.max(pos[j].stop, pos[j].best - spec.k * s.atr[i]); }
-        if (s.exit(i, i - pos[j].entryI)) pend[j] = { type: "EXIT", reason: "SIGNAL" };
-      } else if (t >= blockUntil && s.atr[i] !== null && s.entry(i)) pend[j] = { type: "ENTRY", atr: s.atr[i] };
+        if (s.exit(i, i - pos[j].entryI)) pend[j] = { type: "EXIT", reason: "SIGNAL", t };
+      } else if (t >= blockUntil && s.atr[i] !== null && s.entry(i)) pend[j] = { type: "ENTRY", atr: s.atr[i], t };
     }
   }
   // open positions are valued at the last close (not closed)

@@ -1,0 +1,188 @@
+{
+ "prices": {
+  "BTC": {
+   "common_days": 713,
+   "from": "2024-12-02",
+   "median_close_diff_pct": 0.0132,
+   "max_close_diff_pct": 0.1069
+  },
+  "ETH": {
+   "common_days": 713,
+   "from": "2024-12-02",
+   "median_close_diff_pct": 0.0134,
+   "max_close_diff_pct": 0.1634
+  },
+  "SOL": {
+   "common_days": 713,
+   "from": "2024-12-02",
+   "median_close_diff_pct": 0.0138,
+   "max_close_diff_pct": 0.1832
+  }
+ },
+ "kraken_vs_coinbase": {
+  "A BTC momentum 0.25%": {
+   "window": [
+    "2025-04-01",
+    "2026-11-21"
+   ],
+   "coinbase": {
+    "final": 100.23,
+    "dd_pct": 1.07,
+    "trades": 9
+   },
+   "kraken": {
+    "final": 100.27,
+    "dd_pct": 1.07,
+    "trades": 9
+   }
+  },
+  "B 3-asset momentum 0.10%": {
+   "window": [
+    "2025-04-01",
+    "2026-11-21"
+   ],
+   "coinbase": {
+    "final": 100,
+    "dd_pct": 0,
+    "trades": 0
+   },
+   "kraken": {
+    "final": 100,
+    "dd_pct": 0,
+    "trades": 0
+   }
+  },
+  "C 3-asset 55/10 breakout 0.25%": {
+   "window": [
+    "2025-04-01",
+    "2026-11-21"
+   ],
+   "coinbase": {
+    "final": 100.47,
+    "dd_pct": 0.48,
+    "trades": 2
+   },
+   "kraken": {
+    "final": 101.05,
+    "dd_pct": 0.96,
+    "trades": 3
+   }
+  },
+  "D 3-asset 20/10 breakout 0.25%": {
+   "window": [
+    "2025-04-01",
+    "2026-11-21"
+   ],
+   "coinbase": {
+    "final": 100.83,
+    "dd_pct": 1.51,
+    "trades": 14
+   },
+   "kraken": {
+    "final": 100,
+    "dd_pct": 1.98,
+    "trades": 17
+   }
+  }
+ },
+ "hourly_stops": {
+  "A BTC momentum 0.25%": {
+   "stops_repriced": 34,
+   "worse_than_daily_model": 0,
+   "better": 0,
+   "pnl_effect_usd": 0
+  },
+  "B 3-asset momentum 0.10%": {
+   "stops_repriced": 32,
+   "worse_than_daily_model": 0,
+   "better": 0,
+   "pnl_effect_usd": 0
+  },
+  "C 3-asset 55/10 breakout 0.25%": {
+   "stops_repriced": 21,
+   "worse_than_daily_model": 0,
+   "better": 0,
+   "pnl_effect_usd": 0
+  },
+  "D 3-asset 20/10 breakout 0.25%": {
+   "stops_repriced": 71,
+   "worse_than_daily_model": 0,
+   "better": 0,
+   "pnl_effect_usd": 0
+  }
+ },
+ "stop_slippage": {
+  "A BTC momentum 0.25%": {
+   "0.10%": {
+    "final": 119.27,
+    "dd_pct": 1.72
+   },
+   "0.25%": {
+    "final": 118.49,
+    "dd_pct": 1.75
+   },
+   "0.50%": {
+    "final": 117.27,
+    "dd_pct": 1.81
+   },
+   "1.00%": {
+    "final": 113.85,
+    "dd_pct": 2
+   }
+  },
+  "B 3-asset momentum 0.10%": {
+   "0.10%": {
+    "final": 116.86,
+    "dd_pct": 1.38
+   },
+   "0.25%": {
+    "final": 114.08,
+    "dd_pct": 1.51
+   },
+   "0.50%": {
+    "final": 113.06,
+    "dd_pct": 1.6
+   },
+   "1.00%": {
+    "final": 111.24,
+    "dd_pct": 1.81
+   }
+  },
+  "C 3-asset 55/10 breakout 0.25%": {
+   "0.10%": {
+    "final": 117.67,
+    "dd_pct": 1.79
+   },
+   "0.25%": {
+    "final": 117.17,
+    "dd_pct": 1.81
+   },
+   "0.50%": {
+    "final": 116.52,
+    "dd_pct": 1.86
+   },
+   "1.00%": {
+    "final": 114.9,
+    "dd_pct": 2.03
+   }
+  },
+  "D 3-asset 20/10 breakout 0.25%": {
+   "0.10%": {
+    "final": 137.43,
+    "dd_pct": 3.61
+   },
+   "0.25%": {
+    "final": 136.18,
+    "dd_pct": 3.57
+   },
+   "0.50%": {
+    "final": 133.76,
+    "dd_pct": 3.62
+   },
+   "1.00%": {
+    "final": 127.56,
+    "dd_pct": 4.18
+   }
+  }
+ }
+}
