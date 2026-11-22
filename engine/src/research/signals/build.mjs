@@ -38,7 +38,7 @@ export function blockBootstrap(x, y, stat, { block = 4, reps = 5000, seed = 1234
   for (let r = 0; r < reps; r++) { const bx = [], by = []; while (bx.length < n) { const st = Math.floor(rnd() * (n - block + 1)); for (let k = 0; k < block && bx.length < n; k++) { bx.push(x[st + k]); by.push(y[st + k]); } } out.push(stat(bx, by)); }
   out.sort((a, b) => a - b);
   const mean = out.reduce((a, b) => a + b, 0) / reps, sd = Math.sqrt(out.reduce((a, b) => a + (b - mean) ** 2, 0) / (reps - 1));
-  return { lo99: out[Math.floor(0.005 * reps)], hi99: out[Math.floor(0.995 * reps)], lo95: out[Math.floor(0.025 * reps)], hi95: out[Math.floor(0.975 * reps)], se: sd };
+  return { q: (p) => out[Math.min(reps - 1, Math.max(0, Math.floor(p * reps)))], lo99: out[Math.floor(0.005 * reps)], hi99: out[Math.floor(0.995 * reps)], lo95: out[Math.floor(0.025 * reps)], hi95: out[Math.floor(0.975 * reps)], se: sd };
 }
 /** Mean of y in the top and bottom quintile of x. */
 export function quintiles(x, y) {
