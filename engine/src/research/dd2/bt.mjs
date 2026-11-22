@@ -52,7 +52,7 @@ export function backtest(assets, spec, opt) {
   const idx = assets.map((a) => new Map(a.K.map((k, i) => [k.t, i])));
   const times = [...new Set(assets.flatMap((a) => a.K.filter((k) => k.t >= from && k.t < to).map((k) => k.t)))].sort((x, y) => x - y);
   const pos = assets.map(() => null), pend = assets.map(() => null), last = assets.map(() => null);
-  let cash = capital, peak = capital, ddStrict = 0, ddClose = 0, blockUntil = -Infinity, fees = 0, skipped = 0, orders = 0, exposed = 0, traded = 0, missed = 0;
+  let cash = capital, peak = capital, ddStrict = 0, ddClose = 0, hwm = capital, ddOfficial = 0, blockUntil = -Infinity, fees = 0, skipped = 0, orders = 0, exposed = 0, traded = 0, missed = 0;
   const trades = [], curve = [];
   const band = spec.family === "V" ? 0.1 * Math.min(1, spec.p.tv / 0.4) * cap : 0;
   const mark = (t, field) => assets.reduce((s, a, j) => { if (!pos[j]) return s; const i = idx[j].get(t); const px = i !== undefined ? a.K[i][field] : last[j]; return s + pos[j].qty * px; }, cash);
@@ -109,6 +109,9 @@ export function backtest(assets, spec, opt) {
         }
       }
     }
+    // OFFICIAL drawdown (owner's definition, docs/research/OFFICIAL-DRAWDOWN.md): high-water mark of TOTAL equity including
+    // intraday highs; equity at this bar's high uses the holdings after the open's fills (before this bar's stops)
+    const eqH = mark(t, "h");
     // 2) stops on this bar (stop first if both could happen)
     for (let j = 0; j < n; j++) {
       const i = idx[j].get(t); if (i === undefined || !pos[j] || !(pos[j].stop > -Infinity)) continue;
@@ -121,6 +124,8 @@ export function backtest(assets, spec, opt) {
     const eqC = mark(t, "c"), eqL = mark(t, "l");
     peak = Math.max(peak, eqC);
     ddStrict = Math.max(ddStrict, 1 - eqL / peak); ddClose = Math.max(ddClose, 1 - eqC / peak);
+    // worst-case intrabar order for the official measure: this bar's high is assumed to come BEFORE its low
+    ddOfficial = Math.max(ddOfficial, 1 - eqL / Math.max(hwm, eqH)); hwm = Math.max(hwm, eqH, eqC);
     curve.push([t, eqC]);
     if (pos.some(Boolean)) exposed++;
     // 4) circuit breaker: while holding, a close at or below peak x (1 - cb) exits everything at the next open and blocks
@@ -153,7 +158,7 @@ export function backtest(assets, spec, opt) {
   const closed = trades.length, wins = trades.filter((x) => x.net > 0).length;
   return {
     final, net: final - capital, ret_pct: (final / capital - 1) * 100, cagr_pct: years > 0 ? ((final / capital) ** (1 / years) - 1) * 100 : 0,
-    dd_pct: ddStrict * 100, dd_close_pct: ddClose * 100, trades: spec.family === "V" ? orders : closed, closed_trades: closed, wins,
+    dd_pct: ddStrict * 100, dd_close_pct: ddClose * 100, dd_official_pct: ddOfficial * 100, trades: spec.family === "V" ? orders : closed, closed_trades: closed, wins,
     fees, traded, missed, open_at_end: pos.some(Boolean), trade_list: trades, skipped, exposure_pct: times.length ? (exposed / times.length) * 100 : 0, curve,
   };
 }

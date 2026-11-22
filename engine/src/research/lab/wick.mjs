@@ -34,7 +34,11 @@ export function backtestWick(assets, p, venue, opt) {
     audit?.push({ t, asset: assets[j].name, side: "SELL", reason, px, qty: P.qty, fee: f });
     pos[j] = null;
   };
+  let hwm = capital, ddOfficial = 0;
   for (let t = Math.ceil(from / HOUR) * HOUR; t < to; t += HOUR) {
+    // OFFICIAL drawdown: equity at this hour's highs with the holdings carried into the hour (positions opened during
+    // the hour cannot have earned that hour's earlier high)
+    const eqH = assets.reduce((s, _, j) => { if (!pos[j]) return s; const b = H[j].get(t); return s + pos[j].qty * (b ? b.h : lastC[j]); }, cash);
     for (let j = 0; j < assets.length; j++) {
       const b = H[j].get(t); if (!b) continue;
       const a = assets[j], fee = venue.fee(t), slip = venue.exitSlip(a.name, t);
@@ -67,6 +71,7 @@ export function backtestWick(assets, p, venue, opt) {
     const eqC = assets.reduce((s, _, j) => (pos[j] ? s + pos[j].qty * lastC[j] : s), cash);
     peak = Math.max(peak, eqC);
     ddStrict = Math.max(ddStrict, 1 - eqL / peak); ddClose = Math.max(ddClose, 1 - eqC / peak);
+    ddOfficial = Math.max(ddOfficial, 1 - eqL / Math.max(hwm, eqH)); hwm = Math.max(hwm, eqH, eqC); // high assumed before low
     if ((t + HOUR) % DAY === 0) curve.push([t + HOUR - DAY, eqC]);
     // 4) orders for the next hour (flat assets only; an asset with no trade this hour keeps its resting order)
     for (let j = 0; j < assets.length; j++) {
@@ -83,7 +88,7 @@ export function backtestWick(assets, p, venue, opt) {
   const years = (to - from) / (365.25 * DAY);
   return {
     final, ret_pct: (final / capital - 1) * 100, cagr_pct: ((final / capital) ** (1 / years) - 1) * 100,
-    dd_pct: ddStrict * 100, dd_close_pct: ddClose * 100, trades, n_trades: trades.length, fees, skipped_min: skippedMin, fills,
+    dd_pct: ddStrict * 100, dd_close_pct: ddClose * 100, dd_official_pct: ddOfficial * 100, trades, n_trades: trades.length, fees, skipped_min: skippedMin, fills,
     open_at_end: pos.some(Boolean), curve,
   };
 }

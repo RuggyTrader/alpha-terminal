@@ -169,7 +169,7 @@ for (const [wName, [w0, w1]] of Object.entries(WINDOWS)) {
     for (const [label, fee, slip] of [["reference: zero cost (gross)", 0, 0], ["reference: S3 shadow setting 0.20 % + 0.05 %", 0.002, 0.0005]]) {
       const audit = [], bt = backtest(assets("Kraken"), s.spec, { from, to, fee, slip, stopSlip: slip, audit });
       const refs = new Map(); for (const x of audit) refs.set(`${x.asset}|${x.t}|${x.side}`, x.px / (x.side === "BUY" ? 1 + slip : 1 - slip));
-      rows.push({ strategy: sName, route: label, final: r2(bt.final), cagr_pct: r2(bt.cagr_pct), max_dd_pct: r2(bt.dd_pct), orders: bt.trades, fees_usd: r2(bt.fees), missed: 0, skipped_min: bt.skipped, meets_2pct: bt.dd_pct < 2, cycles: cycleStats(bt, audit, refs, from, to) });
+      rows.push({ strategy: sName, route: label, final: r2(bt.final), cagr_pct: r2(bt.cagr_pct), max_dd_pct: r2(bt.dd_pct), orders: bt.trades, fees_usd: r2(bt.fees), missed: 0, skipped_min: bt.skipped, meets_2pct: bt.dd_pct < 2, official_dd_pct: r2(bt.dd_official_pct), meets_2pct_official: bt.dd_official_pct < 2, cycles: cycleStats(bt, audit, refs, from, to) });
     }
     for (const rDef of ROUTES) {
       if (rDef.venue === "Ndax" && from < LISTED.ndax.BTC) continue;
@@ -177,7 +177,7 @@ for (const [wName, [w0, w1]] of Object.entries(WINDOWS)) {
       const bt = backtest(assets(r.venue, !!r.histMin), s.spec, { from, to, fee: 0, slip: 0, stopSlip: 0, exec: r.exec, stopExec: r.stopExec, audit });
       const conv = r.conversion ? r.conversion(from) : 0, final = bt.final * (1 - conv), yrs = bt.curve.length / 365;
       rows.push({ strategy: sName, route: r.name, final: r2(final), cagr_pct: r2(((final / 100) ** (1 / yrs) - 1) * 100), max_dd_pct: r2(bt.dd_pct), orders: bt.trades, fees_usd: r2(bt.fees), conversion_pct: r2(conv * 100),
-        missed: bt.missed, skipped_min: bt.skipped, limit_orders: { ...r.st }, meets_2pct: bt.dd_pct < 2, cycles: cycleStats(bt, audit, r.refs, from, to) });
+        missed: bt.missed, skipped_min: bt.skipped, limit_orders: { ...r.st }, meets_2pct: bt.dd_pct < 2, official_dd_pct: r2(bt.dd_official_pct), meets_2pct_official: bt.dd_official_pct < 2, cycles: cycleStats(bt, audit, r.refs, from, to) });
     }
   }
   res.windows[wName] = rows;

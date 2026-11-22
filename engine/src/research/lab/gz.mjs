@@ -15,7 +15,7 @@ export function backtestGZ(assets, p, cost, opt) {
   const idx = assets.map((a) => new Map(a.K.map((k, i) => [k.t, i])));
   const times = [...new Set(assets.flatMap((a) => a.K.filter((k) => k.t >= from && k.t < to).map((k) => k.t)))].sort((x, y) => x - y);
   const qty = assets.map(() => 0), last = assets.map(() => null);
-  let cash = capital, peak = capital, dd = 0, ddClose = 0, fees = 0, orders = 0, skipped = 0, pend = null, kSum = 0, kN = 0;
+  let cash = capital, peak = capital, dd = 0, ddClose = 0, hwm = capital, ddOfficial = 0, fees = 0, orders = 0, skipped = 0, pend = null, kSum = 0, kN = 0;
   const curve = [];
   for (const t of times) {
     // 1) execute pending rebalance at this open
@@ -38,9 +38,11 @@ export function backtestGZ(assets, p, cost, opt) {
       pend = null;
     }
     // 2) marks (strict at lows, all assets together)
-    let eqL = cash, eqC = cash;
-    for (let j = 0; j < assets.length; j++) { const i = idx[j].get(t); if (i !== undefined) last[j] = assets[j].K[i].c; const b = i !== undefined ? assets[j].K[i] : null; eqL += qty[j] * (b ? b.l : last[j] ?? 0); eqC += qty[j] * (last[j] ?? 0); }
+    let eqL = cash, eqC = cash, eqH = cash;
+    for (let j = 0; j < assets.length; j++) { const i = idx[j].get(t); if (i !== undefined) last[j] = assets[j].K[i].c; const b = i !== undefined ? assets[j].K[i] : null; eqL += qty[j] * (b ? b.l : last[j] ?? 0); eqH += qty[j] * (b ? b.h : last[j] ?? 0); eqC += qty[j] * (last[j] ?? 0); }
     peak = Math.max(peak, eqC); dd = Math.max(dd, 1 - eqL / peak); ddClose = Math.max(ddClose, 1 - eqC / peak);
+    // OFFICIAL drawdown (high-water mark incl. intraday highs; this bar's high assumed before its low)
+    ddOfficial = Math.max(ddOfficial, 1 - eqL / Math.max(hwm, eqH)); hwm = Math.max(hwm, eqH, eqC);
     curve.push([t, eqC]);
     // 3) decision at the close
     // p.fixedK: reference runs only (the unscaled signal), not part of the overlay
@@ -56,5 +58,5 @@ export function backtestGZ(assets, p, cost, opt) {
     if (next.some((x) => x !== null)) pend = next;
   }
   const final = cash + qty.reduce((s, q, j) => s + q * (last[j] ?? 0), 0), years = (to - from) / (365.25 * 86_400_000);
-  return { final, cagr_pct: ((final / capital) ** (1 / years) - 1) * 100, dd_pct: dd * 100, dd_close_pct: ddClose * 100, fees, orders, skipped, mean_k: kSum / (kN || 1), curve };
+  return { final, cagr_pct: ((final / capital) ** (1 / years) - 1) * 100, dd_pct: dd * 100, dd_close_pct: ddClose * 100, dd_official_pct: ddOfficial * 100, fees, orders, skipped, mean_k: kSum / (kN || 1), curve };
 }
