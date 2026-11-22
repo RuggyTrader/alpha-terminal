@@ -20,7 +20,7 @@ const STEP = 1e-8;
 const floorQ = (q) => Math.floor(q / STEP + 1e-9) * STEP;
 
 export function backtestWick(assets, p, venue, opt) {
-  const { from, to, capital = 100, eps = 0.0005, audit = null } = opt;
+  const { from, to, capital = 100, eps = 0.0005, audit = null, sameHourStop = true } = opt; // sameHourStop=false: DIAGNOSTIC ONLY (optimistic)
   const { z, m, holdH, r, cap = 1 / assets.length } = p;
   const H = assets.map((a) => new Map(a.H.map((b) => [b.t, b])));
   const pos = assets.map(() => null), ord = assets.map(() => null), lastC = assets.map(() => null);
@@ -57,7 +57,7 @@ export function backtestWick(assets, p, venue, opt) {
           const stop = px * Math.exp(-z * o.sigma), tp = px * Math.exp(m * z * o.sigma);
           pos[j] = { qty, entry: px, openT: t, stop, tp, fee: f, cost: qty * px + f, risk: qty * (px - stop) + f };
           audit?.push({ t, asset: a.name, side: "BUY", reason: "LIMIT", px, qty, fee: f });
-          if (b.l <= stop) close(j, t, stop * (1 - slip), fee.taker, "STOP_SAME_HOUR");
+          if (sameHourStop && b.l <= stop) close(j, t, stop * (1 - slip), fee.taker, "STOP_SAME_HOUR");
         }
       }
       lastC[j] = b.c;
