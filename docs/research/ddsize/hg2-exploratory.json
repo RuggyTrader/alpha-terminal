@@ -1,0 +1,71 @@
+{
+ "status": "EXPLORATORY - chosen after seeing results; not evidence",
+ "rows": [
+  {
+   "window": "2018-04-01..2026-10-01",
+   "m": 5,
+   "final": 103.32,
+   "cagr_pct": 0.39,
+   "dd_pct": 1.77,
+   "fees": 0.06,
+   "orders": 20,
+   "skipped_min": 2987,
+   "mean_exposure_k_pct": 2.4
+  },
+  {
+   "window": "2018-04-01..2026-10-01",
+   "m": 9.5,
+   "final": 106.95,
+   "cagr_pct": 0.79,
+   "dd_pct": 2.23,
+   "fees": 0.14,
+   "orders": 32,
+   "skipped_min": 21,
+   "mean_exposure_k_pct": 1.92
+  },
+  {
+   "window": "2018-04-01..2022-01-01",
+   "m": 5,
+   "final": 103.32,
+   "cagr_pct": 0.88,
+   "dd_pct": 1.77,
+   "fees": 0.06,
+   "orders": 20,
+   "skipped_min": 1337,
+   "mean_exposure_k_pct": 3.74
+  },
+  {
+   "window": "2018-04-01..2022-01-01",
+   "m": 9.5,
+   "final": 106.95,
+   "cagr_pct": 1.81,
+   "dd_pct": 2.23,
+   "fees": 0.14,
+   "orders": 32,
+   "skipped_min": 21,
+   "mean_exposure_k_pct": 4.35
+  },
+  {
+   "window": "2022-01-01..2026-10-01",
+   "m": 5,
+   "final": 104.93,
+   "cagr_pct": 1.02,
+   "dd_pct": 1.82,
+   "fees": 0.14,
+   "orders": 40,
+   "skipped_min": 868,
+   "mean_exposure_k_pct": 4.51
+  },
+  {
+   "window": "2022-01-01..2026-10-01",
+   "m": 9.5,
+   "final": 99.65,
+   "cagr_pct": -0.07,
+   "dd_pct": 1.98,
+   "fees": 0.17,
+   "orders": 40,
+   "skipped_min": 1363,
+   "mean_exposure_k_pct": 3.85
+  }
+ ]
+}

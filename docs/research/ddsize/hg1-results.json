@@ -1,0 +1,65 @@
+{
+ "prereg": "docs/research/ddsize/PREREGISTRATION.md",
+ "data": [
+  {
+   "name": "BTC",
+   "sha256": "27fd91e9528d421c606ff7cd37bf3b8a4eed3b39631beb09ac8aec36a9b69266"
+  },
+  {
+   "name": "ETH",
+   "sha256": "63f81fbd846bf54f7a55e4ac98e8da42bd419ebbf70227fbf15272add46cec63"
+  }
+ ],
+ "window": [
+  "2018-04-01",
+  "2026-09-30"
+ ],
+ "cost": {
+  "fee": 0.002,
+  "spread": 0.0025,
+  "minUsd": 1
+ },
+ "rows": [
+  {
+   "m": 1,
+   "final": 100,
+   "cagr_pct": 0,
+   "dd_pct": 0,
+   "dd_close_pct": 0,
+   "fees": 0,
+   "orders": 0,
+   "skipped": 3202,
+   "mean_k": 2
+  },
+  {
+   "m": 2,
+   "final": 105.66,
+   "cagr_pct": 0.65,
+   "dd_pct": 1.3,
+   "dd_close_pct": 1.1,
+   "fees": 0.03,
+   "orders": 15,
+   "skipped": 2810,
+   "mean_k": 2.31
+  },
+  {
+   "m": 3,
+   "final": 101.27,
+   "cagr_pct": 0.15,
+   "dd_pct": 1.39,
+   "dd_close_pct": 1.38,
+   "fees": 0.04,
+   "orders": 19,
+   "skipped": 2922,
+   "mean_k": 2.45
+  },
+  {
+   "m": "reference: S3 unscaled",
+   "final": 820.5,
+   "cagr_pct": 28.09,
+   "dd_pct": 40.82,
+   "fees": 41.65,
+   "orders": 204
+  }
+ ]
+}

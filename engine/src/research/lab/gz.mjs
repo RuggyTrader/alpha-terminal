@@ -43,7 +43,8 @@ export function backtestGZ(assets, p, cost, opt) {
     peak = Math.max(peak, eqC); dd = Math.max(dd, 1 - eqL / peak); ddClose = Math.max(ddClose, 1 - eqC / peak);
     curve.push([t, eqC]);
     // 3) decision at the close
-    const k = Math.min(1, Math.max(0, (m * (eqC - (1 - alpha) * peak)) / eqC)); kSum += k; kN++;
+    // p.fixedK: reference runs only (the unscaled signal), not part of the overlay
+    const k = p.fixedK ?? Math.min(1, Math.max(0, (m * (eqC - (1 - alpha) * peak)) / eqC)); kSum += k; kN++;
     const desired = assets.map((a, j) => { const i = idx[j].get(t); if (i === undefined || i + 1 >= a.K.length) return null; const w = a.target(i); return w === null ? null : k * w; });
     const next = desired.map((d, j) => {
       if (d === null) return null;
