@@ -44,19 +44,21 @@ export function signals(K, spec) {
  * opt: { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5 }.
  */
 export function backtest(assets, spec, opt) {
-  const { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5, audit = null } = opt;
+  const { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5, audit = null, exec = null } = opt;
+  // exec (optional, execution-cost research): (asset, t, side, order, bar) -> { px, fee } for a fill, or null when the
+  // order is MISSED (not filled). Default: market order at the open +/- slip, paying `fee`. Stops always use stopSlip + fee.
   const n = assets.length, cap = 1 / n;
   const S = assets.map((a) => signals(a.K, spec));
   const idx = assets.map((a) => new Map(a.K.map((k, i) => [k.t, i])));
   const times = [...new Set(assets.flatMap((a) => a.K.filter((k) => k.t >= from && k.t < to).map((k) => k.t)))].sort((x, y) => x - y);
   const pos = assets.map(() => null), pend = assets.map(() => null), last = assets.map(() => null);
-  let cash = capital, peak = capital, ddStrict = 0, ddClose = 0, blockUntil = -Infinity, fees = 0, skipped = 0, orders = 0, exposed = 0, traded = 0;
+  let cash = capital, peak = capital, ddStrict = 0, ddClose = 0, blockUntil = -Infinity, fees = 0, skipped = 0, orders = 0, exposed = 0, traded = 0, missed = 0;
   const trades = [], curve = [];
   const band = spec.family === "V" ? 0.1 * Math.min(1, spec.p.tv / 0.4) * cap : 0;
   const mark = (t, field) => assets.reduce((s, a, j) => { if (!pos[j]) return s; const i = idx[j].get(t); const px = i !== undefined ? a.K[i][field] : last[j]; return s + pos[j].qty * px; }, cash);
   const floorQ = (q) => Math.floor(q / STEP + 1e-9) * STEP;
-  const sell = (j, px, t, reason, ref) => {
-    const p = pos[j], notional = p.qty * px, f = notional * fee;
+  const sell = (j, px, t, reason, ref, feeRate = fee) => {
+    const p = pos[j], notional = p.qty * px, f = notional * feeRate;
     audit?.push({ t, asset: assets[j].name, side: "SELL", kind: reason, px, ref, qty: p.qty, notional, fee: f, full: true });
     cash += notional - f; fees += f; orders++; traded += notional;
     if (p.open) { trades.push({ asset: assets[j].name, entryT: p.entryT, exitT: t, net: p.proceeds + notional - f - p.cost, reason }); }
@@ -67,34 +69,42 @@ export function backtest(assets, spec, opt) {
     for (let j = 0; j < n; j++) {
       const i = idx[j].get(t); if (i === undefined || !pend[j]) continue;
       const k = assets[j].K[i], o = pend[j]; pend[j] = null;
-      if (o.type === "EXIT") { if (pos[j]) sell(j, k.o * (1 - slip), t, o.reason, { open: k.o, decidedT: o.t }); continue; }
+      if (o.type === "EXIT") {
+        if (!pos[j]) continue;
+        if (exec) { const x = exec(assets[j].name, t, "SELL", o, k); if (!x) { missed++; continue; } sell(j, x.px, t, o.reason, { open: k.o, decidedT: o.t }, x.fee); continue; }
+        sell(j, k.o * (1 - slip), t, o.reason, { open: k.o, decidedT: o.t }); continue;
+      }
       const eqOpen = mark(t, "o");
       if (o.type === "ENTRY") {
         if (pos[j]) continue;
-        const px = k.o * (1 + slip), dist = spec.k * o.atr;
+        const x = exec ? exec(assets[j].name, t, "BUY", o, k) : { px: k.o * (1 + slip), fee };
+        if (!x) { missed++; continue; }
+        const px = x.px, feeR = x.fee, dist = spec.k * o.atr;
         if (!(dist > 0)) continue;
-        let q = Math.min((spec.r / 100) * eqOpen / dist, (cap * eqOpen) / px, cash / (px * (1 + fee)));
+        let q = Math.min((spec.r / 100) * eqOpen / dist, (cap * eqOpen) / px, cash / (px * (1 + feeR)));
         q = floorQ(q);
         if (!(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
-        const notional = q * px, f = notional * fee;
+        const notional = q * px, f = notional * feeR;
         cash -= notional + f; fees += f; orders++; traded += notional;
         audit?.push({ t, asset: assets[j].name, side: "BUY", kind: "ENTRY", px, ref: { open: k.o, decidedT: o.t, atr: o.atr, eqOpen, cashAfter: cash }, qty: q, notional, fee: f, stop: px - dist });
         pos[j] = { qty: q, entryT: t, entryI: i, cost: notional + f, proceeds: 0, stop: px - dist, best: k.c, open: true };
       } else if (o.type === "TARGET") { // V: move to target weight of total equity
         const cur = pos[j] ? pos[j].qty * k.o : 0, delta = o.w * eqOpen - cur;
         if (Math.abs(delta) < 1e-9) continue;
+        const x = exec ? exec(assets[j].name, t, delta > 0 ? "BUY" : "SELL", o, k) : { px: k.o * (delta > 0 ? 1 + slip : 1 - slip), fee };
+        if (!x) { missed++; continue; }
         if (delta > 0) {
-          const px = k.o * (1 + slip); let q = floorQ(Math.min(delta / px, cash / (px * (1 + fee))));
+          const px = x.px; let q = floorQ(Math.min(delta / px, cash / (px * (1 + x.fee))));
           if (!(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
-          const notional = q * px, f = notional * fee; cash -= notional + f; fees += f; orders++; traded += notional;
+          const notional = q * px, f = notional * x.fee; cash -= notional + f; fees += f; orders++; traded += notional;
           if (pos[j]) { pos[j].qty += q; pos[j].cost += notional + f; pos[j].w = o.w; }
           else pos[j] = { qty: q, entryT: t, entryI: i, cost: notional + f, proceeds: 0, stop: -Infinity, best: k.c, open: true, w: o.w };
         } else {
-          const px = k.o * (1 - slip), full = o.w === 0;
+          const px = x.px, full = o.w === 0;
           let q = full ? pos[j].qty : floorQ(Math.min(-delta / px, pos[j].qty));
           if (!full && !(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
-          if (full || pos[j].qty - q < 1e-12) { sell(j, px, t, "TARGET_0"); continue; }
-          const notional = q * px, f = notional * fee; cash += notional - f; fees += f; orders++; traded += notional;
+          if (full || pos[j].qty - q < 1e-12) { sell(j, px, t, "TARGET_0", undefined, x.fee); continue; }
+          const notional = q * px, f = notional * x.fee; cash += notional - f; fees += f; orders++; traded += notional;
           pos[j].qty -= q; pos[j].proceeds += notional - f; pos[j].w = o.w;
         }
       }
@@ -143,7 +153,7 @@ export function backtest(assets, spec, opt) {
   return {
     final, net: final - capital, ret_pct: (final / capital - 1) * 100, cagr_pct: years > 0 ? ((final / capital) ** (1 / years) - 1) * 100 : 0,
     dd_pct: ddStrict * 100, dd_close_pct: ddClose * 100, trades: spec.family === "V" ? orders : closed, closed_trades: closed, wins,
-    fees, traded, open_at_end: pos.some(Boolean), trade_list: trades, skipped, exposure_pct: times.length ? (exposed / times.length) * 100 : 0, curve,
+    fees, traded, missed, open_at_end: pos.some(Boolean), trade_list: trades, skipped, exposure_pct: times.length ? (exposed / times.length) * 100 : 0, curve,
   };
 }
 

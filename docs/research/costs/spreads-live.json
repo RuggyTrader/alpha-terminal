@@ -1,0 +1,128 @@
+{
+ "taken_at": "2026-11-22T19:31:14.194Z",
+ "samples": 24,
+ "every_s": 15,
+ "notional": 50,
+ "summary": {
+  "Kraken BTC/CAD": {
+   "samples": 24,
+   "mid": 86285.65,
+   "spread_bps_median": 5.73,
+   "spread_bps_max": 25.26,
+   "buy50_bps_median": 2.86,
+   "sell50_bps_median": 2.86
+  },
+  "Kraken ETH/CAD": {
+   "samples": 24,
+   "mid": 2434.39,
+   "spread_bps_median": 43.45,
+   "spread_bps_max": 58.19,
+   "buy50_bps_median": 21.73,
+   "sell50_bps_median": 21.73
+  },
+  "Kraken SOL/CAD": {
+   "samples": 24,
+   "mid": 99.83,
+   "spread_bps_median": 36.05,
+   "spread_bps_max": 43.05,
+   "buy50_bps_median": 18.53,
+   "sell50_bps_median": 18.03
+  },
+  "Kraken BTC/USD": {
+   "samples": 24,
+   "mid": 60651.95,
+   "spread_bps_median": 0.02,
+   "spread_bps_max": 0.02,
+   "buy50_bps_median": 0.01,
+   "sell50_bps_median": 0.01
+  },
+  "Kraken ETH/USD": {
+   "samples": 24,
+   "mid": 1712.53,
+   "spread_bps_median": 0.06,
+   "spread_bps_max": 0.06,
+   "buy50_bps_median": 0.03,
+   "sell50_bps_median": 0.03
+  },
+  "Kraken SOL/USD": {
+   "samples": 24,
+   "mid": 70.18,
+   "spread_bps_median": 1.42,
+   "spread_bps_max": 2.85,
+   "buy50_bps_median": 0.71,
+   "sell50_bps_median": 0.71
+  },
+  "Ndax BTC/CAD": {
+   "samples": 24,
+   "mid": 87036.46,
+   "spread_bps_median": 51.85,
+   "spread_bps_max": 60.44,
+   "buy50_bps_median": 25.92,
+   "sell50_bps_median": 25.92
+  },
+  "Ndax ETH/CAD": {
+   "samples": 24,
+   "mid": 2456.84,
+   "spread_bps_median": 40.78,
+   "spread_bps_max": 42.52,
+   "buy50_bps_median": 20.39,
+   "sell50_bps_median": 20.39
+  },
+  "Ndax SOL/CAD": {
+   "samples": 24,
+   "mid": 100.79,
+   "spread_bps_median": 3.96,
+   "spread_bps_max": 41.67,
+   "buy50_bps_median": 1.98,
+   "sell50_bps_median": 1.98
+  },
+  "Coinbase BTC/USD": {
+   "samples": 24,
+   "mid": 60650.01,
+   "spread_bps_median": 0,
+   "spread_bps_max": 0,
+   "buy50_bps_median": 0,
+   "sell50_bps_median": 0
+  },
+  "Coinbase ETH/USD": {
+   "samples": 24,
+   "mid": 1712.44,
+   "spread_bps_median": 0.58,
+   "spread_bps_max": 0.82,
+   "buy50_bps_median": 0.29,
+   "sell50_bps_median": 0.32
+  },
+  "Coinbase SOL/USD": {
+   "samples": 24,
+   "mid": 70.16,
+   "spread_bps_median": 1.42,
+   "spread_bps_max": 2.85,
+   "buy50_bps_median": 0.71,
+   "sell50_bps_median": 0.71
+  },
+  "Crypto.com BTC/USD": {
+   "samples": 24,
+   "mid": 60662.01,
+   "spread_bps_median": 0,
+   "spread_bps_max": 0,
+   "buy50_bps_median": 0,
+   "sell50_bps_median": 0
+  },
+  "Crypto.com ETH/USD": {
+   "samples": 24,
+   "mid": 1712.57,
+   "spread_bps_median": 0.06,
+   "spread_bps_max": 0.06,
+   "buy50_bps_median": 0.03,
+   "sell50_bps_median": 0.03
+  },
+  "Crypto.com SOL/USD": {
+   "samples": 24,
+   "mid": 70.19,
+   "spread_bps_median": 1.42,
+   "spread_bps_max": 1.42,
+   "buy50_bps_median": 0.71,
+   "sell50_bps_median": 0.71
+  }
+ }
+}
