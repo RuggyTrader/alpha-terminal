@@ -117,7 +117,7 @@ This closes **Phase 1, historical research.** It gathers every strategy and exec
 |---|---|---|
 | All strategy and cost reports | `docs/research/` on branch `research/costs`. Includes strategy-select, dd2 (REPORT, FRONTIER-REPORT), phase3 (REPORT, FEE-REVIEW), costs (REPORT, HISTORICAL-REPORT), FAILED-CANDIDATES, rounds 1–9, and this file. | committed locally |
 | Research branches | `research/strategy-select`, `research/dd2` (pushed earlier); `research/phase3`, `research/costs`, `shadow/phase3`, `lab/stage-0` (local only, never pushed) | clean |
-| Offline backup of all research branches | `%USERPROFILE%\AlphaTerminal\backups\research-branches-20261122.bundle` (SHA-256 `558fd979…33b2`) | verified |
+| Offline backup of all research branches | `%USERPROFILE%\AlphaTerminal\backups\research-branches-20261122.bundle` (SHA-256 in the `.sha256` file beside it) | verified |
 | Historical cost data and results | `%USERPROFILE%\AlphaTerminal\research\hist-costs\` | private, outside Git |
 | 7-day collector | `%USERPROFILE%\AlphaTerminal\research\cost-study\`: 31 samples (2.5 h, 22 Nov), partial analysis `analysis-partial-final.json`, task definition `scheduled-task-definition.xml` | **stopped**: its Windows task was removed after verifying it ran only `cost-study\run-hidden.vbs`; its one-time Claude final-report task was deleted (prompt kept on disk). Partial data is **not conclusive**. |
 | Engine, four bots, S3 shadow | production | **unchanged**. The "ALPHA TERMINAL Engine" task is still running. S3 still uses its frozen 0.20 % + 0.05 % cost setting, which overstates net results vs Ndax by ~1.4 pp/yr. |
