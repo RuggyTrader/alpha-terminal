@@ -40,11 +40,11 @@ export function signals(K, spec) {
 }
 
 /**
- * assets: [{ name, K: bars, minQty, minUsd? }] (minUsd: an optional USD minimum per order, e.g. today's Kraken minimum value). spec: { family, p, k, trail, r, cb } (V: p.n, p.tv, cb).
+ * assets: [{ name, K: bars, minQty, minQtyAt?, minUsd? }] (minQtyAt(t): optional date-dependent minimum quantity) (minUsd: an optional USD minimum per order, e.g. today's Kraken minimum value). spec: { family, p, k, trail, r, cb } (V: p.n, p.tv, cb).
  * opt: { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5 }.
  */
 export function backtest(assets, spec, opt) {
-  const { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5, audit = null, exec = null } = opt;
+  const { from, to, capital = 100, fee, slip, stopSlip, minCost = 0.5, audit = null, exec = null, stopExec = null } = opt;
   // exec (optional, execution-cost research): (asset, t, side, order, bar) -> { px, fee } for a fill, or null when the
   // order is MISSED (not filled). Default: market order at the open +/- slip, paying `fee`. Stops always use stopSlip + fee.
   const n = assets.length, cap = 1 / n;
@@ -83,7 +83,7 @@ export function backtest(assets, spec, opt) {
         if (!(dist > 0)) continue;
         let q = Math.min((spec.r / 100) * eqOpen / dist, (cap * eqOpen) / px, cash / (px * (1 + feeR)));
         q = floorQ(q);
-        if (!(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
+        if (!(q >= (assets[j].minQtyAt ? assets[j].minQtyAt(t) : assets[j].minQty) && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
         const notional = q * px, f = notional * feeR;
         cash -= notional + f; fees += f; orders++; traded += notional;
         audit?.push({ t, asset: assets[j].name, side: "BUY", kind: "ENTRY", px, ref: { open: k.o, decidedT: o.t, atr: o.atr, eqOpen, cashAfter: cash }, qty: q, notional, fee: f, stop: px - dist });
@@ -95,16 +95,16 @@ export function backtest(assets, spec, opt) {
         if (!x) { missed++; continue; }
         if (delta > 0) {
           const px = x.px; let q = floorQ(Math.min(delta / px, cash / (px * (1 + x.fee))));
-          if (!(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
-          const notional = q * px, f = notional * x.fee; cash -= notional + f; fees += f; orders++; traded += notional;
+          if (!(q >= (assets[j].minQtyAt ? assets[j].minQtyAt(t) : assets[j].minQty) && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
+          const notional = q * px, f = notional * x.fee; cash -= notional + f; fees += f; orders++; traded += notional; audit?.push({ t, asset: assets[j].name, side: "BUY", kind: "TARGET", px, qty: q, notional, fee: f });
           if (pos[j]) { pos[j].qty += q; pos[j].cost += notional + f; pos[j].w = o.w; }
           else pos[j] = { qty: q, entryT: t, entryI: i, cost: notional + f, proceeds: 0, stop: -Infinity, best: k.c, open: true, w: o.w };
         } else {
           const px = x.px, full = o.w === 0;
           let q = full ? pos[j].qty : floorQ(Math.min(-delta / px, pos[j].qty));
-          if (!full && !(q >= assets[j].minQty && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
+          if (!full && !(q >= (assets[j].minQtyAt ? assets[j].minQtyAt(t) : assets[j].minQty) && q * px >= Math.max(minCost, assets[j].minUsd ?? 0))) { skipped++; continue; }
           if (full || pos[j].qty - q < 1e-12) { sell(j, px, t, "TARGET_0", undefined, x.fee); continue; }
-          const notional = q * px, f = notional * x.fee; cash += notional - f; fees += f; orders++; traded += notional;
+          const notional = q * px, f = notional * x.fee; cash += notional - f; fees += f; orders++; traded += notional; audit?.push({ t, asset: assets[j].name, side: "SELL", kind: "TARGET", px, qty: q, notional, fee: f });
           pos[j].qty -= q; pos[j].proceeds += notional - f; pos[j].w = o.w;
         }
       }
@@ -113,7 +113,8 @@ export function backtest(assets, spec, opt) {
     for (let j = 0; j < n; j++) {
       const i = idx[j].get(t); if (i === undefined || !pos[j] || !(pos[j].stop > -Infinity)) continue;
       const k = assets[j].K[i];
-      if (k.l <= pos[j].stop) sell(j, Math.min(k.o, pos[j].stop) * (1 - stopSlip), t, "STOP", { open: k.o, low: k.l, stop: pos[j].stop });
+      // stopExec (optional): (asset, t) -> { slip, fee } for a date-dependent stop cost; default stopSlip and fee
+      if (k.l <= pos[j].stop) { const sc = stopExec ? stopExec(assets[j].name, t) : { slip: stopSlip, fee }; sell(j, Math.min(k.o, pos[j].stop) * (1 - sc.slip), t, "STOP", { open: k.o, low: k.l, stop: pos[j].stop }, sc.fee); }
     }
     // 3) marks
     for (let j = 0; j < n; j++) { const i = idx[j].get(t); if (i !== undefined) last[j] = assets[j].K[i].c; }
