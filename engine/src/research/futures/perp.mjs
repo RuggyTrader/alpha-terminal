@@ -24,7 +24,7 @@ export function simulatePerp(assets, decide, cfg, { from, to }) {
   const H = assets.map((a) => new Map(a.H.map((b) => [b.t, b])));
   const rand = rng(seed);
   const n = assets.length, units = new Array(n).fill(0), last = new Array(n).fill(null);
-  let cash = capital, hwm = capital, dd = 0, fees = 0, funding = 0, liqs = 0, missed = 0, trades = 0, slipCost = 0, ruined = false;
+  let cash = capital, hwm = capital, dd = 0, fees = 0, funding = 0, liqs = 0, missed = 0, trades = 0, slipCost = 0, ruined = false, pricePnL = 0, liqFees = 0;
   const daily = [], events = [];
   const feeFor = (j, dUnits, px) => {
     const a = assets[j].name;
@@ -38,7 +38,7 @@ export function simulatePerp(assets, decide, cfg, { from, to }) {
   for (let t = Math.ceil(from / HOUR) * HOUR; t < to; t += HOUR) {
     const bars = H.map((m) => m.get(t));
     // 1) variation margin from the previous close to this open, and the daily decision at the open
-    for (let j = 0; j < n; j++) { const b = bars[j]; if (b && last[j] !== null && units[j]) cash += units[j] * (b.o - last[j]); if (b) last[j] = b.o; }
+    for (let j = 0; j < n; j++) { const b = bars[j]; if (b && last[j] !== null && units[j]) { const v = units[j] * (b.o - last[j]); cash += v; pricePnL += v; } if (b) last[j] = b.o; }
     if (!ruined && t % DAY === 0) {
       const w = decide(t);
       if (w) {
@@ -71,7 +71,7 @@ export function simulatePerp(assets, decide, cfg, { from, to }) {
       for (let j = 0; j < n; j++) {
         const b = bars[j]; if (!b || !units[j]) continue;
         const worst = units[j] > 0 ? b.l : b.h, px = worst * (1 - Math.sign(units[j]) * liqSlip);
-        cash += units[j] * (px - b.o); const lf = liqFeeFor(j, units[j], px); cash -= lf; fees += lf; units[j] = 0; last[j] = null;
+        const v = units[j] * (px - b.o); cash += v; pricePnL += v; const lf = liqFeeFor(j, units[j], px); cash -= lf; fees += lf; liqFees += lf; units[j] = 0; last[j] = null;
       }
       liqs++; events.push({ t, kind: "LIQUIDATION", equity: cash });
       dd = Math.max(dd, 1 - cash / Math.max(hwm, eqBest));
@@ -79,7 +79,7 @@ export function simulatePerp(assets, decide, cfg, { from, to }) {
     // 3) close of the hour: variation margin open -> close, funding
     for (let j = 0; j < n; j++) {
       const b = bars[j]; if (!b) continue;
-      if (units[j]) { cash += units[j] * (b.c - b.o); const fr = assets[j].funding(t) * units[j] * b.c; cash -= fr; funding += fr; }
+      if (units[j]) { const v = units[j] * (b.c - b.o); cash += v; pricePnL += v; const fr = assets[j].funding(t) * units[j] * b.c; cash -= fr; funding += fr; }
       last[j] = b.c;
     }
     hwm = Math.max(hwm, cash);
@@ -87,7 +87,7 @@ export function simulatePerp(assets, decide, cfg, { from, to }) {
     if ((t + HOUR) % DAY === 0) daily.push([t + HOUR - DAY, cash]);
   }
   const years = (to - from) / (365.25 * DAY);
-  return { final: cash, cagr_pct: cash > 0 ? ((cash / capital) ** (1 / years) - 1) * 100 : -100, dd_pct: dd * 100, fees, funding, slipCost, liquidations: liqs, missed, trades, ruined, daily, events };
+  return { final: cash, pricePnL, liqFees, ledger_residual: cash - (capital + pricePnL - fees - slipCost - funding), cagr_pct: cash > 0 ? ((cash / capital) ** (1 / years) - 1) * 100 : -100, dd_pct: dd * 100, fees, funding, slipCost, liquidations: liqs, missed, trades, ruined, daily, events };
 }
 
 /** Non-overlapping period returns from a daily equity series. */
