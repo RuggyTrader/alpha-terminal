@@ -1,0 +1,521 @@
+{
+ "rules": "S3 frozen (V n200 tv0.4, BTC+ETH halves, 0.10 band)",
+ "data": "Kraken official OHLCVT daily (signals/fills), 5-minute (drawdown reconstruction)",
+ "ndax_measured_cost_per_side": {
+  "BTC": 0.0024891250927787656,
+  "ETH": 0.0018970968516828224
+ },
+ "ndax_samples": 31,
+ "rows": [
+  {
+   "window": "2016-07-01..2026-09-30",
+   "costs": "ORIGINAL (0.20 % + 0.05 %)",
+   "final": 5694.11,
+   "cagr_pct": 48.34,
+   "max_dd_official_candle_pct": 42.95,
+   "max_dd_official_5min_pct": 42.8,
+   "five_min_check_final_diff": 0,
+   "orders": 381,
+   "round_trips": 67,
+   "win_rate_pct": 26.87,
+   "profit_factor": 4.67,
+   "fees_usd": 296.53,
+   "skipped_min": 0,
+   "open_at_end": true,
+   "passes_2pct": false,
+   "periods": [
+    {
+     "period": "2016-17 bull",
+     "market": "bull",
+     "return_pct": 625.05,
+     "close_dd_pct": 20.18
+    },
+    {
+     "period": "2018 bear",
+     "market": "bear",
+     "return_pct": -21.39,
+     "close_dd_pct": 26.6
+    },
+    {
+     "period": "2019 recovery",
+     "market": "bull",
+     "return_pct": 50.39,
+     "close_dd_pct": 16.56
+    },
+    {
+     "period": "sideways 2019-20",
+     "market": "sideways",
+     "return_pct": -4.13,
+     "close_dd_pct": 21.55
+    },
+    {
+     "period": "Mar 2020 crash",
+     "market": "crash",
+     "return_pct": -23.6,
+     "close_dd_pct": 26.36
+    },
+    {
+     "period": "2020-21 bull",
+     "market": "bull",
+     "return_pct": 316.66,
+     "close_dd_pct": 24.11
+    },
+    {
+     "period": "2022 bear",
+     "market": "bear",
+     "return_pct": -21.39,
+     "close_dd_pct": 21.39
+    },
+    {
+     "period": "2023 sideways",
+     "market": "sideways",
+     "return_pct": 1.44,
+     "close_dd_pct": 18.2
+    },
+    {
+     "period": "2023-24 bull",
+     "market": "bull",
+     "return_pct": 107.31,
+     "close_dd_pct": 13.8
+    },
+    {
+     "period": "2024 sideways",
+     "market": "sideways",
+     "return_pct": -14.17,
+     "close_dd_pct": 19.97
+    },
+    {
+     "period": "2024-25 bull",
+     "market": "bull",
+     "return_pct": 47.09,
+     "close_dd_pct": 20.7
+    },
+    {
+     "period": "2025-26 decline",
+     "market": "bear",
+     "return_pct": -8.56,
+     "close_dd_pct": 22.45
+    }
+   ]
+  },
+  {
+   "window": "2016-07-01..2026-09-30",
+   "costs": "NDAX MEASURED (0.20 % + measured spread)",
+   "final": 5142.74,
+   "cagr_pct": 46.87,
+   "max_dd_official_candle_pct": 43.71,
+   "max_dd_official_5min_pct": 43.55,
+   "five_min_check_final_diff": 0,
+   "orders": 381,
+   "round_trips": 67,
+   "win_rate_pct": 25.37,
+   "profit_factor": 4.2,
+   "fees_usd": 276.08,
+   "skipped_min": 0,
+   "open_at_end": true,
+   "passes_2pct": false,
+   "periods": [
+    {
+     "period": "2016-17 bull",
+     "market": "bull",
+     "return_pct": 615.93,
+     "close_dd_pct": 20.17
+    },
+    {
+     "period": "2018 bear",
+     "market": "bear",
+     "return_pct": -21.72,
+     "close_dd_pct": 26.89
+    },
+    {
+     "period": "2019 recovery",
+     "market": "bull",
+     "return_pct": 49.94,
+     "close_dd_pct": 16.59
+    },
+    {
+     "period": "sideways 2019-20",
+     "market": "sideways",
+     "return_pct": -4.78,
+     "close_dd_pct": 22.05
+    },
+    {
+     "period": "Mar 2020 crash",
+     "market": "crash",
+     "return_pct": -24.08,
+     "close_dd_pct": 26.74
+    },
+    {
+     "period": "2020-21 bull",
+     "market": "bull",
+     "return_pct": 310.39,
+     "close_dd_pct": 24.75
+    },
+    {
+     "period": "2022 bear",
+     "market": "bear",
+     "return_pct": -21.72,
+     "close_dd_pct": 21.72
+    },
+    {
+     "period": "2023 sideways",
+     "market": "sideways",
+     "return_pct": 0.88,
+     "close_dd_pct": 18.25
+    },
+    {
+     "period": "2023-24 bull",
+     "market": "bull",
+     "return_pct": 106.1,
+     "close_dd_pct": 13.82
+    },
+    {
+     "period": "2024 sideways",
+     "market": "sideways",
+     "return_pct": -15.14,
+     "close_dd_pct": 20.79
+    },
+    {
+     "period": "2024-25 bull",
+     "market": "bull",
+     "return_pct": 45.19,
+     "close_dd_pct": 21.22
+    },
+    {
+     "period": "2025-26 decline",
+     "market": "bear",
+     "return_pct": -9.59,
+     "close_dd_pct": 23.17
+    }
+   ]
+  },
+  {
+   "window": "2016-07-01..2026-09-30",
+   "costs": "NDAX CONSERVATIVE (0.20 % + max(Ndax, Kraken CAD hist.))",
+   "final": 4776.27,
+   "cagr_pct": 45.82,
+   "max_dd_official_candle_pct": 44.3,
+   "max_dd_official_5min_pct": 44.15,
+   "five_min_check_final_diff": 0,
+   "orders": 381,
+   "round_trips": 67,
+   "win_rate_pct": 25.37,
+   "profit_factor": 4.16,
+   "fees_usd": 256.64,
+   "skipped_min": 0,
+   "open_at_end": true,
+   "passes_2pct": false,
+   "periods": [
+    {
+     "period": "2016-17 bull",
+     "market": "bull",
+     "return_pct": 586.49,
+     "close_dd_pct": 20.15
+    },
+    {
+     "period": "2018 bear",
+     "market": "bear",
+     "return_pct": -22.83,
+     "close_dd_pct": 27.85
+    },
+    {
+     "period": "2019 recovery",
+     "market": "bull",
+     "return_pct": 48.77,
+     "close_dd_pct": 16.65
+    },
+    {
+     "period": "sideways 2019-20",
+     "market": "sideways",
+     "return_pct": -5.7,
+     "close_dd_pct": 22.8
+    },
+    {
+     "period": "Mar 2020 crash",
+     "market": "crash",
+     "return_pct": -24.09,
+     "close_dd_pct": 26.74
+    },
+    {
+     "period": "2020-21 bull",
+     "market": "bull",
+     "return_pct": 310.39,
+     "close_dd_pct": 24.75
+    },
+    {
+     "period": "2022 bear",
+     "market": "bear",
+     "return_pct": -21.72,
+     "close_dd_pct": 21.72
+    },
+    {
+     "period": "2023 sideways",
+     "market": "sideways",
+     "return_pct": 0.88,
+     "close_dd_pct": 18.25
+    },
+    {
+     "period": "2023-24 bull",
+     "market": "bull",
+     "return_pct": 106.1,
+     "close_dd_pct": 13.82
+    },
+    {
+     "period": "2024 sideways",
+     "market": "sideways",
+     "return_pct": -15.14,
+     "close_dd_pct": 20.79
+    },
+    {
+     "period": "2024-25 bull",
+     "market": "bull",
+     "return_pct": 45.19,
+     "close_dd_pct": 21.22
+    },
+    {
+     "period": "2025-26 decline",
+     "market": "bear",
+     "return_pct": -9.59,
+     "close_dd_pct": 23.17
+    }
+   ]
+  },
+  {
+   "window": "2018-04-01..2026-09-30",
+   "costs": "ORIGINAL (0.20 % + 0.05 %)",
+   "final": 975.57,
+   "cagr_pct": 30.73,
+   "max_dd_official_candle_pct": 42.95,
+   "max_dd_official_5min_pct": 42.8,
+   "five_min_check_final_diff": 0,
+   "orders": 282,
+   "round_trips": 58,
+   "win_rate_pct": 25.86,
+   "profit_factor": 4.37,
+   "fees_usd": 49.91,
+   "skipped_min": 0,
+   "open_at_end": true,
+   "passes_2pct": false,
+   "periods": [
+    {
+     "period": "2019 recovery",
+     "market": "bull",
+     "return_pct": 50.39,
+     "close_dd_pct": 16.56
+    },
+    {
+     "period": "sideways 2019-20",
+     "market": "sideways",
+     "return_pct": -4.13,
+     "close_dd_pct": 21.55
+    },
+    {
+     "period": "Mar 2020 crash",
+     "market": "crash",
+     "return_pct": -23.6,
+     "close_dd_pct": 26.36
+    },
+    {
+     "period": "2020-21 bull",
+     "market": "bull",
+     "return_pct": 316.66,
+     "close_dd_pct": 24.11
+    },
+    {
+     "period": "2022 bear",
+     "market": "bear",
+     "return_pct": -21.39,
+     "close_dd_pct": 21.39
+    },
+    {
+     "period": "2023 sideways",
+     "market": "sideways",
+     "return_pct": 1.44,
+     "close_dd_pct": 18.2
+    },
+    {
+     "period": "2023-24 bull",
+     "market": "bull",
+     "return_pct": 107.31,
+     "close_dd_pct": 13.8
+    },
+    {
+     "period": "2024 sideways",
+     "market": "sideways",
+     "return_pct": -14.17,
+     "close_dd_pct": 19.97
+    },
+    {
+     "period": "2024-25 bull",
+     "market": "bull",
+     "return_pct": 47.09,
+     "close_dd_pct": 20.7
+    },
+    {
+     "period": "2025-26 decline",
+     "market": "bear",
+     "return_pct": -8.56,
+     "close_dd_pct": 22.45
+    }
+   ]
+  },
+  {
+   "window": "2018-04-01..2026-09-30",
+   "costs": "NDAX MEASURED (0.20 % + measured spread)",
+   "final": 894.81,
+   "cagr_pct": 29.41,
+   "max_dd_official_candle_pct": 43.71,
+   "max_dd_official_5min_pct": 43.55,
+   "five_min_check_final_diff": 0,
+   "orders": 282,
+   "round_trips": 58,
+   "win_rate_pct": 24.14,
+   "profit_factor": 3.91,
+   "fees_usd": 47.14,
+   "skipped_min": 0,
+   "open_at_end": true,
+   "passes_2pct": false,
+   "periods": [
+    {
+     "period": "2019 recovery",
+     "market": "bull",
+     "return_pct": 49.94,
+     "close_dd_pct": 16.59
+    },
+    {
+     "period": "sideways 2019-20",
+     "market": "sideways",
+     "return_pct": -4.78,
+     "close_dd_pct": 22.05
+    },
+    {
+     "period": "Mar 2020 crash",
+     "market": "crash",
+     "return_pct": -24.08,
+     "close_dd_pct": 26.74
+    },
+    {
+     "period": "2020-21 bull",
+     "market": "bull",
+     "return_pct": 310.39,
+     "close_dd_pct": 24.75
+    },
+    {
+     "period": "2022 bear",
+     "market": "bear",
+     "return_pct": -21.72,
+     "close_dd_pct": 21.72
+    },
+    {
+     "period": "2023 sideways",
+     "market": "sideways",
+     "return_pct": 0.88,
+     "close_dd_pct": 18.25
+    },
+    {
+     "period": "2023-24 bull",
+     "market": "bull",
+     "return_pct": 106.1,
+     "close_dd_pct": 13.82
+    },
+    {
+     "period": "2024 sideways",
+     "market": "sideways",
+     "return_pct": -15.14,
+     "close_dd_pct": 20.79
+    },
+    {
+     "period": "2024-25 bull",
+     "market": "bull",
+     "return_pct": 45.19,
+     "close_dd_pct": 21.22
+    },
+    {
+     "period": "2025-26 decline",
+     "market": "bear",
+     "return_pct": -9.59,
+     "close_dd_pct": 23.17
+    }
+   ]
+  },
+  {
+   "window": "2018-04-01..2026-09-30",
+   "costs": "NDAX CONSERVATIVE (0.20 % + max(Ndax, Kraken CAD hist.))",
+   "final": 873,
+   "cagr_pct": 29.03,
+   "max_dd_official_candle_pct": 44.3,
+   "max_dd_official_5min_pct": 44.15,
+   "five_min_check_final_diff": 0,
+   "orders": 282,
+   "round_trips": 58,
+   "win_rate_pct": 24.14,
+   "profit_factor": 3.88,
+   "fees_usd": 46,
+   "skipped_min": 0,
+   "open_at_end": true,
+   "passes_2pct": false,
+   "periods": [
+    {
+     "period": "2019 recovery",
+     "market": "bull",
+     "return_pct": 48.77,
+     "close_dd_pct": 16.65
+    },
+    {
+     "period": "sideways 2019-20",
+     "market": "sideways",
+     "return_pct": -5.7,
+     "close_dd_pct": 22.8
+    },
+    {
+     "period": "Mar 2020 crash",
+     "market": "crash",
+     "return_pct": -24.09,
+     "close_dd_pct": 26.74
+    },
+    {
+     "period": "2020-21 bull",
+     "market": "bull",
+     "return_pct": 310.39,
+     "close_dd_pct": 24.75
+    },
+    {
+     "period": "2022 bear",
+     "market": "bear",
+     "return_pct": -21.72,
+     "close_dd_pct": 21.72
+    },
+    {
+     "period": "2023 sideways",
+     "market": "sideways",
+     "return_pct": 0.88,
+     "close_dd_pct": 18.25
+    },
+    {
+     "period": "2023-24 bull",
+     "market": "bull",
+     "return_pct": 106.1,
+     "close_dd_pct": 13.82
+    },
+    {
+     "period": "2024 sideways",
+     "market": "sideways",
+     "return_pct": -15.14,
+     "close_dd_pct": 20.79
+    },
+    {
+     "period": "2024-25 bull",
+     "market": "bull",
+     "return_pct": 45.19,
+     "close_dd_pct": 21.22
+    },
+    {
+     "period": "2025-26 decline",
+     "market": "bear",
+     "return_pct": -9.59,
+     "close_dd_pct": 23.17
+    }
+   ]
+  }
+ ]
+}
