@@ -35,6 +35,8 @@ export function signals(K, spec) {
     case "R": { const R = rsi(c, 2), S5 = sma(c, 5), S200 = sma(c, 200); return { ...base, entry: (i) => R[i] !== null && R[i] < p.x && (!p.filter || (S200[i] !== null && c[i] > S200[i])), exit: (i, held) => (S5[i] !== null && c[i] > S5[i]) || held >= 5 }; }
     case "B": { const H = priorHigh(K, p.N), L = priorLow(K, p.M); return { ...base, entry: (i) => H[i] !== null && c[i] > H[i], exit: (i) => L[i] !== null && c[i] < L[i] }; }
     case "V": { const S = sma(c, p.n), V = vol30(c); return { ...base, target: (i) => (S[i] === null || V[i] === null ? null : c[i] > S[i] ? (V[i] > 0 ? Math.min(1, p.tv / V[i]) : 1) : 0) }; }
+    // H (round 10): constant full target (buy-and-hold / constant mix with spec.scale); rebalanced like V
+    case "H": return { ...base, target: () => 1 };
     default: throw new Error(`unknown family ${spec.family}`);
   }
 }
@@ -56,7 +58,10 @@ export function backtest(assets, spec, opt) {
   const trades = [], curve = [];
   // spec.scale (optional, V family): multiplies the target weights AND the rebalance band (a smaller S3); default 1
   const scaleV = spec.scale ?? 1;
-  const band = spec.family === "V" ? 0.1 * Math.min(1, spec.p.tv / 0.4) * cap * scaleV : 0;
+  const band = spec.family === "V" ? 0.1 * Math.min(1, spec.p.tv / 0.4) * cap * scaleV : spec.family === "H" ? 0.1 * cap * scaleV : 0;
+  const isTarget = spec.family === "V" || spec.family === "H";
+  // spec.overlay (optional, round 10): ({ t, eqC, hwm, peak }) -> multiplier in [0, 1] on the target weights AND the band
+  // (a drawdown-floor rule); evaluated at the close with information up to that close only. Default: none (multiplier 1).
   const mark = (t, field) => assets.reduce((s, a, j) => { if (!pos[j]) return s; const i = idx[j].get(t); const px = i !== undefined ? a.K[i][field] : last[j]; return s + pos[j].qty * px; }, cash);
   const floorQ = (q) => Math.floor(q / STEP + 1e-9) * STEP;
   const sell = (j, px, t, reason, ref, feeRate = fee) => {
@@ -141,11 +146,13 @@ export function backtest(assets, spec, opt) {
     for (let j = 0; j < n; j++) {
       const i = idx[j].get(t); if (i === undefined || i + 1 >= assets[j].K.length) continue;
       const s = S[j], k = assets[j].K[i];
-      if (spec.family === "V") {
+      if (isTarget) {
         if (t < blockUntil) continue;
         const tw0 = s.target(i); if (tw0 === null) continue;
-        const tw = tw0 * cap * scaleV, act = pos[j] ? (pos[j].qty * k.c) / eqC : 0;
-        if ((tw === 0) !== (act === 0) ? true : Math.abs(tw - act) >= band) { if (!(tw === 0 && !pos[j])) pend[j] = { type: "TARGET", w: tw }; }
+        const om = spec.overlay ? Math.max(0, Math.min(1, spec.overlay({ t, eqC, hwm, peak }))) : 1;
+        const tw = spec.overlay ? tw0 * cap * scaleV * om : tw0 * cap * scaleV, act = pos[j] ? (pos[j].qty * k.c) / eqC : 0;
+        const bnd = spec.overlay ? band * om : band;
+        if ((tw === 0) !== (act === 0) ? true : Math.abs(tw - act) >= bnd) { if (!(tw === 0 && !pos[j])) pend[j] = { type: "TARGET", w: tw }; }
         continue;
       }
       if (pos[j]) {
@@ -160,7 +167,7 @@ export function backtest(assets, spec, opt) {
   const closed = trades.length, wins = trades.filter((x) => x.net > 0).length;
   return {
     final, net: final - capital, ret_pct: (final / capital - 1) * 100, cagr_pct: years > 0 ? ((final / capital) ** (1 / years) - 1) * 100 : 0,
-    dd_pct: ddStrict * 100, dd_close_pct: ddClose * 100, dd_official_pct: ddOfficial * 100, trades: spec.family === "V" ? orders : closed, closed_trades: closed, wins,
+    dd_pct: ddStrict * 100, dd_close_pct: ddClose * 100, dd_official_pct: ddOfficial * 100, trades: isTarget ? orders : closed, closed_trades: closed, wins,
     fees, traded, missed, open_at_end: pos.some(Boolean), trade_list: trades, skipped, exposure_pct: times.length ? (exposed / times.length) * 100 : 0, curve,
   };
 }
