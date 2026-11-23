@@ -206,3 +206,17 @@ Source: `docs/research/discovery/` (pre-registration `0d86edb`; runner `6b2a837`
 | **P1 Ndax cross-currency gap reversion** (BTC, ETH, XRP, LTC, DOGE, SOL; long-only; Makarov & Schoar 2020) | f = 100 %: 41.5 %/yr, **DD 17.4 %**, 219 trades, PF 2.09. The f = 50 % sensitivity: 20.0 %/yr, DD 9.6 %. **Decayed:** +53 % in 2023, +126 % in 2024, +1.4 % in 2025, +4.4 % in 2026. **Top 10 trades = 86 % of profit**; LTC 47 %, much of it on thin days. The hourly "150 %/yr" is not credible (stale prints). | **REJECTED** (pre-registered drawdown criterion; not a convincing improvement on S3) |
 | **P2 USDC/CAD peg reversion** | 1.1 %/yr, 16 trades, mean trade CI includes 0 | **REJECTED** |
 | Seasonality, macro-announcement drift, options expiry | edge ≪ Ndax round-trip cost; weak evidence | rejected before testing |
+
+## Round 10 (2026-11-23): drawdown-budget strategies under the owner's 15 % limit
+
+**Sources:** `round10/PREREGISTRATION.md` (ebc43ce), `round10/REPORT.md`; code 0206bce; one run.
+
+| Candidate | Result (Ndax measured costs; CAGR / official DD) | Verdict |
+|---|---|---|
+| N1 constant mix 7 % BTC/ETH (volatility harvesting) | 5.9 / 12.3 (2016–26), 3.8 / 10.0 (2018–26); holdout 2014–16 2.6 / 8.1 | **REJECTED** (below S3-25 everywhere) |
+| N2 drawdown-floor (Grossman–Zhou/CPPI) buy-and-hold, D 15 % / 10 %, m 2 | ≈ 0 %/yr in 2018–26 (cash lock at the floor); D 15 % breaches 15 % (15.09) | **REJECTED** |
+| N3 drawdown-floor S3, D 15 % / 10 %, m 2 | 10.6 / 10.9 and 7.0 / 7.3 (2016–26); holdout 4.1 / 10.0 and 2.7 / 6.6 | **REJECTED** (lower DD but lower return than S3-25 in every window, and below S3-30) |
+| CTREND cross-sectional trend factor | needs long–short over a broad universe; 2026 replication negative after corrections | rejected before testing (not executable on Ndax) |
+| Intraday momentum; options volatility premium | edge far below costs; not available at $100 | rejected before testing |
+
+**By-product:** S3-25 (BTC-only) passed its first test on never-used data: 2014-05..2016-06, 5.8 %/yr, drawdown 10.6 %. On LTC+XRP (coins seen elsewhere) it made 2.8 %/yr and **breached 15 % under conservative costs (15.8 %)**.

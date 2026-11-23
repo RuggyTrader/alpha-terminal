@@ -1,6 +1,14 @@
-# ALPHA TERMINAL research status: PAUSED (2026-11-22)
+# ALPHA TERMINAL research status (updated 2026-11-23)
 
-**Strategy optimisation and backtesting are paused.** Nothing was deployed or merged. Production, the four bots, S3, balances and settings are unchanged.
+**2026-11-23 update:**
+* **Historical research resumed** at the owner's request, in parallel with the unchanged P1 forward PAPER study (first decision 2026-11-24).
+* **Round 10** (drawdown-budget strategies N1–N3 under the 15 % limit): all **REJECTED**. See `round10/REPORT.md`.
+* **Strongest candidate remains S3-25:**
+  * 7.4 %/yr, DD 13.1 % (2018–26, reused data);
+  * now also positive on never-used data (BTC 2014–16: 5.8 %/yr, DD 10.6 %).
+* Nothing was deployed or merged. Production, the four bots, S3, balances and settings are unchanged.
+
+*Earlier status (2026-11-22), kept for the record:* strategy optimisation and backtesting were paused.
 
 ## Rejected (details in `FAILED-CANDIDATES.md`)
 
