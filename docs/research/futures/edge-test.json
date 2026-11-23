@@ -1,0 +1,177 @@
+{
+ "note": "GROSS (no costs), fixed sizing, REUSED data and rules: a diagnostic, not independent validation",
+ "tests": {
+  "H1 trend long-only": {
+   "2017-01..2026-09": {
+    "days": 3559,
+    "strategy_mean_pct_per_yr": 76.88643335851904,
+    "strategy_sharpe": 1.3897011761995486,
+    "market_mean_pct_per_yr": 85.36773162992895,
+    "market_sharpe": 1.1479189320038927,
+    "beta": 0.5859672960838118,
+    "alpha_pct_per_yr": 26.863734482521078,
+    "alpha_ci90_pct_per_yr": [
+     7.688952049230448,
+     48.623099446093576
+    ],
+    "alpha_ci_excludes_0": true,
+    "avg_net_exposure": 0.5682776060691206,
+    "constant_exposure_benchmark_pct_per_yr": 48.51257016620731,
+    "random_timing_null": {
+     "p_value": 0.0205,
+     "null_median_pct_per_yr": 47.30383973221325,
+     "null_95th_pct_per_yr": 70.89147406298075
+    }
+   },
+   "2018-04..2026-09": {
+    "days": 3105,
+    "strategy_mean_pct_per_yr": 45.74818473898252,
+    "strategy_sharpe": 0.988899453731672,
+    "market_mean_pct_per_yr": 53.45262491583417,
+    "market_sharpe": 0.7664290235862494,
+    "beta": 0.477828274522515,
+    "alpha_pct_per_yr": 20.20700920675029,
+    "alpha_ci90_pct_per_yr": [
+     2.1114207018946023,
+     39.63938662618051
+    ],
+    "alpha_ci_excludes_0": true,
+    "avg_net_exposure": 0.5156199677938809,
+    "constant_exposure_benchmark_pct_per_yr": 27.561240737600823,
+    "random_timing_null": {
+     "p_value": 0.0775,
+     "null_median_pct_per_yr": 29.017432471844984,
+     "null_95th_pct_per_yr": 47.988905740508585
+    }
+   },
+   "2022-01..2026-09": {
+    "days": 1734,
+    "strategy_mean_pct_per_yr": 29.30703344579946,
+    "strategy_sharpe": 0.8717394185118922,
+    "market_mean_pct_per_yr": 21.234323129560245,
+    "market_sharpe": 0.369176947067697,
+    "beta": 0.36363537225121545,
+    "alpha_pct_per_yr": 21.585482450079223,
+    "alpha_ci90_pct_per_yr": [
+     2.376850714975087,
+     39.75204811149582
+    ],
+    "alpha_ci_excludes_0": true,
+    "avg_net_exposure": 0.4757785467128028,
+    "constant_exposure_benchmark_pct_per_yr": 10.102835399012235,
+    "random_timing_null": {
+     "p_value": 0.056,
+     "null_median_pct_per_yr": 11.340392158838277,
+     "null_95th_pct_per_yr": 29.854154117266678
+    }
+   },
+   "2018-01..2026-09 (excl. 2017)": {
+    "days": 3194,
+    "strategy_mean_pct_per_yr": 39.42006132481424,
+    "strategy_sharpe": 0.8066666928501377,
+    "market_mean_pct_per_yr": 46.463394891661515,
+    "market_sharpe": 0.650323477361826,
+    "beta": 0.5052448263125258,
+    "alpha_pct_per_yr": 15.944671442886428,
+    "alpha_ci90_pct_per_yr": [
+     -3.715950715136899,
+     35.2694186405227
+    ],
+    "alpha_ci_excludes_0": false,
+    "avg_net_exposure": 0.5234815278647464,
+    "constant_exposure_benchmark_pct_per_yr": 24.32272894766996,
+    "random_timing_null": {
+     "p_value": 0.1,
+     "null_median_pct_per_yr": 24.71492550751821,
+     "null_95th_pct_per_yr": 44.322126751173144
+    }
+   }
+  },
+  "H2 trend long/short": {
+   "2017-01..2026-09": {
+    "days": 3559,
+    "strategy_mean_pct_per_yr": 68.40513508710919,
+    "strategy_sharpe": 0.9861593632408456,
+    "market_mean_pct_per_yr": 85.36773162992895,
+    "market_sharpe": 1.1479189320038927,
+    "beta": 0.17193459216762935,
+    "alpha_pct_per_yr": 53.727468965041716,
+    "alpha_ci90_pct_per_yr": [
+     15.377904098459952,
+     97.24619889218712
+    ],
+    "alpha_ci_excludes_0": true,
+    "avg_net_exposure": 0.13655521213824107,
+    "constant_exposure_benchmark_pct_per_yr": 11.657408702485341,
+    "random_timing_null": {
+     "p_value": 0.0245,
+     "null_median_pct_per_yr": 11.316072668089221,
+     "null_95th_pct_per_yr": 58.07886288095666
+    }
+   },
+   "2018-04..2026-09": {
+    "days": 3105,
+    "strategy_mean_pct_per_yr": 38.04374456213087,
+    "strategy_sharpe": 0.592128473852846,
+    "market_mean_pct_per_yr": 53.45262491583417,
+    "market_sharpe": 0.7664290235862494,
+    "beta": -0.044343450954968326,
+    "alpha_pct_per_yr": 40.414018413500486,
+    "alpha_ci90_pct_per_yr": [
+     4.222841403789043,
+     79.2787732523609
+    ],
+    "alpha_ci_excludes_0": true,
+    "avg_net_exposure": 0.031239935587761676,
+    "constant_exposure_benchmark_pct_per_yr": 1.6698565593674415,
+    "random_timing_null": {
+     "p_value": 0.078,
+     "null_median_pct_per_yr": 5.6198048133935785,
+     "null_95th_pct_per_yr": 43.509273923933314
+    }
+   },
+   "2022-01..2026-09": {
+    "days": 1734,
+    "strategy_mean_pct_per_yr": 37.37974376203872,
+    "strategy_sharpe": 0.6805110539169865,
+    "market_mean_pct_per_yr": 21.234323129560245,
+    "market_sharpe": 0.369176947067697,
+    "beta": -0.27272925549757165,
+    "alpha_pct_per_yr": 43.17096490015855,
+    "alpha_ci90_pct_per_yr": [
+     4.753701429950174,
+     79.50409622299168
+    ],
+    "alpha_ci_excludes_0": true,
+    "avg_net_exposure": -0.04844290657439446,
+    "constant_exposure_benchmark_pct_per_yr": -1.0286523315357878,
+    "random_timing_null": {
+     "p_value": 0.057,
+     "null_median_pct_per_yr": 1.4190672759179306,
+     "null_95th_pct_per_yr": 38.42821496322143
+    }
+   },
+   "2018-01..2026-09 (excl. 2017)": {
+    "days": 3194,
+    "strategy_mean_pct_per_yr": 32.37672775796702,
+    "strategy_sharpe": 0.4914283203660466,
+    "market_mean_pct_per_yr": 46.463394891661515,
+    "market_sharpe": 0.650323477361826,
+    "beta": 0.010489652625053032,
+    "alpha_pct_per_yr": 31.88934288577282,
+    "alpha_ci90_pct_per_yr": [
+     -7.4319014302740944,
+     70.5388372810453
+    ],
+    "alpha_ci_excludes_0": false,
+    "avg_net_exposure": 0.046963055729492796,
+    "constant_exposure_benchmark_pct_per_yr": 2.1820630036785325,
+    "random_timing_null": {
+     "p_value": 0.115,
+     "null_median_pct_per_yr": 3.9066511379622937,
+     "null_95th_pct_per_yr": 42.9323734726693
+    }
+   }
+  }
+ }
+}
