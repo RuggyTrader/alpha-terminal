@@ -1,0 +1,201 @@
+{
+ "slice": "development, through 2022-12-31",
+ "markets": {
+  "BTC": {
+   "days": 1025,
+   "from": "2020-03-12",
+   "premium_median_pct": 0.2413308226404398,
+   "premium_p05_pct": -0.6017123363341814,
+   "premium_p95_pct": 1.1328103251677213,
+   "premium_ar1": 0.44369273606493953,
+   "half_life_days": 0.8529751033107932,
+   "deviation_sd_pct": 0.6019140636797855,
+   "round_trip_cost_pct": 0.9000000000000001,
+   "cheap_events_and_reversion": {
+    "1d": {
+     "events": 26,
+     "mean_reversion_pct": 1.1012329511294392,
+     "share_reverting_more_than_cost": 0.6923076923076923
+    },
+    "3d": {
+     "events": 26,
+     "mean_reversion_pct": 0.9967250672951216,
+     "share_reverting_more_than_cost": 0.6538461538461539
+    },
+    "7d": {
+     "events": 26,
+     "mean_reversion_pct": 0.9419207856939452,
+     "share_reverting_more_than_cost": 0.4230769230769231
+    }
+   }
+  },
+  "ETH": {
+   "days": 1025,
+   "from": "2020-03-12",
+   "premium_median_pct": 0.9540662294157842,
+   "premium_p05_pct": -0.6266954265818359,
+   "premium_p95_pct": 2.566619114992408,
+   "premium_ar1": 0.22497603335733907,
+   "half_life_days": 0.46465016467039383,
+   "deviation_sd_pct": 1.0235196778748514,
+   "round_trip_cost_pct": 0.7799999999999999,
+   "cheap_events_and_reversion": {
+    "1d": {
+     "events": 167,
+     "mean_reversion_pct": 1.20990291659658,
+     "share_reverting_more_than_cost": 0.6347305389221557
+    },
+    "3d": {
+     "events": 167,
+     "mean_reversion_pct": 1.294599703130222,
+     "share_reverting_more_than_cost": 0.6646706586826348
+    },
+    "7d": {
+     "events": 167,
+     "mean_reversion_pct": 1.3506701417989118,
+     "share_reverting_more_than_cost": 0.6586826347305389
+    }
+   }
+  },
+  "XRP": {
+   "days": 1025,
+   "from": "2020-03-12",
+   "premium_median_pct": 1.213421907654677,
+   "premium_p05_pct": -0.6122589195789674,
+   "premium_p95_pct": 2.852018085006258,
+   "premium_ar1": 0.21413821479149323,
+   "half_life_days": 0.44976449578682076,
+   "deviation_sd_pct": 1.2381722385323177,
+   "round_trip_cost_pct": 0.8799999999999999,
+   "cheap_events_and_reversion": {
+    "1d": {
+     "events": 150,
+     "mean_reversion_pct": 1.6514730899916568,
+     "share_reverting_more_than_cost": 0.7
+    },
+    "3d": {
+     "events": 150,
+     "mean_reversion_pct": 1.6636639407741172,
+     "share_reverting_more_than_cost": 0.68
+    },
+    "7d": {
+     "events": 150,
+     "mean_reversion_pct": 1.5139851735604548,
+     "share_reverting_more_than_cost": 0.6466666666666666
+    }
+   }
+  },
+  "LTC": {
+   "days": 1025,
+   "from": "2020-03-12",
+   "premium_median_pct": 1.0285167312179322,
+   "premium_p05_pct": -1.9089781323818888,
+   "premium_p95_pct": 3.183914775301888,
+   "premium_ar1": 0.12890022995218017,
+   "half_life_days": 0.3383323909259339,
+   "deviation_sd_pct": 1.6398727177427026,
+   "round_trip_cost_pct": 1.0999999999999999,
+   "cheap_events_and_reversion": {
+    "1d": {
+     "events": 156,
+     "mean_reversion_pct": 1.525568606101062,
+     "share_reverting_more_than_cost": 0.6153846153846154
+    },
+    "3d": {
+     "events": 156,
+     "mean_reversion_pct": 1.6141278119990894,
+     "share_reverting_more_than_cost": 0.6666666666666666
+    },
+    "7d": {
+     "events": 156,
+     "mean_reversion_pct": 1.698955480167886,
+     "share_reverting_more_than_cost": 0.6217948717948718
+    }
+   }
+  },
+  "DOGE": {
+   "days": 1025,
+   "from": "2020-03-12",
+   "premium_median_pct": 0.841327643509282,
+   "premium_p05_pct": -3.2024573418338975,
+   "premium_p95_pct": 5.214384098721547,
+   "premium_ar1": 0.015947911747528628,
+   "half_life_days": 0.16749047799332212,
+   "deviation_sd_pct": 5.469236003822102,
+   "round_trip_cost_pct": 1,
+   "cheap_events_and_reversion": {
+    "1d": {
+     "events": 96,
+     "mean_reversion_pct": 1.194885489320077,
+     "share_reverting_more_than_cost": 0.5520833333333334
+    },
+    "3d": {
+     "events": 96,
+     "mean_reversion_pct": 1.3447778043906786,
+     "share_reverting_more_than_cost": 0.5729166666666666
+    },
+    "7d": {
+     "events": 96,
+     "mean_reversion_pct": 1.255375216987874,
+     "share_reverting_more_than_cost": 0.5833333333333334
+    }
+   }
+  },
+  "SOL": {
+   "days": 372,
+   "from": "2021-12-25",
+   "premium_median_pct": 0.871343321262108,
+   "premium_p05_pct": -0.5915658877955532,
+   "premium_p95_pct": 2.0305782436859987,
+   "premium_ar1": 0.16713473890736763,
+   "half_life_days": 0.38745926609872827,
+   "deviation_sd_pct": 0.8627312710027526,
+   "round_trip_cost_pct": 0.9000000000000001,
+   "cheap_events_and_reversion": {
+    "1d": {
+     "events": 55,
+     "mean_reversion_pct": 1.1156797782666703,
+     "share_reverting_more_than_cost": 0.6545454545454545
+    },
+    "3d": {
+     "events": 54,
+     "mean_reversion_pct": 1.1914558165083924,
+     "share_reverting_more_than_cost": 0.6111111111111112
+    },
+    "7d": {
+     "events": 54,
+     "mean_reversion_pct": 1.1857203843563493,
+     "share_reverting_more_than_cost": 0.6296296296296297
+    }
+   }
+  },
+  "USDC": {
+   "days": 457,
+   "from": "2021-10-01",
+   "premium_median_pct": 0.5163376311620116,
+   "premium_p05_pct": -0.4521561031809007,
+   "premium_p95_pct": 1.836437465381846,
+   "premium_ar1": 0.24463199552259002,
+   "half_life_days": 0.49229194187764097,
+   "deviation_sd_pct": 0.6939225434069463,
+   "round_trip_cost_pct": 0.826,
+   "cheap_events_and_reversion": {
+    "1d": {
+     "events": 48,
+     "mean_reversion_pct": 0.972507310796885,
+     "share_reverting_more_than_cost": 0.5
+    },
+    "3d": {
+     "events": 48,
+     "mean_reversion_pct": 0.8692848479469757,
+     "share_reverting_more_than_cost": 0.5625
+    },
+    "7d": {
+     "events": 48,
+     "mean_reversion_pct": 0.8513677819006311,
+     "share_reverting_more_than_cost": 0.4791666666666667
+    }
+   }
+  }
+ }
+}
