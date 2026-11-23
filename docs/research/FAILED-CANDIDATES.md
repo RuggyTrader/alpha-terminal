@@ -141,3 +141,58 @@ Source: `docs/research/round9/` (pre-registration `7288171`, code `7fc53ef`, bot
 | F5 BTC-regime relative strength 1d | +10.6; −34.0 | INCONCLUSIVE: 19 entries, CI includes 0, a neighbour is negative |
 | F4 reversion after extreme bars 4h | +0.3; −5.2 | FAILED: negative in development, validation and at stress costs |
 | F2 volatility-normalised momentum 1d | — | FAILED: under 30 development trades at $20 |
+
+## Futures research (2026-11-22): trend-following, leveraged long/short (THEORETICAL PAPER ONLY)
+
+**Sources:** `docs/research/futures/`:
+* PERP-PREREGISTRATION (commit `ae82626`; Amendment 1 `fa1c350`);
+* PERP-REPORT;
+* AUDIT-AND-EDGE-REPORT (`3a835dd`);
+* REPLICATION-PREREGISTRATION (`1a29f35`);
+* REPLICATION-REPORT (`36d81d2`).
+
+**Simulator:** fractional perpetual-style (`perp.mjs`). It was audited against an independent re-implementation: agreement < 5e-13 over 126 configurations; ledger identity < $3e-9.
+
+**Rules (frozen):**
+* SMA-200 trend on daily closes, executed hourly. Sized at 1× gross, or volatility-targeted (min(1.5, 0.106 / σ30) per asset).
+* Costs: ideal (percentage of notional) and conservative ($0.50 minimum per order, 2× spread, 2 % missed orders, $10 minimum liquidation fee).
+* Proxies: Kraken spot prices; Binance or constant funding.
+
+| Candidate | BTC+ETH result (2017–26, compounded) | Timing edge vs passive exposure (BTC/ETH, gross) | Cross-market replication (10 coins, 2018–26) | Status |
+|---|---|---|---|---|
+| **H1 trend long-only** | Volatility-targeted: ideal 20.8 %/yr, DD 27 %; conservative 12.1 %/yr, DD 34 %, negative after 2018. 1×: ~68 %/yr, DD 75–77 %. 2× DD 98 %; 3× and 5× ruin. | Alpha +26.9 %/yr (CI +7.7 to +48.6), random-timing p 0.02 incl. 2017; **excl. 2017 +15.9 % (CI −3.7 to +35.3), p 0.10** | Pooled gross alpha −0.4 %/yr (CI −10.6 to +9.5), p 0.23. **Pooled net alpha −13.6 %/yr (CI −23.4 to −3.8): significantly negative.** 1/10 coins positive net. Effective independent coins 2.3. Pooled DD 51–60 %. | **REJECTED** |
+| **H2 trend long/short** | Volatility-targeted: ideal 18.7 %/yr, DD 37 %; conservative ~0 %/yr, DD 56 %, ruin in 2018–26. 1×: 44.5 %/yr, DD 90 %. 2× DD 99.8 %; 3× and 5× ruin. | Alpha +53.7 %/yr (CI +15.4 to +97.2), p 0.025 incl. 2017; **excl. 2017 +31.9 % (CI −7.4 to +70.5), p 0.12** | Pooled gross alpha −0.9 %/yr (CI −21.2 to +19.0), p 0.24. Pooled net alpha −7.9 %/yr (CI −22.5 to +6.4). 1/10 coins positive net (ADA, dependent on 2021). Effective independent coins 2.8. Pooled DD 58–104 %. | **REJECTED** |
+| H3 BTC/ETH relative momentum, market-neutral | ≈ 0 %/yr at every sizing; DD 28–96 %; conservative ruin | — | not run (failed first) | **REJECTED** |
+
+**Reasons for rejecting H1 and H2:**
+1. **No drawdown compliance.** No configuration on any asset, rule, sizing or cost model stayed within the 15 % research ceiling (10 % preferred). The best was 27 % (H1 volatility-targeted, ideal costs, BTC/ETH).
+2. **No repeatable timing edge.**
+   * The BTC/ETH timing value is borderline once 2017 is excluded, and concentrated in a few events (2018 and 2022 bear markets).
+   * It does not appear across 10 other coins (1/10 positive after costs; pooled p ≈ 0.23–0.24).
+   * The coins are correlated (effective N ≈ 2.3–2.8).
+3. **Costs.**
+   * Realistic minimum per-order fees make any $100 implementation lose.
+   * Executable versions need ≈ $4,200 (one futures contract per leg) to ≈ $21,000 (five per leg), or ≈ $1,600 for unlevered ETFs.
+   * No Ontario route offers fractional leveraged long/short crypto at $100.
+4. **Higher risk does not help.** 2× and above raised drawdowns to 95–100 % or ruin without improving returns.
+
+**Statistical limitations:**
+* All data is reused (BTC/ETH examined since Round 1; the 10 coins in Phase 3 and H-L1).
+* Survivorship bias: only coins still in Kraken's archive.
+* Short histories: ADA from 2019, DOGE from 2020.
+* Constant or proxy funding.
+* Spot price as a proxy for perpetual prices.
+* Arithmetic annualized alphas.
+
+**Do not retest with different parameters to obtain better historical results.**
+
+## Other candidates rejected since Round 9 (2026-11-21 / 22)
+
+| Candidate | Source | Result | Status |
+|---|---|---|---|
+| DD2 / Phase 3 small-risk A, B, C, D (2 % target, spot) | `dd2/`, `phase3/`, `OFFICIAL-DRAWDOWN.md` | Under the official high-water-mark drawdown: **C fails** (2.24–2.39 %); **A** borderline (1.93 % from 2018, fails 2016–26 at 2.20 %); **B** passes (≈ 1.55 %) at ≈ 1 %/yr only; **D** fails. No edge on 41 other coins. | A, C, D REJECTED; B compliant but not meaningful |
+| H-L1 liquidity provision (wick capture, maker limits) | `liquidity/` | 0/6 settings profitable on BTC/ETH/SOL; 0/10 coins; negative expectancy; no edge under realistic intrabar fills | **REJECTED** |
+| H-G1 drawdown-budget (Grossman–Zhou) sizing of S3 | `ddsize/` | 0.65 %/yr with DD 1.3 % (compliant, too small); cash lock after drawdowns | **REJECTED** (not meaningful) |
+| Round S independent signals: funding, exchange flows, stablecoin supply, Coinbase premium, Fear & Greed | `signals/` | No signal passed the development screen; 3 near-misses not confirmed on held-out 2022–26 (|IC| ≈ 0.04–0.05) | **REJECTED** |
+| One-contract CME Micro Ether at $100 | `futures/PROBE-REPORT.md` | All frozen rule types: DD 50–76 %, liquidation lock-out | **REJECTED** (infeasible) |
+| Crypto futures contracts at $100 (CME micro, Coinbase nano, Bitnomial) | `futures/CONTRACT-AUDIT.md` | Whole contracts of $172–$862 exposure; overnight margins above equity; US-only perps | **REJECTED** (infeasible) |
