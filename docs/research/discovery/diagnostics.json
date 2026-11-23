@@ -1,0 +1,86 @@
+{
+ "f=100%": {
+  "returns_by_year_pct": {
+   "2023": 53.21,
+   "2024": 126.48,
+   "2025": 1.37,
+   "2026": 4.39
+  },
+  "net_total_usd": 267.18,
+  "top5_trades_share_pct": 60.65,
+  "top10_share_pct": 86.34,
+  "net_by_coin_usd": {
+   "XRP": 67.18,
+   "LTC": 125.92,
+   "DOGE": 21.22,
+   "ETH": 28.85,
+   "SOL": 22.88,
+   "BTC": 1.1
+  },
+  "cost_stress": {
+   "spread x1.5": {
+    "final": 299.02,
+    "dd_pct": 19.37
+   },
+   "spread x2": {
+    "final": 243.58,
+    "dd_pct": 22.94
+   }
+  }
+ },
+ "f=50%": {
+  "returns_by_year_pct": {
+   "2023": 24.65,
+   "2024": 54.11,
+   "2025": 0.88,
+   "2026": 2.24
+  },
+  "net_total_usd": 98.12,
+  "top5_trades_share_pct": 52.27,
+  "top10_share_pct": 77.02,
+  "net_by_coin_usd": {
+   "XRP": 20.21,
+   "LTC": 40.33,
+   "DOGE": 13.81,
+   "ETH": 12.44,
+   "SOL": 11.13,
+   "BTC": 0.18
+  },
+  "cost_stress": {
+   "spread x1.5": {
+    "final": 178.62,
+    "dd_pct": 10.12
+   },
+   "spread x2": {
+    "final": 161.07,
+    "dd_pct": 12.05
+   }
+  }
+ },
+ "thin_entry_days": {
+  "BTC": {
+   "entries": 8,
+   "entry_day_volume_below_25k": 0
+  },
+  "ETH": {
+   "entries": 34,
+   "entry_day_volume_below_25k": 0
+  },
+  "XRP": {
+   "entries": 28,
+   "entry_day_volume_below_25k": 0
+  },
+  "LTC": {
+   "entries": 65,
+   "entry_day_volume_below_25k": 26
+  },
+  "DOGE": {
+   "entries": 48,
+   "entry_day_volume_below_25k": 4
+  },
+  "SOL": {
+   "entries": 36,
+   "entry_day_volume_below_25k": 6
+  }
+ }
+}

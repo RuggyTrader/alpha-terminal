@@ -196,3 +196,13 @@ Source: `docs/research/round9/` (pre-registration `7288171`, code `7fc53ef`, bot
 | Round S independent signals: funding, exchange flows, stablecoin supply, Coinbase premium, Fear & Greed | `signals/` | No signal passed the development screen; 3 near-misses not confirmed on held-out 2022–26 (|IC| ≈ 0.04–0.05) | **REJECTED** |
 | One-contract CME Micro Ether at $100 | `futures/PROBE-REPORT.md` | All frozen rule types: DD 50–76 %, liquidation lock-out | **REJECTED** (infeasible) |
 | Crypto futures contracts at $100 (CME micro, Coinbase nano, Bitnomial) | `futures/CONTRACT-AUDIT.md` | Whole contracts of $172–$862 exposure; overnight margins above equity; US-only perps | **REJECTED** (infeasible) |
+
+## Discovery phase (2026-11-22): Ndax-executable short-term hypotheses
+
+Source: `docs/research/discovery/` (pre-registration `0d86edb`; runner `6b2a837`; REPORT; diagnostics). Confirmation period 2023-01 → 2026-09; Ndax measured costs.
+
+| Candidate | Result | Status |
+|---|---|---|
+| **P1 Ndax cross-currency gap reversion** (BTC, ETH, XRP, LTC, DOGE, SOL; long-only; Makarov & Schoar 2020) | f = 100 %: 41.5 %/yr, **DD 17.4 %**, 219 trades, PF 2.09. The f = 50 % sensitivity: 20.0 %/yr, DD 9.6 %. **Decayed:** +53 % in 2023, +126 % in 2024, +1.4 % in 2025, +4.4 % in 2026. **Top 10 trades = 86 % of profit**; LTC 47 %, much of it on thin days. The hourly "150 %/yr" is not credible (stale prints). | **REJECTED** (pre-registered drawdown criterion; not a convincing improvement on S3) |
+| **P2 USDC/CAD peg reversion** | 1.1 %/yr, 16 trades, mean trade CI includes 0 | **REJECTED** |
+| Seasonality, macro-announcement drift, options expiry | edge ≪ Ndax round-trip cost; weak evidence | rejected before testing |
