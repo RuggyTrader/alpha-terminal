@@ -1,0 +1,606 @@
+{
+ "prereg": "docs/research/discovery/PREREGISTRATION.md (0d86edb)",
+ "confirmation": "2023-01-01..2026-09-30",
+ "status": "PAPER research; reused prices, held-out for these signals",
+ "P1": {
+  "portfolio f=100%": {
+   "final": 367.18,
+   "cagr_pct": 41.48,
+   "max_dd_pct": 17.39,
+   "trades": 219,
+   "missed": 17,
+   "win_rate_pct": 54.79,
+   "profit_factor": 2.09,
+   "mean_trade_pct": 1.97,
+   "mean_trade_ci90_pct": [
+    1.03,
+    2.98
+   ],
+   "exits": {
+    "reverted": 214,
+    "time": 5
+   },
+   "w1": {
+    "n": 195,
+    "median_pct": 0,
+    "worst_pct": -7.5,
+    "best_pct": 24.7,
+    "positive_pct": 35.38
+   },
+   "w2": {
+    "n": 97,
+    "median_pct": 0,
+    "worst_pct": -6.97,
+    "best_pct": 39.19,
+    "positive_pct": 46.39
+   },
+   "m1": {
+    "n": 45,
+    "median_pct": 1.01,
+    "worst_pct": -7.88,
+    "best_pct": 31.17,
+    "positive_pct": 60
+   },
+   "m3": {
+    "n": 15,
+    "median_pct": 4.82,
+    "worst_pct": -2.36,
+    "best_pct": 49.05,
+    "positive_pct": 73.33
+   },
+   "y1": {
+    "n": 3,
+    "median_pct": 53.21,
+    "worst_pct": 1.37,
+    "best_pct": 126.48,
+    "positive_pct": 100
+   },
+   "longest_recovery_days": 661
+  },
+  "portfolio f=50%": {
+   "final": 198.12,
+   "cagr_pct": 20.01,
+   "max_dd_pct": 9.56,
+   "trades": 219,
+   "missed": 17,
+   "win_rate_pct": 54.79,
+   "profit_factor": 2.2,
+   "mean_trade_pct": 1.97,
+   "mean_trade_ci90_pct": [
+    1.03,
+    2.98
+   ],
+   "exits": {
+    "reverted": 214,
+    "time": 5
+   },
+   "w1": {
+    "n": 195,
+    "median_pct": 0,
+    "worst_pct": -3.87,
+    "best_pct": 12.63,
+    "positive_pct": 35.38
+   },
+   "w2": {
+    "n": 97,
+    "median_pct": 0,
+    "worst_pct": -3.51,
+    "best_pct": 19.13,
+    "positive_pct": 46.39
+   },
+   "m1": {
+    "n": 45,
+    "median_pct": 0.52,
+    "worst_pct": -3.96,
+    "best_pct": 16.44,
+    "positive_pct": 60
+   },
+   "m3": {
+    "n": 15,
+    "median_pct": 2.47,
+    "worst_pct": -1.1,
+    "best_pct": 24.32,
+    "positive_pct": 73.33
+   },
+   "y1": {
+    "n": 3,
+    "median_pct": 24.65,
+    "worst_pct": 0.88,
+    "best_pct": 54.11,
+    "positive_pct": 100
+   },
+   "longest_recovery_days": 661
+  },
+  "per_coin": {
+   "BTC": {
+    "final": 99.91,
+    "cagr_pct": -0.02,
+    "max_dd_pct": 4.24,
+    "trades": 8,
+    "missed": 0,
+    "win_rate_pct": 25,
+    "profit_factor": 0.95,
+    "mean_trade_pct": -0.02,
+    "mean_trade_ci90_pct": [
+     -1.25,
+     1.33
+    ],
+    "exits": {
+     "reverted": 8,
+     "time": 0
+    },
+    "w1": {
+     "n": 195,
+     "median_pct": 0,
+     "worst_pct": -1.21,
+     "best_pct": 1.82,
+     "positive_pct": 3.59
+    },
+    "w2": {
+     "n": 97,
+     "median_pct": 0,
+     "worst_pct": -1.08,
+     "best_pct": 1.82,
+     "positive_pct": 2.06
+    },
+    "m1": {
+     "n": 45,
+     "median_pct": 0,
+     "worst_pct": -1.08,
+     "best_pct": 2.07,
+     "positive_pct": 4.44
+    },
+    "m3": {
+     "n": 15,
+     "median_pct": 0,
+     "worst_pct": -1.48,
+     "best_pct": 1.82,
+     "positive_pct": 20
+    },
+    "y1": {
+     "n": 3,
+     "median_pct": -0.07,
+     "worst_pct": -1.04,
+     "best_pct": 1.03,
+     "positive_pct": 33.33
+    },
+    "longest_recovery_days": 542
+   },
+   "ETH": {
+    "final": 122.69,
+    "cagr_pct": 5.61,
+    "max_dd_pct": 11,
+    "trades": 36,
+    "missed": 0,
+    "win_rate_pct": 63.89,
+    "profit_factor": 2.56,
+    "mean_trade_pct": 1.77,
+    "mean_trade_ci90_pct": [
+     0.07,
+     3.61
+    ],
+    "exits": {
+     "reverted": 34,
+     "time": 2
+    },
+    "w1": {
+     "n": 195,
+     "median_pct": 0,
+     "worst_pct": -6.27,
+     "best_pct": 8.58,
+     "positive_pct": 12.82
+    },
+    "w2": {
+     "n": 97,
+     "median_pct": 0,
+     "worst_pct": -2.26,
+     "best_pct": 8.27,
+     "positive_pct": 20.62
+    },
+    "m1": {
+     "n": 45,
+     "median_pct": 0,
+     "worst_pct": -4.07,
+     "best_pct": 8.15,
+     "positive_pct": 35.56
+    },
+    "m3": {
+     "n": 15,
+     "median_pct": 1.1,
+     "worst_pct": -3.89,
+     "best_pct": 9.81,
+     "positive_pct": 53.33
+    },
+    "y1": {
+     "n": 3,
+     "median_pct": 6.5,
+     "worst_pct": -0.69,
+     "best_pct": 16.01,
+     "positive_pct": 66.67
+    },
+    "longest_recovery_days": 577
+   },
+   "XRP": {
+    "final": 121.32,
+    "cagr_pct": 5.29,
+    "max_dd_pct": 10.71,
+    "trades": 30,
+    "missed": 0,
+    "win_rate_pct": 43.33,
+    "profit_factor": 2.35,
+    "mean_trade_pct": 2.23,
+    "mean_trade_ci90_pct": [
+     -1.15,
+     7.08
+    ],
+    "exits": {
+     "reverted": 29,
+     "time": 1
+    },
+    "w1": {
+     "n": 195,
+     "median_pct": 0,
+     "worst_pct": -2.15,
+     "best_pct": 16.1,
+     "positive_pct": 7.69
+    },
+    "w2": {
+     "n": 97,
+     "median_pct": 0,
+     "worst_pct": -2.29,
+     "best_pct": 21.18,
+     "positive_pct": 10.31
+    },
+    "m1": {
+     "n": 45,
+     "median_pct": 0,
+     "worst_pct": -2.66,
+     "best_pct": 25.69,
+     "positive_pct": 20
+    },
+    "m3": {
+     "n": 15,
+     "median_pct": 0,
+     "worst_pct": -2.46,
+     "best_pct": 31.4,
+     "positive_pct": 20
+    },
+    "y1": {
+     "n": 3,
+     "median_pct": 1.06,
+     "worst_pct": -6.27,
+     "best_pct": 28.09,
+     "positive_pct": 66.67
+    },
+    "longest_recovery_days": 679
+   },
+   "LTC": {
+    "final": 160.91,
+    "cagr_pct": 13.53,
+    "max_dd_pct": 8.91,
+    "trades": 68,
+    "missed": 0,
+    "win_rate_pct": 51.47,
+    "profit_factor": 2.66,
+    "mean_trade_pct": 2.2,
+    "mean_trade_ci90_pct": [
+     0.76,
+     3.85
+    ],
+    "exits": {
+     "reverted": 68,
+     "time": 0
+    },
+    "w1": {
+     "n": 195,
+     "median_pct": 0,
+     "worst_pct": -3.44,
+     "best_pct": 9.59,
+     "positive_pct": 20
+    },
+    "w2": {
+     "n": 97,
+     "median_pct": 0,
+     "worst_pct": -5.12,
+     "best_pct": 9.59,
+     "positive_pct": 31.96
+    },
+    "m1": {
+     "n": 45,
+     "median_pct": 0,
+     "worst_pct": -2.98,
+     "best_pct": 15.04,
+     "positive_pct": 42.22
+    },
+    "m3": {
+     "n": 15,
+     "median_pct": 3.37,
+     "worst_pct": -3,
+     "best_pct": 16.54,
+     "positive_pct": 66.67
+    },
+    "y1": {
+     "n": 3,
+     "median_pct": 10.22,
+     "worst_pct": 8.97,
+     "best_pct": 25.81,
+     "positive_pct": 100
+    },
+    "longest_recovery_days": 336
+   },
+   "DOGE": {
+    "final": 126.61,
+    "cagr_pct": 6.5,
+    "max_dd_pct": 19.4,
+    "trades": 50,
+    "missed": 0,
+    "win_rate_pct": 54,
+    "profit_factor": 1.64,
+    "mean_trade_pct": 1.52,
+    "mean_trade_ci90_pct": [
+     -0.21,
+     3.36
+    ],
+    "exits": {
+     "reverted": 49,
+     "time": 1
+    },
+    "w1": {
+     "n": 195,
+     "median_pct": 0,
+     "worst_pct": -5.71,
+     "best_pct": 17.42,
+     "positive_pct": 15.38
+    },
+    "w2": {
+     "n": 97,
+     "median_pct": 0,
+     "worst_pct": -4.56,
+     "best_pct": 17.42,
+     "positive_pct": 22.68
+    },
+    "m1": {
+     "n": 45,
+     "median_pct": 0,
+     "worst_pct": -6.05,
+     "best_pct": 17.42,
+     "positive_pct": 35.56
+    },
+    "m3": {
+     "n": 15,
+     "median_pct": 0,
+     "worst_pct": -7.13,
+     "best_pct": 22.99,
+     "positive_pct": 40
+    },
+    "y1": {
+     "n": 3,
+     "median_pct": 11.7,
+     "worst_pct": -7.22,
+     "best_pct": 24.64,
+     "positive_pct": 66.67
+    },
+    "longest_recovery_days": 661
+   },
+   "SOL": {
+    "final": 127.1,
+    "cagr_pct": 6.61,
+    "max_dd_pct": 7.99,
+    "trades": 43,
+    "missed": 0,
+    "win_rate_pct": 60.47,
+    "profit_factor": 1.9,
+    "mean_trade_pct": 1.76,
+    "mean_trade_ci90_pct": [
+     -0.01,
+     3.58
+    ],
+    "exits": {
+     "reverted": 41,
+     "time": 2
+    },
+    "w1": {
+     "n": 195,
+     "median_pct": 0,
+     "worst_pct": -3.5,
+     "best_pct": 9.75,
+     "positive_pct": 15.38
+    },
+    "w2": {
+     "n": 97,
+     "median_pct": 0,
+     "worst_pct": -3.36,
+     "best_pct": 9.75,
+     "positive_pct": 22.68
+    },
+    "m1": {
+     "n": 45,
+     "median_pct": 0,
+     "worst_pct": -3.81,
+     "best_pct": 8.89,
+     "positive_pct": 24.44
+    },
+    "m3": {
+     "n": 15,
+     "median_pct": 0,
+     "worst_pct": -0.83,
+     "best_pct": 12.69,
+     "positive_pct": 46.67
+    },
+    "y1": {
+     "n": 3,
+     "median_pct": 10.34,
+     "worst_pct": 0.75,
+     "best_pct": 14.33,
+     "positive_pct": 100
+    },
+    "longest_recovery_days": 678
+   }
+  },
+  "fails": [
+   "drawdown 17.39% >= 15 %"
+  ],
+  "verdict": "REJECT"
+ },
+ "P2": {
+  "USDC f=100%": {
+   "final": 104.05,
+   "cagr_pct": 1.06,
+   "max_dd_pct": 8.91,
+   "trades": 16,
+   "missed": 0,
+   "win_rate_pct": 56.25,
+   "profit_factor": 2.14,
+   "mean_trade_pct": 0.25,
+   "mean_trade_ci90_pct": [
+    -0.11,
+    0.64
+   ],
+   "exits": {
+    "reverted": 15,
+    "time": 1
+   },
+   "w1": {
+    "n": 195,
+    "median_pct": 0,
+    "worst_pct": -0.69,
+    "best_pct": 2.8,
+    "positive_pct": 5.64
+   },
+   "w2": {
+    "n": 97,
+    "median_pct": 0,
+    "worst_pct": -0.9,
+    "best_pct": 2.8,
+    "positive_pct": 8.25
+   },
+   "m1": {
+    "n": 45,
+    "median_pct": 0,
+    "worst_pct": -1.37,
+    "best_pct": 3.16,
+    "positive_pct": 15.56
+   },
+   "m3": {
+    "n": 15,
+    "median_pct": 0,
+    "worst_pct": -2.24,
+    "best_pct": 4.46,
+    "positive_pct": 40
+   },
+   "y1": {
+    "n": 3,
+    "median_pct": -0.16,
+    "worst_pct": -1.06,
+    "best_pct": 4.59,
+    "positive_pct": 33.33
+   },
+   "longest_recovery_days": 922
+  },
+  "fails": [
+   "net 1.06%/yr <= 7.4 % (S3 benchmark)",
+   "16 trades < 30",
+   "mean trade CI [-0.11,0.64] includes 0"
+  ],
+  "verdict": "REJECT"
+ },
+ "hourly_check": {
+  "window": "2025-11 (after 30-day warm-up) .. 2026-09",
+  "P1": {
+   "final": 250.21,
+   "cagr_pct": 150.37,
+   "max_dd_pct": 6.22,
+   "trades": 389,
+   "missed": 2,
+   "win_rate_pct": 72.75,
+   "profit_factor": 4.16,
+   "mean_trade_pct": 0.71,
+   "mean_trade_ci90_pct": [
+    0.58,
+    0.84
+   ],
+   "exits": {
+    "reverted": 389,
+    "time": 0
+   },
+   "w1": {
+    "n": 52,
+    "median_pct": 1.33,
+    "worst_pct": -1.22,
+    "best_pct": 7.75,
+    "positive_pct": 82.69
+   },
+   "w2": {
+    "n": 26,
+    "median_pct": 3.24,
+    "worst_pct": 0,
+    "best_pct": 9.7,
+    "positive_pct": 92.31
+   },
+   "m1": {
+    "n": 12,
+    "median_pct": 8.34,
+    "worst_pct": 0,
+    "best_pct": 15.16,
+    "positive_pct": 91.67
+   },
+   "m3": {
+    "n": 4,
+    "median_pct": 30.44,
+    "worst_pct": 20.62,
+    "best_pct": 30.71,
+    "positive_pct": 100
+   },
+   "y1": null,
+   "longest_recovery_days": 20
+  },
+  "P2": {
+   "final": 104.56,
+   "cagr_pct": 4.56,
+   "max_dd_pct": 2.47,
+   "trades": 6,
+   "missed": 0,
+   "win_rate_pct": 100,
+   "profit_factor": 4560118706.37,
+   "mean_trade_pct": 0.75,
+   "mean_trade_ci90_pct": [
+    0.36,
+    1.18
+   ],
+   "exits": {
+    "reverted": 6,
+    "time": 0
+   },
+   "w1": {
+    "n": 49,
+    "median_pct": 0,
+    "worst_pct": 0,
+    "best_pct": 1.63,
+    "positive_pct": 10.2
+   },
+   "w2": {
+    "n": 24,
+    "median_pct": 0,
+    "worst_pct": 0,
+    "best_pct": 1.63,
+    "positive_pct": 20.83
+   },
+   "m1": {
+    "n": 11,
+    "median_pct": 0,
+    "worst_pct": 0,
+    "best_pct": 1.63,
+    "positive_pct": 45.45
+   },
+   "m3": {
+    "n": 3,
+    "median_pct": 1.48,
+    "worst_pct": 0.35,
+    "best_pct": 2.67,
+    "positive_pct": 100
+   },
+   "y1": null,
+   "longest_recovery_days": 2
+  }
+ }
+}
