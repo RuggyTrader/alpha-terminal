@@ -20,7 +20,7 @@ function rng(seed) { let s = seed >>> 0; return () => ((s = (Math.imul(s, 166452
  *        spread: {a} (full spread, fraction), slip, liqSlip, missProb, seed, margin: { init: {a}, maint: {a} }, liqFee: { pct, perContract } }
  */
 export function simulatePerp(assets, decide, cfg, { from, to }) {
-  const { capital = 100, compound = true, fee, spread, slip = 0, liqSlip = 0, missProb = 0, seed = 7, margin, liqFee = { pct: 0, perContract: 0 } } = cfg;
+  const { capital = 100, compound = true, fee, spread, slip = 0, liqSlip = 0, missProb = 0, seed = 7, margin, liqFee = { pct: 0, perContract: 0 }, band = 0 } = cfg;
   const H = assets.map((a) => new Map(a.H.map((b) => [b.t, b])));
   const rand = rng(seed);
   const n = assets.length, units = new Array(n).fill(0), last = new Array(n).fill(null);
@@ -29,9 +29,12 @@ export function simulatePerp(assets, decide, cfg, { from, to }) {
   const feeFor = (j, dUnits, px) => {
     const a = assets[j].name;
     if (fee.mode === "ideal") return Math.abs(dUnits) * px * fee.pct[a];
-    return Math.ceil(Math.abs(dUnits) / fee.contract[a] - 1e-12) * fee.perContract[a];
+    // conservative: the percentage fee, but never less than one whole contract's fixed fee per order (a fixed fee is
+    // never scaled down for a fractional size). Expressed per ORDER, not per historical unit, so old low prices do not
+    // inflate it (v1 defect).
+    return Math.max(Math.abs(dUnits) * px * fee.pct[a], fee.perContract[a]);
   };
-  const liqFeeFor = (j, u, px) => (fee.mode === "ideal" ? Math.abs(u) * px * liqFee.pct : Math.ceil(Math.abs(u) / fee.contract[assets[j].name] - 1e-12) * liqFee.perContract);
+  const liqFeeFor = (j, u, px) => (fee.mode === "ideal" ? Math.abs(u) * px * liqFee.pct : Math.max(Math.abs(u) * px * liqFee.pct, liqFee.perContract));
   for (let t = Math.ceil(from / HOUR) * HOUR; t < to; t += HOUR) {
     const bars = H.map((m) => m.get(t));
     // 1) variation margin from the previous close to this open, and the daily decision at the open
@@ -46,7 +49,9 @@ export function simulatePerp(assets, decide, cfg, { from, to }) {
         const scale = gross > cash && gross > 0 ? Math.max(cash, 0) / gross : 1;
         for (let j = 0; j < n; j++) {
           if (!bars[j]) continue;
-          const d = tgt[j] * scale - units[j]; if (Math.abs(d) < 1e-12) continue;
+          const want = tgt[j] * scale, d = want - units[j]; if (Math.abs(d) < 1e-12) continue;
+          // rebalance band: keep the position unless the sign changes, it goes to/from zero, or it drifts > band x target
+          if (band > 0 && Math.sign(want) === Math.sign(units[j]) && want !== 0 && Math.abs(d) <= band * Math.abs(want)) continue;
           if (rand() < missProb) { missed++; continue; }
           const px = bars[j].o, sp = spread[assets[j].name] / 2 + slip, f = feeFor(j, d, px), sc = Math.abs(d) * px * sp;
           cash -= f + sc; fees += f; slipCost += sc; units[j] += d; trades++;

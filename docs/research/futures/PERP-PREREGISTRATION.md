@@ -70,3 +70,12 @@ A result is a **candidate for further investigation** only if all of these hold:
 A drawdown ≤ 10 % earns "preferred".
 
 **What a candidate means:** not proof of profitability. It is a reason to pre-register a confirmation on data not yet used for this hypothesis (forward PAPER), after which executability must be solved separately.
+
+## Amendment 1 (after the first run; defects, not tuning)
+
+The first run (`perp-results-v1-DEFECTIVE.json`, kept) exposed two **implementation defects**:
+
+1. **Fees at historical prices.** The conservative fee was charged per *unit* of today's contract (0.1 ETH, 0.01 BTC) at *historical* prices. In 2017 ETH was about $8, so a 0.1-ETH "contract" was worth ~$1 but paid a $0.50 fee, and a 5× liquidation of ~312 such "contracts" cost $3,120. **Correction:** conservative fee per order = max(percentage fee, $0.50 minimum); conservative liquidation fee = max(0.5 % of notional, $10).
+2. **No rebalance rule.** Compounding re-targeted every position every day, so the conservative scenario paid a $0.50 minimum fee on daily micro-adjustments: 165 orders and $128 of fees on a $100 account. The pre-registration did not specify a rebalance rule. **Correction:** trade only on a sign change, a move to or from zero, or a drift > 25 % of the target. This is the same 25 % band as the earlier overlay simulator (`lab/gz.mjs`), and it applies to both cost scenarios.
+
+No hypothesis, sizing level, cost level, window or criterion was changed. The corrected run is the result; v1 is reported as defective.

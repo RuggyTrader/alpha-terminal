@@ -21,13 +21,23 @@ test("funding: a long pays units x price x rate every hour (shorts receive)", ()
   close(run(H, -1, { rate: 0.0001 }).final, 100 + 10 * 1 * 100 * 0.0001);
 });
 
-test("ideal fees are a percentage of notional; conservative fees are charged per WHOLE contract", () => {
+test("ideal fees are a percentage of notional; conservative fees never fall below one whole contract's fee per order", () => {
   const H = flat(2, 100);
   close(run(H, 0.3, { fee: { ...BASE.fee, pct: { X: 0.001 } } }).final, 100 - 30 * 0.001); // 0.3 units x 100 = $30 notional
-  // 0.3 units with a 0.1 contract = 3 contracts x $0.50
-  close(run(H, 0.3, { fee: { ...BASE.fee, mode: "conservative" } }).final, 100 - 1.5);
-  // a tiny 0.05-unit position still pays a full contract's fee ($0.50): fixed fees are NOT scaled down
-  close(run(H, 0.05, { fee: { ...BASE.fee, mode: "conservative" } }).final, 100 - 0.5);
+  // a $5 fractional order still pays the full $0.50 fixed fee (not scaled down to $0.005)
+  close(run(H, 0.05, { fee: { ...BASE.fee, mode: "conservative", pct: { X: 0.001 } } }).final, 100 - 0.5);
+  // a large order pays the percentage fee when it exceeds the minimum: 30 units x 100 x 0.1 % = $3
+  close(run(H, 30, { fee: { ...BASE.fee, mode: "conservative", pct: { X: 0.001 } }, margin: { init: { X: 0.01 }, maint: { X: 0.005 } } }).final, 100 - 3);
+});
+
+test("rebalance band: small drifts are not traded, sign changes always are", () => {
+  const H = flat(48, 100);
+  const decide = (t) => (t === T0 ? { X: 1 } : t === T0 + DAY ? { X: 1.1 } : null);
+  const banded = simulatePerp([asset(H)], decide, { ...BASE, band: 0.25 }, { from: T0, to: T0 + 48 * HOUR });
+  const free = simulatePerp([asset(H)], decide, { ...BASE, band: 0 }, { from: T0, to: T0 + 48 * HOUR });
+  assert.equal(banded.trades, 1); assert.equal(free.trades, 2);
+  const flip = simulatePerp([asset(H)], (t) => (t === T0 ? { X: 1 } : t === T0 + DAY ? { X: -1 } : null), { ...BASE, band: 0.25 }, { from: T0, to: T0 + 48 * HOUR });
+  assert.equal(flip.trades, 2);
 });
 
 test("spread and slippage cost half-spread + slip on the traded notional", () => {

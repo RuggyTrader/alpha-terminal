@@ -50,7 +50,7 @@ for (const [hn, sig] of Object.entries(SIGNALS)) for (const [sn, size] of Object
   const decide = (d) => { const s = sig(d); if (s === null) return null; held = s; const w = {}; for (const a of ["BTC", "ETH"]) { const x = s[a]; w[a] = x === null || x === undefined ? 0 : x * size(a, d); if (w[a]) weightsSeen[a].push(Math.abs(w[a])); } return w; };
   for (const [w0, w1] of WINDOWS) {
     const from = Date.parse(w0), to = Date.parse(w1);
-    const r = simulatePerp([data.BTC, data.ETH], decide, { capital: 100, compound, margin: MARGIN, ...cost }, { from, to });
+    const r = simulatePerp([data.BTC, data.ETH], decide, { capital: 100, compound, margin: MARGIN, band: 0.25, ...cost }, { from, to });
     const row = { hypothesis: hn, sizing: sn, cost: cn, compound, window: `${w0}..${w1}`, final: r2(r.final), cagr_pct: r2(r.cagr_pct), dd_pct: r2(r.dd_pct), liquidations: r.liquidations, ruined: r.ruined, fees: r2(r.fees), funding: r2(r.funding), slippage: r2(r.slipCost), missed: r.missed, trades: r.trades,
       p14: periodStats(r.daily, 14), p30: periodStats(r.daily, 30), p91: periodStats(r.daily, 91), p365: periodStats(r.daily, 365), longest_recovery_days: r2(longestRecoveryDays(r.daily)),
       worst_day_pct: r2(Math.min(...r.daily.slice(1).map((x, i) => (x[1] / r.daily[i][1] - 1) * 100))), status: "THEORETICAL PAPER ONLY" };
