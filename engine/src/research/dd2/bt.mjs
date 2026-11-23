@@ -54,7 +54,9 @@ export function backtest(assets, spec, opt) {
   const pos = assets.map(() => null), pend = assets.map(() => null), last = assets.map(() => null);
   let cash = capital, peak = capital, ddStrict = 0, ddClose = 0, hwm = capital, ddOfficial = 0, blockUntil = -Infinity, fees = 0, skipped = 0, orders = 0, exposed = 0, traded = 0, missed = 0;
   const trades = [], curve = [];
-  const band = spec.family === "V" ? 0.1 * Math.min(1, spec.p.tv / 0.4) * cap : 0;
+  // spec.scale (optional, V family): multiplies the target weights AND the rebalance band (a smaller S3); default 1
+  const scaleV = spec.scale ?? 1;
+  const band = spec.family === "V" ? 0.1 * Math.min(1, spec.p.tv / 0.4) * cap * scaleV : 0;
   const mark = (t, field) => assets.reduce((s, a, j) => { if (!pos[j]) return s; const i = idx[j].get(t); const px = i !== undefined ? a.K[i][field] : last[j]; return s + pos[j].qty * px; }, cash);
   const floorQ = (q) => Math.floor(q / STEP + 1e-9) * STEP;
   const sell = (j, px, t, reason, ref, feeRate = fee) => {
@@ -142,7 +144,7 @@ export function backtest(assets, spec, opt) {
       if (spec.family === "V") {
         if (t < blockUntil) continue;
         const tw0 = s.target(i); if (tw0 === null) continue;
-        const tw = tw0 * cap, act = pos[j] ? (pos[j].qty * k.c) / eqC : 0;
+        const tw = tw0 * cap * scaleV, act = pos[j] ? (pos[j].qty * k.c) / eqC : 0;
         if ((tw === 0) !== (act === 0) ? true : Math.abs(tw - act) >= band) { if (!(tw === 0 && !pos[j])) pend[j] = { type: "TARGET", w: tw }; }
         continue;
       }
