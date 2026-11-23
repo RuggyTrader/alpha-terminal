@@ -1,0 +1,3638 @@
+{
+ "status": "THEORETICAL PAPER ONLY; REUSED data; not independent validation",
+ "prereg": "docs/research/futures/REPLICATION-PREREGISTRATION.md",
+ "coins": {
+  "XRP": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2017-12-04",
+     "to": "2026-09-30",
+     "hourly_bars": 82043,
+     "hourly_missing": 94,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3221,
+     "passive_pct_per_yr": 76.25,
+     "gross_strategy_pct_per_yr": -0.69,
+     "beta": 0.14,
+     "gross_alpha_pct_per_yr": -11.47,
+     "gross_alpha_ci90": [
+      -44.76,
+      15.94
+     ],
+     "random_timing_p": 0.378,
+     "net_alpha_pct_per_yr": -19.69,
+     "net_alpha_ci90": [
+      -48.81,
+      4.87
+     ],
+     "alpha_by_year": {
+      "2017": 1086.47,
+      "2018": -66.8,
+      "2019": 6.05,
+      "2020": -10.77,
+      "2021": -84.28,
+      "2022": -8.36,
+      "2023": -37.66,
+      "2024": 6.97,
+      "2025": 2.07,
+      "2026": 10.52
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -18.31,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -15.54,
+       "max_dd_pct": 97.26,
+       "worst_day_pct": -26.63,
+       "trades": 178,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 22.52,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 102.58,
+       "worst_day_pct": -3004.69,
+       "trades": 124,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -10.15,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 103.09,
+       "worst_day_pct": -143.06,
+       "trades": 125,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -7.62,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -1.07,
+       "max_dd_pct": 38.61,
+       "worst_day_pct": -6.4,
+       "trades": 284,
+       "longest_recovery_days": 2969,
+       "liquidations": 0,
+       "final": 90.92,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.2,
+       "worst_day_pct": -2557.64,
+       "trades": 205,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -10.09,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.91,
+       "worst_day_pct": -237.68,
+       "trades": 182,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -8.66,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 46.1,
+     "gross_strategy_pct_per_yr": -14.58,
+     "beta": 0.08,
+     "gross_alpha_pct_per_yr": -18.31,
+     "gross_alpha_ci90": [
+      -47.37,
+      8.96
+     ],
+     "random_timing_p": 0.69,
+     "net_alpha_pct_per_yr": -13.6,
+     "net_alpha_ci90": [
+      -27.28,
+      0.01
+     ],
+     "alpha_by_year": {
+      "2018": -73.47,
+      "2019": 4.12,
+      "2020": -5.72,
+      "2021": -69.4,
+      "2022": -11.55,
+      "2023": -31.94,
+      "2024": 16.4,
+      "2025": 3.39,
+      "2026": 10.14
+     },
+     "best_year": "2024",
+     "gross_alpha_without_best_year": -22.34,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -24.98,
+       "max_dd_pct": 97.06,
+       "worst_day_pct": -26.63,
+       "trades": 175,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 8.1,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.69,
+       "worst_day_pct": -4382.26,
+       "trades": 67,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -10.26,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 105.97,
+       "worst_day_pct": -227.04,
+       "trades": 32,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -7.7,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -2.38,
+       "max_dd_pct": 38.61,
+       "worst_day_pct": -6.4,
+       "trades": 277,
+       "longest_recovery_days": 2969,
+       "liquidations": 0,
+       "final": 80.98,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.95,
+       "worst_day_pct": -2314.7,
+       "trades": 183,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -10.05,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.46,
+       "worst_day_pct": -934.37,
+       "trades": 171,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -9.55,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2017-12-04",
+     "to": "2026-09-30",
+     "hourly_bars": 82043,
+     "hourly_missing": 94,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3221,
+     "passive_pct_per_yr": 76.25,
+     "gross_strategy_pct_per_yr": 18.72,
+     "beta": 0.32,
+     "gross_alpha_pct_per_yr": -5.73,
+     "gross_alpha_ci90": [
+      -22.38,
+      7.97
+     ],
+     "random_timing_p": 0.378,
+     "net_alpha_pct_per_yr": -17.39,
+     "net_alpha_ci90": [
+      -33.48,
+      -2.89
+     ],
+     "alpha_by_year": {
+      "2017": 543.23,
+      "2018": -33.4,
+      "2019": 3.03,
+      "2020": -5.39,
+      "2021": -42.14,
+      "2022": -4.18,
+      "2023": -18.83,
+      "2024": 3.48,
+      "2025": 1.04,
+      "2026": 5.26
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -9.15,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 7.26,
+       "max_dd_pct": 79.17,
+       "worst_day_pct": -20.66,
+       "trades": 127,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 185.64,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 1.65,
+       "max_dd_pct": 85.68,
+       "worst_day_pct": -20.71,
+       "trades": 126,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 115.53,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 6.22,
+       "max_dd_pct": 60.1,
+       "worst_day_pct": -11.28,
+       "trades": 159,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 170.36,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 4.64,
+       "max_dd_pct": 19.19,
+       "worst_day_pct": -2.92,
+       "trades": 197,
+       "longest_recovery_days": 1173,
+       "liquidations": 0,
+       "final": 149.2,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -12.64,
+       "max_dd_pct": 73.34,
+       "worst_day_pct": -2.95,
+       "trades": 196,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 30.33,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -8.15,
+       "max_dd_pct": 64.95,
+       "worst_day_pct": -6.66,
+       "trades": 200,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 47.25,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 46.1,
+     "gross_strategy_pct_per_yr": 4.23,
+     "beta": 0.29,
+     "gross_alpha_pct_per_yr": -9.15,
+     "gross_alpha_ci90": [
+      -23.68,
+      4.48
+     ],
+     "random_timing_p": 0.69,
+     "net_alpha_pct_per_yr": -22.48,
+     "net_alpha_ci90": [
+      -37.84,
+      -6.9
+     ],
+     "alpha_by_year": {
+      "2018": -36.73,
+      "2019": 2.06,
+      "2020": -2.86,
+      "2021": -34.7,
+      "2022": -5.78,
+      "2023": -15.97,
+      "2024": 8.2,
+      "2025": 1.69,
+      "2026": 5.07
+     },
+     "best_year": "2024",
+     "gross_alpha_without_best_year": -11.17,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -5.3,
+       "max_dd_pct": 77.68,
+       "worst_day_pct": -20.66,
+       "trades": 124,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 62.08,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.82,
+       "worst_day_pct": -18850.09,
+       "trades": 97,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -10.45,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 106.7,
+       "worst_day_pct": -280.89,
+       "trades": 98,
+       "longest_recovery_days": 3192,
+       "liquidations": 1,
+       "final": -8.64,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 3.13,
+       "max_dd_pct": 19.19,
+       "worst_day_pct": -2.92,
+       "trades": 190,
+       "longest_recovery_days": 1173,
+       "liquidations": 0,
+       "final": 130.97,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -19.4,
+       "max_dd_pct": 85.31,
+       "worst_day_pct": -3.58,
+       "trades": 192,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 15.16,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -10.73,
+       "max_dd_pct": 70.9,
+       "worst_day_pct": -8.37,
+       "trades": 194,
+       "longest_recovery_days": 3192,
+       "liquidations": 0,
+       "final": 37.07,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "XLM": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2017-08-09",
+     "to": "2026-09-30",
+     "hourly_bars": 78754,
+     "hourly_missing": 6282,
+     "daily_missing": 181
+    },
+    "full": {
+     "days": 3162,
+     "passive_pct_per_yr": 41.72,
+     "gross_strategy_pct_per_yr": 2.52,
+     "beta": 0.13,
+     "gross_alpha_pct_per_yr": -2.97,
+     "gross_alpha_ci90": [
+      -28.79,
+      24.55
+     ],
+     "random_timing_p": 0.291,
+     "net_alpha_pct_per_yr": -0.57,
+     "net_alpha_ci90": [
+      -36.23,
+      28.89
+     ],
+     "alpha_by_year": {
+      "2017": -380.37,
+      "2018": -22.06,
+      "2019": 1.49,
+      "2020": -33.57,
+      "2021": 4.16,
+      "2022": 64.04,
+      "2023": -25.54,
+      "2024": 49.36,
+      "2025": -23.67,
+      "2026": -37.75
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -14.37,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 11.28,
+       "max_dd_pct": 79.5,
+       "worst_day_pct": -18.05,
+       "trades": 195,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 265.66,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 7.95,
+       "max_dd_pct": 84.25,
+       "worst_day_pct": -18.07,
+       "trades": 193,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 201.22,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 30.39,
+       "max_dd_pct": 27.16,
+       "worst_day_pct": -9.22,
+       "trades": 187,
+       "longest_recovery_days": 1292,
+       "liquidations": 0,
+       "final": 1131.71,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 6.89,
+       "max_dd_pct": 32.46,
+       "worst_day_pct": -6.43,
+       "trades": 286,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 183.96,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -3.22,
+       "max_dd_pct": 71.77,
+       "worst_day_pct": -7.17,
+       "trades": 280,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 74.12,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": 0.44,
+       "max_dd_pct": 59.86,
+       "worst_day_pct": -4.14,
+       "trades": 273,
+       "longest_recovery_days": 3077,
+       "liquidations": 0,
+       "final": 104.14,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3148,
+     "passive_pct_per_yr": 45.33,
+     "gross_strategy_pct_per_yr": 4.67,
+     "beta": 0.13,
+     "gross_alpha_pct_per_yr": -1.21,
+     "gross_alpha_ci90": [
+      -29.54,
+      25.8
+     ],
+     "random_timing_p": 0.2425,
+     "net_alpha_pct_per_yr": -10.75,
+     "net_alpha_ci90": [
+      -25.17,
+      5.82
+     ],
+     "alpha_by_year": {
+      "2018": -22.16,
+      "2019": 1.4,
+      "2020": -33.26,
+      "2021": 4.46,
+      "2022": 63.86,
+      "2023": -25.38,
+      "2024": 49.61,
+      "2025": -23.7,
+      "2026": -37.66
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -12.6,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -14.1,
+       "max_dd_pct": 79.59,
+       "worst_day_pct": -18.05,
+       "trades": 192,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 26.46,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.1,
+       "worst_day_pct": -3035.59,
+       "trades": 83,
+       "longest_recovery_days": 3076,
+       "liquidations": 1,
+       "final": -10.16,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 106.83,
+       "worst_day_pct": -205.42,
+       "trades": 49,
+       "longest_recovery_days": 3076,
+       "liquidations": 1,
+       "final": -7.63,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -3.31,
+       "max_dd_pct": 32.46,
+       "worst_day_pct": -6.43,
+       "trades": 282,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 74.52,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.96,
+       "worst_day_pct": -2764.68,
+       "trades": 181,
+       "longest_recovery_days": 3077,
+       "liquidations": 1,
+       "final": -10.12,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.07,
+       "worst_day_pct": -578.5,
+       "trades": 171,
+       "longest_recovery_days": 3077,
+       "liquidations": 1,
+       "final": -9.23,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2017-08-09",
+     "to": "2026-09-30",
+     "hourly_bars": 78754,
+     "hourly_missing": 6282,
+     "daily_missing": 181
+    },
+    "full": {
+     "days": 3162,
+     "passive_pct_per_yr": 41.72,
+     "gross_strategy_pct_per_yr": 11.69,
+     "beta": 0.32,
+     "gross_alpha_pct_per_yr": -1.48,
+     "gross_alpha_ci90": [
+      -14.4,
+      12.28
+     ],
+     "random_timing_p": 0.291,
+     "net_alpha_pct_per_yr": -0.36,
+     "net_alpha_ci90": [
+      -24.63,
+      19.55
+     ],
+     "alpha_by_year": {
+      "2017": -190.19,
+      "2018": -11.03,
+      "2019": 0.75,
+      "2020": -16.78,
+      "2021": 2.08,
+      "2022": 32.02,
+      "2023": -12.77,
+      "2024": 24.68,
+      "2025": -11.84,
+      "2026": -18.87
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -7.19,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 29.36,
+       "max_dd_pct": 61.85,
+       "worst_day_pct": -16.79,
+       "trades": 129,
+       "longest_recovery_days": 1292,
+       "liquidations": 0,
+       "final": 1052.54,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 28.8,
+       "max_dd_pct": 62.47,
+       "worst_day_pct": -16.79,
+       "trades": 127,
+       "longest_recovery_days": 1292,
+       "liquidations": 0,
+       "final": 1011.8,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 31.19,
+       "max_dd_pct": 24.54,
+       "worst_day_pct": -8.94,
+       "trades": 159,
+       "longest_recovery_days": 1292,
+       "liquidations": 0,
+       "final": 1197.14,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 11.77,
+       "max_dd_pct": 21.38,
+       "worst_day_pct": -3.45,
+       "trades": 182,
+       "longest_recovery_days": 1285,
+       "liquidations": 0,
+       "final": 276.74,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": 7.76,
+       "max_dd_pct": 28.26,
+       "worst_day_pct": -3.62,
+       "trades": 179,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 198.09,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": 6.35,
+       "max_dd_pct": 31.46,
+       "worst_day_pct": -2,
+       "trades": 186,
+       "longest_recovery_days": 3077,
+       "liquidations": 0,
+       "final": 175.57,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3148,
+     "passive_pct_per_yr": 45.33,
+     "gross_strategy_pct_per_yr": 13.67,
+     "beta": 0.31,
+     "gross_alpha_pct_per_yr": -0.61,
+     "gross_alpha_ci90": [
+      -14.77,
+      12.9
+     ],
+     "random_timing_p": 0.2425,
+     "net_alpha_pct_per_yr": -12.76,
+     "net_alpha_ci90": [
+      -27.62,
+      2.49
+     ],
+     "alpha_by_year": {
+      "2018": -11.08,
+      "2019": 0.7,
+      "2020": -16.63,
+      "2021": 2.23,
+      "2022": 31.93,
+      "2023": -12.69,
+      "2024": 24.81,
+      "2025": -11.85,
+      "2026": -18.83
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -6.3,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 0.23,
+       "max_dd_pct": 62.03,
+       "worst_day_pct": -16.79,
+       "trades": 126,
+       "longest_recovery_days": 1292,
+       "liquidations": 0,
+       "final": 101.99,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -14.2,
+       "max_dd_pct": 79.68,
+       "worst_day_pct": -16.88,
+       "trades": 124,
+       "longest_recovery_days": 3076,
+       "liquidations": 0,
+       "final": 26.18,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 1.57,
+       "max_dd_pct": 91.39,
+       "worst_day_pct": -20.97,
+       "trades": 155,
+       "longest_recovery_days": 1292,
+       "liquidations": 0,
+       "final": 114.59,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 1.27,
+       "max_dd_pct": 21.38,
+       "worst_day_pct": -3.45,
+       "trades": 178,
+       "longest_recovery_days": 1285,
+       "liquidations": 0,
+       "final": 111.68,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -17.19,
+       "max_dd_pct": 81.4,
+       "worst_day_pct": -4.45,
+       "trades": 177,
+       "longest_recovery_days": 3077,
+       "liquidations": 0,
+       "final": 19.21,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -12.77,
+       "max_dd_pct": 73.8,
+       "worst_day_pct": -8.4,
+       "trades": 179,
+       "longest_recovery_days": 3077,
+       "liquidations": 0,
+       "final": 30.27,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "LTC": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2014-06-01",
+     "to": "2026-09-30",
+     "hourly_bars": 91117,
+     "hourly_missing": 22270,
+     "daily_missing": 187
+    },
+    "full": {
+     "days": 4257,
+     "passive_pct_per_yr": 90.88,
+     "gross_strategy_pct_per_yr": 4.11,
+     "beta": -0.12,
+     "gross_alpha_pct_per_yr": 15.26,
+     "gross_alpha_ci90": [
+      -12.21,
+      41.43
+     ],
+     "random_timing_p": 0.3065,
+     "net_alpha_pct_per_yr": 12.7,
+     "net_alpha_ci90": [
+      -4.02,
+      29.35
+     ],
+     "alpha_by_year": {
+      "2014": 121.7,
+      "2015": -134.92,
+      "2016": -52.1,
+      "2017": 275.13,
+      "2018": 2.38,
+      "2019": 39.32,
+      "2020": -18.79,
+      "2021": -18.94,
+      "2022": 10.98,
+      "2023": -43.53,
+      "2024": 28.54,
+      "2025": -7.8,
+      "2026": 31.91
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -4,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 203.85,
+       "worst_day_pct": -237.18,
+       "trades": 4,
+       "longest_recovery_days": 4175,
+       "liquidations": 1,
+       "final": -223.74,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 207.9,
+       "worst_day_pct": -242.63,
+       "trades": 4,
+       "longest_recovery_days": 4175,
+       "liquidations": 1,
+       "final": -229.81,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 152.81,
+       "worst_day_pct": -164.14,
+       "trades": 4,
+       "longest_recovery_days": 4175,
+       "liquidations": 1,
+       "final": -98.09,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 0.09,
+       "max_dd_pct": 39.85,
+       "worst_day_pct": -7.34,
+       "trades": 305,
+       "longest_recovery_days": 2479,
+       "liquidations": 0,
+       "final": 101.09,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.6,
+       "worst_day_pct": -16053.74,
+       "trades": 215,
+       "longest_recovery_days": 4276,
+       "liquidations": 1,
+       "final": -10.43,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.31,
+       "worst_day_pct": -500.78,
+       "trades": 233,
+       "longest_recovery_days": 4276,
+       "liquidations": 1,
+       "final": -10.09,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 25.83,
+     "gross_strategy_pct_per_yr": -1.34,
+     "beta": 0.02,
+     "gross_alpha_pct_per_yr": -1.81,
+     "gross_alpha_ci90": [
+      -25.76,
+      22.84
+     ],
+     "random_timing_p": 0.363,
+     "net_alpha_pct_per_yr": -13.13,
+     "net_alpha_ci90": [
+      -35.71,
+      10.23
+     ],
+     "alpha_by_year": {
+      "2018": 24.71,
+      "2019": 28.42,
+      "2020": -42.1,
+      "2021": -31.34,
+      "2022": 15.92,
+      "2023": -47.08,
+      "2024": 19.61,
+      "2025": -8.03,
+      "2026": 32.42
+     },
+     "best_year": "2026",
+     "gross_alpha_without_best_year": -5.25,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -12.52,
+       "max_dd_pct": 87.83,
+       "worst_day_pct": -19.4,
+       "trades": 157,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 31.04,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.42,
+       "worst_day_pct": -4368.49,
+       "trades": 126,
+       "longest_recovery_days": 2657,
+       "liquidations": 1,
+       "final": -10.26,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 105.5,
+       "worst_day_pct": -294.53,
+       "trades": 109,
+       "longest_recovery_days": 1970,
+       "liquidations": 1,
+       "final": -8.18,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -0.54,
+       "max_dd_pct": 36.75,
+       "worst_day_pct": -5.24,
+       "trades": 228,
+       "longest_recovery_days": 2479,
+       "liquidations": 0,
+       "final": 95.4,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.99,
+       "worst_day_pct": -2487.51,
+       "trades": 201,
+       "longest_recovery_days": 3189,
+       "liquidations": 1,
+       "final": -10.08,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.13,
+       "worst_day_pct": -591.01,
+       "trades": 197,
+       "longest_recovery_days": 2867,
+       "liquidations": 1,
+       "final": -9.31,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2014-06-01",
+     "to": "2026-09-30",
+     "hourly_bars": 91117,
+     "hourly_missing": 22270,
+     "daily_missing": 187
+    },
+    "full": {
+     "days": 4257,
+     "passive_pct_per_yr": 90.88,
+     "gross_strategy_pct_per_yr": 24.78,
+     "beta": 0.19,
+     "gross_alpha_pct_per_yr": 7.63,
+     "gross_alpha_ci90": [
+      -6.11,
+      20.71
+     ],
+     "random_timing_p": 0.3065,
+     "net_alpha_pct_per_yr": -4.56,
+     "net_alpha_ci90": [
+      -19.07,
+      8.47
+     ],
+     "alpha_by_year": {
+      "2014": 60.85,
+      "2015": -67.46,
+      "2016": -26.05,
+      "2017": 137.56,
+      "2018": 1.19,
+      "2019": 19.66,
+      "2020": -9.4,
+      "2021": -9.47,
+      "2022": 5.49,
+      "2023": -21.77,
+      "2024": 14.27,
+      "2025": -3.9,
+      "2026": 15.95
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -2,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 12.87,
+       "max_dd_pct": 72.63,
+       "worst_day_pct": -25.98,
+       "trades": 142,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 445.32,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 9.53,
+       "max_dd_pct": 73.73,
+       "worst_day_pct": -26.05,
+       "trades": 142,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 307.37,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 7.88,
+       "max_dd_pct": 76.84,
+       "worst_day_pct": -21.33,
+       "trades": 182,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 254.85,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 3.16,
+       "max_dd_pct": 20.65,
+       "worst_day_pct": -5.24,
+       "trades": 220,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 146.73,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -11.19,
+       "max_dd_pct": 78.61,
+       "worst_day_pct": -5.88,
+       "trades": 218,
+       "longest_recovery_days": 4101,
+       "liquidations": 0,
+       "final": 23.14,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -7.64,
+       "max_dd_pct": 69.51,
+       "worst_day_pct": -10.47,
+       "trades": 229,
+       "longest_recovery_days": 3208,
+       "liquidations": 0,
+       "final": 37.53,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 25.83,
+     "gross_strategy_pct_per_yr": 5.79,
+     "beta": 0.26,
+     "gross_alpha_pct_per_yr": -0.91,
+     "gross_alpha_ci90": [
+      -12.88,
+      11.42
+     ],
+     "random_timing_p": 0.363,
+     "net_alpha_pct_per_yr": -11.47,
+     "net_alpha_ci90": [
+      -24,
+      1.42
+     ],
+     "alpha_by_year": {
+      "2018": 12.35,
+      "2019": 14.21,
+      "2020": -21.05,
+      "2021": -15.67,
+      "2022": 7.96,
+      "2023": -23.54,
+      "2024": 9.8,
+      "2025": -4.02,
+      "2026": 16.21
+     },
+     "best_year": "2026",
+     "gross_alpha_without_best_year": -2.63,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -2.62,
+       "max_dd_pct": 72.63,
+       "worst_day_pct": -19.4,
+       "trades": 102,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 79.29,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -10.97,
+       "max_dd_pct": 82.37,
+       "worst_day_pct": -19.46,
+       "trades": 102,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 36.18,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -5.04,
+       "max_dd_pct": 73.75,
+       "worst_day_pct": -15.94,
+       "trades": 123,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 63.62,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 0.83,
+       "max_dd_pct": 20.48,
+       "worst_day_pct": -5.24,
+       "trades": 154,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 107.46,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -13.17,
+       "max_dd_pct": 72.07,
+       "worst_day_pct": -5.61,
+       "trades": 153,
+       "longest_recovery_days": 3189,
+       "liquidations": 0,
+       "final": 29.09,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -11.01,
+       "max_dd_pct": 69.73,
+       "worst_day_pct": -10.8,
+       "trades": 158,
+       "longest_recovery_days": 3189,
+       "liquidations": 0,
+       "final": 36.06,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "XMR": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2017-07-21",
+     "to": "2026-09-30",
+     "hourly_bars": 83871,
+     "hourly_missing": 1526,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3357,
+     "passive_pct_per_yr": 70.21,
+     "gross_strategy_pct_per_yr": -7.14,
+     "beta": 0.1,
+     "gross_alpha_pct_per_yr": -13.99,
+     "gross_alpha_ci90": [
+      -40.28,
+      11.89
+     ],
+     "random_timing_p": 0.7575,
+     "net_alpha_pct_per_yr": -17.36,
+     "net_alpha_ci90": [
+      -41.19,
+      7.49
+     ],
+     "alpha_by_year": {
+      "2017": 233.57,
+      "2018": 46.86,
+      "2019": -25.92,
+      "2020": -23.84,
+      "2021": -44.36,
+      "2022": -75.65,
+      "2023": -27.06,
+      "2024": -60.07,
+      "2025": 11.73,
+      "2026": -46.59
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -23.86,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -19.88,
+       "max_dd_pct": 97.84,
+       "worst_day_pct": -21.19,
+       "trades": 224,
+       "longest_recovery_days": 2846,
+       "liquidations": 0,
+       "final": 13.02,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 102.29,
+       "worst_day_pct": -2741.01,
+       "trades": 183,
+       "longest_recovery_days": 2846,
+       "liquidations": 1,
+       "final": -10.12,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 102.83,
+       "worst_day_pct": -245.76,
+       "trades": 166,
+       "longest_recovery_days": 2846,
+       "liquidations": 1,
+       "final": -7.76,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -4.03,
+       "max_dd_pct": 59.75,
+       "worst_day_pct": -6.59,
+       "trades": 317,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 68.5,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.34,
+       "worst_day_pct": -2172.63,
+       "trades": 236,
+       "longest_recovery_days": 3206,
+       "liquidations": 1,
+       "final": -10.02,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.66,
+       "worst_day_pct": -535.38,
+       "trades": 206,
+       "longest_recovery_days": 3206,
+       "liquidations": 1,
+       "final": -9.05,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 44,
+     "gross_strategy_pct_per_yr": -22.41,
+     "beta": 0.03,
+     "gross_alpha_pct_per_yr": -23.86,
+     "gross_alpha_ci90": [
+      -50.26,
+      0.27
+     ],
+     "random_timing_p": 0.9445,
+     "net_alpha_pct_per_yr": -14.25,
+     "net_alpha_ci90": [
+      -35.26,
+      8.01
+     ],
+     "alpha_by_year": {
+      "2018": 37.7,
+      "2019": -23.86,
+      "2020": -12.84,
+      "2021": -37.28,
+      "2022": -75.87,
+      "2023": -25.82,
+      "2024": -57.05,
+      "2025": 18.33,
+      "2026": -42.26
+     },
+     "best_year": "2018",
+     "gross_alpha_without_best_year": -33.92,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -30.72,
+       "max_dd_pct": 97.84,
+       "worst_day_pct": -21.19,
+       "trades": 221,
+       "longest_recovery_days": 2846,
+       "liquidations": 0,
+       "final": 4.03,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.13,
+       "worst_day_pct": -2435.05,
+       "trades": 115,
+       "longest_recovery_days": 2846,
+       "liquidations": 1,
+       "final": -10.08,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 105.44,
+       "worst_day_pct": -245.44,
+       "trades": 96,
+       "longest_recovery_days": 1970,
+       "liquidations": 1,
+       "final": -8.13,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -6.87,
+       "max_dd_pct": 59.75,
+       "worst_day_pct": -6.59,
+       "trades": 297,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 53.63,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 110.06,
+       "worst_day_pct": -3886.41,
+       "trades": 190,
+       "longest_recovery_days": 3182,
+       "liquidations": 1,
+       "final": -10.23,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.14,
+       "worst_day_pct": -721.71,
+       "trades": 175,
+       "longest_recovery_days": 2847,
+       "liquidations": 1,
+       "final": -9.38,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2017-07-21",
+     "to": "2026-09-30",
+     "hourly_bars": 83871,
+     "hourly_missing": 1526,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3357,
+     "passive_pct_per_yr": 70.21,
+     "gross_strategy_pct_per_yr": 13.98,
+     "beta": 0.3,
+     "gross_alpha_pct_per_yr": -7,
+     "gross_alpha_ci90": [
+      -20.14,
+      5.95
+     ],
+     "random_timing_p": 0.7575,
+     "net_alpha_pct_per_yr": -22.36,
+     "net_alpha_ci90": [
+      -36.42,
+      -8.25
+     ],
+     "alpha_by_year": {
+      "2017": 116.78,
+      "2018": 23.43,
+      "2019": -12.96,
+      "2020": -11.92,
+      "2021": -22.18,
+      "2022": -37.83,
+      "2023": -13.53,
+      "2024": -30.04,
+      "2025": 5.86,
+      "2026": -23.3
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -11.93,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 3.33,
+       "max_dd_pct": 83.42,
+       "worst_day_pct": -18.6,
+       "trades": 173,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 135.14,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -1.22,
+       "max_dd_pct": 87.44,
+       "worst_day_pct": -18.66,
+       "trades": 174,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 89.36,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -0.4,
+       "max_dd_pct": 75.61,
+       "worst_day_pct": -17.24,
+       "trades": 205,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 96.4,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 1.83,
+       "max_dd_pct": 39.2,
+       "worst_day_pct": -6.59,
+       "trades": 248,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 118.17,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.6,
+       "worst_day_pct": -6456.7,
+       "trades": 249,
+       "longest_recovery_days": 3206,
+       "liquidations": 1,
+       "final": -10.34,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.31,
+       "worst_day_pct": -1372.45,
+       "trades": 243,
+       "longest_recovery_days": 3206,
+       "liquidations": 1,
+       "final": -9.82,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 44,
+     "gross_strategy_pct_per_yr": -0.21,
+     "beta": 0.27,
+     "gross_alpha_pct_per_yr": -11.93,
+     "gross_alpha_ci90": [
+      -25.13,
+      0.14
+     ],
+     "random_timing_p": 0.9445,
+     "net_alpha_pct_per_yr": -21.68,
+     "net_alpha_ci90": [
+      -34.53,
+      -8.19
+     ],
+     "alpha_by_year": {
+      "2018": 18.85,
+      "2019": -11.93,
+      "2020": -6.42,
+      "2021": -18.64,
+      "2022": -37.94,
+      "2023": -12.91,
+      "2024": -28.53,
+      "2025": 9.16,
+      "2026": -21.13
+     },
+     "best_year": "2018",
+     "gross_alpha_without_best_year": -16.96,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -9.48,
+       "max_dd_pct": 83.42,
+       "worst_day_pct": -18.6,
+       "trades": 170,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 41.86,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.46,
+       "worst_day_pct": -5648.34,
+       "trades": 134,
+       "longest_recovery_days": 1970,
+       "liquidations": 1,
+       "final": -10.31,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 105.99,
+       "worst_day_pct": -847.21,
+       "trades": 134,
+       "longest_recovery_days": 1970,
+       "liquidations": 1,
+       "final": -9.42,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -0.89,
+       "max_dd_pct": 39.2,
+       "worst_day_pct": -6.59,
+       "trades": 228,
+       "longest_recovery_days": 1970,
+       "liquidations": 0,
+       "final": 92.52,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 110.2,
+       "worst_day_pct": -8474.96,
+       "trades": 195,
+       "longest_recovery_days": 3182,
+       "liquidations": 1,
+       "final": -10.38,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.22,
+       "worst_day_pct": -719.45,
+       "trades": 176,
+       "longest_recovery_days": 3182,
+       "liquidations": 1,
+       "final": -9.38,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "ETC": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2017-02-12",
+     "to": "2026-09-30",
+     "hourly_bars": 84938,
+     "hourly_missing": 4286,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3516,
+     "passive_pct_per_yr": 77.57,
+     "gross_strategy_pct_per_yr": 9.85,
+     "beta": 0.14,
+     "gross_alpha_pct_per_yr": -0.85,
+     "gross_alpha_ci90": [
+      -30.25,
+      28.52
+     ],
+     "random_timing_p": 0.159,
+     "net_alpha_pct_per_yr": -11,
+     "net_alpha_ci90": [
+      -41.1,
+      18.9
+     ],
+     "alpha_by_year": {
+      "2017": 110.79,
+      "2018": 14.6,
+      "2019": -62.71,
+      "2020": -131.99,
+      "2021": 106.18,
+      "2022": -21.94,
+      "2023": -27.47,
+      "2024": 12.92,
+      "2025": -0.68,
+      "2026": 7
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -8.96,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -5.33,
+       "max_dd_pct": 96.87,
+       "worst_day_pct": -17.35,
+       "trades": 207,
+       "longest_recovery_days": 3316,
+       "liquidations": 0,
+       "final": 59,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -25.37,
+       "max_dd_pct": 99.48,
+       "worst_day_pct": -17.4,
+       "trades": 203,
+       "longest_recovery_days": 3316,
+       "liquidations": 0,
+       "final": 5.97,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 1,
+       "max_dd_pct": 96.32,
+       "worst_day_pct": -24.56,
+       "trades": 204,
+       "longest_recovery_days": 2855,
+       "liquidations": 0,
+       "final": 110.05,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 1.18,
+       "max_dd_pct": 48.81,
+       "worst_day_pct": -5.42,
+       "trades": 309,
+       "longest_recovery_days": 2855,
+       "liquidations": 0,
+       "final": 112.01,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.39,
+       "worst_day_pct": -2658,
+       "trades": 232,
+       "longest_recovery_days": 3316,
+       "liquidations": 1,
+       "final": -10.1,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.42,
+       "worst_day_pct": -389.06,
+       "trades": 221,
+       "longest_recovery_days": 3316,
+       "liquidations": 1,
+       "final": -9.8,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 36.45,
+     "gross_strategy_pct_per_yr": -7.12,
+     "beta": 0.05,
+     "gross_alpha_pct_per_yr": -8.96,
+     "gross_alpha_ci90": [
+      -39.54,
+      21.08
+     ],
+     "random_timing_p": 0.4695,
+     "net_alpha_pct_per_yr": -13.81,
+     "net_alpha_ci90": [
+      -33.58,
+      4.72
+     ],
+     "alpha_by_year": {
+      "2018": 4.68,
+      "2019": -60.42,
+      "2020": -125.06,
+      "2021": 131.94,
+      "2022": -23,
+      "2023": -22.75,
+      "2024": 16.95,
+      "2025": -4.82,
+      "2026": 5.83
+     },
+     "best_year": "2021",
+     "gross_alpha_without_best_year": -26.72,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -18.65,
+       "max_dd_pct": 96.94,
+       "worst_day_pct": -17.35,
+       "trades": 188,
+       "longest_recovery_days": 3181,
+       "liquidations": 0,
+       "final": 16.45,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 103.21,
+       "worst_day_pct": -5507.12,
+       "trades": 83,
+       "longest_recovery_days": 3181,
+       "liquidations": 1,
+       "final": -10.31,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 103.21,
+       "worst_day_pct": -384.23,
+       "trades": 48,
+       "longest_recovery_days": 2855,
+       "liquidations": 1,
+       "final": -8.88,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -1.75,
+       "max_dd_pct": 48.42,
+       "worst_day_pct": -5.42,
+       "trades": 274,
+       "longest_recovery_days": 2855,
+       "liquidations": 0,
+       "final": 85.67,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.41,
+       "worst_day_pct": -2604.08,
+       "trades": 176,
+       "longest_recovery_days": 3182,
+       "liquidations": 1,
+       "final": -10.1,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.55,
+       "worst_day_pct": -970.35,
+       "trades": 171,
+       "longest_recovery_days": 3182,
+       "liquidations": 1,
+       "final": -10.25,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2017-02-12",
+     "to": "2026-09-30",
+     "hourly_bars": 84938,
+     "hourly_missing": 4286,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3516,
+     "passive_pct_per_yr": 77.57,
+     "gross_strategy_pct_per_yr": 24.31,
+     "beta": 0.32,
+     "gross_alpha_pct_per_yr": -0.43,
+     "gross_alpha_ci90": [
+      -15.13,
+      14.26
+     ],
+     "random_timing_p": 0.159,
+     "net_alpha_pct_per_yr": -10.95,
+     "net_alpha_ci90": [
+      -26.34,
+      4.9
+     ],
+     "alpha_by_year": {
+      "2017": 55.39,
+      "2018": 7.3,
+      "2019": -31.35,
+      "2020": -66,
+      "2021": 53.09,
+      "2022": -10.97,
+      "2023": -13.73,
+      "2024": 6.46,
+      "2025": -0.34,
+      "2026": 3.5
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -4.48,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 14.8,
+       "max_dd_pct": 89.72,
+       "worst_day_pct": -17.35,
+       "trades": 130,
+       "longest_recovery_days": 1973,
+       "liquidations": 0,
+       "final": 377.92,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 13.44,
+       "max_dd_pct": 90.38,
+       "worst_day_pct": -17.37,
+       "trades": 130,
+       "longest_recovery_days": 1973,
+       "liquidations": 0,
+       "final": 336.91,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 9.66,
+       "max_dd_pct": 66.84,
+       "worst_day_pct": -7.7,
+       "trades": 171,
+       "longest_recovery_days": 1973,
+       "liquidations": 0,
+       "final": 243.16,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 4.3,
+       "max_dd_pct": 33.89,
+       "worst_day_pct": -4.71,
+       "trades": 198,
+       "longest_recovery_days": 1203,
+       "liquidations": 0,
+       "final": 150.06,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -7.48,
+       "max_dd_pct": 68.66,
+       "worst_day_pct": -4.64,
+       "trades": 196,
+       "longest_recovery_days": 3316,
+       "liquidations": 0,
+       "final": 47.28,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -7.19,
+       "max_dd_pct": 66.03,
+       "worst_day_pct": -7.91,
+       "trades": 200,
+       "longest_recovery_days": 3316,
+       "liquidations": 0,
+       "final": 48.76,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 36.45,
+     "gross_strategy_pct_per_yr": 5.55,
+     "beta": 0.28,
+     "gross_alpha_pct_per_yr": -4.48,
+     "gross_alpha_ci90": [
+      -19.77,
+      10.54
+     ],
+     "random_timing_p": 0.4695,
+     "net_alpha_pct_per_yr": -17.31,
+     "net_alpha_ci90": [
+      -30.4,
+      -4.5
+     ],
+     "alpha_by_year": {
+      "2018": 2.34,
+      "2019": -30.21,
+      "2020": -62.53,
+      "2021": 65.97,
+      "2022": -11.5,
+      "2023": -11.37,
+      "2024": 8.48,
+      "2025": -2.41,
+      "2026": 2.92
+     },
+     "best_year": "2021",
+     "gross_alpha_without_best_year": -13.36,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -2.68,
+       "max_dd_pct": 89.93,
+       "worst_day_pct": -17.35,
+       "trades": 112,
+       "longest_recovery_days": 1973,
+       "liquidations": 0,
+       "final": 78.86,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -18.35,
+       "max_dd_pct": 94.95,
+       "worst_day_pct": -17.49,
+       "trades": 112,
+       "longest_recovery_days": 3181,
+       "liquidations": 0,
+       "final": 16.98,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 103.53,
+       "worst_day_pct": -241.73,
+       "trades": 56,
+       "longest_recovery_days": 3181,
+       "liquidations": 1,
+       "final": -9.75,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 0.83,
+       "max_dd_pct": 33.39,
+       "worst_day_pct": -4.71,
+       "trades": 168,
+       "longest_recovery_days": 1203,
+       "liquidations": 0,
+       "final": 107.52,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -15.37,
+       "max_dd_pct": 80.85,
+       "worst_day_pct": -4.79,
+       "trades": 164,
+       "longest_recovery_days": 3182,
+       "liquidations": 0,
+       "final": 23.22,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -13.86,
+       "max_dd_pct": 78.21,
+       "worst_day_pct": -12.29,
+       "trades": 172,
+       "longest_recovery_days": 3182,
+       "liquidations": 0,
+       "final": 27.1,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "ADA": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2019-04-16",
+     "to": "2026-09-30",
+     "hourly_bars": 69843,
+     "hourly_missing": 344,
+     "daily_missing": 0
+    },
+    "full": {
+     "note": "no 2017 data: full window = excl_2017"
+    },
+    "excl_2017": {
+     "days": 2725,
+     "passive_pct_per_yr": 62.57,
+     "gross_strategy_pct_per_yr": 24.54,
+     "beta": 0.03,
+     "gross_alpha_pct_per_yr": 22.36,
+     "gross_alpha_ci90": [
+      -7.51,
+      50.78
+     ],
+     "random_timing_p": 0.0985,
+     "net_alpha_pct_per_yr": 12.04,
+     "net_alpha_ci90": [
+      -19.07,
+      40.83
+     ],
+     "alpha_by_year": {
+      "2019": 29.22,
+      "2020": 29.24,
+      "2021": 147.56,
+      "2022": 66.04,
+      "2023": -41.45,
+      "2024": 25.17,
+      "2025": -82.66,
+      "2026": 2.82
+     },
+     "best_year": "2021",
+     "gross_alpha_without_best_year": 6.54,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 9.15,
+       "max_dd_pct": 85.2,
+       "worst_day_pct": -37.29,
+       "trades": 142,
+       "longest_recovery_days": 1371,
+       "liquidations": 0,
+       "final": 192.2,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 3.36,
+       "max_dd_pct": 86.16,
+       "worst_day_pct": -37.32,
+       "trades": 145,
+       "longest_recovery_days": 1371,
+       "liquidations": 0,
+       "final": 127.99,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 10.48,
+       "max_dd_pct": 50.03,
+       "worst_day_pct": -12.52,
+       "trades": 132,
+       "longest_recovery_days": 1371,
+       "liquidations": 0,
+       "final": 210.32,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 3.05,
+       "max_dd_pct": 34.47,
+       "worst_day_pct": -8.73,
+       "trades": 221,
+       "longest_recovery_days": 1371,
+       "liquidations": 0,
+       "final": 125.14,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -24.02,
+       "max_dd_pct": 87.41,
+       "worst_day_pct": -8.83,
+       "trades": 223,
+       "longest_recovery_days": 2677,
+       "liquidations": 0,
+       "final": 12.89,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -17.05,
+       "max_dd_pct": 85.04,
+       "worst_day_pct": -16.58,
+       "trades": 222,
+       "longest_recovery_days": 1860,
+       "liquidations": 0,
+       "final": 24.79,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2019-04-16",
+     "to": "2026-09-30",
+     "hourly_bars": 69843,
+     "hourly_missing": 344,
+     "daily_missing": 0
+    },
+    "full": {
+     "note": "no 2017 data: full window = excl_2017"
+    },
+    "excl_2017": {
+     "days": 2725,
+     "passive_pct_per_yr": 62.57,
+     "gross_strategy_pct_per_yr": 27.91,
+     "beta": 0.27,
+     "gross_alpha_pct_per_yr": 11.18,
+     "gross_alpha_ci90": [
+      -3.75,
+      25.39
+     ],
+     "random_timing_p": 0.0985,
+     "net_alpha_pct_per_yr": 1.12,
+     "net_alpha_ci90": [
+      -14.84,
+      15.94
+     ],
+     "alpha_by_year": {
+      "2019": 14.61,
+      "2020": 14.62,
+      "2021": 73.78,
+      "2022": 33.02,
+      "2023": -20.73,
+      "2024": 12.59,
+      "2025": -41.33,
+      "2026": 1.41
+     },
+     "best_year": "2021",
+     "gross_alpha_without_best_year": 3.27,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 20.99,
+       "max_dd_pct": 64.06,
+       "worst_day_pct": -13.62,
+       "trades": 81,
+       "longest_recovery_days": 1176,
+       "liquidations": 0,
+       "final": 414.4,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 19.8,
+       "max_dd_pct": 62.98,
+       "worst_day_pct": -13.63,
+       "trades": 79,
+       "longest_recovery_days": 1176,
+       "liquidations": 0,
+       "final": 385.01,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 12.08,
+       "max_dd_pct": 34.4,
+       "worst_day_pct": -7.52,
+       "trades": 104,
+       "longest_recovery_days": 1176,
+       "liquidations": 0,
+       "final": 234.21,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 4.96,
+       "max_dd_pct": 18.93,
+       "worst_day_pct": -3.59,
+       "trades": 142,
+       "longest_recovery_days": 910,
+       "liquidations": 0,
+       "final": 143.53,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -5.21,
+       "max_dd_pct": 39.98,
+       "worst_day_pct": -3.61,
+       "trades": 140,
+       "longest_recovery_days": 1860,
+       "liquidations": 0,
+       "final": 67.11,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -5.36,
+       "max_dd_pct": 41.61,
+       "worst_day_pct": -4.73,
+       "trades": 146,
+       "longest_recovery_days": 1860,
+       "liquidations": 0,
+       "final": 66.29,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "BCH": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2018-02-17",
+     "to": "2026-09-30",
+     "hourly_bars": 80187,
+     "hourly_missing": 149,
+     "daily_missing": 0
+    },
+    "full": {
+     "note": "no 2017 data: full window = excl_2017"
+    },
+    "excl_2017": {
+     "days": 3148,
+     "passive_pct_per_yr": 33,
+     "gross_strategy_pct_per_yr": -6.56,
+     "beta": -0.05,
+     "gross_alpha_pct_per_yr": -4.84,
+     "gross_alpha_ci90": [
+      -31.27,
+      26.65
+     ],
+     "random_timing_p": 0.5505,
+     "net_alpha_pct_per_yr": -8.84,
+     "net_alpha_ci90": [
+      -24.94,
+      10.46
+     ],
+     "alpha_by_year": {
+      "2018": 32.29,
+      "2019": -25.49,
+      "2020": -66.5,
+      "2021": 6.17,
+      "2022": 50.23,
+      "2023": 15.87,
+      "2024": 11.09,
+      "2025": -48.15,
+      "2026": -17.36
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -14.09,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -22.87,
+       "max_dd_pct": 94.28,
+       "worst_day_pct": -26.14,
+       "trades": 192,
+       "longest_recovery_days": 2846,
+       "liquidations": 0,
+       "final": 10.66,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 106.58,
+       "worst_day_pct": -8188.63,
+       "trades": 97,
+       "longest_recovery_days": 2846,
+       "liquidations": 1,
+       "final": -10.37,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 105.11,
+       "worst_day_pct": -206.5,
+       "trades": 47,
+       "longest_recovery_days": 2846,
+       "liquidations": 1,
+       "final": -8.14,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -4.95,
+       "max_dd_pct": 43.2,
+       "worst_day_pct": -8.75,
+       "trades": 270,
+       "longest_recovery_days": 2846,
+       "liquidations": 0,
+       "final": 64.55,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 110.05,
+       "worst_day_pct": -2332.21,
+       "trades": 173,
+       "longest_recovery_days": 3147,
+       "liquidations": 1,
+       "final": -10.05,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 111.07,
+       "worst_day_pct": -361.58,
+       "trades": 160,
+       "longest_recovery_days": 3147,
+       "liquidations": 1,
+       "final": -11.07,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2018-02-17",
+     "to": "2026-09-30",
+     "hourly_bars": 80187,
+     "hourly_missing": 149,
+     "daily_missing": 0
+    },
+    "full": {
+     "note": "no 2017 data: full window = excl_2017"
+    },
+    "excl_2017": {
+     "days": 3148,
+     "passive_pct_per_yr": 33,
+     "gross_strategy_pct_per_yr": 4.97,
+     "beta": 0.22,
+     "gross_alpha_pct_per_yr": -2.42,
+     "gross_alpha_ci90": [
+      -15.64,
+      13.32
+     ],
+     "random_timing_p": 0.5505,
+     "net_alpha_pct_per_yr": -14.59,
+     "net_alpha_ci90": [
+      -29.2,
+      2.33
+     ],
+     "alpha_by_year": {
+      "2018": 16.15,
+      "2019": -12.74,
+      "2020": -33.25,
+      "2021": 3.08,
+      "2022": 25.12,
+      "2023": 7.93,
+      "2024": 5.55,
+      "2025": -24.07,
+      "2026": -8.68
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -7.04,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -6.67,
+       "max_dd_pct": 61.4,
+       "worst_day_pct": -15.62,
+       "trades": 108,
+       "longest_recovery_days": 1968,
+       "liquidations": 0,
+       "final": 55.17,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -16.85,
+       "max_dd_pct": 83.67,
+       "worst_day_pct": -15.69,
+       "trades": 110,
+       "longest_recovery_days": 1968,
+       "liquidations": 0,
+       "final": 20.39,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -10.65,
+       "max_dd_pct": 74.52,
+       "worst_day_pct": -15.48,
+       "trades": 136,
+       "longest_recovery_days": 1968,
+       "liquidations": 0,
+       "final": 37.89,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 0.32,
+       "max_dd_pct": 18.23,
+       "worst_day_pct": -2.43,
+       "trades": 161,
+       "longest_recovery_days": 1026,
+       "liquidations": 0,
+       "final": 102.83,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -14.38,
+       "max_dd_pct": 73.75,
+       "worst_day_pct": -2.53,
+       "trades": 160,
+       "longest_recovery_days": 3147,
+       "liquidations": 0,
+       "final": 26.25,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -14.47,
+       "max_dd_pct": 74,
+       "worst_day_pct": -5.25,
+       "trades": 166,
+       "longest_recovery_days": 3147,
+       "liquidations": 0,
+       "final": 26,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "ZEC": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2017-05-17",
+     "to": "2026-09-30",
+     "hourly_bars": 83003,
+     "hourly_missing": 3973,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3422,
+     "passive_pct_per_yr": 96.45,
+     "gross_strategy_pct_per_yr": 5.89,
+     "beta": 0.13,
+     "gross_alpha_pct_per_yr": -6.65,
+     "gross_alpha_ci90": [
+      -39.2,
+      24.49
+     ],
+     "random_timing_p": 0.3225,
+     "net_alpha_pct_per_yr": -20.82,
+     "net_alpha_ci90": [
+      -47.91,
+      3.47
+     ],
+     "alpha_by_year": {
+      "2017": 91.84,
+      "2018": 37.79,
+      "2019": 24.63,
+      "2020": -99.36,
+      "2021": -58.52,
+      "2022": 18.17,
+      "2023": -10.12,
+      "2024": -21.2,
+      "2025": 52.26,
+      "2026": -84.32
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -9.6,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -15.76,
+       "max_dd_pct": 96.82,
+       "worst_day_pct": -24.06,
+       "trades": 225,
+       "longest_recovery_days": 3188,
+       "liquidations": 0,
+       "final": 20.03,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 103.85,
+       "worst_day_pct": -4190.65,
+       "trades": 136,
+       "longest_recovery_days": 3188,
+       "liquidations": 1,
+       "final": -10.25,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 103.76,
+       "worst_day_pct": -267.72,
+       "trades": 134,
+       "longest_recovery_days": 2463,
+       "liquidations": 1,
+       "final": -8.21,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -0.91,
+       "max_dd_pct": 41.38,
+       "worst_day_pct": -3.01,
+       "trades": 317,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 91.8,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.67,
+       "worst_day_pct": -2273.68,
+       "trades": 222,
+       "longest_recovery_days": 3394,
+       "liquidations": 1,
+       "final": -10.04,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.51,
+       "worst_day_pct": -487.21,
+       "trades": 217,
+       "longest_recovery_days": 3394,
+       "liquidations": 1,
+       "final": -9.85,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 75.26,
+     "gross_strategy_pct_per_yr": -3.93,
+     "beta": 0.08,
+     "gross_alpha_pct_per_yr": -9.6,
+     "gross_alpha_ci90": [
+      -43.84,
+      20.97
+     ],
+     "random_timing_p": 0.4205,
+     "net_alpha_pct_per_yr": -15.07,
+     "net_alpha_ci90": [
+      -39.68,
+      8.53
+     ],
+     "alpha_by_year": {
+      "2018": 29.54,
+      "2019": 22.61,
+      "2020": -91.02,
+      "2021": -48.35,
+      "2022": 13.61,
+      "2023": -10.75,
+      "2024": -14.8,
+      "2025": 69.41,
+      "2026": -71.92
+     },
+     "best_year": "2025",
+     "gross_alpha_without_best_year": -17.33,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -22.66,
+       "max_dd_pct": 96.95,
+       "worst_day_pct": -24.06,
+       "trades": 212,
+       "longest_recovery_days": 3188,
+       "liquidations": 0,
+       "final": 10.57,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.02,
+       "worst_day_pct": -2272.29,
+       "trades": 101,
+       "longest_recovery_days": 3188,
+       "liquidations": 1,
+       "final": -10.04,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 105.71,
+       "worst_day_pct": -259.31,
+       "trades": 93,
+       "longest_recovery_days": 2463,
+       "liquidations": 1,
+       "final": -7.75,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -2.53,
+       "max_dd_pct": 41.38,
+       "worst_day_pct": -3.01,
+       "trades": 290,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 79.89,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.82,
+       "worst_day_pct": -2707.07,
+       "trades": 193,
+       "longest_recovery_days": 3188,
+       "liquidations": 1,
+       "final": -10.11,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 109.03,
+       "worst_day_pct": -527.7,
+       "trades": 187,
+       "longest_recovery_days": 3188,
+       "liquidations": 1,
+       "final": -9.3,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2017-05-17",
+     "to": "2026-09-30",
+     "hourly_bars": 83003,
+     "hourly_missing": 3973,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3422,
+     "passive_pct_per_yr": 96.45,
+     "gross_strategy_pct_per_yr": 27.06,
+     "beta": 0.31,
+     "gross_alpha_pct_per_yr": -3.32,
+     "gross_alpha_ci90": [
+      -19.6,
+      12.24
+     ],
+     "random_timing_p": 0.3225,
+     "net_alpha_pct_per_yr": -15.51,
+     "net_alpha_ci90": [
+      -33.25,
+      1.25
+     ],
+     "alpha_by_year": {
+      "2017": 45.92,
+      "2018": 18.89,
+      "2019": 12.32,
+      "2020": -49.68,
+      "2021": -29.26,
+      "2022": 9.09,
+      "2023": -5.06,
+      "2024": -10.6,
+      "2025": 26.13,
+      "2026": -42.16
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -4.8,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 13.09,
+       "max_dd_pct": 81.38,
+       "worst_day_pct": -24.06,
+       "trades": 144,
+       "longest_recovery_days": 1645,
+       "liquidations": 0,
+       "final": 316.92,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 8.05,
+       "max_dd_pct": 86.83,
+       "worst_day_pct": -24.11,
+       "trades": 144,
+       "longest_recovery_days": 3188,
+       "liquidations": 0,
+       "final": 206.6,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 10.28,
+       "max_dd_pct": 67.98,
+       "worst_day_pct": -10.08,
+       "trades": 200,
+       "longest_recovery_days": 1645,
+       "liquidations": 0,
+       "final": 250.31,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 3.97,
+       "max_dd_pct": 24.44,
+       "worst_day_pct": -2.78,
+       "trades": 213,
+       "longest_recovery_days": 1945,
+       "liquidations": 0,
+       "final": 144.11,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -19.51,
+       "max_dd_pct": 88.88,
+       "worst_day_pct": -4.16,
+       "trades": 217,
+       "longest_recovery_days": 3394,
+       "liquidations": 0,
+       "final": 13.07,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -12.13,
+       "max_dd_pct": 84.97,
+       "worst_day_pct": -8.28,
+       "trades": 227,
+       "longest_recovery_days": 3394,
+       "liquidations": 0,
+       "final": 29.75,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 75.26,
+     "gross_strategy_pct_per_yr": 16.85,
+     "beta": 0.29,
+     "gross_alpha_pct_per_yr": -4.8,
+     "gross_alpha_ci90": [
+      -21.92,
+      10.49
+     ],
+     "random_timing_p": 0.4205,
+     "net_alpha_pct_per_yr": -24.79,
+     "net_alpha_ci90": [
+      -41.42,
+      -8.8
+     ],
+     "alpha_by_year": {
+      "2018": 14.77,
+      "2019": 11.31,
+      "2020": -45.51,
+      "2021": -24.18,
+      "2022": 6.8,
+      "2023": -5.38,
+      "2024": -7.4,
+      "2025": 34.7,
+      "2026": -35.96
+     },
+     "best_year": "2025",
+     "gross_alpha_without_best_year": -8.67,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 3.6,
+       "max_dd_pct": 81.91,
+       "worst_day_pct": -24.06,
+       "trades": 132,
+       "longest_recovery_days": 2861,
+       "liquidations": 0,
+       "final": 136.3,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.03,
+       "worst_day_pct": -2320.29,
+       "trades": 106,
+       "longest_recovery_days": 3188,
+       "liquidations": 1,
+       "final": -10.05,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 105.98,
+       "worst_day_pct": -340.69,
+       "trades": 104,
+       "longest_recovery_days": 1972,
+       "liquidations": 1,
+       "final": -8.52,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 2.26,
+       "max_dd_pct": 24.44,
+       "worst_day_pct": -2.78,
+       "trades": 187,
+       "longest_recovery_days": 1945,
+       "liquidations": 0,
+       "final": 121.56,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -25.35,
+       "max_dd_pct": 92.52,
+       "worst_day_pct": -6.35,
+       "trades": 191,
+       "longest_recovery_days": 3188,
+       "liquidations": 0,
+       "final": 7.75,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -13.35,
+       "max_dd_pct": 85.98,
+       "worst_day_pct": -9.47,
+       "trades": 195,
+       "longest_recovery_days": 3188,
+       "liquidations": 0,
+       "final": 28.55,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "DASH": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2017-10-29",
+     "to": "2026-09-30",
+     "hourly_bars": 78622,
+     "hourly_missing": 4377,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3257,
+     "passive_pct_per_yr": 42.13,
+     "gross_strategy_pct_per_yr": 5.74,
+     "beta": 0.06,
+     "gross_alpha_pct_per_yr": 3.15,
+     "gross_alpha_ci90": [
+      -27.4,
+      30.17
+     ],
+     "random_timing_p": 0.1975,
+     "net_alpha_pct_per_yr": -5.1,
+     "net_alpha_ci90": [
+      -36.04,
+      23.19
+     ],
+     "alpha_by_year": {
+      "2017": 391.55,
+      "2018": 27.54,
+      "2019": 11.63,
+      "2020": -108.83,
+      "2021": -8.46,
+      "2022": 26.46,
+      "2023": 0.14,
+      "2024": 7.06,
+      "2025": 19.14,
+      "2026": -19.81
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -4.05,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -8.31,
+       "max_dd_pct": 87.72,
+       "worst_day_pct": -17.02,
+       "trades": 193,
+       "longest_recovery_days": 3206,
+       "liquidations": 0,
+       "final": 46.12,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 103.83,
+       "worst_day_pct": -10752.7,
+       "trades": 164,
+       "longest_recovery_days": 3206,
+       "liquidations": 1,
+       "final": -10.4,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -1.67,
+       "max_dd_pct": 80.01,
+       "worst_day_pct": -14.92,
+       "trades": 185,
+       "longest_recovery_days": 2847,
+       "liquidations": 0,
+       "final": 86.08,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 1.71,
+       "max_dd_pct": 26.98,
+       "worst_day_pct": -4.81,
+       "trades": 279,
+       "longest_recovery_days": 2847,
+       "liquidations": 0,
+       "final": 116.33,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.44,
+       "worst_day_pct": -3250.09,
+       "trades": 241,
+       "longest_recovery_days": 3206,
+       "liquidations": 1,
+       "final": -10.18,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.8,
+       "worst_day_pct": -749.7,
+       "trades": 232,
+       "longest_recovery_days": 2855,
+       "liquidations": 1,
+       "final": -9.39,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 25.08,
+     "gross_strategy_pct_per_yr": -3.1,
+     "beta": 0.04,
+     "gross_alpha_pct_per_yr": -4.05,
+     "gross_alpha_ci90": [
+      -34.18,
+      26.46
+     ],
+     "random_timing_p": 0.427,
+     "net_alpha_pct_per_yr": -11.89,
+     "net_alpha_ci90": [
+      -30.01,
+      6.06
+     ],
+     "alpha_by_year": {
+      "2018": 22.98,
+      "2019": 10.86,
+      "2020": -105.09,
+      "2021": -5.36,
+      "2022": 24.77,
+      "2023": 0.05,
+      "2024": 8.25,
+      "2025": 21.07,
+      "2026": -16.83
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -9.5,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -16.61,
+       "max_dd_pct": 87.42,
+       "worst_day_pct": -17.02,
+       "trades": 190,
+       "longest_recovery_days": 2847,
+       "liquidations": 0,
+       "final": 20.41,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.91,
+       "worst_day_pct": -24908.8,
+       "trades": 100,
+       "longest_recovery_days": 3193,
+       "liquidations": 1,
+       "final": -10.46,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 107.75,
+       "worst_day_pct": -188.77,
+       "trades": 56,
+       "longest_recovery_days": 2847,
+       "liquidations": 1,
+       "final": -9.92,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": -0.31,
+       "max_dd_pct": 26.98,
+       "worst_day_pct": -4.81,
+       "trades": 273,
+       "longest_recovery_days": 2847,
+       "liquidations": 0,
+       "final": 97.28,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 110.15,
+       "worst_day_pct": -6428.72,
+       "trades": 202,
+       "longest_recovery_days": 2855,
+       "liquidations": 1,
+       "final": -10.34,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.8,
+       "worst_day_pct": -398.81,
+       "trades": 217,
+       "longest_recovery_days": 2855,
+       "liquidations": 1,
+       "final": -9.17,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2017-10-29",
+     "to": "2026-09-30",
+     "hourly_bars": 78622,
+     "hourly_missing": 4377,
+     "daily_missing": 1
+    },
+    "full": {
+     "days": 3257,
+     "passive_pct_per_yr": 42.13,
+     "gross_strategy_pct_per_yr": 13.4,
+     "beta": 0.28,
+     "gross_alpha_pct_per_yr": 1.57,
+     "gross_alpha_ci90": [
+      -13.7,
+      15.08
+     ],
+     "random_timing_p": 0.1975,
+     "net_alpha_pct_per_yr": -7.31,
+     "net_alpha_ci90": [
+      -23.66,
+      7.04
+     ],
+     "alpha_by_year": {
+      "2017": 195.77,
+      "2018": 13.77,
+      "2019": 5.82,
+      "2020": -54.42,
+      "2021": -4.23,
+      "2022": 13.23,
+      "2023": 0.07,
+      "2024": 3.53,
+      "2025": 9.57,
+      "2026": -9.91
+     },
+     "best_year": "2017",
+     "gross_alpha_without_best_year": -2.03,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 3.14,
+       "max_dd_pct": 72.79,
+       "worst_day_pct": -15.38,
+       "trades": 115,
+       "longest_recovery_days": 3206,
+       "liquidations": 0,
+       "final": 131.81,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -1.94,
+       "max_dd_pct": 80.75,
+       "worst_day_pct": -15.42,
+       "trades": 116,
+       "longest_recovery_days": 3206,
+       "liquidations": 0,
+       "final": 83.94,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 4.21,
+       "max_dd_pct": 63.23,
+       "worst_day_pct": -8.97,
+       "trades": 144,
+       "longest_recovery_days": 1973,
+       "liquidations": 0,
+       "final": 144.5,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 3.77,
+       "max_dd_pct": 16.53,
+       "worst_day_pct": -2.52,
+       "trades": 174,
+       "longest_recovery_days": 1641,
+       "liquidations": 0,
+       "final": 139.08,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -9.59,
+       "max_dd_pct": 67.79,
+       "worst_day_pct": -2.83,
+       "trades": 173,
+       "longest_recovery_days": 3206,
+       "liquidations": 0,
+       "final": 40.69,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -7.2,
+       "max_dd_pct": 62.6,
+       "worst_day_pct": -3.34,
+       "trades": 179,
+       "longest_recovery_days": 3206,
+       "liquidations": 0,
+       "final": 51.36,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    },
+    "excl_2017": {
+     "days": 3193,
+     "passive_pct_per_yr": 25.08,
+     "gross_strategy_pct_per_yr": 4.72,
+     "beta": 0.27,
+     "gross_alpha_pct_per_yr": -2.03,
+     "gross_alpha_ci90": [
+      -17.09,
+      13.23
+     ],
+     "random_timing_p": 0.427,
+     "net_alpha_pct_per_yr": -16.66,
+     "net_alpha_ci90": [
+      -32.42,
+      -0.33
+     ],
+     "alpha_by_year": {
+      "2018": 11.49,
+      "2019": 5.43,
+      "2020": -52.54,
+      "2021": -2.68,
+      "2022": 12.39,
+      "2023": 0.02,
+      "2024": 4.12,
+      "2025": 10.54,
+      "2026": -8.42
+     },
+     "best_year": "2022",
+     "gross_alpha_without_best_year": -4.75,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": -5.98,
+       "max_dd_pct": 72.02,
+       "worst_day_pct": -15.38,
+       "trades": 112,
+       "longest_recovery_days": 3193,
+       "liquidations": 0,
+       "final": 58.32,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": -100,
+       "max_dd_pct": 108.52,
+       "worst_day_pct": -2097.84,
+       "trades": 109,
+       "longest_recovery_days": 3193,
+       "liquidations": 1,
+       "final": -10,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": -100,
+       "max_dd_pct": 106.66,
+       "worst_day_pct": -234.92,
+       "trades": 98,
+       "longest_recovery_days": 1973,
+       "liquidations": 1,
+       "final": -8.1,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 1.74,
+       "max_dd_pct": 16.53,
+       "worst_day_pct": -2.52,
+       "trades": 168,
+       "longest_recovery_days": 1641,
+       "liquidations": 0,
+       "final": 116.3,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -16.67,
+       "max_dd_pct": 80.33,
+       "worst_day_pct": -3.01,
+       "trades": 168,
+       "longest_recovery_days": 3193,
+       "liquidations": 0,
+       "final": 20.28,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -10.82,
+       "max_dd_pct": 70.98,
+       "worst_day_pct": -4.42,
+       "trades": 170,
+       "longest_recovery_days": 3193,
+       "liquidations": 0,
+       "final": 36.74,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  },
+  "DOGE": {
+   "H2": {
+    "coverage": {
+     "signal_from": "2020-07-06",
+     "to": "2026-09-30",
+     "hourly_bars": 56784,
+     "hourly_missing": 2670,
+     "daily_missing": 0
+    },
+    "full": {
+     "note": "no 2017 data: full window = excl_2017"
+    },
+    "excl_2017": {
+     "days": 2278,
+     "passive_pct_per_yr": 167.02,
+     "gross_strategy_pct_per_yr": 64.97,
+     "beta": 0.41,
+     "gross_alpha_pct_per_yr": -3.13,
+     "gross_alpha_ci90": [
+      -36.6,
+      35.08
+     ],
+     "random_timing_p": 0.0855,
+     "net_alpha_pct_per_yr": -21.13,
+     "net_alpha_ci90": [
+      -59.39,
+      21.1
+     ],
+     "alpha_by_year": {
+      "2020": -13.76,
+      "2021": 57.6,
+      "2022": 6.43,
+      "2023": -47.79,
+      "2024": -9.56,
+      "2025": -4.08,
+      "2026": -20.53
+     },
+     "best_year": "2021",
+     "gross_alpha_without_best_year": 0.72,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 34.51,
+       "max_dd_pct": 80.51,
+       "worst_day_pct": -21.2,
+       "trades": 127,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 635.36,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 31.87,
+       "max_dd_pct": 81.95,
+       "worst_day_pct": -21.21,
+       "trades": 127,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 561.38,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 23.98,
+       "max_dd_pct": 42.63,
+       "worst_day_pct": -6.34,
+       "trades": 131,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 382.22,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 3.23,
+       "max_dd_pct": 28.83,
+       "worst_day_pct": -4.35,
+       "trades": 203,
+       "longest_recovery_days": 1565,
+       "liquidations": 0,
+       "final": 121.94,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -16.32,
+       "max_dd_pct": 75.49,
+       "worst_day_pct": -4.38,
+       "trades": 206,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 32.91,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -17.94,
+       "max_dd_pct": 77.86,
+       "worst_day_pct": -8.29,
+       "trades": 204,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 29.14,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   },
+   "H1": {
+    "coverage": {
+     "signal_from": "2020-07-06",
+     "to": "2026-09-30",
+     "hourly_bars": 56784,
+     "hourly_missing": 2670,
+     "daily_missing": 0
+    },
+    "full": {
+     "note": "no 2017 data: full window = excl_2017"
+    },
+    "excl_2017": {
+     "days": 2278,
+     "passive_pct_per_yr": 167.02,
+     "gross_strategy_pct_per_yr": 74.24,
+     "beta": 0.45,
+     "gross_alpha_pct_per_yr": -1.56,
+     "gross_alpha_ci90": [
+      -18.3,
+      17.54
+     ],
+     "random_timing_p": 0.0855,
+     "net_alpha_pct_per_yr": -12.59,
+     "net_alpha_ci90": [
+      -30.97,
+      7.35
+     ],
+     "alpha_by_year": {
+      "2020": -6.88,
+      "2021": 28.8,
+      "2022": 3.21,
+      "2023": -23.89,
+      "2024": -4.78,
+      "2025": -2.04,
+      "2026": -10.26
+     },
+     "best_year": "2021",
+     "gross_alpha_without_best_year": 0.36,
+     "runs": {
+      "1x | ideal | compounded": {
+       "cagr_pct": 53.66,
+       "max_dd_pct": 63.79,
+       "worst_day_pct": -21.2,
+       "trades": 84,
+       "longest_recovery_days": 1296,
+       "liquidations": 0,
+       "final": 1457.56,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | compounded": {
+       "cagr_pct": 51.99,
+       "max_dd_pct": 64.43,
+       "worst_day_pct": -21.21,
+       "trades": 84,
+       "longest_recovery_days": 1304,
+       "liquidations": 0,
+       "final": 1361.15,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "1x | conservative | fixed": {
+       "cagr_pct": 29.01,
+       "max_dd_pct": 36.96,
+       "worst_day_pct": -6.21,
+       "trades": 107,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 489.7,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | ideal | compounded": {
+       "cagr_pct": 8.91,
+       "max_dd_pct": 16.96,
+       "worst_day_pct": -2.61,
+       "trades": 133,
+       "longest_recovery_days": 661,
+       "liquidations": 0,
+       "final": 170.25,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | compounded": {
+       "cagr_pct": -0.24,
+       "max_dd_pct": 32.74,
+       "worst_day_pct": -2.63,
+       "trades": 136,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 98.52,
+       "within_10pct": false,
+       "within_15pct": false
+      },
+      "vol-target 15% | conservative | fixed": {
+       "cagr_pct": -1.6,
+       "max_dd_pct": 34.23,
+       "worst_day_pct": -2.6,
+       "trades": 137,
+       "longest_recovery_days": 1972,
+       "liquidations": 0,
+       "final": 90.45,
+       "within_10pct": false,
+       "within_15pct": false
+      }
+     }
+    }
+   }
+  }
+ },
+ "pooled": {
+  "H2": {
+   "window": "2018-01-01..2026-09-30",
+   "days": 3192,
+   "net_alpha_pct_per_yr": -7.91,
+   "net_alpha_ci90": [
+    -22.53,
+    6.4
+   ],
+   "net_beta": 0,
+   "gross_alpha_pct_per_yr": -0.89,
+   "gross_alpha_ci90": [
+    -21.18,
+    18.97
+   ],
+   "pooled_random_timing_p": 0.241,
+   "coins_positive_net_alpha_excl_2017": 1,
+   "coins_positive_net_alpha_full": 2,
+   "mean_pairwise_correlation": 0.28,
+   "effective_independent_coins": 2.83,
+   "pooled_drawdown_conservative_fixed": {
+    "1x": {
+     "from": "2020-07-06",
+     "max_dd_close_pct": 57.58,
+     "total_return_pct": 22.03
+    },
+    "vol-target 15%": {
+     "from": "2020-07-06",
+     "max_dd_close_pct": 103.59,
+     "total_return_pct": -103.67
+    }
+   },
+   "common_days_for_correlation": 2278
+  },
+  "H1": {
+   "window": "2018-01-01..2026-09-30",
+   "days": 3192,
+   "net_alpha_pct_per_yr": -13.61,
+   "net_alpha_ci90": [
+    -23.39,
+    -3.76
+   ],
+   "net_beta": 0.21,
+   "gross_alpha_pct_per_yr": -0.44,
+   "gross_alpha_ci90": [
+    -10.59,
+    9.49
+   ],
+   "pooled_random_timing_p": 0.233,
+   "coins_positive_net_alpha_excl_2017": 1,
+   "coins_positive_net_alpha_full": 1,
+   "mean_pairwise_correlation": 0.37,
+   "effective_independent_coins": 2.31,
+   "pooled_drawdown_conservative_fixed": {
+    "1x": {
+     "from": "2020-07-06",
+     "max_dd_close_pct": 50.92,
+     "total_return_pct": 56.26
+    },
+    "vol-target 15%": {
+     "from": "2020-07-06",
+     "max_dd_close_pct": 60.37,
+     "total_return_pct": -53.09
+    }
+   },
+   "common_days_for_correlation": 2278
+  }
+ }
+}
