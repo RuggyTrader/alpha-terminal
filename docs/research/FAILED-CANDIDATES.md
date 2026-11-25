@@ -220,3 +220,21 @@ Source: `docs/research/discovery/` (pre-registration `0d86edb`; runner `6b2a837`
 | Intraday momentum; options volatility premium | edge far below costs; not available at $100 | rejected before testing |
 
 **By-product:** S3-25 (BTC-only) passed its first test on never-used data: 2014-05..2016-06, 5.8 %/yr, drawdown 10.6 %. On LTC+XRP (coins seen elsewhere) it made 2.8 %/yr and **breached 15 % under conservative costs (15.8 %)**.
+
+## Jupiter Perps research (2026-11-25): Strategies A and B, leveraged long/short (PAPER)
+
+**Sources:** `jupiter/PREREGISTRATION.md` (2045a20, Amendment 1 268ec2c), `jupiter/REPORT.md`, `jupiter/TABLES.md`. The owner requested these previously rejected families explicitly for a new venue.
+
+| Candidate | Result (DEV-2 2018-04..2026-09, conservative Jupiter costs) | Verdict |
+|---|---|---|
+| A Donchian Trend Ensemble 4h (10/20/40/80-day), long/flat, 1.1×/2×/3×/5× | best 8.9 %/yr with drawdown 78.5 % (2×); 3× and 5× hit the $75 shutdown in 2019; all hit it in 2022–26 | **REJECTED** |
+| A long/short, all levels | negative; drawdown 30–43 %; $75 shutdown | **REJECTED** |
+| B time-series momentum (28-day lookback, 5-day hold), long/flat and long/short, all levels | negative; drawdown 26–50 %; $75 shutdown in 2018 | **REJECTED** |
+
+**Main causes:**
+* the borrow fee on the full size (about 12 %/yr for longs);
+* 26–98 % drawdowns;
+* the $10 minimum collateral at $100;
+* these families already failed out-of-sample replication.
+
+**Holdout** (2026-10..11 crash): B long/short at 1.1× ended +13 %. A single regime; under the pre-registered rule the holdout can only veto.

@@ -8,6 +8,10 @@
   * now also positive on never-used data (BTC 2014–16: 5.8 %/yr, DD 10.6 %).
 * Nothing was deployed or merged. Production, the four bots, S3, balances and settings are unchanged.
 
+**2026-11-25 update:** Jupiter Perps research (Strategies A and B, 16 leveraged long/short candidates): **NONE QUALIFIES**. See `jupiter/REPORT.md`.
+* The PAPER engine and the Jupiter adapter are built and tested (observation mode only; not scheduled).
+* No wallet, no transactions, nothing deployed.
+
 *Earlier status (2026-11-22), kept for the record:* strategy optimisation and backtesting were paused.
 
 ## Rejected (details in `FAILED-CANDIDATES.md`)

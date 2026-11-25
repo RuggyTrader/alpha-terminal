@@ -31,13 +31,14 @@ export function newRunState(capital, seed = 7) {
  */
 export function stepHour(S, ctx, t) {
   const { assets, L, costs: c, config, shutdownEnabled = true } = ctx, acct = config.account, rm = config.riskManager, volRef = config.sizing.volRefAnnual;
-  const rand = () => rngNext(S.rng), decided = [];
+  const rand = () => rngNext(S.rng), decided = [], outcomes = [];
   // 1) keeper fills of pending requests at this hour's open (or expiry -> retried next hour)
   for (const a of assets) {
     const b = ctx.bar(a, t), rq = S.pending[a]; if (!b || !rq) continue;
     S.N.requests++;
-    if (rand() < c.missProb) { S.N.missed++; continue; }
-    delete S.pending[a]; execute(S, a, rq, b, t, c, acct);
+    if (rand() < c.missProb) { S.N.missed++; outcomes.push({ asset: a, key: rq.key, status: "EXPIRED_RETRYING", t }); continue; }
+    delete S.pending[a]; const px = execute(S, a, rq, b, t, c, acct);
+    outcomes.push({ asset: a, key: rq.key, status: px === null ? "REJECTED" : "EXECUTED", px, t });
   }
   // 2) borrow accrual, gaps, stops and liquidation (adverse extreme first)
   for (const a of assets) { const b = ctx.bar(a, t); if (!b) continue; intrabar(S, a, b, t, c, rand); S.last[a] = b[4]; }
@@ -55,7 +56,7 @@ export function stepHour(S, ctx, t) {
     let committed = 0; // cash committed to requests decided this hour is not offered to the next asset's plan
     for (const a of assets) {
       const sv = ctx.signalAt(a, T); if (sv === undefined) continue;
-      if (S.pending[a]) { delete S.pending[a]; S.N.superseded = (S.N.superseded ?? 0) + 1; } // missed by the keeper: superseded
+      if (S.pending[a]) { outcomes.push({ asset: a, key: S.pending[a].key, status: "SUPERSEDED", t: T }); delete S.pending[a]; S.N.superseded = (S.N.superseded ?? 0) + 1; } // missed by the keeper: superseded
       const target = exposure(sv, L, ctx.sigmaAt(a, T), volRef);
       const pl = plan({ asset: a, target, sleeveEquity: sleeve, walletCash: S.cash - committed, pos: S.pos[a] ?? null, pending: S.pending[a] ?? null, shutdown: S.shutdown, L, rm, account: acct, costs: c });
       if (pl.type === "NONE") { if (/below \$/.test(pl.reason)) S.N.skippedMin++; continue; }
@@ -65,7 +66,7 @@ export function stepHour(S, ctx, t) {
     }
   }
   if (T % DAY === 0) S.curve.push([T, eqClose]);
-  return decided;
+  return { decided, outcomes };
 }
 
 /** Build a step context from in-memory markets. */
