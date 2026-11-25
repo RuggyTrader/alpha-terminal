@@ -103,7 +103,7 @@ if (process.argv[1]?.endsWith("phase2-study.mjs")) {
   if (kind === "oi") {
     const series = Object.fromEntries(["BTC", "ETH", "SOL"].map((a) => [a, { k5: parseK(readFileSync(join(DIR, "k5m", `${a}USDT.csv`), "utf8")), oi: parseMetrics(readFileSync(join(DIR, "metrics", `${a}USDT.csv`), "utf8")) }]));
     res = oiStudy(series);
-    res.coverage = Object.fromEntries(Object.entries(series).map(([a, s]) => [a, { k5mBars: s.k5.size, oiRows: s.oi.size, first: new Date(Math.min(...s.oi.keys())).toISOString(), last: new Date(Math.max(...s.oi.keys())).toISOString() }]));
+    res.coverage = Object.fromEntries(Object.entries(series).map(([a, s]) => [a, { k5mBars: s.k5.size, oiRows: s.oi.size, first: new Date([...s.oi.keys()].reduce((a, b) => Math.min(a, b))).toISOString(), last: new Date([...s.oi.keys()].reduce((a, b) => Math.max(a, b))).toISOString() }]));
   } else {
     const series = Object.fromEntries(["BTC", "ETH", "SOL"].map((a) => [a, JSON.parse(readFileSync(join(DIR, `${a}USDT-1h.json`), "utf8")).rows.map(([t, o, h, l, c]) => ({ t, o, h, l, c }))]));
     res = volStudy(series);
