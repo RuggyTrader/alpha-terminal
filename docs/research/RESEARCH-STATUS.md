@@ -12,6 +12,8 @@
 * The PAPER engine and the Jupiter adapter are built and tested (observation mode only; not scheduled).
 * No wallet, no transactions, nothing deployed.
 
+**2026-11-25 update (edge discovery):** liquidation cascades REJECTED; volatility and OI effects not tradeable; **no convincing edge**. A SOL OI-reversal lead is proposed for read-only forward observation (needs approval). See `edge/MARKET-EDGE-REPORT.md`.
+
 *Earlier status (2026-11-22), kept for the record:* strategy optimisation and backtesting were paused.
 
 ## Rejected (details in `FAILED-CANDIDATES.md`)

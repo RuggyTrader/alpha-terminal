@@ -238,3 +238,15 @@ Source: `docs/research/discovery/` (pre-registration `0d86edb`; runner `6b2a837`
 * these families already failed out-of-sample replication.
 
 **Holdout** (2026-10..11 crash): B long/short at 1.1× ended +13 %. A single regime; under the pre-registered rule the holdout can only veto.
+
+## Market edge discovery (2026-11-25): liquidations, open interest, volatility (BTC / ETH / SOL)
+
+**Sources:** `edge/PREREGISTRATION.md` (d750dda), `edge/MARKET-EDGE-REPORT.md`, `edge/LEDGER.md`.
+
+| Hypothesis | Result | Verdict |
+|---|---|---|
+| H-L liquidation rebound / continuation (688 events, Tardis first-of-month days) | 0 / 30 Holm-significant; raw −13 to +17 bps at 5 min–4 h | **REJECTED** |
+| H-VOL extreme-range continuation | BTC +14.5 bps at 1 h (Holm 0.012), ETH similar, SOL opposite; below the 30 bps cost | **NOT TRADEABLE** |
+| H-OI open-interest divergence | SOL-only: down + falling-OI 4 h reversal +48 bps (Holm 0.009); absent on BTC / ETH | **NOT TRADEABLE** (fails breadth); forward-observation lead only |
+
+**Conclusion: no statistically and economically convincing trading edge was found.**
