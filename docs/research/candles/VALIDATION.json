@@ -1,0 +1,61 @@
+{
+ "source": "data.binance.vision USDT-M futures 5m klines (monthly + daily); 2021-12..2026-10 reused from the OI study",
+ "generated": "2026-11-25T23:45:36.858Z",
+ "report": {
+  "BTCUSDT": {
+   "rows": 725760,
+   "misaligned": 0,
+   "duplicates": 0,
+   "badOHLC": 0,
+   "nonPositive": 0,
+   "missingBars": 0,
+   "gapsListed": 0,
+   "largestGaps": [],
+   "first": "2020-01-01T00:00:00.000Z",
+   "last": "2026-11-24T23:55:00.000Z",
+   "sources": {
+    "downloaded-monthly": 201600,
+    "reused-oi-study": 517248,
+    "downloaded-daily": 6912
+   },
+   "sha256": "73f5c56994cb84133164f4cb75706cb4f8c76f48807f358bac1ce7735b29059c"
+  },
+  "ETHUSDT": {
+   "rows": 725760,
+   "misaligned": 0,
+   "duplicates": 0,
+   "badOHLC": 0,
+   "nonPositive": 0,
+   "missingBars": 0,
+   "gapsListed": 0,
+   "largestGaps": [],
+   "first": "2020-01-01T00:00:00.000Z",
+   "last": "2026-11-24T23:55:00.000Z",
+   "sources": {
+    "downloaded-monthly": 201600,
+    "reused-oi-study": 517248,
+    "downloaded-daily": 6912
+   },
+   "sha256": "78511c86408e0096347f16ecfa08e791ed5406078a5ccdc85af3661dc21ca940"
+  },
+  "SOLUSDT": {
+   "rows": 651660,
+   "misaligned": 0,
+   "duplicates": 0,
+   "badOHLC": 0,
+   "nonPositive": 0,
+   "missingBars": 0,
+   "gapsListed": 0,
+   "largestGaps": [],
+   "first": "2020-09-14T07:00:00.000Z",
+   "last": "2026-11-24T23:55:00.000Z",
+   "sources": {
+    "downloaded-monthly": 127500,
+    "reused-oi-study": 515808,
+    "downloaded-daily": 6912,
+    "gapFillDaily": 1440
+   },
+   "sha256": "b497c95d0e5b17efadb969fddbf58382bd11f2660aa0ccf77d3253170a57c1ac"
+  }
+ }
+}

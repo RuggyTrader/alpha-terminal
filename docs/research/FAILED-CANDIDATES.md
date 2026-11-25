@@ -250,3 +250,11 @@ Source: `docs/research/discovery/` (pre-registration `0d86edb`; runner `6b2a837`
 | H-OI open-interest divergence | SOL-only: down + falling-OI 4 h reversal +48 bps (Holm 0.009); absent on BTC / ETH | **NOT TRADEABLE** (fails breadth); forward-observation lead only |
 
 **Conclusion: no statistically and economically convincing trading edge was found.**
+
+## Candle pattern discovery (2026-11-26): 5m / 15m / 1h / 4h, BTC / ETH / SOL, 2020-01..2026-11
+
+**Sources:** `candles/PREREGISTRATION.md` (28cfce0), `candles/REPORT.md`, `candles/TABLES.md`.
+
+* **Tested:** mean reversion, failed breakouts, volatility onsets, hammer / shooting star, 8-bar exhaustion, and regime-conditional versions of all of them.
+* **Result:** 0 / 348 primary and 0 / 1,005 regime cells passed. **REJECTED**; no backtest run.
+* **Post-hoc only:** large 1h up bars continue (+32 to +63 bps over 12 h). Not a candidate; it needs out-of-sample replication.
