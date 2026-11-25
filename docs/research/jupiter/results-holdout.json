@@ -1,0 +1,1322 @@
+{
+ "config_id": "jupiter-r11-v1a",
+ "config_sha256": "091135894db8bb1e6583282446cb2ac1ad7bb3d1929aee5581e5349efb8d820a",
+ "window": [
+  "2026-10-01",
+  "2026-11-24"
+ ],
+ "rows": [
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 90.97,
+   "cagr_pct": -47.27,
+   "max_dd_pct": 11.96,
+   "min_equity": 90.97,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.07,
+    "close": 0.07,
+    "borrow": 0.48,
+    "swap": 0.2,
+    "network": 0.42,
+    "slippage": 0.11,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 12,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 1,
+    "decreases": 5,
+    "skippedMin": 152
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2026": -9.03
+   }
+  },
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 88,
+   "cagr_pct": -57.87,
+   "max_dd_pct": 13.89,
+   "min_equity": 88,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.18,
+    "close": 0.18,
+    "borrow": 0.95,
+    "swap": 0.59,
+    "network": 2.1,
+    "slippage": 0.45,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 13,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 1,
+    "decreases": 5,
+    "skippedMin": 152
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -12
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 80.5,
+   "cagr_pct": -76.94,
+   "max_dd_pct": 24.54,
+   "min_equity": 80.16,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 6,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.15,
+    "close": 0.15,
+    "borrow": 0.97,
+    "swap": 0.28,
+    "network": 0.6,
+    "slippage": 0.25,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 18,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 6,
+    "increases": 1,
+    "decreases": 5,
+    "skippedMin": 0
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2026": -19.5
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 75.87,
+   "cagr_pct": -84.56,
+   "max_dd_pct": 27.75,
+   "min_equity": 75.66,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 6,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.39,
+    "close": 0.39,
+    "borrow": 1.91,
+    "swap": 0.82,
+    "network": 3,
+    "slippage": 0.99,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 19,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 6,
+    "increases": 1,
+    "decreases": 5,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -24.13
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 75.03,
+   "cagr_pct": -85.67,
+   "max_dd_pct": 31.79,
+   "min_equity": 74.66,
+   "shutdown": "2026-10-29T20",
+   "liquidations": 0,
+   "trades": 5,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.21,
+    "close": 0.21,
+    "borrow": 1.39,
+    "swap": 0.27,
+    "network": 0.54,
+    "slippage": 0.37,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 15,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 5,
+    "closes": 5,
+    "increases": 1,
+    "decreases": 5,
+    "skippedMin": 0
+   },
+   "ledger_residual": -4.263256414560601e-14,
+   "equity_identity_residual": -4.263256414560601e-14,
+   "years": {
+    "2026": -24.97
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 74.39,
+   "cagr_pct": -86.48,
+   "max_dd_pct": 30.82,
+   "min_equity": 74.39,
+   "shutdown": "2026-10-23T22",
+   "liquidations": 0,
+   "trades": 4,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.52,
+    "close": 0.52,
+    "borrow": 2.47,
+    "swap": 0.7,
+    "network": 2.2,
+    "slippage": 1.31,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 14,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 4,
+    "closes": 4,
+    "increases": 1,
+    "decreases": 4,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -25.61
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 74.28,
+   "cagr_pct": -86.61,
+   "max_dd_pct": 36.15,
+   "min_equity": 74,
+   "shutdown": "2026-10-08T15",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.29,
+    "close": 0.29,
+    "borrow": 1.14,
+    "swap": 0.17,
+    "network": 0.3,
+    "slippage": 0.52,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 8,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 3,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -25.72
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 69.97,
+   "cagr_pct": -91.07,
+   "max_dd_pct": 38.16,
+   "min_equity": 69.97,
+   "shutdown": "2026-10-08T15",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.76,
+    "close": 0.76,
+    "borrow": 2.26,
+    "swap": 0.49,
+    "network": 1.5,
+    "slippage": 1.91,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 10,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 3,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -30.03
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 109.14,
+   "cagr_pct": 80.74,
+   "max_dd_pct": 13.57,
+   "min_equity": 89.3,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 6,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.17,
+    "close": 0.12,
+    "borrow": 0.56,
+    "swap": 0.27,
+    "network": 0.84,
+    "slippage": 0.24,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 104,
+    "missed": 1,
+    "rejected": 79,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 9,
+    "closes": 6,
+    "increases": 4,
+    "decreases": 5,
+    "skippedMin": 272
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -2.842170943040401e-14,
+   "years": {
+    "2026": 9.14
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 102.74,
+   "cagr_pct": 20.08,
+   "max_dd_pct": 16.55,
+   "min_equity": 85.29,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 6,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.44,
+    "close": 0.31,
+    "borrow": 1.1,
+    "swap": 0.78,
+    "network": 4.2,
+    "slippage": 0.94,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 105,
+    "missed": 2,
+    "rejected": 79,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 9,
+    "closes": 6,
+    "increases": 4,
+    "decreases": 5,
+    "skippedMin": 272
+   },
+   "ledger_residual": 4.618527782440651e-14,
+   "equity_identity_residual": 5.684341886080802e-14,
+   "years": {
+    "2026": 2.74
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 110.53,
+   "cagr_pct": 96.82,
+   "max_dd_pct": 24.16,
+   "min_equity": 80.56,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 8,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.29,
+    "close": 0.21,
+    "borrow": 0.88,
+    "swap": 0.32,
+    "network": 0.96,
+    "slippage": 0.42,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 170,
+    "missed": 2,
+    "rejected": 140,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 11,
+    "closes": 8,
+    "increases": 5,
+    "decreases": 4,
+    "skippedMin": 0
+   },
+   "ledger_residual": -5.062616992290714e-14,
+   "equity_identity_residual": -5.684341886080802e-14,
+   "years": {
+    "2026": 10.53
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 75.39,
+   "cagr_pct": -85.21,
+   "max_dd_pct": 28.79,
+   "min_equity": 74.58,
+   "shutdown": "2026-11-04T15",
+   "liquidations": 0,
+   "trades": 10,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.66,
+    "close": 0.66,
+    "borrow": 1.74,
+    "swap": 0.95,
+    "network": 4.4,
+    "slippage": 1.66,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 28,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 10,
+    "closes": 10,
+    "increases": 4,
+    "decreases": 3,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2026": -24.61
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 74.21,
+   "cagr_pct": -86.7,
+   "max_dd_pct": 33.87,
+   "min_equity": 72.38,
+   "shutdown": "2026-11-04T15",
+   "liquidations": 0,
+   "trades": 10,
+   "win_rate": 10,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.37,
+    "close": 0.37,
+    "borrow": 1.31,
+    "swap": 0.33,
+    "network": 0.88,
+    "slippage": 0.62,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 27,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 10,
+    "closes": 10,
+    "increases": 4,
+    "decreases": 3,
+    "skippedMin": 0
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2026": -25.79
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 74.53,
+   "cagr_pct": -86.31,
+   "max_dd_pct": 30.71,
+   "min_equity": 74.51,
+   "shutdown": "2026-10-24T14",
+   "liquidations": 0,
+   "trades": 7,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.69,
+    "close": 0.69,
+    "borrow": 1.99,
+    "swap": 0.97,
+    "network": 2.9,
+    "slippage": 1.74,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 19,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 7,
+    "closes": 7,
+    "increases": 3,
+    "decreases": 1,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -25.47
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 74.66,
+   "cagr_pct": -86.14,
+   "max_dd_pct": 35.7,
+   "min_equity": 74.52,
+   "shutdown": "2026-10-22T02",
+   "liquidations": 0,
+   "trades": 7,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.43,
+    "close": 0.43,
+    "borrow": 1.5,
+    "swap": 0.33,
+    "network": 0.54,
+    "slippage": 0.72,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 19,
+    "missed": 0,
+    "rejected": 2,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 7,
+    "closes": 7,
+    "increases": 2,
+    "decreases": 1,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2026": -25.34
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 73.67,
+   "cagr_pct": -87.34,
+   "max_dd_pct": 34.89,
+   "min_equity": 73.67,
+   "shutdown": "2026-10-08T15",
+   "liquidations": 0,
+   "trades": 5,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.88,
+    "close": 0.88,
+    "borrow": 2.2,
+    "swap": 0.82,
+    "network": 1.7,
+    "slippage": 2.19,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 12,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 5,
+    "closes": 5,
+    "increases": 0,
+    "decreases": 1,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -26.33
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 91.2,
+   "cagr_pct": -46.35,
+   "max_dd_pct": 11.89,
+   "min_equity": 88.56,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.06,
+    "close": 0.06,
+    "borrow": 0.41,
+    "swap": 0.18,
+    "network": 0.18,
+    "slippage": 0.11,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -8.8
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 89.33,
+   "cagr_pct": -53.39,
+   "max_dd_pct": 12.78,
+   "min_equity": 87.22,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.17,
+    "close": 0.17,
+    "borrow": 0.82,
+    "swap": 0.55,
+    "network": 0.9,
+    "slippage": 0.42,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -10.67
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 84.31,
+   "cagr_pct": -68.47,
+   "max_dd_pct": 21.45,
+   "min_equity": 79.42,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.12,
+    "close": 0.12,
+    "borrow": 0.75,
+    "swap": 0.18,
+    "network": 0.18,
+    "slippage": 0.19,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -15.69
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 81.8,
+   "cagr_pct": -74.3,
+   "max_dd_pct": 22.34,
+   "min_equity": 77.66,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.31,
+    "close": 0.31,
+    "borrow": 1.49,
+    "swap": 0.52,
+    "network": 0.9,
+    "slippage": 0.76,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -18.2
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 74.11,
+   "cagr_pct": -86.82,
+   "max_dd_pct": 27.6,
+   "min_equity": 73.68,
+   "shutdown": "2026-10-08T15",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.17,
+    "close": 0.17,
+    "borrow": 0.26,
+    "swap": 0.17,
+    "network": 0.18,
+    "slippage": 0.29,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -25.89
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 71.01,
+   "cagr_pct": -90.13,
+   "max_dd_pct": 29,
+   "min_equity": 71.01,
+   "shutdown": "2026-10-08T15",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.46,
+    "close": 0.46,
+    "borrow": 0.51,
+    "swap": 0.49,
+    "network": 0.9,
+    "slippage": 1.15,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -28.99
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 75.96,
+   "cagr_pct": -84.43,
+   "max_dd_pct": 28.69,
+   "min_equity": 73.51,
+   "shutdown": "2026-10-08T04",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.29,
+    "close": 0.29,
+    "borrow": 0.35,
+    "swap": 0.17,
+    "network": 0.18,
+    "slippage": 0.48,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -24.04
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 75.25,
+   "cagr_pct": -85.39,
+   "max_dd_pct": 26.08,
+   "min_equity": 74.37,
+   "shutdown": "2026-10-07T13",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.76,
+    "close": 0.76,
+    "borrow": 0.51,
+    "swap": 0.5,
+    "network": 0.9,
+    "slippage": 1.91,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -24.75
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 117.02,
+   "cagr_pct": 189.61,
+   "max_dd_pct": 11.89,
+   "min_equity": 88.56,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.12,
+    "close": 0.06,
+    "borrow": 0.41,
+    "swap": 0.18,
+    "network": 0.3,
+    "slippage": 0.15,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 9,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": -7.993605777301127e-15,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2026": 17.02
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 113.16,
+   "cagr_pct": 130.74,
+   "max_dd_pct": 12.78,
+   "min_equity": 87.22,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.32,
+    "close": 0.17,
+    "borrow": 0.82,
+    "swap": 0.55,
+    "network": 1.5,
+    "slippage": 0.61,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 10,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 9.769962616701378e-15,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": 13.16
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 127.66,
+   "cagr_pct": 421.5,
+   "max_dd_pct": 21.45,
+   "min_equity": 79.42,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.21,
+    "close": 0.12,
+    "borrow": 0.75,
+    "swap": 0.18,
+    "network": 0.3,
+    "slippage": 0.27,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 9,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": -7.993605777301127e-15,
+   "equity_identity_residual": 0,
+   "years": {
+    "2026": 27.66
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 121.7,
+   "cagr_pct": 277.52,
+   "max_dd_pct": 22.34,
+   "min_equity": 77.66,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.56,
+    "close": 0.31,
+    "borrow": 1.49,
+    "swap": 0.52,
+    "network": 1.5,
+    "slippage": 1.08,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 10,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.398081733190338e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": 21.7
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 74.11,
+   "cagr_pct": -86.82,
+   "max_dd_pct": 27.6,
+   "min_equity": 73.68,
+   "shutdown": "2026-10-08T15",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.17,
+    "close": 0.17,
+    "borrow": 0.26,
+    "swap": 0.17,
+    "network": 0.18,
+    "slippage": 0.29,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -25.89
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 71.01,
+   "cagr_pct": -90.13,
+   "max_dd_pct": 29,
+   "min_equity": 71.01,
+   "shutdown": "2026-10-08T15",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.46,
+    "close": 0.46,
+    "borrow": 0.51,
+    "swap": 0.49,
+    "network": 0.9,
+    "slippage": 1.15,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -28.99
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "HOLDOUT",
+   "costs": "base",
+   "final": 75.96,
+   "cagr_pct": -84.43,
+   "max_dd_pct": 28.69,
+   "min_equity": 73.51,
+   "shutdown": "2026-10-08T04",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.29,
+    "close": 0.29,
+    "borrow": 0.35,
+    "swap": 0.17,
+    "network": 0.18,
+    "slippage": 0.48,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2026": -24.04
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "HOLDOUT",
+   "costs": "conservative",
+   "final": 75.25,
+   "cagr_pct": -85.39,
+   "max_dd_pct": 26.08,
+   "min_equity": 74.37,
+   "shutdown": "2026-10-07T13",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.76,
+    "close": 0.76,
+    "borrow": 0.51,
+    "swap": 0.5,
+    "network": 0.9,
+    "slippage": 1.91,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2026": -24.75
+   }
+  }
+ ]
+}
