@@ -1,0 +1,272 @@
+{
+ "prereg": "docs/research/edge/PREREGISTRATION.md (d750dda)",
+ "kind": "vol",
+ "rows": [
+  {
+   "sym": "BTC",
+   "horizon": "1h",
+   "events": 705,
+   "matched": 705,
+   "days": 705,
+   "mean_raw_bps": 14.5,
+   "median_raw_bps": 1.1,
+   "p_positive": 0.511,
+   "mean_ctrl_bps": -2.1,
+   "mean_effect_bps": 16.6,
+   "ci95_effect_bps": [
+    6.6,
+    26.3
+   ],
+   "ci95_raw_bps": [
+    4.9,
+    24.1
+   ],
+   "p_effect": 0.0013005847162186246,
+   "t_effect": 3.228850502146233,
+   "halves_effect_bps": {
+    "H1": 19,
+    "H2": 14.7
+   },
+   "p_holm": 0.011705262445967621
+  },
+  {
+   "sym": "BTC",
+   "horizon": "4h",
+   "events": 703,
+   "matched": 703,
+   "days": 703,
+   "mean_raw_bps": 17.7,
+   "median_raw_bps": 3.3,
+   "p_positive": 0.519,
+   "mean_ctrl_bps": -1.7,
+   "mean_effect_bps": 19.4,
+   "ci95_effect_bps": [
+    5.3,
+    33.9
+   ],
+   "ci95_raw_bps": [
+    4.7,
+    31
+   ],
+   "p_effect": 0.007487828918067771,
+   "t_effect": 2.6821171027468016,
+   "halves_effect_bps": {
+    "H1": 17.4,
+    "H2": 21
+   },
+   "p_holm": 0.05990263134454217
+  },
+  {
+   "sym": "BTC",
+   "horizon": "24h",
+   "events": 699,
+   "matched": 699,
+   "days": 699,
+   "mean_raw_bps": 23,
+   "median_raw_bps": 7,
+   "p_positive": 0.515,
+   "mean_ctrl_bps": -8.6,
+   "mean_effect_bps": 31.6,
+   "ci95_effect_bps": [
+    2.7,
+    60
+   ],
+   "ci95_raw_bps": [
+    -3,
+    48.4
+   ],
+   "p_effect": 0.03549016548425093,
+   "t_effect": 2.106811729006928,
+   "halves_effect_bps": {
+    "H1": 32,
+    "H2": 31.3
+   },
+   "p_holm": 0.17745082742125465
+  },
+  {
+   "sym": "ETH",
+   "horizon": "1h",
+   "events": 651,
+   "matched": 651,
+   "days": 651,
+   "mean_raw_bps": 12,
+   "median_raw_bps": -2.7,
+   "p_positive": 0.481,
+   "mean_ctrl_bps": -0.2,
+   "mean_effect_bps": 12.2,
+   "ci95_effect_bps": [
+    0.1,
+    23.8
+   ],
+   "ci95_raw_bps": [
+    0.5,
+    23
+   ],
+   "p_effect": 0.05011473644027179,
+   "t_effect": 1.962634955133527,
+   "halves_effect_bps": {
+    "H1": 11.1,
+    "H2": 12.9
+   },
+   "p_holm": 0.20045894576108717
+  },
+  {
+   "sym": "ETH",
+   "horizon": "4h",
+   "events": 650,
+   "matched": 650,
+   "days": 650,
+   "mean_raw_bps": 20.5,
+   "median_raw_bps": -0.4,
+   "p_positive": 0.5,
+   "mean_ctrl_bps": -4.6,
+   "mean_effect_bps": 25.1,
+   "ci95_effect_bps": [
+    5.8,
+    44
+   ],
+   "ci95_raw_bps": [
+    3.9,
+    37.8
+   ],
+   "p_effect": 0.008995919286378516,
+   "t_effect": 2.6201040027923903,
+   "halves_effect_bps": {
+    "H1": 29.4,
+    "H2": 22.1
+   },
+   "p_holm": 0.0629714350046496
+  },
+  {
+   "sym": "ETH",
+   "horizon": "24h",
+   "events": 646,
+   "matched": 646,
+   "days": 646,
+   "mean_raw_bps": 25.7,
+   "median_raw_bps": 9.5,
+   "p_positive": 0.512,
+   "mean_ctrl_bps": -7.2,
+   "mean_effect_bps": 33,
+   "ci95_effect_bps": [
+    -7.7,
+    73.5
+   ],
+   "ci95_raw_bps": [
+    -9.2,
+    60.8
+   ],
+   "p_effect": 0.10860885598342906,
+   "t_effect": 1.606703390575598,
+   "halves_effect_bps": {
+    "H1": 45.4,
+    "H2": 24.4
+   },
+   "p_holm": 0.3258265679502872
+  },
+  {
+   "sym": "SOL",
+   "horizon": "1h",
+   "events": 349,
+   "matched": 349,
+   "days": 349,
+   "mean_raw_bps": -25.9,
+   "median_raw_bps": -21.4,
+   "p_positive": 0.43,
+   "mean_ctrl_bps": 6.8,
+   "mean_effect_bps": -32.7,
+   "ci95_effect_bps": [
+    -58.6,
+    -6.3
+   ],
+   "ci95_raw_bps": [
+    -51.3,
+    -0.9
+   ],
+   "p_effect": 0.014958372949948642,
+   "t_effect": -2.4455420675996407,
+   "halves_effect_bps": {
+    "H1": -36.7,
+    "H2": -31.6
+   },
+   "p_holm": 0.08975023769969184
+  },
+  {
+   "sym": "SOL",
+   "horizon": "4h",
+   "events": 349,
+   "matched": 349,
+   "days": 349,
+   "mean_raw_bps": -19.2,
+   "median_raw_bps": -33.8,
+   "p_positive": 0.438,
+   "mean_ctrl_bps": -2.8,
+   "mean_effect_bps": -16.5,
+   "ci95_effect_bps": [
+    -62.4,
+    29.2
+   ],
+   "ci95_raw_bps": [
+    -60.1,
+    22.2
+   ],
+   "p_effect": 0.48648823488014725,
+   "t_effect": -0.6966478995646649,
+   "halves_effect_bps": {
+    "H1": -35.3,
+    "H2": -11.2
+   },
+   "p_holm": 0.9729764697602945
+  },
+  {
+   "sym": "SOL",
+   "horizon": "24h",
+   "events": 347,
+   "matched": 347,
+   "days": 347,
+   "mean_raw_bps": -12.6,
+   "median_raw_bps": 13.3,
+   "p_positive": 0.516,
+   "mean_ctrl_bps": -20.2,
+   "mean_effect_bps": 7.6,
+   "ci95_effect_bps": [
+    -85.4,
+    104
+   ],
+   "ci95_raw_bps": [
+    -97.8,
+    76.8
+   ],
+   "p_effect": 0.8742209667861014,
+   "t_effect": 0.15841658202154152,
+   "halves_effect_bps": {
+    "H1": 92.3,
+    "H2": -15.4
+   },
+   "p_holm": 0.9729764697602945
+  }
+ ],
+ "log": [
+  {
+   "sym": "BTC",
+   "events": 705,
+   "up": 335,
+   "down": 370,
+   "controls": 54761
+  },
+  {
+   "sym": "ETH",
+   "events": 651,
+   "up": 278,
+   "down": 373,
+   "controls": 54708
+  },
+  {
+   "sym": "SOL",
+   "events": 349,
+   "up": 170,
+   "down": 179,
+   "controls": 39916
+  }
+ ]
+}
