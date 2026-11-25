@@ -1,33 +1,137 @@
 {
- "id": "jupiter-r11-v1",
+ "id": "jupiter-r11-v1a",
  "note": "FROZEN before any backtest. Any change requires a new id and a new pre-registration; the runner refuses a config whose SHA-256 differs from PREREGISTRATION.md.",
- "assets": ["BTC", "ETH", "SOL"],
- "account": { "capitalUsd": 100, "shutdownEquityUsd": 75, "gasReserveUsd": 3, "sleeves": "one third of REALIZED equity per asset (wallet cash + posted collateral; unrealized PnL is never used as collateral); an asset without data keeps its third in cash" },
- "leverageLevels": [1.1, 2, 3, 5],
- "leverageNote": "1x is not executable on Jupiter (minimum 1.1x), so the 1x research level is run as 1.1x. The level L caps a sleeve's notional at L x sleeve equity; the POSITION's own leverage = notional / posted collateral and never goes below 1.1x.",
- "sizing": { "volRefAnnual": 0.6, "volLookbackDays": 30, "rule": "exposure = signal x L x min(1, volRefAnnual / sigma30), sigma30 = annualised stdev of daily close-to-close log returns over the last 30 days" },
- "strategies": {
-  "A": { "name": "Donchian Trend Ensemble", "timeframe": "4h", "channelsDays": [10, 20, 40, 80], "barsPerDay": 6, "exitFraction": 0.5,
-   "rule": "per channel n (in 4h bars = days x 6): long when close > highest high of the previous n bars; exit long when close < lowest low of the previous n x 0.5 bars; long_short adds the mirror short (close < lowest low of n -> short; exit when close > highest high of n x 0.5). Signal = mean of the 4 channel states, in [-1, 1] (long_flat: [0, 1])" },
-  "B": { "name": "Time-Series Momentum", "lookbackDays": 28, "holdDays": 5, "anchor": "2017-01-01T00:00:00Z",
-   "rule": "every 5 days from the anchor, at 00:00 UTC: r = close / close 28 days earlier - 1 (daily closes). long_flat: signal 1 if r > 0 else 0. long_short: +1 if r > 0, -1 if r < 0, 0 if r = 0. Held until the next 5-day decision" }
+ "assets": [
+  "BTC",
+  "ETH",
+  "SOL"
+ ],
+ "account": {
+  "capitalUsd": 100,
+  "shutdownEquityUsd": 75,
+  "gasReserveUsd": 3,
+  "sleeves": "one third of REALIZED equity per asset (wallet cash + posted collateral; unrealized PnL is never used as collateral); an asset without data keeps its third in cash"
  },
- "variants": ["long_flat", "long_short"],
+ "leverageLevels": [
+  1.1,
+  2,
+  3,
+  5
+ ],
+ "leverageNote": "1x is not executable on Jupiter (minimum 1.1x), so the 1x research level is run as 1.1x. The level L caps a sleeve's notional at L x sleeve equity; the POSITION's own leverage = notional / posted collateral and never goes below 1.1x.",
+ "sizing": {
+  "volRefAnnual": 0.6,
+  "volLookbackDays": 30,
+  "rule": "exposure = signal x L x min(1, volRefAnnual / sigma30), sigma30 = annualised stdev of daily close-to-close log returns over the last 30 days"
+ },
+ "strategies": {
+  "A": {
+   "name": "Donchian Trend Ensemble",
+   "timeframe": "4h",
+   "channelsDays": [
+    10,
+    20,
+    40,
+    80
+   ],
+   "barsPerDay": 6,
+   "exitFraction": 0.5,
+   "rule": "per channel n (in 4h bars = days x 6): long when close > highest high of the previous n bars; exit long when close < lowest low of the previous n x 0.5 bars; long_short adds the mirror short (close < lowest low of n -> short; exit when close > highest high of n x 0.5). Signal = mean of the 4 channel states, in [-1, 1] (long_flat: [0, 1])"
+  },
+  "B": {
+   "name": "Time-Series Momentum",
+   "lookbackDays": 28,
+   "holdDays": 5,
+   "anchor": "2017-01-01T00:00:00Z",
+   "rule": "every 5 days from the anchor, at 00:00 UTC: r = close / close 28 days earlier - 1 (daily closes). long_flat: signal 1 if r > 0 else 0. long_short: +1 if r > 0, -1 if r < 0, 0 if r = 0. Held until the next 5-day decision"
+  }
+ },
+ "variants": [
+  "long_flat",
+  "long_short"
+ ],
  "riskManager": {
-  "minCollateralUsd": 10, "minLeverage": 1.1, "maxPositionsPerAsset": 1, "resizeBand": 0.25,
+  "minCollateralUsd": 10,
+  "minLeverage": 1.1,
+  "maxPositionsPerAsset": 1,
+  "resizeBand": 0.25,
   "protectiveStop": "a stop-loss (Jupiter TP/SL trigger) at half the distance from entry to the liquidation price; no take-profit (neither strategy defines one)",
   "duplicateGuard": "one idempotency key per (strategy, asset, decision time); a request is never re-sent while one is pending",
   "noMartingale": "size comes only from the sizing rule on realized equity; never increased after a loss"
  },
  "costs": {
-  "base": { "openBps": 6, "closeBps": 6, "imbalanceBpsPerSide": 0, "borrowHourly": { "BTC": 1.3656e-5, "ETH": 1.3009e-5, "SOL": 1.4960e-5, "USDC": 6.360e-6 }, "borrowMultiplier": 1,
-   "tradeImpactFeeScalar": { "BTC": 1.5e16, "ETH": 7.5e15, "SOL": 3.75e15 }, "networkUsdPerTx": 0.02, "delaySlipBps": 5, "stopSlipBps": 10, "missProb": 0.01, "stopFailProb": 0.02 },
-  "conservative": { "openBps": 6, "closeBps": 6, "imbalanceBpsPerSide": 10, "borrowHourly": { "BTC": 1.3656e-5, "ETH": 1.3009e-5, "SOL": 1.4960e-5, "USDC": 6.360e-6 }, "borrowMultiplier": 2,
-   "tradeImpactFeeScalar": { "BTC": 1.5e16, "ETH": 7.5e15, "SOL": 3.75e15 }, "networkUsdPerTx": 0.10, "delaySlipBps": 20, "stopSlipBps": 50, "missProb": 0.05, "stopFailProb": 0.10 },
+  "base": {
+   "openBps": 6,
+   "closeBps": 6,
+   "imbalanceBpsPerSide": 0,
+   "borrowHourly": {
+    "BTC": 0.000013656,
+    "ETH": 0.000013009,
+    "SOL": 0.00001496,
+    "USDC": 0.00000636
+   },
+   "borrowMultiplier": 1,
+   "tradeImpactFeeScalar": {
+    "BTC": 15000000000000000,
+    "ETH": 7500000000000000,
+    "SOL": 3750000000000000
+   },
+   "networkUsdPerTx": 0.02,
+   "delaySlipBps": 5,
+   "stopSlipBps": 10,
+   "missProb": 0.01,
+   "stopFailProb": 0.02,
+   "longCollateralSwapBps": 10
+  },
+  "conservative": {
+   "openBps": 6,
+   "closeBps": 6,
+   "imbalanceBpsPerSide": 10,
+   "borrowHourly": {
+    "BTC": 0.000013656,
+    "ETH": 0.000013009,
+    "SOL": 0.00001496,
+    "USDC": 0.00000636
+   },
+   "borrowMultiplier": 2,
+   "tradeImpactFeeScalar": {
+    "BTC": 15000000000000000,
+    "ETH": 7500000000000000,
+    "SOL": 3750000000000000
+   },
+   "networkUsdPerTx": 0.1,
+   "delaySlipBps": 20,
+   "stopSlipBps": 50,
+   "missProb": 0.05,
+   "stopFailProb": 0.1,
+   "longCollateralSwapBps": 30
+  },
   "source": "fees, max leverage (500x liquidation limit), price-impact scalars and current hourly borrow rates read from the Jupiter Perps custody accounts on-chain (snapshot 2026-11-25, slot 473594808); historical borrow rates are UNKNOWN and assumed equal to today's (base) or double (conservative)"
  },
- "execution": { "decisionAt": "close of the 4h bar (A) or 00:00 UTC (B)", "fillAt": "open of the next 1h bar x (1 +/- delaySlip) (keeper request path)", "missed": "with probability missProb a request expires and is retried at the next 1h bar", "intrabar": "each 1h bar: high assumed before low for the drawdown; for an open position the ADVERSE extreme is checked first: stop (may fail with stopFailProb, retried next bar), then liquidation at the liquidation price (all remaining collateral lost)" },
- "windows": { "DEV-1": ["2017-09-01", "2026-10-01"], "DEV-2": ["2018-04-01", "2026-10-01"], "DEV-3": ["2022-01-01", "2026-10-01"], "HOLDOUT": ["2026-10-01", "2026-11-24"] },
+ "execution": {
+  "decisionAt": "close of the 4h bar (A) or 00:00 UTC (B)",
+  "fillAt": "open of the next 1h bar x (1 +/- delaySlip) (keeper request path)",
+  "missed": "with probability missProb a request expires and is retried at the next 1h bar",
+  "intrabar": "each 1h bar: high assumed before low for the drawdown; for an open position the ADVERSE extreme is checked first: stop (may fail with stopFailProb, retried next bar), then liquidation at the liquidation price (all remaining collateral lost)"
+ },
+ "windows": {
+  "DEV-1": [
+   "2017-09-01",
+   "2026-10-01"
+  ],
+  "DEV-2": [
+   "2018-04-01",
+   "2026-10-01"
+  ],
+  "DEV-3": [
+   "2022-01-01",
+   "2026-10-01"
+  ],
+  "HOLDOUT": [
+   "2026-10-01",
+   "2026-11-24"
+  ]
+ },
  "windowsNote": "DEV windows follow the earlier futures research (2017-01 / 2018-04 / 2022-01 to 2026-09); DEV-1 starts 2017-09 because Binance data start 2017-08-17 and A needs 80 days of warm-up. ALL DEV data were used by earlier price-based rounds (REUSED). HOLDOUT (2026-10-01..2026-11-23) has never been used by any test; it is sealed until the DEV results are committed, is ~8 weeks long, and can only veto, never qualify.",
  "selection": {
   "Q1": "conservative costs, DEV-2 and DEV-3: maximum drawdown < 15 % (standing requirement) and the $75 shutdown never reached",
@@ -37,5 +141,13 @@
   "Q5": "conservative costs, DEV-2: net positive on at least 2 of the 3 assets run alone",
   "Q6": "HOLDOUT (run once, after the DEV results are committed): no $75 shutdown and drawdown < 15 % (veto only)",
   "pick": "among candidates passing Q1-Q5 (and not vetoed by Q6), the highest DEV-2 conservative CAGR; otherwise NONE QUALIFIES"
- }
+ },
+ "amendments": [
+  {
+   "n": 1,
+   "date": "2026-11-25",
+   "before_any_backtest": true,
+   "change": "added the swap fee for LONG positions funded with USDC (Jupiter long collateral is held in the asset token, so USDC is swapped in on open and out on close): pool swapBps = 10 (read on-chain) plus a weight-dependent tax of up to 100 bps; base 10 bps, conservative 30 bps per swap, charged on the collateral swapped"
+  }
+ ]
 }

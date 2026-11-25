@@ -46,3 +46,17 @@ Committed **before any backtest**. Research and PAPER only:
 **Pick:** among the candidates passing Q1–Q5 and not vetoed by Q6, the one with the highest DEV-2 conservative CAGR. If none passes: **NONE QUALIFIES**, and no candidate is promoted to PAPER trading.
 
 No parameter is tuned on any window. A failed candidate is not re-run with changed parameters.
+
+## Amendment 1 (2026-11-25, before any backtest)
+
+**What was missing.** Jupiter holds long collateral in the asset token (SOL / wETH / wBTC). Opening a long funded with USDC therefore swaps the USDC into that token, and closing it swaps back.
+
+**What the pool charges** (read on-chain): `swapBps` = 10, plus a weight-dependent tax of up to 100 bps (`taxBps` = 100).
+
+**Change.** A swap fee on the collateral swapped, on open and on close:
+* base: 10 bps;
+* conservative: 30 bps.
+
+**Effect on the hash.** The configuration id becomes `jupiter-r11-v1a`. The new canonical SHA-256 is **`091135894db8bb1e6583282446cb2ac1ad7bb3d1929aee5581e5349efb8d820a`**, and it supersedes the hash above.
+
+Nothing else changed.
