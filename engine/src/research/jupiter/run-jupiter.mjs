@@ -92,4 +92,4 @@ if (!HOLDOUT) {
   out = { config_id: cfg.id, config_sha256: sha, window: cfg.windows.HOLDOUT, rows };
   writeFileSync(join(OUT, "results-holdout.json"), JSON.stringify(out, null, 1) + "\n");
 }
-console.log(JSON.stringify(HOLDOUT ? rows.filter((x) => x.costs === "conservative").map((x) => [x.candidate, x.final, x.max_dd_pct, x.shutdown]) : { validation, decisions, pick: out.pick_before_holdout }, null, 1));
+console.log(JSON.stringify(HOLDOUT ? rows.filter((x) => x.costs === "conservative").map((x) => [x.candidate, x.final, x.max_dd_pct, x.shutdown]) : { validation, decisions: out.decisions, pick: out.pick_before_holdout }, null, 1));

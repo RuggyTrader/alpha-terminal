@@ -1,0 +1,5896 @@
+{
+ "config_id": "jupiter-r11-v1a",
+ "config_sha256": "091135894db8bb1e6583282446cb2ac1ad7bb3d1929aee5581e5349efb8d820a",
+ "data": {
+  "source": "Binance spot 1h (SUBSTITUTE price data, not Jupiter fills)",
+  "manifest": {
+   "BTCUSDT": {
+    "rows": 81159,
+    "first": "2017-08-17T04:00:00.000Z",
+    "last": "2026-11-25T02:00:00.000Z",
+    "sha256": "ff84947ffbd44b7f1b110742994f23c0e430c3478599ddc665022202e5949ec9"
+   },
+   "ETHUSDT": {
+    "rows": 81159,
+    "first": "2017-08-17T04:00:00.000Z",
+    "last": "2026-11-25T02:00:00.000Z",
+    "sha256": "a3d8b3f8ebad077f810a1234d2b09c1b00ce8475e435d77812e71e7a3afc7f6e"
+   },
+   "SOLUSDT": {
+    "rows": 55105,
+    "first": "2020-08-11T06:00:00.000Z",
+    "last": "2026-11-25T02:00:00.000Z",
+    "sha256": "6b3246f73601ab37abf4f9335926c88e708fb0867dcf1b7f27dfea718e876ecd"
+   }
+  }
+ },
+ "validation": {
+  "BTC long_flat": {
+   "A_bars": 19787,
+   "A_identical": true,
+   "B_decisions": 660,
+   "B_identical": true
+  },
+  "BTC long_short": {
+   "A_bars": 19787,
+   "A_identical": true,
+   "B_decisions": 660,
+   "B_identical": true
+  },
+  "ETH long_flat": {
+   "A_bars": 19787,
+   "A_identical": true,
+   "B_decisions": 660,
+   "B_identical": true
+  },
+  "ETH long_short": {
+   "A_bars": 19787,
+   "A_identical": true,
+   "B_decisions": 660,
+   "B_identical": true
+  },
+  "SOL long_flat": {
+   "A_bars": 13287,
+   "A_identical": true,
+   "B_decisions": 452,
+   "B_identical": true
+  },
+  "SOL long_short": {
+   "A_bars": 13287,
+   "A_identical": true,
+   "B_decisions": 452,
+   "B_identical": true
+  }
+ },
+ "decisions": {
+  "A long_flat L1.1": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": true,
+   "Q5": true,
+   "passes_dev": false,
+   "dev2_conservative_cagr": 4.06,
+   "dev2_conservative_dd": 57.79
+  },
+  "A long_flat L2": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": true,
+   "passes_dev": false,
+   "dev2_conservative_cagr": 8.94,
+   "dev2_conservative_dd": 78.51
+  },
+  "A long_flat L3": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": true,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.17,
+   "dev2_conservative_dd": 43.09
+  },
+  "A long_flat L5": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": true,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.1,
+   "dev2_conservative_dd": 50.49
+  },
+  "A long_short L1.1": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": true,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.39,
+   "dev2_conservative_dd": 29.98
+  },
+  "A long_short L2": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -4.06,
+   "dev2_conservative_dd": 42.84
+  },
+  "A long_short L3": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.2,
+   "dev2_conservative_dd": 32.1
+  },
+  "A long_short L5": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -4.46,
+   "dev2_conservative_dd": 42.36
+  },
+  "B long_flat L1.1": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": true,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.48,
+   "dev2_conservative_dd": 32.82
+  },
+  "B long_flat L2": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.4,
+   "dev2_conservative_dd": 37.04
+  },
+  "B long_flat L3": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.41,
+   "dev2_conservative_dd": 41.75
+  },
+  "B long_flat L5": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.56,
+   "dev2_conservative_dd": 49.95
+  },
+  "B long_short L1.1": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.39,
+   "dev2_conservative_dd": 26.44
+  },
+  "B long_short L2": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -3.4,
+   "dev2_conservative_dd": 27.65
+  },
+  "B long_short L3": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -2.98,
+   "dev2_conservative_dd": 30.91
+  },
+  "B long_short L5": {
+   "Q1": false,
+   "Q2": false,
+   "Q3": true,
+   "Q4": false,
+   "Q5": false,
+   "passes_dev": false,
+   "dev2_conservative_cagr": -5.05,
+   "dev2_conservative_dd": 40.25
+  }
+ },
+ "pick_before_holdout": "NONE QUALIFIES",
+ "rows": [
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 716.94,
+   "cagr_pct": 24.22,
+   "max_dd_pct": 45.4,
+   "min_equity": 97.57,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 158,
+   "win_rate": 28.48,
+   "profit_factor": 1.77,
+   "fees": {
+    "open": 10.45,
+    "close": 10.08,
+    "borrow": 120.92,
+    "swap": 31.7,
+    "network": 29,
+    "slippage": 17.1,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 887,
+    "missed": 11,
+    "rejected": 72,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 161,
+    "closes": 158,
+    "increases": 258,
+    "decreases": 227,
+    "skippedMin": 933
+   },
+   "ledger_residual": 7.759126674500294e-12,
+   "equity_identity_residual": 7.617018127348274e-12,
+   "years": {
+    "2017": 39.28,
+    "2018": 5.4,
+    "2019": 21.65,
+    "2020": 67.25,
+    "2021": 30.64,
+    "2022": -28.96,
+    "2023": 94.2,
+    "2024": 37.13,
+    "2025": -8.78,
+    "2026": 6.47
+   }
+  },
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 219.25,
+   "cagr_pct": 9.03,
+   "max_dd_pct": 60.86,
+   "min_equity": 97.32,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 158,
+   "win_rate": 26.58,
+   "profit_factor": 1.17,
+   "fees": {
+    "open": 14.28,
+    "close": 13.97,
+    "borrow": 118.89,
+    "swap": 49.09,
+    "network": 140.4,
+    "slippage": 35.31,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 916,
+    "missed": 52,
+    "rejected": 83,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 161,
+    "closes": 158,
+    "increases": 243,
+    "decreases": 219,
+    "skippedMin": 1638
+   },
+   "ledger_residual": 6.401990049198503e-12,
+   "equity_identity_residual": 6.394884621840902e-12,
+   "years": {
+    "2017": 36.05,
+    "2018": 1.74,
+    "2019": 9.76,
+    "2020": 52.65,
+    "2021": 17.68,
+    "2022": -36.1,
+    "2023": 54.34,
+    "2024": 12.79,
+    "2025": -21.57,
+    "2026": -7.91
+   }
+  },
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 462.17,
+   "cagr_pct": 19.73,
+   "max_dd_pct": 45.02,
+   "min_equity": 90.28,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 143,
+   "win_rate": 29.37,
+   "profit_factor": 1.67,
+   "fees": {
+    "open": 6.68,
+    "close": 6.44,
+    "borrow": 77.28,
+    "swap": 20.24,
+    "network": 26.62,
+    "slippage": 10.93,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 817,
+    "missed": 8,
+    "rejected": 72,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 146,
+    "closes": 143,
+    "increases": 235,
+    "decreases": 213,
+    "skippedMin": 2141
+   },
+   "ledger_residual": 1.7337242752546445e-12,
+   "equity_identity_residual": 1.7621459846850485e-12,
+   "years": {
+    "2018": -3.59,
+    "2019": 19.98,
+    "2020": 66.63,
+    "2021": 31.08,
+    "2022": -28.06,
+    "2023": 92.49,
+    "2024": 36.87,
+    "2025": -9.08,
+    "2026": 6.15
+   }
+  },
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 140.31,
+   "cagr_pct": 4.06,
+   "max_dd_pct": 57.79,
+   "min_equity": 84.88,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 144,
+   "win_rate": 24.31,
+   "profit_factor": 1.05,
+   "fees": {
+    "open": 9.42,
+    "close": 9.22,
+    "borrow": 75.69,
+    "swap": 32.35,
+    "network": 120.4,
+    "slippage": 23.3,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 836,
+    "missed": 46,
+    "rejected": 116,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 147,
+    "closes": 144,
+    "increases": 200,
+    "decreases": 183,
+    "skippedMin": 5277
+   },
+   "ledger_residual": 5.353939513952355e-12,
+   "equity_identity_residual": 5.3717030823463574e-12,
+   "years": {
+    "2018": -5.7,
+    "2019": 11.11,
+    "2020": 46.14,
+    "2021": 19.61,
+    "2022": -34.95,
+    "2023": 60.95,
+    "2024": 8.12,
+    "2025": -24,
+    "2026": -10.95
+   }
+  },
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 74.89,
+   "cagr_pct": -5.91,
+   "max_dd_pct": 32.18,
+   "min_equity": 74.02,
+   "shutdown": "2022-11-07T22",
+   "liquidations": 0,
+   "trades": 19,
+   "win_rate": 15.79,
+   "profit_factor": 0.08,
+   "fees": {
+    "open": 0.2,
+    "close": 0.2,
+    "borrow": 1,
+    "swap": 0.6,
+    "network": 1.7,
+    "slippage": 0.34,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 52,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 19,
+    "closes": 19,
+    "increases": 8,
+    "decreases": 6,
+    "skippedMin": 1233
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2022": -25.11,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L1.1",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.98,
+   "cagr_pct": -5.89,
+   "max_dd_pct": 29.73,
+   "min_equity": 74.98,
+   "shutdown": "2022-09-12T16",
+   "liquidations": 0,
+   "trades": 13,
+   "win_rate": 7.69,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.38,
+    "close": 0.38,
+    "borrow": 1.52,
+    "swap": 1.23,
+    "network": 6.1,
+    "slippage": 0.94,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 38,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 13,
+    "closes": 13,
+    "increases": 6,
+    "decreases": 5,
+    "skippedMin": 1094
+   },
+   "ledger_residual": 1.2789769243681803e-13,
+   "equity_identity_residual": 1.2789769243681803e-13,
+   "years": {
+    "2022": -25.02,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 2271.61,
+   "cagr_pct": 41.04,
+   "max_dd_pct": 64.82,
+   "min_equity": 95.62,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 151,
+   "win_rate": 28.48,
+   "profit_factor": 1.55,
+   "fees": {
+    "open": 47.85,
+    "close": 45.98,
+    "borrow": 554.59,
+    "swap": 112.5,
+    "network": 29.3,
+    "slippage": 78.19,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1401,
+    "missed": 16,
+    "rejected": 577,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 154,
+    "closes": 151,
+    "increases": 269,
+    "decreases": 234,
+    "skippedMin": 1
+   },
+   "ledger_residual": 9.549694368615746e-12,
+   "equity_identity_residual": 9.094947017729282e-12,
+   "years": {
+    "2017": 66.41,
+    "2018": 13.02,
+    "2019": 38.18,
+    "2020": 147.6,
+    "2021": 55.41,
+    "2022": -45.61,
+    "2023": 170.02,
+    "2024": 52.89,
+    "2025": -11.22,
+    "2026": 13.96
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 666.98,
+   "cagr_pct": 23.24,
+   "max_dd_pct": 75.14,
+   "min_equity": 95.28,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 152,
+   "win_rate": 25.66,
+   "profit_factor": 1.23,
+   "fees": {
+    "open": 59.24,
+    "close": 57.75,
+    "borrow": 503.94,
+    "swap": 158.98,
+    "network": 146.6,
+    "slippage": 146.33,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1484,
+    "missed": 83,
+    "rejected": 593,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 155,
+    "closes": 152,
+    "increases": 268,
+    "decreases": 234,
+    "skippedMin": 2
+   },
+   "ledger_residual": -1.0254908033857646e-11,
+   "equity_identity_residual": -1.0345502232667059e-11,
+   "years": {
+    "2017": 62.41,
+    "2018": 7.24,
+    "2019": 23.24,
+    "2020": 119.25,
+    "2021": 41.37,
+    "2022": -52.48,
+    "2023": 117.93,
+    "2024": 28.85,
+    "2025": -24.29,
+    "2026": -0.76
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 1160.55,
+   "cagr_pct": 33.43,
+   "max_dd_pct": 65.17,
+   "min_equity": 86.21,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 152,
+   "win_rate": 28.29,
+   "profit_factor": 1.52,
+   "fees": {
+    "open": 24.3,
+    "close": 23.35,
+    "borrow": 281.84,
+    "swap": 57.19,
+    "network": 28.72,
+    "slippage": 39.71,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1392,
+    "missed": 16,
+    "rejected": 582,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 155,
+    "closes": 152,
+    "increases": 263,
+    "decreases": 224,
+    "skippedMin": 305
+   },
+   "ledger_residual": 7.343459174080635e-12,
+   "equity_identity_residual": 7.275957614183426e-12,
+   "years": {
+    "2018": -5.06,
+    "2019": 40.91,
+    "2020": 146.3,
+    "2021": 55.94,
+    "2022": -45.87,
+    "2023": 168.3,
+    "2024": 53,
+    "2025": -11.37,
+    "2026": 14.7
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 207.05,
+   "cagr_pct": 8.94,
+   "max_dd_pct": 78.51,
+   "min_equity": 76.59,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 165,
+   "win_rate": 24.24,
+   "profit_factor": 1.07,
+   "fees": {
+    "open": 22.87,
+    "close": 22.4,
+    "borrow": 186.77,
+    "swap": 61.71,
+    "network": 145.1,
+    "slippage": 56.63,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1499,
+    "missed": 85,
+    "rejected": 607,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 168,
+    "closes": 165,
+    "increases": 255,
+    "decreases": 220,
+    "skippedMin": 541
+   },
+   "ledger_residual": 3.674394122299418e-12,
+   "equity_identity_residual": 3.666400516522117e-12,
+   "years": {
+    "2018": -9.73,
+    "2019": 16.1,
+    "2020": 101.02,
+    "2021": 34.53,
+    "2022": -55.09,
+    "2023": 104.2,
+    "2024": 19.19,
+    "2025": -28.1,
+    "2026": -7.05
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 75.52,
+   "cagr_pct": -5.74,
+   "max_dd_pct": 35.52,
+   "min_equity": 74.84,
+   "shutdown": "2022-08-19T06",
+   "liquidations": 0,
+   "trades": 17,
+   "win_rate": 17.65,
+   "profit_factor": 0.16,
+   "fees": {
+    "open": 0.28,
+    "close": 0.28,
+    "borrow": 1.78,
+    "swap": 0.71,
+    "network": 2.1,
+    "slippage": 0.46,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 62,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 17,
+    "closes": 17,
+    "increases": 16,
+    "decreases": 11,
+    "skippedMin": 406
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2022": -24.48,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L2",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.93,
+   "cagr_pct": -5.9,
+   "max_dd_pct": 33.66,
+   "min_equity": 74.79,
+   "shutdown": "2022-07-23T12",
+   "liquidations": 0,
+   "trades": 17,
+   "win_rate": 17.65,
+   "profit_factor": 0.06,
+   "fees": {
+    "open": 0.61,
+    "close": 0.61,
+    "borrow": 2.43,
+    "swap": 1.82,
+    "network": 8.1,
+    "slippage": 1.53,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 50,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 17,
+    "closes": 17,
+    "increases": 11,
+    "decreases": 4,
+    "skippedMin": 361
+   },
+   "ledger_residual": 1.7053025658242404e-13,
+   "equity_identity_residual": 1.7053025658242404e-13,
+   "years": {
+    "2022": -25.07,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 4449.7,
+   "cagr_pct": 51.88,
+   "max_dd_pct": 79.47,
+   "min_equity": 93.46,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 153,
+   "win_rate": 28.76,
+   "profit_factor": 1.33,
+   "fees": {
+    "open": 129.8,
+    "close": 124.95,
+    "borrow": 1488.03,
+    "swap": 229.68,
+    "network": 28.74,
+    "slippage": 213.29,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2276,
+    "missed": 25,
+    "rejected": 1462,
+    "stopFired": 6,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 156,
+    "closes": 153,
+    "increases": 257,
+    "decreases": 229,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.0800249583553523e-11,
+   "equity_identity_residual": 1.0913936421275139e-11,
+   "years": {
+    "2017": 98.82,
+    "2018": 17.91,
+    "2019": 46.76,
+    "2020": 245.03,
+    "2021": 71.89,
+    "2022": -56.13,
+    "2023": 239.34,
+    "2024": 50.15,
+    "2025": -17.79,
+    "2026": 18.69
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 981.79,
+   "cagr_pct": 28.6,
+   "max_dd_pct": 87.06,
+   "min_equity": 93.05,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 152,
+   "win_rate": 26.97,
+   "profit_factor": 1.13,
+   "fees": {
+    "open": 134.87,
+    "close": 131.94,
+    "borrow": 1132.55,
+    "swap": 274.75,
+    "network": 141.4,
+    "slippage": 335.41,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2330,
+    "missed": 128,
+    "rejected": 1424,
+    "stopFired": 5,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 155,
+    "closes": 152,
+    "increases": 251,
+    "decreases": 225,
+    "skippedMin": 0
+   },
+   "ledger_residual": -3.8049563499953365e-12,
+   "equity_identity_residual": -3.751665644813329e-12,
+   "years": {
+    "2017": 93.24,
+    "2018": 10.23,
+    "2019": 29.03,
+    "2020": 199.88,
+    "2021": 47.17,
+    "2022": -62.77,
+    "2023": 161.3,
+    "2024": 21.01,
+    "2025": -29.67,
+    "2026": -2.24
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 1889.02,
+   "cagr_pct": 41.3,
+   "max_dd_pct": 79.69,
+   "min_equity": 87.15,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 151,
+   "win_rate": 27.81,
+   "profit_factor": 1.33,
+   "fees": {
+    "open": 53.56,
+    "close": 51.51,
+    "borrow": 618.14,
+    "swap": 94.92,
+    "network": 28.06,
+    "slippage": 87.8,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2239,
+    "missed": 25,
+    "rejected": 1442,
+    "stopFired": 5,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 154,
+    "closes": 151,
+    "increases": 251,
+    "decreases": 221,
+    "skippedMin": 0
+   },
+   "ledger_residual": 7.666756118851481e-12,
+   "equity_identity_residual": 7.503331289626658e-12,
+   "years": {
+    "2018": 0.03,
+    "2019": 45.22,
+    "2020": 243.31,
+    "2021": 70.05,
+    "2022": -56.3,
+    "2023": 236.97,
+    "2024": 48.54,
+    "2025": -14.1,
+    "2026": 18.55
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 76.03,
+   "cagr_pct": -3.17,
+   "max_dd_pct": 43.09,
+   "min_equity": 74.17,
+   "shutdown": "2019-04-15T17",
+   "liquidations": 0,
+   "trades": 18,
+   "win_rate": 11.11,
+   "profit_factor": 0.33,
+   "fees": {
+    "open": 1.08,
+    "close": 1.08,
+    "borrow": 4.66,
+    "swap": 2.54,
+    "network": 10.2,
+    "slippage": 2.71,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 62,
+    "missed": 2,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 18,
+    "closes": 18,
+    "increases": 15,
+    "decreases": 9,
+    "skippedMin": 66
+   },
+   "ledger_residual": 2.1316282072803006e-13,
+   "equity_identity_residual": 2.1316282072803006e-13,
+   "years": {
+    "2018": -9.95,
+    "2019": -15.57,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 75.01,
+   "cagr_pct": -5.88,
+   "max_dd_pct": 37.82,
+   "min_equity": 74.96,
+   "shutdown": "2022-07-11T23",
+   "liquidations": 0,
+   "trades": 15,
+   "win_rate": 13.33,
+   "profit_factor": 0.14,
+   "fees": {
+    "open": 0.27,
+    "close": 0.27,
+    "borrow": 1.74,
+    "swap": 0.6,
+    "network": 1.42,
+    "slippage": 0.44,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 127,
+    "missed": 1,
+    "rejected": 83,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 15,
+    "closes": 15,
+    "increases": 9,
+    "decreases": 4,
+    "skippedMin": 68
+   },
+   "ledger_residual": -4.263256414560601e-14,
+   "equity_identity_residual": -4.263256414560601e-14,
+   "years": {
+    "2022": -24.99,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L3",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.82,
+   "cagr_pct": -5.93,
+   "max_dd_pct": 31.12,
+   "min_equity": 74.82,
+   "shutdown": "2022-06-01T17",
+   "liquidations": 0,
+   "trades": 11,
+   "win_rate": 18.18,
+   "profit_factor": 0.03,
+   "fees": {
+    "open": 0.45,
+    "close": 0.45,
+    "borrow": 2.7,
+    "swap": 1.32,
+    "network": 5.1,
+    "slippage": 1.13,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 276,
+    "missed": 13,
+    "rejected": 232,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 11,
+    "closes": 11,
+    "increases": 5,
+    "decreases": 4,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2022": -25.18,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 5860.19,
+   "cagr_pct": 56.56,
+   "max_dd_pct": 94.24,
+   "min_equity": 89.15,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 169,
+   "win_rate": 26.63,
+   "profit_factor": 1.1,
+   "fees": {
+    "open": 426.85,
+    "close": 417.57,
+    "borrow": 4497.84,
+    "swap": 513.76,
+    "network": 29.74,
+    "slippage": 736.58,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2506,
+    "missed": 27,
+    "rejected": 1673,
+    "stopFired": 22,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 172,
+    "closes": 169,
+    "increases": 263,
+    "decreases": 224,
+    "skippedMin": 0
+   },
+   "ledger_residual": -6.207656610968115e-11,
+   "equity_identity_residual": -6.275513442233205e-11,
+   "years": {
+    "2017": 158.09,
+    "2018": 24.92,
+    "2019": 75.01,
+    "2020": 447.37,
+    "2021": 52.83,
+    "2022": -73.52,
+    "2023": 331.05,
+    "2024": 84.88,
+    "2025": -46.56,
+    "2026": 10.1
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 460.7,
+   "cagr_pct": 18.32,
+   "max_dd_pct": 97.4,
+   "min_equity": 88.62,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 168,
+   "win_rate": 23.81,
+   "profit_factor": 1.01,
+   "fees": {
+    "open": 317.83,
+    "close": 315.95,
+    "borrow": 2188.09,
+    "swap": 451.09,
+    "network": 146.8,
+    "slippage": 864.82,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 3433,
+    "missed": 171,
+    "rejected": 2466,
+    "stopFired": 22,
+    "stopFailed": 4,
+    "liquidations": 0,
+    "opens": 171,
+    "closes": 168,
+    "increases": 259,
+    "decreases": 220,
+    "skippedMin": 0
+   },
+   "ledger_residual": -3.0055957722652238e-12,
+   "equity_identity_residual": -3.069544618483633e-12,
+   "years": {
+    "2017": 149.52,
+    "2018": 14.99,
+    "2019": 47,
+    "2020": 346.63,
+    "2021": 20.02,
+    "2022": -79.36,
+    "2023": 197.73,
+    "2024": -1.3,
+    "2025": -59.95,
+    "2026": -16.13
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 1648.47,
+   "cagr_pct": 39.05,
+   "max_dd_pct": 94.19,
+   "min_equity": 80.04,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 165,
+   "win_rate": 25.45,
+   "profit_factor": 1.09,
+   "fees": {
+    "open": 118.08,
+    "close": 115.48,
+    "borrow": 1234.35,
+    "swap": 140.99,
+    "network": 28.9,
+    "slippage": 203.54,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2735,
+    "missed": 29,
+    "rejected": 1923,
+    "stopFired": 22,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 168,
+    "closes": 165,
+    "increases": 255,
+    "decreases": 217,
+    "skippedMin": 0
+   },
+   "ledger_residual": 3.9674930008004594e-12,
+   "equity_identity_residual": 3.865352482534945e-12,
+   "years": {
+    "2018": 0.11,
+    "2019": 72.23,
+    "2020": 442.19,
+    "2021": 43.33,
+    "2022": -74.02,
+    "2023": 339.51,
+    "2024": 63.4,
+    "2025": -44.24,
+    "2026": 18.25
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 76.48,
+   "cagr_pct": -3.1,
+   "max_dd_pct": 50.49,
+   "min_equity": 74.97,
+   "shutdown": "2019-02-25T00",
+   "liquidations": 0,
+   "trades": 13,
+   "win_rate": 23.08,
+   "profit_factor": 0.43,
+   "fees": {
+    "open": 1.27,
+    "close": 1.27,
+    "borrow": 6.18,
+    "swap": 2.36,
+    "network": 8.5,
+    "slippage": 3.17,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 50,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 13,
+    "closes": 13,
+    "increases": 14,
+    "decreases": 9,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.2789769243681803e-13,
+   "equity_identity_residual": 1.2789769243681803e-13,
+   "years": {
+    "2018": -10,
+    "2019": -15.02,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 74.66,
+   "cagr_pct": -5.97,
+   "max_dd_pct": 39.56,
+   "min_equity": 74.65,
+   "shutdown": "2022-04-25T06",
+   "liquidations": 0,
+   "trades": 10,
+   "win_rate": 20,
+   "profit_factor": 0.13,
+   "fees": {
+    "open": 0.27,
+    "close": 0.27,
+    "borrow": 2.16,
+    "swap": 0.53,
+    "network": 0.96,
+    "slippage": 0.45,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 266,
+    "missed": 5,
+    "rejected": 232,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 10,
+    "closes": 10,
+    "increases": 5,
+    "decreases": 4,
+    "skippedMin": 0
+   },
+   "ledger_residual": -2.842170943040401e-14,
+   "equity_identity_residual": -2.842170943040401e-14,
+   "years": {
+    "2022": -25.34,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_flat L5",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.33,
+   "cagr_pct": -6.06,
+   "max_dd_pct": 35.31,
+   "min_equity": 74.33,
+   "shutdown": "2022-04-11T21",
+   "liquidations": 0,
+   "trades": 10,
+   "win_rate": 20,
+   "profit_factor": 0.08,
+   "fees": {
+    "open": 0.64,
+    "close": 0.64,
+    "borrow": 3.24,
+    "swap": 1.49,
+    "network": 4.4,
+    "slippage": 1.6,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 272,
+    "missed": 13,
+    "rejected": 232,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 10,
+    "closes": 10,
+    "increases": 4,
+    "decreases": 3,
+    "skippedMin": 0
+   },
+   "ledger_residual": 5.684341886080802e-14,
+   "equity_identity_residual": 5.684341886080802e-14,
+   "years": {
+    "2022": -25.67,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 482.48,
+   "cagr_pct": 18.92,
+   "max_dd_pct": 50.1,
+   "min_equity": 97.57,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 289,
+   "win_rate": 28.72,
+   "profit_factor": 1.28,
+   "fees": {
+    "open": 14.58,
+    "close": 14.32,
+    "borrow": 102.29,
+    "swap": 23.86,
+    "network": 44.7,
+    "slippage": 24.1,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1446,
+    "missed": 16,
+    "rejected": 169,
+    "stopFired": 1,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 292,
+    "closes": 289,
+    "increases": 365,
+    "decreases": 316,
+    "skippedMin": 1301
+   },
+   "ledger_residual": -7.958078640513122e-13,
+   "equity_identity_residual": -7.958078640513122e-13,
+   "years": {
+    "2017": 38.76,
+    "2018": 18.67,
+    "2019": 3.66,
+    "2020": 43.67,
+    "2021": 20.71,
+    "2022": 9.06,
+    "2023": 33.56,
+    "2024": 10.27,
+    "2025": -19.63,
+    "2026": 26.26
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 74.71,
+   "cagr_pct": -3.16,
+   "max_dd_pct": 66.54,
+   "min_equity": 74.66,
+   "shutdown": "2023-10-02T18",
+   "liquidations": 0,
+   "trades": 184,
+   "win_rate": 25.54,
+   "profit_factor": 0.94,
+   "fees": {
+    "open": 9.95,
+    "close": 9.95,
+    "borrow": 41.15,
+    "swap": 17.59,
+    "network": 108.8,
+    "slippage": 24.93,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 686,
+    "missed": 37,
+    "rejected": 14,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 184,
+    "closes": 184,
+    "increases": 148,
+    "decreases": 120,
+    "skippedMin": 4190
+   },
+   "ledger_residual": 4.803268893738277e-12,
+   "equity_identity_residual": 4.803268893738277e-12,
+   "years": {
+    "2017": 36.05,
+    "2018": 7.8,
+    "2019": -10.89,
+    "2020": 23.69,
+    "2021": 5.46,
+    "2022": -21.05,
+    "2023": -44.49,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 229.26,
+   "cagr_pct": 10.25,
+   "max_dd_pct": 51.53,
+   "min_equity": 85.08,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 302,
+   "win_rate": 26.82,
+   "profit_factor": 1.15,
+   "fees": {
+    "open": 7.52,
+    "close": 7.4,
+    "borrow": 50.35,
+    "swap": 12.08,
+    "network": 40.56,
+    "slippage": 12.45,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1371,
+    "missed": 15,
+    "rejected": 192,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 305,
+    "closes": 302,
+    "increases": 299,
+    "decreases": 259,
+    "skippedMin": 4616
+   },
+   "ledger_residual": -1.3713474800169934e-12,
+   "equity_identity_residual": -1.3642420526593924e-12,
+   "years": {
+    "2018": -1.82,
+    "2019": -0.95,
+    "2020": 39.64,
+    "2021": 17.81,
+    "2022": 3.04,
+    "2023": 31.59,
+    "2024": 7.91,
+    "2025": -21.07,
+    "2026": 24.09
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 74.61,
+   "cagr_pct": -3.39,
+   "max_dd_pct": 29.98,
+   "min_equity": 74.61,
+   "shutdown": "2019-04-13T00",
+   "liquidations": 0,
+   "trades": 24,
+   "win_rate": 12.5,
+   "profit_factor": 0.37,
+   "fees": {
+    "open": 0.83,
+    "close": 0.83,
+    "borrow": 1.97,
+    "swap": 0.9,
+    "network": 11,
+    "slippage": 2.07,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 69,
+    "missed": 2,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 24,
+    "closes": 24,
+    "increases": 7,
+    "decreases": 12,
+    "skippedMin": 1130
+   },
+   "ledger_residual": 2.8421709430404007e-13,
+   "equity_identity_residual": 2.8421709430404007e-13,
+   "years": {
+    "2018": -10.66,
+    "2019": -16.49,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 75.15,
+   "cagr_pct": -5.84,
+   "max_dd_pct": 49.11,
+   "min_equity": 74.99,
+   "shutdown": "2023-10-12T09",
+   "liquidations": 0,
+   "trades": 82,
+   "win_rate": 25.61,
+   "profit_factor": 0.78,
+   "fees": {
+    "open": 1.27,
+    "close": 1.27,
+    "borrow": 6.13,
+    "swap": 1.48,
+    "network": 9.24,
+    "slippage": 2.12,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 291,
+    "missed": 5,
+    "rejected": 14,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 82,
+    "closes": 82,
+    "increases": 57,
+    "decreases": 51,
+    "skippedMin": 2869
+   },
+   "ledger_residual": -2.842170943040401e-14,
+   "equity_identity_residual": -2.842170943040401e-14,
+   "years": {
+    "2022": 10.41,
+    "2023": -31.93,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L1.1",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.5,
+   "cagr_pct": -6.01,
+   "max_dd_pct": 43.65,
+   "min_equity": 74.5,
+   "shutdown": "2022-11-08T03",
+   "liquidations": 0,
+   "trades": 38,
+   "win_rate": 21.05,
+   "profit_factor": 0.61,
+   "fees": {
+    "open": 1.46,
+    "close": 1.46,
+    "borrow": 4.94,
+    "swap": 1.69,
+    "network": 23.4,
+    "slippage": 3.66,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 141,
+    "missed": 5,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 38,
+    "closes": 38,
+    "increases": 33,
+    "decreases": 27,
+    "skippedMin": 1475
+   },
+   "ledger_residual": 3.836930773104541e-13,
+   "equity_identity_residual": 3.836930773104541e-13,
+   "years": {
+    "2022": -25.5,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 839.85,
+   "cagr_pct": 26.41,
+   "max_dd_pct": 69.96,
+   "min_equity": 94.2,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 296,
+   "win_rate": 28.72,
+   "profit_factor": 1.16,
+   "fees": {
+    "open": 42.37,
+    "close": 41.64,
+    "borrow": 289.53,
+    "swap": 52.4,
+    "network": 45.44,
+    "slippage": 70.08,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2359,
+    "missed": 25,
+    "rejected": 1053,
+    "stopFired": 3,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 299,
+    "closes": 296,
+    "increases": 374,
+    "decreases": 315,
+    "skippedMin": 64
+   },
+   "ledger_residual": 1.1436185332058812e-11,
+   "equity_identity_residual": 1.1368683772161603e-11,
+   "years": {
+    "2017": 61.98,
+    "2018": 33.93,
+    "2019": 0.72,
+    "2020": 73.76,
+    "2021": 36,
+    "2022": 9.88,
+    "2023": 43.19,
+    "2024": 3.25,
+    "2025": -32.59,
+    "2026": 48.53
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 74.7,
+   "cagr_pct": -3.16,
+   "max_dd_pct": 83.65,
+   "min_equity": 74.7,
+   "shutdown": "2025-10-01T08",
+   "liquidations": 0,
+   "trades": 278,
+   "win_rate": 24.82,
+   "profit_factor": 0.98,
+   "fees": {
+    "open": 35.65,
+    "close": 35.65,
+    "borrow": 172.64,
+    "swap": 51.2,
+    "network": 194.2,
+    "slippage": 89.42,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1989,
+    "missed": 108,
+    "rejected": 774,
+    "stopFired": 3,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 278,
+    "closes": 278,
+    "increases": 310,
+    "decreases": 244,
+    "skippedMin": 240
+   },
+   "ledger_residual": 4.931166586175095e-12,
+   "equity_identity_residual": 4.931166586175095e-12,
+   "years": {
+    "2017": 57.83,
+    "2018": 19.36,
+    "2019": -15.46,
+    "2020": 49.33,
+    "2021": 15.43,
+    "2022": -18.72,
+    "2023": -1.13,
+    "2024": -28.41,
+    "2025": -52.7,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 380.35,
+   "cagr_pct": 17.02,
+   "max_dd_pct": 69.87,
+   "min_equity": 81.79,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 293,
+   "win_rate": 28.33,
+   "profit_factor": 1.12,
+   "fees": {
+    "open": 19.56,
+    "close": 19.23,
+    "borrow": 133.05,
+    "swap": 24.21,
+    "network": 43.9,
+    "slippage": 32.34,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2308,
+    "missed": 25,
+    "rejected": 1040,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 296,
+    "closes": 293,
+    "increases": 358,
+    "decreases": 297,
+    "skippedMin": 868
+   },
+   "ledger_residual": -3.1654678878112463e-12,
+   "equity_identity_residual": -3.183231456205249e-12,
+   "years": {
+    "2018": -0.48,
+    "2019": 1.91,
+    "2020": 76.78,
+    "2021": 35.06,
+    "2022": 8.54,
+    "2023": 44.28,
+    "2024": 2.32,
+    "2025": -33.33,
+    "2026": 47.02
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 70.3,
+   "cagr_pct": -4.06,
+   "max_dd_pct": 42.84,
+   "min_equity": 69.47,
+   "shutdown": "2019-02-24T14",
+   "liquidations": 0,
+   "trades": 28,
+   "win_rate": 17.86,
+   "profit_factor": 0.52,
+   "fees": {
+    "open": 1.43,
+    "close": 1.43,
+    "borrow": 3.7,
+    "swap": 1.2,
+    "network": 14.2,
+    "slippage": 3.59,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 87,
+    "missed": 2,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 28,
+    "closes": 28,
+    "increases": 15,
+    "decreases": 14,
+    "skippedMin": 492
+   },
+   "ledger_residual": 2.1316282072803006e-13,
+   "equity_identity_residual": 2.1316282072803006e-13,
+   "years": {
+    "2018": -13.54,
+    "2019": -18.69,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 80.39,
+   "cagr_pct": -4.49,
+   "max_dd_pct": 57.48,
+   "min_equity": 72.12,
+   "shutdown": "2022-11-08T16",
+   "liquidations": 0,
+   "trades": 50,
+   "win_rate": 24,
+   "profit_factor": 0.82,
+   "fees": {
+    "open": 1.18,
+    "close": 1.18,
+    "borrow": 5.55,
+    "swap": 1.03,
+    "network": 6.48,
+    "slippage": 1.97,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 236,
+    "missed": 4,
+    "rejected": 45,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 50,
+    "closes": 50,
+    "increases": 51,
+    "decreases": 36,
+    "skippedMin": 184
+   },
+   "ledger_residual": 1.2789769243681803e-13,
+   "equity_identity_residual": 1.2789769243681803e-13,
+   "years": {
+    "2022": -19.61,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L2",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 73.22,
+   "cagr_pct": -6.35,
+   "max_dd_pct": 51.54,
+   "min_equity": 73.22,
+   "shutdown": "2022-05-04T18",
+   "liquidations": 0,
+   "trades": 24,
+   "win_rate": 12.5,
+   "profit_factor": 0.47,
+   "fees": {
+    "open": 1.3,
+    "close": 1.3,
+    "borrow": 4.04,
+    "swap": 0.94,
+    "network": 12.4,
+    "slippage": 3.26,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 121,
+    "missed": 2,
+    "rejected": 45,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 24,
+    "closes": 24,
+    "increases": 20,
+    "decreases": 6,
+    "skippedMin": 187
+   },
+   "ledger_residual": 1.9895196601282805e-13,
+   "equity_identity_residual": 1.9895196601282805e-13,
+   "years": {
+    "2022": -26.78,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 875.04,
+   "cagr_pct": 26.98,
+   "max_dd_pct": 82.92,
+   "min_equity": 91.5,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 298,
+   "win_rate": 27.85,
+   "profit_factor": 1.08,
+   "fees": {
+    "open": 74.34,
+    "close": 73.32,
+    "borrow": 496.68,
+    "swap": 69.93,
+    "network": 44.68,
+    "slippage": 123.3,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2815,
+    "missed": 29,
+    "rejected": 1526,
+    "stopFired": 6,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 301,
+    "closes": 298,
+    "increases": 362,
+    "decreases": 305,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.1254996934439987e-11,
+   "equity_identity_residual": 1.1254996934439987e-11,
+   "years": {
+    "2017": 88.74,
+    "2018": 43.16,
+    "2019": -3.19,
+    "2020": 111.91,
+    "2021": 48.89,
+    "2022": -5.87,
+    "2023": 34.29,
+    "2024": -11.8,
+    "2025": -44.02,
+    "2026": 69.87
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 74.92,
+   "cagr_pct": -3.13,
+   "max_dd_pct": 89.87,
+   "min_equity": 74.55,
+   "shutdown": "2023-09-28T16",
+   "liquidations": 0,
+   "trades": 189,
+   "win_rate": 24.34,
+   "profit_factor": 0.99,
+   "fees": {
+    "open": 50.96,
+    "close": 50.96,
+    "borrow": 217.05,
+    "swap": 56.22,
+    "network": 127.3,
+    "slippage": 128.44,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1457,
+    "missed": 83,
+    "rejected": 648,
+    "stopFired": 5,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 189,
+    "closes": 189,
+    "increases": 197,
+    "decreases": 156,
+    "skippedMin": 0
+   },
+   "ledger_residual": -7.531752999057062e-13,
+   "equity_identity_residual": -7.531752999057062e-13,
+   "years": {
+    "2017": 83.17,
+    "2018": 25.32,
+    "2019": -21.07,
+    "2020": 74.36,
+    "2021": 24.71,
+    "2022": -34.77,
+    "2023": -70.85,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 74.02,
+   "cagr_pct": -3.48,
+   "max_dd_pct": 51.12,
+   "min_equity": 72.06,
+   "shutdown": "2019-02-24T14",
+   "liquidations": 0,
+   "trades": 33,
+   "win_rate": 24.24,
+   "profit_factor": 0.69,
+   "fees": {
+    "open": 0.88,
+    "close": 0.88,
+    "borrow": 3.04,
+    "swap": 0.52,
+    "network": 3.38,
+    "slippage": 1.46,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 102,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 33,
+    "closes": 33,
+    "increases": 21,
+    "decreases": 14,
+    "skippedMin": 102
+   },
+   "ledger_residual": -8.526512829121202e-14,
+   "equity_identity_residual": -8.526512829121202e-14,
+   "years": {
+    "2018": -12.13,
+    "2019": -15.76,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 75.84,
+   "cagr_pct": -3.2,
+   "max_dd_pct": 32.1,
+   "min_equity": 74.51,
+   "shutdown": "2018-04-25T10",
+   "liquidations": 0,
+   "trades": 8,
+   "win_rate": 12.5,
+   "profit_factor": 0.03,
+   "fees": {
+    "open": 0.41,
+    "close": 0.41,
+    "borrow": 0.59,
+    "swap": 0.37,
+    "network": 2.8,
+    "slippage": 1.02,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 19,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 8,
+    "closes": 8,
+    "increases": 1,
+    "decreases": 1,
+    "skippedMin": 34
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2018": -24.16,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 76.35,
+   "cagr_pct": -5.52,
+   "max_dd_pct": 65.02,
+   "min_equity": 73.86,
+   "shutdown": "2022-11-07T22",
+   "liquidations": 0,
+   "trades": 42,
+   "win_rate": 26.19,
+   "profit_factor": 0.84,
+   "fees": {
+    "open": 1.71,
+    "close": 1.71,
+    "borrow": 8.84,
+    "swap": 1.3,
+    "network": 6.12,
+    "slippage": 2.86,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 537,
+    "missed": 6,
+    "rejected": 357,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 42,
+    "closes": 42,
+    "increases": 51,
+    "decreases": 39,
+    "skippedMin": 0
+   },
+   "ledger_residual": 3.126388037344441e-13,
+   "equity_identity_residual": 3.126388037344441e-13,
+   "years": {
+    "2022": -23.65,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L3",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 75.12,
+   "cagr_pct": -5.85,
+   "max_dd_pct": 60.22,
+   "min_equity": 74.75,
+   "shutdown": "2022-09-19T20",
+   "liquidations": 0,
+   "trades": 35,
+   "win_rate": 25.71,
+   "profit_factor": 0.81,
+   "fees": {
+    "open": 3.51,
+    "close": 3.51,
+    "borrow": 12.86,
+    "swap": 2.73,
+    "network": 26.9,
+    "slippage": 8.77,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 429,
+    "missed": 22,
+    "rejected": 255,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 35,
+    "closes": 35,
+    "increases": 47,
+    "decreases": 35,
+    "skippedMin": 0
+   },
+   "ledger_residual": 3.979039320256561e-13,
+   "equity_identity_residual": 3.979039320256561e-13,
+   "years": {
+    "2022": -24.88,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 73.75,
+   "cagr_pct": -3.3,
+   "max_dd_pct": 97.35,
+   "min_equity": 73.75,
+   "shutdown": "2025-10-10T21",
+   "liquidations": 0,
+   "trades": 290,
+   "win_rate": 26.21,
+   "profit_factor": 1,
+   "fees": {
+    "open": 82.81,
+    "close": 82.81,
+    "borrow": 486.36,
+    "swap": 59.1,
+    "network": 39.6,
+    "slippage": 144.52,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 3469,
+    "missed": 35,
+    "rejected": 2335,
+    "stopFired": 36,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 290,
+    "closes": 290,
+    "increases": 310,
+    "decreases": 245,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.845901457883883e-12,
+   "equity_identity_residual": 4.845901457883883e-12,
+   "years": {
+    "2017": 138.48,
+    "2018": 65.85,
+    "2019": -20.14,
+    "2020": 156.35,
+    "2021": 14.27,
+    "2022": -52.22,
+    "2023": -5.2,
+    "2024": -35.49,
+    "2025": -72.72,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 74.45,
+   "cagr_pct": -3.2,
+   "max_dd_pct": 93.63,
+   "min_equity": 66.77,
+   "shutdown": "2022-11-08T16",
+   "liquidations": 0,
+   "trades": 152,
+   "win_rate": 26.32,
+   "profit_factor": 0.99,
+   "fees": {
+    "open": 75.74,
+    "close": 75.74,
+    "borrow": 305.67,
+    "swap": 61.81,
+    "network": 101.4,
+    "slippage": 203.41,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 1663,
+    "missed": 88,
+    "rejected": 1012,
+    "stopFired": 20,
+    "stopFailed": 2,
+    "liquidations": 0,
+    "opens": 152,
+    "closes": 152,
+    "increases": 153,
+    "decreases": 126,
+    "skippedMin": 0
+   },
+   "ledger_residual": -1.8332002582610585e-12,
+   "equity_identity_residual": -1.8332002582610585e-12,
+   "years": {
+    "2017": 130.35,
+    "2018": 38.21,
+    "2019": -41.58,
+    "2020": 95.28,
+    "2021": -16.77,
+    "2022": -75.38,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 70.3,
+   "cagr_pct": -4.06,
+   "max_dd_pct": 40.92,
+   "min_equity": 69.46,
+   "shutdown": "2018-04-12T11",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.15,
+    "close": 0.15,
+    "borrow": 0.36,
+    "swap": 0,
+    "network": 0.22,
+    "slippage": 0.3,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 1,
+    "skippedMin": 0
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2018": -29.7,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 67.85,
+   "cagr_pct": -4.46,
+   "max_dd_pct": 42.36,
+   "min_equity": 67.15,
+   "shutdown": "2018-04-12T11",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.39,
+    "close": 0.39,
+    "borrow": 0.71,
+    "swap": 0,
+    "network": 1.1,
+    "slippage": 1.3,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 1,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2018": -32.15,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 74.82,
+   "cagr_pct": -5.93,
+   "max_dd_pct": 58.89,
+   "min_equity": 73.32,
+   "shutdown": "2022-04-25T18",
+   "liquidations": 0,
+   "trades": 15,
+   "win_rate": 20,
+   "profit_factor": 0.53,
+   "fees": {
+    "open": 0.81,
+    "close": 0.81,
+    "borrow": 4.19,
+    "swap": 0.33,
+    "network": 1.9,
+    "slippage": 1.35,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 750,
+    "missed": 6,
+    "rejected": 689,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 15,
+    "closes": 15,
+    "increases": 13,
+    "decreases": 12,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2022": -25.18,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "A long_short L5",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 73.95,
+   "cagr_pct": -6.16,
+   "max_dd_pct": 58.09,
+   "min_equity": 73.81,
+   "shutdown": "2022-04-11T11",
+   "liquidations": 0,
+   "trades": 12,
+   "win_rate": 25,
+   "profit_factor": 0.49,
+   "fees": {
+    "open": 1.78,
+    "close": 1.78,
+    "borrow": 7.12,
+    "swap": 0.84,
+    "network": 8.2,
+    "slippage": 4.45,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 676,
+    "missed": 36,
+    "rejected": 593,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 12,
+    "closes": 12,
+    "increases": 15,
+    "decreases": 8,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2022": -26.05,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 848.37,
+   "cagr_pct": 26.55,
+   "max_dd_pct": 62.98,
+   "min_equity": 99.07,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 155,
+   "win_rate": 40,
+   "profit_factor": 1.36,
+   "fees": {
+    "open": 16.98,
+    "close": 16.54,
+    "borrow": 192.98,
+    "swap": 51.44,
+    "network": 10.78,
+    "slippage": 28.02,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 351,
+    "missed": 5,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 158,
+    "closes": 155,
+    "increases": 20,
+    "decreases": 14,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.8066438062523957e-12,
+   "equity_identity_residual": 2.8421709430404007e-12,
+   "years": {
+    "2017": 73.9,
+    "2018": 4.85,
+    "2019": 10.29,
+    "2020": 115.2,
+    "2021": 54.86,
+    "2022": -49.35,
+    "2023": 108.92,
+    "2024": 26.95,
+    "2025": 3.71,
+    "2026": -9.14
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 345.55,
+   "cagr_pct": 14.63,
+   "max_dd_pct": 71.41,
+   "min_equity": 98.06,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 155,
+   "win_rate": 34.19,
+   "profit_factor": 1.16,
+   "fees": {
+    "open": 26.77,
+    "close": 26.29,
+    "borrow": 229.41,
+    "swap": 91.43,
+    "network": 53.9,
+    "slippage": 66.64,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 367,
+    "missed": 21,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 158,
+    "closes": 155,
+    "increases": 20,
+    "decreases": 14,
+    "skippedMin": 0
+   },
+   "ledger_residual": -2.2568613644580182e-12,
+   "equity_identity_residual": -2.2737367544323206e-12,
+   "years": {
+    "2017": 69.41,
+    "2018": 0.14,
+    "2019": 1.62,
+    "2020": 99.17,
+    "2021": 44.58,
+    "2022": -54.57,
+    "2023": 83.2,
+    "2024": 13.14,
+    "2025": -8.09,
+    "2026": -19.57
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 404.24,
+   "cagr_pct": 17.86,
+   "max_dd_pct": 63.04,
+   "min_equity": 77.1,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 151,
+   "win_rate": 39.07,
+   "profit_factor": 1.29,
+   "fees": {
+    "open": 8.08,
+    "close": 7.87,
+    "borrow": 91.54,
+    "swap": 24.42,
+    "network": 10.26,
+    "slippage": 13.33,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 336,
+    "missed": 5,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 154,
+    "closes": 151,
+    "increases": 16,
+    "decreases": 11,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.1572964808692632e-12,
+   "equity_identity_residual": 1.1368683772161603e-12,
+   "years": {
+    "2018": -12.39,
+    "2019": 10.4,
+    "2020": 114.84,
+    "2021": 54.57,
+    "2022": -49.51,
+    "2023": 108.38,
+    "2024": 27.36,
+    "2025": 3.53,
+    "2026": -9.27
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 74.02,
+   "cagr_pct": -3.48,
+   "max_dd_pct": 32.82,
+   "min_equity": 73.57,
+   "shutdown": "2019-02-24T14",
+   "liquidations": 0,
+   "trades": 13,
+   "win_rate": 7.69,
+   "profit_factor": 0.03,
+   "fees": {
+    "open": 0.53,
+    "close": 0.53,
+    "borrow": 2.22,
+    "swap": 1.75,
+    "network": 4.1,
+    "slippage": 1.33,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 28,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 13,
+    "closes": 13,
+    "increases": 1,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.1368683772161603e-13,
+   "equity_identity_residual": 1.1368683772161603e-13,
+   "years": {
+    "2018": -17.03,
+    "2019": -10.79,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 75.14,
+   "cagr_pct": -5.84,
+   "max_dd_pct": 34.12,
+   "min_equity": 74.76,
+   "shutdown": "2022-09-27T18",
+   "liquidations": 0,
+   "trades": 13,
+   "win_rate": 7.69,
+   "profit_factor": 0.02,
+   "fees": {
+    "open": 0.19,
+    "close": 0.19,
+    "borrow": 2.02,
+    "swap": 0.57,
+    "network": 0.9,
+    "slippage": 0.32,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 29,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 13,
+    "closes": 13,
+    "increases": 3,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2022": -24.86,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L1.1",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.19,
+   "cagr_pct": -6.1,
+   "max_dd_pct": 32.24,
+   "min_equity": 74.19,
+   "shutdown": "2022-07-25T23",
+   "liquidations": 0,
+   "trades": 11,
+   "win_rate": 9.09,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.44,
+    "close": 0.44,
+    "borrow": 2.71,
+    "swap": 1.43,
+    "network": 3.7,
+    "slippage": 1.1,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 25,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 11,
+    "closes": 11,
+    "increases": 2,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 5.684341886080802e-14,
+   "equity_identity_residual": 5.684341886080802e-14,
+   "years": {
+    "2022": -25.81,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 1258.67,
+   "cagr_pct": 32.17,
+   "max_dd_pct": 86.29,
+   "min_equity": 98.46,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 157,
+   "win_rate": 39.49,
+   "profit_factor": 1.13,
+   "fees": {
+    "open": 54.82,
+    "close": 53.8,
+    "borrow": 593.78,
+    "swap": 105.15,
+    "network": 11.02,
+    "slippage": 93.76,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 354,
+    "missed": 5,
+    "rejected": 3,
+    "stopFired": 8,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 160,
+    "closes": 157,
+    "increases": 22,
+    "decreases": 15,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.227729277772596e-12,
+   "equity_identity_residual": 4.092726157978177e-12,
+   "years": {
+    "2017": 131.83,
+    "2018": 0.29,
+    "2019": 7.81,
+    "2020": 245.61,
+    "2021": 95.87,
+    "2022": -75.43,
+    "2023": 202.33,
+    "2024": 26.45,
+    "2025": 2.93,
+    "2026": -23.28
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 344.13,
+   "cagr_pct": 14.58,
+   "max_dd_pct": 90.33,
+   "min_equity": 97.19,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 157,
+   "win_rate": 33.76,
+   "profit_factor": 1.04,
+   "fees": {
+    "open": 72.54,
+    "close": 71.79,
+    "borrow": 591.32,
+    "swap": 160.87,
+    "network": 55.1,
+    "slippage": 189.47,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 370,
+    "missed": 20,
+    "rejected": 4,
+    "stopFired": 8,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 160,
+    "closes": 157,
+    "increases": 21,
+    "decreases": 16,
+    "skippedMin": 0
+   },
+   "ledger_residual": -2.7116087153444823e-12,
+   "equity_identity_residual": -2.7853275241795927e-12,
+   "years": {
+    "2017": 125.09,
+    "2018": -5.96,
+    "2019": -4.8,
+    "2020": 209.91,
+    "2021": 80.59,
+    "2022": -78.55,
+    "2023": 148.91,
+    "2024": 5.03,
+    "2025": -13.05,
+    "2026": -37.41
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 73.99,
+   "cagr_pct": -3.48,
+   "max_dd_pct": 38.3,
+   "min_equity": 73.91,
+   "shutdown": "2018-12-27T19",
+   "liquidations": 0,
+   "trades": 9,
+   "win_rate": 11.11,
+   "profit_factor": 0.08,
+   "fees": {
+    "open": 0.25,
+    "close": 0.25,
+    "borrow": 1.45,
+    "swap": 0.51,
+    "network": 0.58,
+    "slippage": 0.41,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 19,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 9,
+    "closes": 9,
+    "increases": 1,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2018": -26.01,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 74.54,
+   "cagr_pct": -3.4,
+   "max_dd_pct": 37.04,
+   "min_equity": 74.27,
+   "shutdown": "2018-10-11T23",
+   "liquidations": 0,
+   "trades": 6,
+   "win_rate": 16.67,
+   "profit_factor": 0.06,
+   "fees": {
+    "open": 0.46,
+    "close": 0.46,
+    "borrow": 2.51,
+    "swap": 1.05,
+    "network": 2,
+    "slippage": 1.16,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 14,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 6,
+    "increases": 1,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2018": -25.46,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 75.76,
+   "cagr_pct": -5.68,
+   "max_dd_pct": 39.44,
+   "min_equity": 74.8,
+   "shutdown": "2022-06-13T03",
+   "liquidations": 0,
+   "trades": 8,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.23,
+    "close": 0.23,
+    "borrow": 2.11,
+    "swap": 0.46,
+    "network": 0.56,
+    "slippage": 0.39,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 18,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 8,
+    "closes": 8,
+    "increases": 2,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2022": -24.24,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L2",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 75.21,
+   "cagr_pct": -5.82,
+   "max_dd_pct": 36.21,
+   "min_equity": 74.98,
+   "shutdown": "2022-06-12T03",
+   "liquidations": 0,
+   "trades": 8,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.59,
+    "close": 0.59,
+    "borrow": 3.88,
+    "swap": 1.35,
+    "network": 2.6,
+    "slippage": 1.48,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 21,
+    "missed": 1,
+    "rejected": 3,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 8,
+    "closes": 8,
+    "increases": 1,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2022": -24.79,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 2056.62,
+   "cagr_pct": 39.51,
+   "max_dd_pct": 93.78,
+   "min_equity": 97.81,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 158,
+   "win_rate": 39.24,
+   "profit_factor": 1.07,
+   "fees": {
+    "open": 148.63,
+    "close": 146.47,
+    "borrow": 1550.39,
+    "swap": 195.19,
+    "network": 11.24,
+    "slippage": 266.97,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 355,
+    "missed": 5,
+    "rejected": 6,
+    "stopFired": 16,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 161,
+    "closes": 158,
+    "increases": 26,
+    "decreases": 15,
+    "skippedMin": 0
+   },
+   "ledger_residual": 7.593925488436071e-13,
+   "equity_identity_residual": 4.547473508864641e-13,
+   "years": {
+    "2017": 193.22,
+    "2018": -7.33,
+    "2019": 14.47,
+    "2020": 426.72,
+    "2021": 104.07,
+    "2022": -82.11,
+    "2023": 296.15,
+    "2024": 22.29,
+    "2025": -10.44,
+    "2026": -20.76
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 355.74,
+   "cagr_pct": 15,
+   "max_dd_pct": 96.3,
+   "min_equity": 96.3,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 159,
+   "win_rate": 33.96,
+   "profit_factor": 1.02,
+   "fees": {
+    "open": 155.96,
+    "close": 154.94,
+    "borrow": 1213.39,
+    "swap": 240.66,
+    "network": 57.7,
+    "slippage": 437.34,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 380,
+    "missed": 20,
+    "rejected": 9,
+    "stopFired": 17,
+    "stopFailed": 4,
+    "liquidations": 0,
+    "opens": 162,
+    "closes": 159,
+    "increases": 29,
+    "decreases": 18,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.163513729807164e-13,
+   "equity_identity_residual": 1.1368683772161603e-13,
+   "years": {
+    "2017": 183.28,
+    "2018": -17.34,
+    "2019": -1.26,
+    "2020": 356.92,
+    "2021": 82.96,
+    "2022": -85.59,
+    "2023": 195.31,
+    "2024": -5.19,
+    "2025": -29.66,
+    "2026": -35.14
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 74.46,
+   "cagr_pct": -3.41,
+   "max_dd_pct": 44.14,
+   "min_equity": 72.56,
+   "shutdown": "2018-10-11T01",
+   "liquidations": 0,
+   "trades": 6,
+   "win_rate": 16.67,
+   "profit_factor": 0.12,
+   "fees": {
+    "open": 0.26,
+    "close": 0.26,
+    "borrow": 1.86,
+    "swap": 0.35,
+    "network": 0.4,
+    "slippage": 0.43,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 13,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 6,
+    "closes": 6,
+    "increases": 1,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2018": -25.54,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 74.43,
+   "cagr_pct": -3.41,
+   "max_dd_pct": 41.75,
+   "min_equity": 74.3,
+   "shutdown": "2018-09-17T15",
+   "liquidations": 0,
+   "trades": 5,
+   "win_rate": 20,
+   "profit_factor": 0.1,
+   "fees": {
+    "open": 0.6,
+    "close": 0.6,
+    "borrow": 3.09,
+    "swap": 0.87,
+    "network": 1.7,
+    "slippage": 1.79,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 11,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 5,
+    "closes": 5,
+    "increases": 1,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 5.684341886080802e-14,
+   "equity_identity_residual": 5.684341886080802e-14,
+   "years": {
+    "2018": -25.57,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 74.85,
+   "cagr_pct": -5.92,
+   "max_dd_pct": 28.87,
+   "min_equity": 73.53,
+   "shutdown": "2022-02-24T05",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.14,
+    "close": 0.14,
+    "borrow": 0.38,
+    "swap": 0.17,
+    "network": 0.18,
+    "slippage": 0.23,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2022": -25.15,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L3",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.63,
+   "cagr_pct": -5.98,
+   "max_dd_pct": 28.12,
+   "min_equity": 73.87,
+   "shutdown": "2022-02-24T03",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.36,
+    "close": 0.36,
+    "borrow": 0.75,
+    "swap": 0.51,
+    "network": 0.9,
+    "slippage": 0.91,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2022": -25.37,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 627.25,
+   "cagr_pct": 22.41,
+   "max_dd_pct": 98.68,
+   "min_equity": 95.95,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 169,
+   "win_rate": 37.28,
+   "profit_factor": 1.01,
+   "fees": {
+    "open": 222.64,
+    "close": 221.77,
+    "borrow": 1931.76,
+    "swap": 186.18,
+    "network": 12.74,
+    "slippage": 436.08,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 370,
+    "missed": 5,
+    "rejected": 4,
+    "stopFired": 42,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 172,
+    "closes": 169,
+    "increases": 33,
+    "decreases": 29,
+    "skippedMin": 0
+   },
+   "ledger_residual": -7.084999253947899e-12,
+   "equity_identity_residual": -7.048583938740194e-12,
+   "years": {
+    "2017": 307.13,
+    "2018": -23.43,
+    "2019": 5.8,
+    "2020": 725.42,
+    "2021": 106.63,
+    "2022": -94.25,
+    "2023": 307.64,
+    "2024": 13.3,
+    "2025": -26.15,
+    "2026": -43.19
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 76.03,
+   "cagr_pct": -2.97,
+   "max_dd_pct": 98.97,
+   "min_equity": 73.12,
+   "shutdown": "2022-12-19T22",
+   "liquidations": 0,
+   "trades": 86,
+   "win_rate": 32.56,
+   "profit_factor": 1,
+   "fees": {
+    "open": 181.22,
+    "close": 181.22,
+    "borrow": 1060.36,
+    "swap": 186.66,
+    "network": 31.2,
+    "slippage": 600.98,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 183,
+    "missed": 7,
+    "rejected": 1,
+    "stopFired": 24,
+    "stopFailed": 4,
+    "liquidations": 0,
+    "opens": 86,
+    "closes": 86,
+    "increases": 16,
+    "decreases": 11,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.0605739337042905e-12,
+   "equity_identity_residual": 2.0605739337042905e-12,
+   "years": {
+    "2017": 284.66,
+    "2018": -30.23,
+    "2019": -16.52,
+    "2020": 561.16,
+    "2021": 57.04,
+    "2022": -96.73,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 75.61,
+   "cagr_pct": -3.23,
+   "max_dd_pct": 50.17,
+   "min_equity": 74.9,
+   "shutdown": "2018-09-08T00",
+   "liquidations": 0,
+   "trades": 5,
+   "win_rate": 40,
+   "profit_factor": 0.21,
+   "fees": {
+    "open": 0.39,
+    "close": 0.39,
+    "borrow": 2.31,
+    "swap": 0.29,
+    "network": 0.38,
+    "slippage": 0.72,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 11,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 5,
+    "closes": 5,
+    "increases": 2,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2018": -24.39,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 73.5,
+   "cagr_pct": -3.56,
+   "max_dd_pct": 49.95,
+   "min_equity": 73.5,
+   "shutdown": "2018-09-06T00",
+   "liquidations": 0,
+   "trades": 4,
+   "win_rate": 25,
+   "profit_factor": 0.16,
+   "fees": {
+    "open": 0.79,
+    "close": 0.79,
+    "borrow": 4.5,
+    "swap": 0.71,
+    "network": 1.4,
+    "slippage": 2.44,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 9,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 4,
+    "closes": 4,
+    "increases": 1,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 5.684341886080802e-14,
+   "equity_identity_residual": 5.684341886080802e-14,
+   "years": {
+    "2018": -26.5,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 78.33,
+   "cagr_pct": -5.02,
+   "max_dd_pct": 29.57,
+   "min_equity": 74.43,
+   "shutdown": "2022-02-21T22",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.22,
+    "close": 0.22,
+    "borrow": 0.46,
+    "swap": 0.17,
+    "network": 0.18,
+    "slippage": 0.37,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 6,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2022": -21.67,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_flat L5",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 75.57,
+   "cagr_pct": -5.73,
+   "max_dd_pct": 28.45,
+   "min_equity": 75,
+   "shutdown": "2022-02-21T11",
+   "liquidations": 0,
+   "trades": 3,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.59,
+    "close": 0.59,
+    "borrow": 0.85,
+    "swap": 0.5,
+    "network": 0.9,
+    "slippage": 1.48,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 7,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 3,
+    "closes": 3,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2022": -24.43,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 333.95,
+   "cagr_pct": 14.2,
+   "max_dd_pct": 62.13,
+   "min_equity": 99.07,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 237,
+   "win_rate": 41.35,
+   "profit_factor": 1.11,
+   "fees": {
+    "open": 15.52,
+    "close": 15.35,
+    "borrow": 149.37,
+    "swap": 24.39,
+    "network": 17.1,
+    "slippage": 25.79,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 549,
+    "missed": 6,
+    "rejected": 0,
+    "stopFired": 3,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 240,
+    "closes": 237,
+    "increases": 42,
+    "decreases": 27,
+    "skippedMin": 0
+   },
+   "ledger_residual": 6.643574579356937e-13,
+   "equity_identity_residual": 6.252776074688882e-13,
+   "years": {
+    "2017": 73.9,
+    "2018": 4.87,
+    "2019": -10.6,
+    "2020": 69.92,
+    "2021": 43.23,
+    "2022": -3.39,
+    "2023": 31.96,
+    "2024": -7.14,
+    "2025": 2.04,
+    "2026": -30.33
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 74.41,
+   "cagr_pct": -3.2,
+   "max_dd_pct": 79.85,
+   "min_equity": 74.17,
+   "shutdown": "2026-09-01T18",
+   "liquidations": 0,
+   "trades": 238,
+   "win_rate": 33.19,
+   "profit_factor": 0.97,
+   "fees": {
+    "open": 20.55,
+    "close": 20.55,
+    "borrow": 148.65,
+    "swap": 37.57,
+    "network": 85.2,
+    "slippage": 51.68,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 582,
+    "missed": 29,
+    "rejected": 11,
+    "stopFired": 3,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 238,
+    "closes": 238,
+    "increases": 40,
+    "decreases": 29,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.3732127374387346e-12,
+   "equity_identity_residual": 2.3732127374387346e-12,
+   "years": {
+    "2017": 69.41,
+    "2018": -3.7,
+    "2019": -20.54,
+    "2020": 52.94,
+    "2021": 31,
+    "2022": -15.14,
+    "2023": 3.89,
+    "2024": -24.05,
+    "2025": -15.7,
+    "2026": -49.25
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 75.32,
+   "cagr_pct": -3.28,
+   "max_dd_pct": 26.41,
+   "min_equity": 74.95,
+   "shutdown": "2019-01-26T07",
+   "liquidations": 0,
+   "trades": 19,
+   "win_rate": 21.05,
+   "profit_factor": 0.44,
+   "fees": {
+    "open": 0.26,
+    "close": 0.26,
+    "borrow": 1.43,
+    "swap": 0.18,
+    "network": 1.18,
+    "slippage": 0.46,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 37,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 2,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 19,
+    "closes": 19,
+    "increases": 0,
+    "decreases": 1,
+    "skippedMin": 0
+   },
+   "ledger_residual": -1.4210854715202004e-14,
+   "equity_identity_residual": -1.4210854715202004e-14,
+   "years": {
+    "2018": -21.08,
+    "2019": -4.56,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 74.57,
+   "cagr_pct": -3.39,
+   "max_dd_pct": 26.44,
+   "min_equity": 74.57,
+   "shutdown": "2018-06-03T08",
+   "liquidations": 0,
+   "trades": 7,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.24,
+    "close": 0.24,
+    "borrow": 0.92,
+    "swap": 0.19,
+    "network": 2.1,
+    "slippage": 0.66,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 14,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 7,
+    "closes": 7,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 4.263256414560601e-14,
+   "equity_identity_residual": 4.263256414560601e-14,
+   "years": {
+    "2018": -25.43,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 72.83,
+   "cagr_pct": -6.46,
+   "max_dd_pct": 53.27,
+   "min_equity": 72.16,
+   "shutdown": "2023-03-14T12",
+   "liquidations": 0,
+   "trades": 43,
+   "win_rate": 39.53,
+   "profit_factor": 0.74,
+   "fees": {
+    "open": 0.85,
+    "close": 0.85,
+    "borrow": 7.32,
+    "swap": 1.17,
+    "network": 3.22,
+    "slippage": 1.43,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 102,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 43,
+    "closes": 43,
+    "increases": 9,
+    "decreases": 7,
+    "skippedMin": 6
+   },
+   "ledger_residual": -2.842170943040401e-14,
+   "equity_identity_residual": -2.842170943040401e-14,
+   "years": {
+    "2022": -5.18,
+    "2023": -23.19,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L1.1",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 73.86,
+   "cagr_pct": -6.18,
+   "max_dd_pct": 46.31,
+   "min_equity": 73.86,
+   "shutdown": "2022-11-09T21",
+   "liquidations": 0,
+   "trades": 28,
+   "win_rate": 42.86,
+   "profit_factor": 0.66,
+   "fees": {
+    "open": 1.49,
+    "close": 1.49,
+    "borrow": 9.76,
+    "swap": 2.04,
+    "network": 11,
+    "slippage": 3.73,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 71,
+    "missed": 2,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 28,
+    "closes": 28,
+    "increases": 7,
+    "decreases": 6,
+    "skippedMin": 0
+   },
+   "ledger_residual": 8.526512829121202e-14,
+   "equity_identity_residual": 8.526512829121202e-14,
+   "years": {
+    "2022": -26.14,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 282.48,
+   "cagr_pct": 12.11,
+   "max_dd_pct": 83.17,
+   "min_equity": 98.46,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 242,
+   "win_rate": 41.74,
+   "profit_factor": 1.02,
+   "fees": {
+    "open": 33.77,
+    "close": 33.53,
+    "borrow": 310.37,
+    "swap": 33.78,
+    "network": 17.76,
+    "slippage": 58.24,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 559,
+    "missed": 6,
+    "rejected": 5,
+    "stopFired": 17,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 245,
+    "closes": 242,
+    "increases": 49,
+    "decreases": 29,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.1759482276829658e-12,
+   "equity_identity_residual": 1.1937117960769683e-12,
+   "years": {
+    "2017": 131.83,
+    "2018": -1.88,
+    "2019": -30.64,
+    "2020": 137.38,
+    "2021": 74.98,
+    "2022": -19.89,
+    "2023": 33.82,
+    "2024": -38.65,
+    "2025": 8.23,
+    "2026": -39.45
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 74.43,
+   "cagr_pct": -3.2,
+   "max_dd_pct": 87.39,
+   "min_equity": 74.03,
+   "shutdown": "2023-07-22T23",
+   "liquidations": 0,
+   "trades": 142,
+   "win_rate": 36.62,
+   "profit_factor": 0.98,
+   "fees": {
+    "open": 27.45,
+    "close": 27.45,
+    "borrow": 175.4,
+    "swap": 33.24,
+    "network": 51,
+    "slippage": 71.28,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 341,
+    "missed": 19,
+    "rejected": 4,
+    "stopFired": 8,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 142,
+    "closes": 142,
+    "increases": 24,
+    "decreases": 18,
+    "skippedMin": 0
+   },
+   "ledger_residual": 3.694822225952521e-13,
+   "equity_identity_residual": 3.694822225952521e-13,
+   "years": {
+    "2017": 125.09,
+    "2018": -13.84,
+    "2019": -42.21,
+    "2020": 102.59,
+    "2021": 53.56,
+    "2022": -38.68,
+    "2023": -65.19,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 75.26,
+   "cagr_pct": -3.29,
+   "max_dd_pct": 28.31,
+   "min_equity": 74.16,
+   "shutdown": "2018-04-15T11",
+   "liquidations": 0,
+   "trades": 2,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.05,
+    "close": 0.05,
+    "borrow": 0.12,
+    "swap": 0,
+    "network": 0.12,
+    "slippage": 0.08,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 4,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 2,
+    "closes": 2,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2018": -24.74,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 74.55,
+   "cagr_pct": -3.4,
+   "max_dd_pct": 27.65,
+   "min_equity": 74.4,
+   "shutdown": "2018-04-13T12",
+   "liquidations": 0,
+   "trades": 2,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.13,
+    "close": 0.13,
+    "borrow": 0.19,
+    "swap": 0,
+    "network": 0.6,
+    "slippage": 0.33,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 4,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 2,
+    "closes": 2,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2018": -25.45,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 74.89,
+   "cagr_pct": -5.91,
+   "max_dd_pct": 62.56,
+   "min_equity": 74.31,
+   "shutdown": "2022-12-16T23",
+   "liquidations": 0,
+   "trades": 34,
+   "win_rate": 41.18,
+   "profit_factor": 0.82,
+   "fees": {
+    "open": 1.33,
+    "close": 1.33,
+    "borrow": 10.94,
+    "swap": 1.14,
+    "network": 2.48,
+    "slippage": 2.26,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 81,
+    "missed": 1,
+    "rejected": 2,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 34,
+    "closes": 34,
+    "increases": 7,
+    "decreases": 4,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.1368683772161603e-13,
+   "equity_identity_residual": 1.1368683772161603e-13,
+   "years": {
+    "2022": -25.11,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L2",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 74.61,
+   "cagr_pct": -5.98,
+   "max_dd_pct": 61.24,
+   "min_equity": 68.19,
+   "shutdown": "2022-11-08T19",
+   "liquidations": 0,
+   "trades": 28,
+   "win_rate": 39.29,
+   "profit_factor": 0.79,
+   "fees": {
+    "open": 2.85,
+    "close": 2.85,
+    "borrow": 18.82,
+    "swap": 2.68,
+    "network": 10,
+    "slippage": 7.13,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 72,
+    "missed": 2,
+    "rejected": 6,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 28,
+    "closes": 28,
+    "increases": 4,
+    "decreases": 4,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.7053025658242404e-13,
+   "equity_identity_residual": 1.7053025658242404e-13,
+   "years": {
+    "2022": -25.39,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 190.9,
+   "cagr_pct": 7.38,
+   "max_dd_pct": 93.47,
+   "min_equity": 79.5,
+   "shutdown": null,
+   "liquidations": 0,
+   "trades": 248,
+   "win_rate": 41.53,
+   "profit_factor": 1,
+   "fees": {
+    "open": 41.32,
+    "close": 41.11,
+    "borrow": 358.57,
+    "swap": 29.04,
+    "network": 18.72,
+    "slippage": 73.84,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 583,
+    "missed": 5,
+    "rejected": 21,
+    "stopFired": 35,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 251,
+    "closes": 248,
+    "increases": 57,
+    "decreases": 36,
+    "skippedMin": 0
+   },
+   "ledger_residual": 6.572520305780927e-13,
+   "equity_identity_residual": 6.252776074688882e-13,
+   "years": {
+    "2017": 193.22,
+    "2018": -35,
+    "2019": -37.29,
+    "2020": 240.04,
+    "2021": 75.02,
+    "2022": -55.63,
+    "2023": 37.87,
+    "2024": -38.23,
+    "2025": -11.82,
+    "2026": -19.45
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 74.35,
+   "cagr_pct": -3.21,
+   "max_dd_pct": 84.14,
+   "min_equity": 74.35,
+   "shutdown": "2019-12-28T17",
+   "liquidations": 0,
+   "trades": 48,
+   "win_rate": 35.42,
+   "profit_factor": 0.95,
+   "fees": {
+    "open": 10.95,
+    "close": 10.95,
+    "borrow": 51.84,
+    "swap": 6.98,
+    "network": 17.8,
+    "slippage": 30.59,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 108,
+    "missed": 2,
+    "rejected": 0,
+    "stopFired": 7,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 48,
+    "closes": 48,
+    "increases": 8,
+    "decreases": 9,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.9895196601282805e-13,
+   "equity_identity_residual": 1.9895196601282805e-13,
+   "years": {
+    "2017": 183.28,
+    "2018": -45.93,
+    "2019": -51.46,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 78.62,
+   "cagr_pct": -2.79,
+   "max_dd_pct": 30.53,
+   "min_equity": 73.08,
+   "shutdown": "2018-04-12T11",
+   "liquidations": 0,
+   "trades": 2,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.07,
+    "close": 0.07,
+    "borrow": 0.12,
+    "swap": 0,
+    "network": 0.12,
+    "slippage": 0.12,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 4,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 2,
+    "closes": 2,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2018": -21.38,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 77.33,
+   "cagr_pct": -2.98,
+   "max_dd_pct": 30.91,
+   "min_equity": 72.17,
+   "shutdown": "2018-04-12T11",
+   "liquidations": 0,
+   "trades": 2,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.2,
+    "close": 0.2,
+    "borrow": 0.24,
+    "swap": 0,
+    "network": 0.6,
+    "slippage": 0.49,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 4,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 0,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 2,
+    "closes": 2,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.4210854715202004e-14,
+   "equity_identity_residual": 1.4210854715202004e-14,
+   "years": {
+    "2018": -22.67,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 72.51,
+   "cagr_pct": -6.55,
+   "max_dd_pct": 66.49,
+   "min_equity": 71.76,
+   "shutdown": "2022-11-08T04",
+   "liquidations": 0,
+   "trades": 30,
+   "win_rate": 43.33,
+   "profit_factor": 0.84,
+   "fees": {
+    "open": 1.87,
+    "close": 1.87,
+    "borrow": 15.12,
+    "swap": 1.09,
+    "network": 2.32,
+    "slippage": 3.22,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 74,
+    "missed": 1,
+    "rejected": 3,
+    "stopFired": 3,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 30,
+    "closes": 30,
+    "increases": 7,
+    "decreases": 6,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.2789769243681803e-13,
+   "equity_identity_residual": 1.2789769243681803e-13,
+   "years": {
+    "2022": -27.49,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L3",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 73.94,
+   "cagr_pct": -6.16,
+   "max_dd_pct": 63.07,
+   "min_equity": 73.75,
+   "shutdown": "2022-05-04T19",
+   "liquidations": 0,
+   "trades": 16,
+   "win_rate": 50,
+   "profit_factor": 0.69,
+   "fees": {
+    "open": 2.39,
+    "close": 2.39,
+    "borrow": 11.38,
+    "swap": 1.24,
+    "network": 5.6,
+    "slippage": 6.14,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 37,
+    "missed": 1,
+    "rejected": 1,
+    "stopFired": 1,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 16,
+    "closes": 16,
+    "increases": 2,
+    "decreases": 2,
+    "skippedMin": 0
+   },
+   "ledger_residual": 8.526512829121202e-14,
+   "equity_identity_residual": 8.526512829121202e-14,
+   "years": {
+    "2022": -26.06,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "DEV-1",
+   "costs": "base",
+   "final": 83.51,
+   "cagr_pct": -1.97,
+   "max_dd_pct": 97.02,
+   "min_equity": 72.81,
+   "shutdown": "2023-06-30T13",
+   "liquidations": 0,
+   "trades": 161,
+   "win_rate": 39.75,
+   "profit_factor": 1,
+   "fees": {
+    "open": 60.64,
+    "close": 60.64,
+    "borrow": 440.19,
+    "swap": 28.86,
+    "network": 11.86,
+    "slippage": 119.75,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 339,
+    "missed": 5,
+    "rejected": 8,
+    "stopFired": 51,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 161,
+    "closes": 161,
+    "increases": 30,
+    "decreases": 25,
+    "skippedMin": 0
+   },
+   "ledger_residual": 1.2931877790833823e-12,
+   "equity_identity_residual": 1.2931877790833823e-12,
+   "years": {
+    "2017": 307.13,
+    "2018": -44.74,
+    "2019": -32.81,
+    "2020": 350.81,
+    "2021": 26.29,
+    "2022": -73.52,
+    "2023": -63.35,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "DEV-1",
+   "costs": "conservative",
+   "final": 71.9,
+   "cagr_pct": -3.57,
+   "max_dd_pct": 90.75,
+   "min_equity": 68.46,
+   "shutdown": "2019-02-24T14",
+   "liquidations": 0,
+   "trades": 34,
+   "win_rate": 23.53,
+   "profit_factor": 0.97,
+   "fees": {
+    "open": 19.16,
+    "close": 19.16,
+    "borrow": 74.6,
+    "swap": 6.98,
+    "network": 13.4,
+    "slippage": 58.99,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 76,
+    "missed": 2,
+    "rejected": 0,
+    "stopFired": 10,
+    "stopFailed": 1,
+    "liquidations": 0,
+    "opens": 34,
+    "closes": 34,
+    "increases": 9,
+    "decreases": 7,
+    "skippedMin": 0
+   },
+   "ledger_residual": -4.121147867408581e-13,
+   "equity_identity_residual": -4.121147867408581e-13,
+   "years": {
+    "2017": 284.66,
+    "2018": -56.58,
+    "2019": -56.95,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "DEV-2",
+   "costs": "base",
+   "final": 66.19,
+   "cagr_pct": -4.74,
+   "max_dd_pct": 39.13,
+   "min_equity": 66.19,
+   "shutdown": "2018-04-12T11",
+   "liquidations": 0,
+   "trades": 2,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.12,
+    "close": 0.12,
+    "borrow": 0.2,
+    "swap": 0,
+    "network": 0.12,
+    "slippage": 0.31,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 2,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 2,
+    "closes": 2,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2018": -33.81,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "DEV-2",
+   "costs": "conservative",
+   "final": 64.34,
+   "cagr_pct": -5.05,
+   "max_dd_pct": 40.25,
+   "min_equity": 64.34,
+   "shutdown": "2018-04-12T11",
+   "liquidations": 0,
+   "trades": 2,
+   "win_rate": 0,
+   "profit_factor": 0,
+   "fees": {
+    "open": 0.33,
+    "close": 0.33,
+    "borrow": 0.41,
+    "swap": 0,
+    "network": 0.6,
+    "slippage": 1.44,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 2,
+    "missed": 0,
+    "rejected": 0,
+    "stopFired": 2,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 2,
+    "closes": 2,
+    "increases": 0,
+    "decreases": 0,
+    "skippedMin": 0
+   },
+   "ledger_residual": 0,
+   "equity_identity_residual": 0,
+   "years": {
+    "2018": -35.66,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "DEV-3",
+   "costs": "base",
+   "final": 75.39,
+   "cagr_pct": -5.78,
+   "max_dd_pct": 78.31,
+   "min_equity": 73.91,
+   "shutdown": "2022-11-06T19",
+   "liquidations": 0,
+   "trades": 32,
+   "win_rate": 46.88,
+   "profit_factor": 0.91,
+   "fees": {
+    "open": 3.55,
+    "close": 3.55,
+    "borrow": 27.93,
+    "swap": 1.23,
+    "network": 2.44,
+    "slippage": 6.62,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 79,
+    "missed": 1,
+    "rejected": 8,
+    "stopFired": 7,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 32,
+    "closes": 32,
+    "increases": 7,
+    "decreases": 6,
+    "skippedMin": 0
+   },
+   "ledger_residual": 2.842170943040401e-14,
+   "equity_identity_residual": 2.842170943040401e-14,
+   "years": {
+    "2022": -24.61,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  },
+  {
+   "candidate": "B long_short L5",
+   "window": "DEV-3",
+   "costs": "conservative",
+   "final": 72.58,
+   "cagr_pct": -6.53,
+   "max_dd_pct": 72.83,
+   "min_equity": 72.43,
+   "shutdown": "2022-04-18T04",
+   "liquidations": 0,
+   "trades": 13,
+   "win_rate": 46.15,
+   "profit_factor": 0.77,
+   "fees": {
+    "open": 3.73,
+    "close": 3.73,
+    "borrow": 17.87,
+    "swap": 1.33,
+    "network": 4.7,
+    "slippage": 10.42,
+    "liquidationLoss": 0
+   },
+   "counts": {
+    "requests": 29,
+    "missed": 1,
+    "rejected": 0,
+    "stopFired": 2,
+    "stopFailed": 0,
+    "liquidations": 0,
+    "opens": 13,
+    "closes": 13,
+    "increases": 2,
+    "decreases": 2,
+    "skippedMin": 0
+   },
+   "ledger_residual": 5.684341886080802e-14,
+   "equity_identity_residual": 5.684341886080802e-14,
+   "years": {
+    "2022": -27.42,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0,
+    "2026": 0
+   }
+  }
+ ],
+ "extra": {
+  "A long_flat L1.1": {
+   "research_mode_no_shutdown": {
+    "final": 140.31,
+    "cagr_pct": 4.06,
+    "max_dd_pct": 57.79,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -5.42,
+     "worst_pct": -12.55,
+     "best_pct": 29.88,
+     "positive_share": 0.251,
+     "p_loss25": 0
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -7.53,
+     "worst_pct": -15.01,
+     "best_pct": 33.89,
+     "positive_share": 0.265,
+     "p_loss25": 0
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -1.07,
+     "p5_pct": -10.6,
+     "worst_pct": -18.78,
+     "best_pct": 57.93,
+     "positive_share": 0.291,
+     "p_loss25": 0
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -3.36,
+     "p5_pct": -16.14,
+     "worst_pct": -23.29,
+     "best_pct": 99.41,
+     "positive_share": 0.361,
+     "p_loss25": 0
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 96.39,
+     "cagr_pct": -0.43,
+     "max_dd_pct": 35.26,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 110.4,
+     "cagr_pct": 1.17,
+     "max_dd_pct": 31.96,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 114.21,
+     "cagr_pct": 1.57,
+     "max_dd_pct": 38.64,
+     "liquidations": 0
+    }
+   }
+  },
+  "A long_flat L2": {
+   "research_mode_no_shutdown": {
+    "final": 207.05,
+    "cagr_pct": 8.94,
+    "max_dd_pct": 78.51,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -8.98,
+     "worst_pct": -21.14,
+     "best_pct": 50.53,
+     "positive_share": 0.295,
+     "p_loss25": 0
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": -0.3,
+     "p5_pct": -12.1,
+     "worst_pct": -22.14,
+     "best_pct": 59.55,
+     "positive_share": 0.297,
+     "p_loss25": 0
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -2.03,
+     "p5_pct": -16.83,
+     "worst_pct": -28.39,
+     "best_pct": 106.35,
+     "positive_share": 0.328,
+     "p_loss25": 0.004
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -6.17,
+     "p5_pct": -24.63,
+     "worst_pct": -37.37,
+     "best_pct": 195.72,
+     "positive_share": 0.379,
+     "p_loss25": 0.067
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 109.93,
+     "cagr_pct": 1.12,
+     "max_dd_pct": 46.11,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 143.79,
+     "cagr_pct": 4.36,
+     "max_dd_pct": 48.63,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 164.82,
+     "cagr_pct": 6.05,
+     "max_dd_pct": 51.71,
+     "liquidations": 0
+    }
+   }
+  },
+  "A long_flat L3": {
+   "research_mode_no_shutdown": {
+    "final": 293.48,
+    "cagr_pct": 13.5,
+    "max_dd_pct": 88.07,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -12.14,
+     "worst_pct": -28.89,
+     "best_pct": 73.05,
+     "positive_share": 0.313,
+     "p_loss25": 0.004
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -16.8,
+     "worst_pct": -30.75,
+     "best_pct": 89.68,
+     "positive_share": 0.327,
+     "p_loss25": 0.012
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -2.38,
+     "p5_pct": -23.13,
+     "worst_pct": -36.43,
+     "best_pct": 158.88,
+     "positive_share": 0.352,
+     "p_loss25": 0.046
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -6.91,
+     "p5_pct": -32.54,
+     "worst_pct": -49.23,
+     "best_pct": 284.73,
+     "positive_share": 0.408,
+     "p_loss25": 0.205
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 142.83,
+     "cagr_pct": 4.28,
+     "max_dd_pct": 53.45,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 195.86,
+     "cagr_pct": 8.23,
+     "max_dd_pct": 60.3,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 206.38,
+     "cagr_pct": 8.9,
+     "max_dd_pct": 62.65,
+     "liquidations": 0
+    }
+   }
+  },
+  "A long_flat L5": {
+   "research_mode_no_shutdown": {
+    "final": 71.16,
+    "cagr_pct": -3.92,
+    "max_dd_pct": 98.1,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -17.96,
+     "worst_pct": -46.49,
+     "best_pct": 126,
+     "positive_share": 0.316,
+     "p_loss25": 0.027
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -25.34,
+     "worst_pct": -47.93,
+     "best_pct": 147.56,
+     "positive_share": 0.33,
+     "p_loss25": 0.067
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -3.83,
+     "p5_pct": -35.67,
+     "worst_pct": -56.24,
+     "best_pct": 236.29,
+     "positive_share": 0.35,
+     "p_loss25": 0.146
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -11.73,
+     "p5_pct": -48.78,
+     "worst_pct": -68.68,
+     "best_pct": 498.45,
+     "positive_share": 0.376,
+     "p_loss25": 0.468
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 73.6,
+     "cagr_pct": -3.54,
+     "max_dd_pct": 36.6,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 271.22,
+     "cagr_pct": 12.45,
+     "max_dd_pct": 80.25,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 220.19,
+     "cagr_pct": 9.73,
+     "max_dd_pct": 79.96,
+     "liquidations": 0
+    }
+   }
+  },
+  "A long_short L1.1": {
+   "research_mode_no_shutdown": {
+    "final": 29.77,
+    "cagr_pct": -13.29,
+    "max_dd_pct": 75.99,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -4.97,
+     "worst_pct": -14.99,
+     "best_pct": 28.56,
+     "positive_share": 0.19,
+     "p_loss25": 0
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -7.34,
+     "worst_pct": -18.47,
+     "best_pct": 31.73,
+     "positive_share": 0.192,
+     "p_loss25": 0
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -0.58,
+     "p5_pct": -10.35,
+     "worst_pct": -22.53,
+     "best_pct": 37.18,
+     "positive_share": 0.225,
+     "p_loss25": 0
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -3.26,
+     "p5_pct": -19.65,
+     "worst_pct": -26.96,
+     "best_pct": 55.28,
+     "positive_share": 0.272,
+     "p_loss25": 0.014
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.74,
+     "cagr_pct": -3.37,
+     "max_dd_pct": 36.03,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.74,
+     "cagr_pct": -3.37,
+     "max_dd_pct": 34.49,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 105.4,
+     "cagr_pct": 0.62,
+     "max_dd_pct": 42.43,
+     "liquidations": 0
+    }
+   }
+  },
+  "A long_short L2": {
+   "research_mode_no_shutdown": {
+    "final": 27.92,
+    "cagr_pct": -13.94,
+    "max_dd_pct": 81.84,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -8.03,
+     "worst_pct": -31.11,
+     "best_pct": 50.55,
+     "positive_share": 0.166,
+     "p_loss25": 0.002
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -12.23,
+     "worst_pct": -35.43,
+     "best_pct": 57.95,
+     "positive_share": 0.167,
+     "p_loss25": 0.004
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": -18.35,
+     "worst_pct": -42.73,
+     "best_pct": 61.06,
+     "positive_share": 0.19,
+     "p_loss25": 0.016
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -32.06,
+     "worst_pct": -48.06,
+     "best_pct": 112.32,
+     "positive_share": 0.234,
+     "p_loss25": 0.147
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 73.17,
+     "cagr_pct": -3.61,
+     "max_dd_pct": 29.43,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.86,
+     "cagr_pct": -3.35,
+     "max_dd_pct": 51.48,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 75.19,
+     "cagr_pct": -3.3,
+     "max_dd_pct": 39.37,
+     "liquidations": 0
+    }
+   }
+  },
+  "A long_short L3": {
+   "research_mode_no_shutdown": {
+    "final": 27.05,
+    "cagr_pct": -14.26,
+    "max_dd_pct": 84.59,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -11.39,
+     "worst_pct": -28.24,
+     "best_pct": 73.81,
+     "positive_share": 0.17,
+     "p_loss25": 0.002
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -18.06,
+     "worst_pct": -29.89,
+     "best_pct": 84.48,
+     "positive_share": 0.173,
+     "p_loss25": 0.011
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": -25.47,
+     "worst_pct": -40.27,
+     "best_pct": 90.35,
+     "positive_share": 0.198,
+     "p_loss25": 0.07
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -41.53,
+     "worst_pct": -57.14,
+     "best_pct": 181.5,
+     "positive_share": 0.238,
+     "p_loss25": 0.267
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.58,
+     "cagr_pct": -3.39,
+     "max_dd_pct": 29.27,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.55,
+     "cagr_pct": -3.4,
+     "max_dd_pct": 62.34,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 73.64,
+     "cagr_pct": -3.54,
+     "max_dd_pct": 46.79,
+     "liquidations": 0
+    }
+   }
+  },
+  "A long_short L5": {
+   "research_mode_no_shutdown": {
+    "final": 23.76,
+    "cagr_pct": -15.56,
+    "max_dd_pct": 83.83,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -3.95,
+     "worst_pct": -40.8,
+     "best_pct": 88.68,
+     "positive_share": 0.053,
+     "p_loss25": 0.011
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -8.39,
+     "worst_pct": -43.08,
+     "best_pct": 92.75,
+     "positive_share": 0.054,
+     "p_loss25": 0.023
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": -20.98,
+     "worst_pct": -51.7,
+     "best_pct": 105.64,
+     "positive_share": 0.06,
+     "p_loss25": 0.047
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -46.83,
+     "worst_pct": -69.12,
+     "best_pct": 265.47,
+     "positive_share": 0.07,
+     "p_loss25": 0.099
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.5,
+     "cagr_pct": -3.4,
+     "max_dd_pct": 30.54,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 75.41,
+     "cagr_pct": -3.27,
+     "max_dd_pct": 56.2,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 78.13,
+     "cagr_pct": -2.86,
+     "max_dd_pct": 26.11,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_flat L1.1": {
+   "research_mode_no_shutdown": {
+    "final": 139.53,
+    "cagr_pct": 4,
+    "max_dd_pct": 72.78,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -6.81,
+     "worst_pct": -32.85,
+     "best_pct": 29.16,
+     "positive_share": 0.282,
+     "p_loss25": 0.002
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -9.62,
+     "worst_pct": -35.11,
+     "best_pct": 38.61,
+     "positive_share": 0.319,
+     "p_loss25": 0.007
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -0.21,
+     "p5_pct": -13.69,
+     "worst_pct": -35.35,
+     "best_pct": 68.17,
+     "positive_share": 0.375,
+     "p_loss25": 0.018
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -4.14,
+     "p5_pct": -27.5,
+     "worst_pct": -45.93,
+     "best_pct": 122.4,
+     "positive_share": 0.424,
+     "p_loss25": 0.087
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 96.27,
+     "cagr_pct": -0.45,
+     "max_dd_pct": 41.31,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 111.38,
+     "cagr_pct": 1.28,
+     "max_dd_pct": 43.89,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 158.88,
+     "cagr_pct": 5.6,
+     "max_dd_pct": 36.89,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_flat L2": {
+   "research_mode_no_shutdown": {
+    "final": 89.17,
+    "cagr_pct": -1.34,
+    "max_dd_pct": 91.06,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -12.08,
+     "worst_pct": -53.58,
+     "best_pct": 53.96,
+     "positive_share": 0.285,
+     "p_loss25": 0.011
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -17.35,
+     "worst_pct": -53.94,
+     "best_pct": 68.88,
+     "positive_share": 0.323,
+     "p_loss25": 0.026
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -0.18,
+     "p5_pct": -23.27,
+     "worst_pct": -53.94,
+     "best_pct": 138.93,
+     "positive_share": 0.382,
+     "p_loss25": 0.054
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -6.8,
+     "p5_pct": -46.94,
+     "worst_pct": -67.08,
+     "best_pct": 257.68,
+     "positive_share": 0.426,
+     "p_loss25": 0.195
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.34,
+     "cagr_pct": -3.43,
+     "max_dd_pct": 30.14,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 77.45,
+     "cagr_pct": -2.96,
+     "max_dd_pct": 42.13,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 274.94,
+     "cagr_pct": 12.63,
+     "max_dd_pct": 55.57,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_flat L3": {
+   "research_mode_no_shutdown": {
+    "final": 51.78,
+    "cagr_pct": -7.45,
+    "max_dd_pct": 96.48,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -16.28,
+     "worst_pct": -56.56,
+     "best_pct": 80.91,
+     "positive_share": 0.283,
+     "p_loss25": 0.023
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -22.93,
+     "worst_pct": -59.55,
+     "best_pct": 103.33,
+     "positive_share": 0.322,
+     "p_loss25": 0.054
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": -0.12,
+     "p5_pct": -34.53,
+     "worst_pct": -61.41,
+     "best_pct": 219.44,
+     "positive_share": 0.384,
+     "p_loss25": 0.114
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": -10.77,
+     "p5_pct": -55.07,
+     "worst_pct": -73.27,
+     "best_pct": 388.41,
+     "positive_share": 0.419,
+     "p_loss25": 0.378
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.88,
+     "cagr_pct": -3.35,
+     "max_dd_pct": 32.02,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 75.42,
+     "cagr_pct": -3.26,
+     "max_dd_pct": 37.28,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 378.4,
+     "cagr_pct": 16.95,
+     "max_dd_pct": 68.64,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_flat L5": {
+   "research_mode_no_shutdown": {
+    "final": 28.71,
+    "cagr_pct": -13.65,
+    "max_dd_pct": 82.45,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -2.07,
+     "worst_pct": -44.34,
+     "best_pct": 104.11,
+     "positive_share": 0.042,
+     "p_loss25": 0.009
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -6.69,
+     "worst_pct": -39.5,
+     "best_pct": 104.11,
+     "positive_share": 0.047,
+     "p_loss25": 0.021
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": -20.96,
+     "worst_pct": -48.28,
+     "best_pct": 104.11,
+     "positive_share": 0.053,
+     "p_loss25": 0.041
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -35.35,
+     "worst_pct": -72.55,
+     "best_pct": 274.12,
+     "positive_share": 0.033,
+     "p_loss25": 0.094
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 76.34,
+     "cagr_pct": -3.13,
+     "max_dd_pct": 37.54,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.94,
+     "cagr_pct": -3.34,
+     "max_dd_pct": 42.89,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 600.37,
+     "cagr_pct": 23.47,
+     "max_dd_pct": 82.11,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_short L1.1": {
+   "research_mode_no_shutdown": {
+    "final": 28.03,
+    "cagr_pct": -13.9,
+    "max_dd_pct": 76.89,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -6.75,
+     "worst_pct": -26.42,
+     "best_pct": 32.24,
+     "positive_share": 0.25,
+     "p_loss25": 0.001
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -10.97,
+     "worst_pct": -27.66,
+     "best_pct": 33.55,
+     "positive_share": 0.26,
+     "p_loss25": 0.005
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": -15.45,
+     "worst_pct": -35.4,
+     "best_pct": 35.1,
+     "positive_share": 0.297,
+     "p_loss25": 0.016
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -28.92,
+     "worst_pct": -42.76,
+     "best_pct": 40.03,
+     "positive_share": 0.323,
+     "p_loss25": 0.081
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.47,
+     "cagr_pct": -3.41,
+     "max_dd_pct": 35.27,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.36,
+     "cagr_pct": -3.42,
+     "max_dd_pct": 28.94,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 100.02,
+     "cagr_pct": 0,
+     "max_dd_pct": 55.45,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_short L2": {
+   "research_mode_no_shutdown": {
+    "final": 28.94,
+    "cagr_pct": -13.57,
+    "max_dd_pct": 72.03,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": -3.48,
+     "worst_pct": -27.19,
+     "best_pct": 40.98,
+     "positive_share": 0.056,
+     "p_loss25": 0
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": -6.93,
+     "worst_pct": -31.13,
+     "best_pct": 40.98,
+     "positive_share": 0.056,
+     "p_loss25": 0.009
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": -11.11,
+     "worst_pct": -36.43,
+     "best_pct": 40.98,
+     "positive_share": 0.062,
+     "p_loss25": 0.024
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -28.36,
+     "worst_pct": -55.87,
+     "best_pct": 78.62,
+     "positive_share": 0.056,
+     "p_loss25": 0.064
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 70.81,
+     "cagr_pct": -3.98,
+     "max_dd_pct": 32.16,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.76,
+     "cagr_pct": -3.36,
+     "max_dd_pct": 31.44,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 120.66,
+     "cagr_pct": 2.23,
+     "max_dd_pct": 72.18,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_short L3": {
+   "research_mode_no_shutdown": {
+    "final": 26.1,
+    "cagr_pct": -14.62,
+    "max_dd_pct": 76.91,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": 0,
+     "worst_pct": -44.39,
+     "best_pct": 35.63,
+     "positive_share": 0.023,
+     "p_loss25": 0.005
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": 0,
+     "worst_pct": -49.49,
+     "best_pct": 38.02,
+     "positive_share": 0.024,
+     "p_loss25": 0.011
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": -0.63,
+     "worst_pct": -49.49,
+     "best_pct": 43.29,
+     "positive_share": 0.026,
+     "p_loss25": 0.025
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -22.19,
+     "worst_pct": -63.21,
+     "best_pct": 54.06,
+     "positive_share": 0.027,
+     "p_loss25": 0.055
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.93,
+     "cagr_pct": -3.34,
+     "max_dd_pct": 26.57,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.93,
+     "cagr_pct": -3.34,
+     "max_dd_pct": 27.24,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 181.27,
+     "cagr_pct": 7.25,
+     "max_dd_pct": 80.29,
+     "liquidations": 0
+    }
+   }
+  },
+  "B long_short L5": {
+   "research_mode_no_shutdown": {
+    "final": 26.14,
+    "cagr_pct": -14.6,
+    "max_dd_pct": 75.73,
+    "liquidations": 0
+   },
+   "rolling": {
+    "7d": {
+     "n": 3098,
+     "median_pct": 0,
+     "p5_pct": 0,
+     "worst_pct": -44.35,
+     "best_pct": 63.77,
+     "positive_share": 0.022,
+     "p_loss25": 0.007
+    },
+    "14d": {
+     "n": 3091,
+     "median_pct": 0,
+     "p5_pct": 0,
+     "worst_pct": -44.73,
+     "best_pct": 67.14,
+     "positive_share": 0.023,
+     "p_loss25": 0.016
+    },
+    "30d": {
+     "n": 3075,
+     "median_pct": 0,
+     "p5_pct": 0,
+     "worst_pct": -48.57,
+     "best_pct": 79.13,
+     "positive_share": 0.026,
+     "p_loss25": 0.031
+    },
+    "91d": {
+     "n": 3014,
+     "median_pct": 0,
+     "p5_pct": -34.52,
+     "worst_pct": -67.02,
+     "best_pct": 97.12,
+     "positive_share": 0.029,
+     "p_loss25": 0.068
+    }
+   },
+   "per_asset": {
+    "BTC": {
+     "final": 74.7,
+     "cagr_pct": -3.37,
+     "max_dd_pct": 28.43,
+     "liquidations": 0
+    },
+    "ETH": {
+     "final": 74.84,
+     "cagr_pct": -3.35,
+     "max_dd_pct": 28.21,
+     "liquidations": 0
+    },
+    "SOL": {
+     "final": 74.27,
+     "cagr_pct": -3.44,
+     "max_dd_pct": 78.2,
+     "liquidations": 0
+    }
+   }
+  }
+ }
+}
