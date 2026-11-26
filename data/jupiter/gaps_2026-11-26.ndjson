@@ -1,0 +1,1 @@
+{"count":565,"detail":"over 200 getTransaction cap; signatures not decoded (sampling, not backfilled)","end_utc":"2026-11-26T23:37:38Z","kind":"rpc_unprocessed","recorded_utc":"2026-11-26T23:48:13Z","ref":"program_signatures","run_id":1,"start_utc":"2026-11-26T23:11:24Z"}
