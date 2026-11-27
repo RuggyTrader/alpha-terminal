@@ -92,6 +92,9 @@ class Trade:
     same_bar: bool = False
     mae_points: float = 0.0
     mfe_points: float = 0.0
+    contract: str = ""
+    exit_stop: Optional[float] = None
+    exit_tp: Optional[float] = None
 
 
 class Broker:
@@ -176,9 +179,18 @@ class Broker:
                         if b < a and lo <= T - thr:
                             return self._close(k, t, T, "TP", 0.0, filled_this_bar)
 
+    def close_market(self, k, t, px, kind):
+        """Flatten at a bar's close (research: roll / window end), with stop-slip ticks as market slippage."""
+        if self.pos is None:
+            return
+        slip = self.ex.stop_slip_ticks * self.ex.tick
+        self._close(k, t, px - self.pos.side * slip, kind, slip, False)
+
     def _close(self, k, t, px, kind, slip_px, same_bar):
         p = self.pos
         p.exit_bar, p.exit_time, p.exit = k, t, px
+        p.exit_stop = self.bracket["stop"] if self.bracket else None   # the live stop at exit (for ambiguity checks)
+        p.exit_tp = self.bracket["tp"] if self.bracket else None
         p.reason = kind
         p.same_bar = same_bar
         pv, q = self.ex.point_value, p.qty
@@ -195,8 +207,13 @@ class Broker:
         self.pending = None
 
 
-def run(bars: Dict[str, List[float]], st: Settings, ex: Execution) -> Dict[str, Any]:
-    """bars: dict of lists t, o, h, l, c (chronological, one instrument). Returns trades, equity, diagnostics."""
+def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) -> Dict[str, Any]:
+    """bars: dict of lists t, o, h, l, c (chronological, one instrument). Returns trades, equity, diagnostics.
+
+    window (research addition for contract rolls; not part of the Pine script): (trade_from, trade_until). Bars before
+    trade_from only warm up indicators and structure (no orders are placed); at the last bar before trade_until any
+    position is flattened at that bar's close (reason ROLL) and no further orders are placed.
+    """
     t, O, Hh, Ll, C = bars["t"], bars["o"], bars["h"], bars["l"], bars["c"]
     n = len(C)
     A = _atr(Hh, Ll, C, 14)
@@ -341,7 +358,8 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution) -> Dict[str, 
             timing = armedNow and priceSide
             valid = (tp2v > ep > slPlan) if d == 1 else (tp2v < ep < slPlan)
             dirOk = st.allow_long if d == 1 else st.allow_short
-            place = timing and valid and dirOk and sc >= st.min_score
+            in_window = window is None or (window[0] <= t[k] < window[1] and not (k + 1 < n and t[k + 1] >= window[1]))
+            place = timing and valid and dirOk and sc >= st.min_score and in_window
             S["armed"] = armedNow
             if place:
                 qty = st.risk_usd / (abs(ep - slPlan) * pv)
@@ -383,6 +401,14 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution) -> Dict[str, 
                 if beNow and not trailNow:
                     diag["be_moves"] += 1
                 br.set_exit(round_to_mintick(S["tp2P"], tick), S["curStop"])   # live from the next bar
+        # ---- 5b) research: flatten at the end of the contract's trading window (roll) ----
+        if window is not None and (k + 1 >= n or t[k + 1] >= window[1]) and t[k] < window[1]:
+            if br.pos is not None:
+                br.close_market(k, t[k], c, "ROLL")
+                tr = br.closed[-1]; tr._booked = True; realized += tr.net
+            br.cancel_all()   # a pending entry must not fill after the window
+            S.update(triggered=False, trailOn=False, dir=0)
+            S["lastClosed"] = len(br.closed)
         # ---- 6) marks ----
         ur = ul = 0.0
         if br.pos is not None:
