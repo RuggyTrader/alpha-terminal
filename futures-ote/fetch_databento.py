@@ -18,8 +18,9 @@ import sys
 
 from ote_engine.secret import get_key, redact
 
-DATASET, SCHEMA, SYMBOLS, STYPE = "GLBX.MDP3", "ohlcv-1m", ["MNQ.FUT"], "parent"
-START = dt.date(2019, 5, 5)   # MNQ launched on 2019-05-06
+DATASET, SCHEMA, STYPE = "GLBX.MDP3", "ohlcv-1m", "parent"
+ROOTS = ("MNQ", "MES")          # Micro E-mini Nasdaq-100 / S&P 500 (both launched 2019-05-06)
+START = dt.date(2019, 5, 5)
 
 
 def main():
@@ -28,7 +29,9 @@ def main():
     ap.add_argument("--estimate", action="store_true")
     ap.add_argument("--max-cost", type=float, default=5.0)
     ap.add_argument("--schema", default=SCHEMA)
+    ap.add_argument("--root", default="MNQ", choices=ROOTS)
     a = ap.parse_args()
+    SYMBOLS = [f"{a.root}.FUT"]
     key = None
     try:
         import databento as db
@@ -36,7 +39,7 @@ def main():
         client = db.Historical(key=key)
         rng = client.metadata.get_dataset_range(dataset=DATASET)
         end = str(rng["end"] if isinstance(rng, dict) else rng.end)[:10]
-        out_dir = os.path.join(a.cache, DATASET, a.schema, "MNQ.FUT")
+        out_dir = os.path.join(a.cache, DATASET, a.schema, SYMBOLS[0])
         os.makedirs(out_dir, exist_ok=True)
         years = list(range(START.year, int(end[:4]) + 1))
         plan, total = [], 0.0
@@ -51,7 +54,7 @@ def main():
             size = client.metadata.get_billable_size(dataset=DATASET, start=s, end=e, symbols=SYMBOLS, stype_in=STYPE, schema=a.schema)
             plan.append({"year": y, "start": s, "end": e, "cost_usd": round(float(cost), 4), "bytes": int(size), "path": path})
             total += float(cost)
-        print(json.dumps({"dataset": DATASET, "schema": a.schema, "available_end": end, "estimated_total_usd": round(total, 4), "plan": plan}, indent=1))
+        print(json.dumps({"dataset": DATASET, "schema": a.schema, "symbols": SYMBOLS, "available_end": end, "estimated_total_usd": round(total, 4), "plan": plan}, indent=1))
         if a.estimate:
             return
         if total > a.max_cost:

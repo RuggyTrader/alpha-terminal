@@ -1,0 +1,5503 @@
+{
+ "label": "SIMULATED MFFU research accounts. Historical simulated results do not guarantee evaluation success.",
+ "period": "demo",
+ "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
+ "instrument": "MNQ",
+ "strategy": "OTE + PD Array, Configuration A (locked), 1 contract",
+ "news_calendar": "NONE (stages that prohibit T1 news are blocked)",
+ "holdout_start": null,
+ "preregistered_configs": [
+  "builder-50k",
+  "builder-50k-eodbreach",
+  "builder-50k-addon",
+  "builder-100k",
+  "rapid-50k-evalEOD",
+  "rapid-50k-evalIntraday",
+  "rapid-eod-50k",
+  "pro-50k",
+  "pro-50k-one-day"
+ ],
+ "scenarios": {
+  "C2_base": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+  "C3_conservative": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+  "C4_stress": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+  "C1_optimistic": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path"
+ },
+ "runs": {
+  "builder-50k__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "builder-50k__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "builder-50k__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "builder-50k__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "builder-50k-eodbreach__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k-eodbreach",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "eod_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "eod_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "builder-50k-eodbreach__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k-eodbreach",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "eod_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "eod_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "builder-50k-eodbreach__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k-eodbreach",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "eod_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "eod_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "builder-50k-eodbreach__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k",
+   "run_label": "builder-50k-eodbreach",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "eod_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "eod_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k live contract limit not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "f818df9ace42a855",
+    "sim_funded": "a20068f3aa22bf97",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     153.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      153.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "builder-50k-addon__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k_addon",
+   "run_label": "builder-50k-addon",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k_addon live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "e6ed2c1ad4bbcb76",
+    "sim_funded": "611074872ec985e6",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     125.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      125.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "builder-50k-addon__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k_addon",
+   "run_label": "builder-50k-addon",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k_addon live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "e6ed2c1ad4bbcb76",
+    "sim_funded": "611074872ec985e6",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     125.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      125.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "builder-50k-addon__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k_addon",
+   "run_label": "builder-50k-addon",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k_addon live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "e6ed2c1ad4bbcb76",
+    "sim_funded": "611074872ec985e6",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     125.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      125.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "builder-50k-addon__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/50k_addon",
+   "run_label": "builder-50k-addon",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "builder/50k_addon live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "e6ed2c1ad4bbcb76",
+    "sim_funded": "611074872ec985e6",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": [
+     125.0,
+     "S12"
+    ],
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      0.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": [
+      125.0,
+      "S12"
+     ],
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "builder-100k__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/100k",
+   "run_label": "builder-100k",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": {
+     "breach_basis": "intraday_equity"
+    }
+   },
+   "unresolved_stages": {},
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": [
+     "t1_news_allowed"
+    ]
+   },
+   "rules_hash": {
+    "evaluation": "f41ecd86ae45bfe7",
+    "sim_funded": "f36cbceb87d5e87a",
+    "live_hypothetical": "9bd6dfd12c125ecc"
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "builder-100k__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/100k",
+   "run_label": "builder-100k",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": {
+     "breach_basis": "intraday_equity"
+    }
+   },
+   "unresolved_stages": {},
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": [
+     "t1_news_allowed"
+    ]
+   },
+   "rules_hash": {
+    "evaluation": "f41ecd86ae45bfe7",
+    "sim_funded": "f36cbceb87d5e87a",
+    "live_hypothetical": "9bd6dfd12c125ecc"
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "builder-100k__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/100k",
+   "run_label": "builder-100k",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": {
+     "breach_basis": "intraday_equity"
+    }
+   },
+   "unresolved_stages": {},
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": [
+     "t1_news_allowed"
+    ]
+   },
+   "rules_hash": {
+    "evaluation": "f41ecd86ae45bfe7",
+    "sim_funded": "f36cbceb87d5e87a",
+    "live_hypothetical": "9bd6dfd12c125ecc"
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "builder-100k__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "builder/100k",
+   "run_label": "builder-100k",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": {
+     "breach_basis": "intraday_equity"
+    }
+   },
+   "unresolved_stages": {},
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days"
+    ],
+    "sim_funded": [],
+    "live_hypothetical": [
+     "t1_news_allowed"
+    ]
+   },
+   "rules_hash": {
+    "evaluation": "f41ecd86ae45bfe7",
+    "sim_funded": "f36cbceb87d5e87a",
+    "live_hypothetical": "9bd6dfd12c125ecc"
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "rapid-50k-evalEOD__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalEOD",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "eod_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "rapid-50k-evalEOD__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalEOD",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "eod_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "rapid-50k-evalEOD__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalEOD",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "eod_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "rapid-50k-evalEOD__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalEOD",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "eod_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "rapid-50k-evalIntraday__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalIntraday",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "intraday_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "rapid-50k-evalIntraday__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalIntraday",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "intraday_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "rapid-50k-evalIntraday__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalIntraday",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "intraday_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "rapid-50k-evalIntraday__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid/50k",
+   "run_label": "rapid-50k-evalIntraday",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "drawdown_type": "intraday_trailing",
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "max_minis": 2,
+     "max_micros": 20
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "733f6a3b4670903e",
+    "sim_funded": "0320fc1c3125c9ee",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "rapid-eod-50k__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid_eod/50k",
+   "run_label": "rapid-eod-50k",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid_eod/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "be67b2d805962544",
+    "sim_funded": "5de28634312c7cac",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "rapid-eod-50k__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid_eod/50k",
+   "run_label": "rapid-eod-50k",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid_eod/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "be67b2d805962544",
+    "sim_funded": "5de28634312c7cac",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "rapid-eod-50k__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid_eod/50k",
+   "run_label": "rapid-eod-50k",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid_eod/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "be67b2d805962544",
+    "sim_funded": "5de28634312c7cac",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "rapid-eod-50k__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "rapid_eod/50k",
+   "run_label": "rapid-eod-50k",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity"
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "rapid_eod/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "be67b2d805962544",
+    "sim_funded": "5de28634312c7cac",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "pro-50k__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k",
+   "run_label": "pro-50k",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity",
+     "max_micros": 3
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "pro/50k live_hypothetical: 'lock_offset' is UNRESOLVED (Pro live lock not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "67ef61eb708a7342",
+    "sim_funded": "f84ae92f9ab3de04",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "pro-50k__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k",
+   "run_label": "pro-50k",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity",
+     "max_micros": 3
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "pro/50k live_hypothetical: 'lock_offset' is UNRESOLVED (Pro live lock not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "67ef61eb708a7342",
+    "sim_funded": "f84ae92f9ab3de04",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "pro-50k__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k",
+   "run_label": "pro-50k",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity",
+     "max_micros": 3
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "pro/50k live_hypothetical: 'lock_offset' is UNRESOLVED (Pro live lock not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "67ef61eb708a7342",
+    "sim_funded": "f84ae92f9ab3de04",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "pro-50k__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k",
+   "run_label": "pro-50k",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": {
+     "breach_basis": "intraday_equity",
+     "max_micros": 3
+    },
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "live_hypothetical": "pro/50k live_hypothetical: 'lock_offset' is UNRESOLVED (Pro live lock not stated); pass an explicit choice from ()"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "67ef61eb708a7342",
+    "sim_funded": "f84ae92f9ab3de04",
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  },
+  "pro-50k-one-day__C2_base": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k_one_day",
+   "run_label": "pro-50k-one-day",
+   "scenario": "C2_base",
+   "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "sim_funded": "pro/50k_one_day sim_funded: no MFFU article for this stage was read; parameters unresolved",
+    "live_hypothetical": "pro/50k_one_day live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "0c54a5a666fa30a8",
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -237.48,
+    "trades": 76,
+    "commissions": 112.48,
+    "slippage": 30.5,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 411.54
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.791,
+    "expectancy": -3.12,
+    "net": -237.48,
+    "exit_reasons": {
+     "SL": 29,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 5
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -237.48,
+     "trades": 76,
+     "commissions": 112.48,
+     "slippage": 30.5,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 411.54
+    }
+   }
+  },
+  "pro-50k-one-day__C3_conservative": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k_one_day",
+   "run_label": "pro-50k-one-day",
+   "scenario": "C3_conservative",
+   "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "sim_funded": "pro/50k_one_day sim_funded: no MFFU article for this stage was read; parameters unresolved",
+    "live_hypothetical": "pro/50k_one_day live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "0c54a5a666fa30a8",
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -321.0,
+    "trades": 77,
+    "commissions": 231.0,
+    "slippage": 60.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 524.8
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 33.77,
+    "profit_factor": 0.75,
+    "expectancy": -4.17,
+    "net": -321.0,
+    "exit_reasons": {
+     "SL": 31,
+     "TRAIL": 25,
+     "TP2": 17,
+     "BE": 4
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -321.0,
+     "trades": 77,
+     "commissions": 231.0,
+     "slippage": 60.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 524.8
+    }
+   }
+  },
+  "pro-50k-one-day__C4_stress": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k_one_day",
+   "run_label": "pro-50k-one-day",
+   "scenario": "C4_stress",
+   "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "sim_funded": "pro/50k_one_day sim_funded: no MFFU article for this stage was read; parameters unresolved",
+    "live_hypothetical": "pro/50k_one_day live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "0c54a5a666fa30a8",
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -458.0,
+    "trades": 77,
+    "commissions": 308.0,
+    "slippage": 120.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 595.1
+   },
+   "pooled_trades": {
+    "trades": 77,
+    "win_rate_pct": 32.47,
+    "profit_factor": 0.669,
+    "expectancy": -5.95,
+    "net": -458.0,
+    "exit_reasons": {
+     "SL": 35,
+     "TRAIL": 25,
+     "TP2": 17
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3266,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -458.0,
+     "trades": 77,
+     "commissions": 308.0,
+     "slippage": 120.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 595.1
+    }
+   }
+  },
+  "pro-50k-one-day__C1_optimistic": {
+   "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
+   "plan": "pro/50k_one_day",
+   "run_label": "pro-50k-one-day",
+   "scenario": "C1_optimistic",
+   "scenario_label": "ASSUMPTION: $0.50/side all-in, no slippage, TradingView intrabar path",
+   "choices": {
+    "evaluation": {
+     "breach_basis": "intraday_equity"
+    },
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "unresolved_stages": {
+    "sim_funded": "pro/50k_one_day sim_funded: no MFFU article for this stage was read; parameters unresolved",
+    "live_hypothetical": "pro/50k_one_day live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+   },
+   "unresolved_fields": {
+    "evaluation": [
+     "inactivity_days",
+     "flat_by_session_end"
+    ],
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "rules_hash": {
+    "evaluation": "0c54a5a666fa30a8",
+    "sim_funded": null,
+    "live_hypothetical": null
+   },
+   "all": {
+    "evaluation_attempts": 1,
+    "completed": 0,
+    "passed": 0,
+    "breached": 0,
+    "inactive": 0,
+    "open_at_end": 1,
+    "pass_rate_pct": null,
+    "median_calendar_days_to_pass": null,
+    "median_trading_days_to_pass": null,
+    "median_trading_days_to_fail": null,
+    "failure_reasons": {},
+    "consistency_delays": 0,
+    "sim_funded_accounts": 0,
+    "sim_breached": 0,
+    "promoted_to_live": 0,
+    "live_accounts": 0,
+    "live_breached": 0,
+    "simulated_payouts": 0,
+    "payouts_gross": 0,
+    "payouts_trader_share": 0,
+    "evaluation_fees_if_documented": "price not read",
+    "net_pnl_all_accounts": -170.5,
+    "trades": 76,
+    "commissions": 76.0,
+    "slippage": 0.0,
+    "dll_soft_pauses": 0,
+    "worst_attempt_drawdown": 384.64
+   },
+   "pooled_trades": {
+    "trades": 76,
+    "win_rate_pct": 35.53,
+    "profit_factor": 0.843,
+    "expectancy": -2.24,
+    "net": -170.5,
+    "exit_reasons": {
+     "SL": 28,
+     "TRAIL": 27,
+     "TP2": 15,
+     "BE": 6
+    }
+   },
+   "overlay_counters": {
+    "session_flattens": 0,
+    "news_flattens": 0,
+    "breach_flattens": 0,
+    "dll_flattens": 0,
+    "held_across_session_rule_unresolved": 0,
+    "orphan_trades": 0,
+    "stage_unresolved_skips": 0
+   },
+   "compliance_counts": {
+    "ACCEPTED": 3283,
+    "MARKET_CLOSED": 2
+   },
+   "chronological": {
+    "split_at": "2026-04-06",
+    "first_half": {
+     "evaluation_attempts": 0,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 0,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": 0,
+     "trades": 0,
+     "commissions": 0,
+     "slippage": 0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 0
+    },
+    "second_half": {
+     "evaluation_attempts": 1,
+     "completed": 0,
+     "passed": 0,
+     "breached": 0,
+     "inactive": 0,
+     "open_at_end": 1,
+     "pass_rate_pct": null,
+     "median_calendar_days_to_pass": null,
+     "median_trading_days_to_pass": null,
+     "median_trading_days_to_fail": null,
+     "failure_reasons": {},
+     "consistency_delays": 0,
+     "sim_funded_accounts": 0,
+     "sim_breached": 0,
+     "promoted_to_live": 0,
+     "live_accounts": 0,
+     "live_breached": 0,
+     "simulated_payouts": 0,
+     "payouts_gross": 0,
+     "payouts_trader_share": 0,
+     "evaluation_fees_if_documented": "price not read",
+     "net_pnl_all_accounts": -170.5,
+     "trades": 76,
+     "commissions": 76.0,
+     "slippage": 0.0,
+     "dll_soft_pauses": 0,
+     "worst_attempt_drawdown": 384.64
+    }
+   }
+  }
+ }
+}

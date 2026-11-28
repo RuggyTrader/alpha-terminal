@@ -15,11 +15,16 @@ import pandas as pd
 ET = "America/New_York"
 MONTHS = "FGHJKMNQUVXZ"
 OUTRIGHT = re.compile(r"^MNQ([FGHJKMNQUVXZ])(\d{1,2})$")
+ANY_OUTRIGHT = re.compile(r"^[A-Z]{2,3}([FGHJKMNQUVXZ])(\d{1,2})$")
+
+
+def outright(root: str):
+    return re.compile(rf"^{re.escape(root)}([FGHJKMNQUVXZ])(\d{{1,2}})$")
 
 
 def expiry_key(sym: str, ref_year: int) -> Tuple[int, int]:
     """(year, month) of a raw symbol like MNQM9 / MNQZ24; a 1-digit year is resolved to the decade nearest ref_year."""
-    m = OUTRIGHT.match(sym)
+    m = ANY_OUTRIGHT.match(sym)
     if not m:
         raise ValueError(sym)
     mon, yy = MONTHS.index(m.group(1)) + 1, m.group(2)
@@ -36,9 +41,9 @@ def trading_day(ts_et: pd.Series) -> pd.Series:
     return (ts_et + pd.Timedelta(hours=6)).dt.normalize().dt.date
 
 
-def front_schedule(df: pd.DataFrame) -> pd.DataFrame:
+def front_schedule(df: pd.DataFrame, root: str = "MNQ") -> pd.DataFrame:
     """df: per-contract 1m bars with columns time (ET), symbol, volume. Returns one row per session day: day, front."""
-    out = df[df["symbol"].str.match(OUTRIGHT)].copy()
+    out = df[df["symbol"].str.match(outright(root))].copy()
     out["day"] = trading_day(out["time"])
     vol = out.groupby(["day", "symbol"])["volume"].sum().unstack(fill_value=0).sort_index()
     days = list(vol.index)

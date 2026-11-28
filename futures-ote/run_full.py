@@ -19,7 +19,7 @@ import sys
 import pandas as pd
 
 from ote_engine.strategy import Settings, Execution, run
-from ote_engine.rolls import front_schedule, segments, OUTRIGHT
+from ote_engine.rolls import front_schedule, segments, outright
 from ote_engine.report import metrics, export
 from ote_engine.data import validate
 
@@ -32,19 +32,19 @@ SIZING = ["fractional", "whole", "fixed1"]
 WARMUP = pd.Timedelta(days=10)
 
 
-def load_cache(cache):
+def load_cache(cache, root="MNQ"):
     import databento as db   # reading local DBN files needs no API key
     frames = []
-    for p in sorted(glob.glob(os.path.join(cache, "GLBX.MDP3", "ohlcv-1m", "MNQ.FUT", "*.dbn.zst"))):
+    for p in sorted(glob.glob(os.path.join(cache, "GLBX.MDP3", "ohlcv-1m", f"{root}.FUT", "*.dbn.zst"))):
         d = db.DBNStore.from_file(p).to_df()
         frames.append(d.reset_index()[["ts_event", "symbol", "open", "high", "low", "close", "volume"]])
     df = pd.concat(frames, ignore_index=True)
-    df = df[df["symbol"].str.match(OUTRIGHT)].copy()            # outright contracts only (no calendar spreads)
+    df = df[df["symbol"].str.match(outright(root))].copy()            # outright contracts only (no calendar spreads)
     df["time"] = pd.to_datetime(df["ts_event"], utc=True).dt.tz_convert(ET)
     return df.drop(columns=["ts_event"]).sort_values(["symbol", "time"]).drop_duplicates(["symbol", "time"]).reset_index(drop=True)
 
 
-def run_period(df, segs, lo, hi, st, ex):
+def run_period(df, segs, lo, hi, st, ex, overlay=None):
     trades, eqc, eql, times, offset = [], [], [], [], 0.0
     diag = {}
     for s in segs:
@@ -53,7 +53,7 @@ def run_period(df, segs, lo, hi, st, ex):
             continue
         sub = df[(df["symbol"] == s["symbol"]) & (df["time"] >= a - WARMUP) & (df["time"] < b)]
         bars = {"t": list(sub["time"]), "o": sub["open"].tolist(), "h": sub["high"].tolist(), "l": sub["low"].tolist(), "c": sub["close"].tolist()}
-        r = run(bars, st, ex, window=(a, b))
+        r = run(bars, st, ex, window=(a, b), overlay=overlay)
         for x in r["trades"]:
             x.contract = s["symbol"]
         trades += r["trades"]

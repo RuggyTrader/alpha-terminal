@@ -207,12 +207,17 @@ class Broker:
         self.pending = None
 
 
-def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) -> Dict[str, Any]:
+def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None, overlay=None) -> Dict[str, Any]:
     """bars: dict of lists t, o, h, l, c (chronological, one instrument). Returns trades, equity, diagnostics.
 
     window (research addition for contract rolls; not part of the Pine script): (trade_from, trade_until). Bars before
     trade_from only warm up indicators and structure (no orders are placed); at the last bar before trade_until any
     position is flattened at that bar's close (reason ROLL) and no further orders are placed.
+
+    overlay (research addition; not part of the Pine script): an external account-rule layer (mffu.evaluate). Default None
+    leaves every result unchanged. Inside the trading window it may (a) refuse an order at placement (admit), (b) flatten a
+    position inside a bar at an account threshold (on_bar: breach / soft daily-loss pause) and (c) flatten at a bar's close
+    (end_of_bar: session end, news window). Strategy inputs and logic are not changed; refused orders are counted.
     """
     t, O, Hh, Ll, C = bars["t"], bars["o"], bars["h"], bars["l"], bars["c"]
     n = len(C)
@@ -231,13 +236,17 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) 
              lastLowBar=None, armed=False, triggered=False, trigBar=None, entryP=None, slP=None, tp2P=None, beLevel=None,
              beDone=False, trailLevel=None, trailOn=False, trailMoved=False, curStop=None, planSL=None, planTP2=None,
              lastClosed=0, tSwingLow=None, tSwingHigh=None, forced=False)
-    diag = dict(setups=0, orders_placed_bars=0, rejected_setups=set(), rejected_bars=0, be_moves=0, trail_moves=0, same_bar_trades=0)
+    diag = dict(setups=0, orders_placed_bars=0, rejected_setups=set(), rejected_bars=0, be_moves=0, trail_moves=0, same_bar_trades=0,
+                account_refused_bars=0, account_refused_setups=set(), account_flattens=0)
     eq_close, eq_low = [], []
     realized = 0.0
     setup_id = 0
 
     def lvl(r):
         return S["legEnd"] + (S["legStart"] - S["legEnd"]) * r
+
+    def live(tt):
+        return window is None or window[0] <= tt < window[1]
 
     for k in range(n):
         o, h, l, c = O[k], Hh[k], Ll[k], C[k]
@@ -251,6 +260,14 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) 
             realized += tr.net
             if tr.same_bar:
                 diag["same_bar_trades"] += 1
+            if overlay is not None and live(t[k]):
+                overlay.on_closed(tr, t[k])
+        if overlay is not None and live(t[k]):
+            act = overlay.on_bar(k, t[k], o, h, l, c, br.pos)
+            if act is not None and br.pos is not None:
+                br.close_market(k, t[k], act[1], act[0])
+                tr = br.closed[-1]; tr._booked = True; realized += tr.net; diag["account_flattens"] += 1
+                overlay.on_closed(tr, t[k])
         if a is None:
             eq_close.append(realized); eq_low.append(realized)
             continue
@@ -300,13 +317,15 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) 
             won = (tr.exit >= S["tp2P"] - tol) if S["dir"] == 1 else (tr.exit <= S["tp2P"] + tol)
             trail_exit = S["trailMoved"] and not won
             at_be = S["beDone"] and not won and not trail_exit and abs(tr.exit - S["entryP"]) <= tol
-            tr.reason = "TP2" if won else ("TRAIL" if trail_exit else ("BE" if at_be else "SL"))
+            if not tr.reason.startswith("ACCT_"):
+                tr.reason = "TP2" if won else ("TRAIL" if trail_exit else ("BE" if at_be else "SL"))
             tr.be_moved, tr.trail_moved = S["beDone"], S["trailMoved"]
             br.cancel_all()
             S.update(triggered=False, trailOn=False, dir=0)
         elif not inPos and justClosed and S["dir"] != 0 and not S["triggered"]:
             tr = br.closed[-1]
-            tr.reason = "TP2" if tr.reason == "TP" else "SL"
+            if not tr.reason.startswith("ACCT_"):
+                tr.reason = "TP2" if tr.reason == "TP" else "SL"
             br.cancel_all()
             S["dir"] = 0
         # ---- 3) market structure ----
@@ -367,7 +386,12 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) 
                     qty = math.floor(qty + 1e-12)
                 elif ex.sizing == "fixed1":
                     qty = 1.0
-                if qty > 0:
+                if qty > 0 and overlay is not None and not overlay.admit(dict(k=k, t=t[k], setup=setup_id, side=d, qty=qty, price=round_to_mintick(l705, tick),
+                                                                               stop=round_to_mintick(slPlan, tick), tp=round_to_mintick(tp2v, tick), last=c)):
+                    br.cancel_all()
+                    diag["account_refused_bars"] += 1
+                    diag["account_refused_setups"].add(setup_id)
+                elif qty > 0:
                     br.place_entry(d, qty, round_to_mintick(l705, tick))
                     br.set_exit(round_to_mintick(tp2v, tick), round_to_mintick(slPlan, tick))
                     S["ordSL"], S["ordTP2"] = round_to_mintick(slPlan, tick), round_to_mintick(tp2v, tick)
@@ -406,9 +430,20 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) 
             if br.pos is not None:
                 br.close_market(k, t[k], c, "ROLL")
                 tr = br.closed[-1]; tr._booked = True; realized += tr.net
+                if overlay is not None:
+                    overlay.on_closed(tr, t[k])
             br.cancel_all()   # a pending entry must not fill after the window
             S.update(triggered=False, trailOn=False, dir=0)
             S["lastClosed"] = len(br.closed)
+        # ---- 5c) research: account overlay flatten at this bar's close (session end, news window) ----
+        if overlay is not None and live(t[k]):
+            why = overlay.end_of_bar(k, t[k], t[k + 1] if k + 1 < n else None, br.pos)
+            if why:
+                if br.pos is not None:
+                    br.close_market(k, t[k], c, why)
+                    tr = br.closed[-1]; tr._booked = True; realized += tr.net; diag["account_flattens"] += 1
+                    overlay.on_closed(tr, t[k])
+                br.cancel_all()   # the strategy's own state is reset by the normal exit sync on the next bar
         # ---- 6) marks ----
         ur = ul = 0.0
         if br.pos is not None:
@@ -419,4 +454,5 @@ def run(bars: Dict[str, List[float]], st: Settings, ex: Execution, window=None) 
         eq_close.append(realized + ur); eq_low.append(realized + ul)
 
     diag["rejected_setups"] = len(diag["rejected_setups"])
+    diag["account_refused_setups"] = len(diag["account_refused_setups"])
     return {"trades": br.closed, "open": br.pos, "eq_close": eq_close, "eq_low": eq_low, "diag": diag, "settings": asdict(st), "execution": asdict(ex)}

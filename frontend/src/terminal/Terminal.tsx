@@ -14,6 +14,7 @@ import { MirrorPage, MirrorTradePage } from "./pages/Mirror";
 import { BotsPage } from "./pages/Bots";
 import { BotChartPage } from "./pages/BotChart";
 import { BotTradeProofPage } from "./pages/BotTradeProof";
+import { MffuPage } from "./pages/Mffu";
 
 /** Page routes, shared by the app and tests (tests supply their own router). */
 export function TerminalRoutes(): ReactNode {
@@ -27,6 +28,7 @@ export function TerminalRoutes(): ReactNode {
         <Route path="/engine" element={<EnginePage />} />
         <Route path="/mirror" element={<MirrorPage />} />
         <Route path="/research" element={<MirrorPage />} />
+        <Route path="/research/mffu" element={<MffuPage />} />
         <Route path="/bots" element={<BotsPage />} />
         <Route path="/bots/:id/chart" element={<BotChartPage />} />
         <Route path="/bots/trade/:id" element={<BotTradeProofPage />} />

@@ -136,6 +136,7 @@ export function SettingsPage({ now = Date.now() }: { now?: number }) {
       <Group n={6} title="Advanced" sub="Diagnostics, research and optional integrations. Nothing here is needed day to day.">
         <div className="li"><span>Engine diagnostics (host, supervisor, ledger check, health)</span><Link className="link" to="/engine">Engine →</Link></div>
         <div className="li"><span>Research: Strategy Mirror and hypothetical comparisons (never actual PAPER results)</span><Link className="link" to="/research">Research →</Link></div>
+        <div className="li"><span>Research: MFFU funded-account simulator (SIMULATED; external execution DISABLED)</span><Link className="link" to="/research/mffu">MFFU research →</Link></div>
         <Fold title="Execution costs (read-only)">
           <Row k="Bot ledger fee model">Ndax-equivalent 0.20% per fill</Row>
           {!p ? <Row k="Legacy cost profile">{NA}</Row>
