@@ -23,16 +23,20 @@ from mffu.calendar import NewsCalendar
 from mffu import dashboard
 
 STRICT = {"breach_basis": "intraday_equity"}
+LIVE = {**STRICT, "t1_news_allowed": False}   # live news rule unresolved: the stricter reading
 CONFIGS = [   # (id, plan, size, choices per stage). Where MFFU is contradictory the stricter reading is used unless both are run.
-    ("builder-50k", "builder", "50k", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": {**STRICT, "lock_offset": 100.0}}),
+    ("builder-50k", "builder", "50k", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": {**LIVE, "lock_offset": 100.0}}),
     ("builder-50k-eodbreach", "builder", "50k", {"evaluation": {"breach_basis": "eod_equity"}, "sim_funded": {"breach_basis": "eod_equity"},
-                                                  "live_hypothetical": {"breach_basis": "eod_equity", "lock_offset": 100.0}}),
-    ("builder-50k-addon", "builder", "50k_addon", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": {**STRICT, "lock_offset": 100.0}}),
-    ("builder-100k", "builder", "100k", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": STRICT}),
-    ("rapid-50k-evalEOD", "rapid", "50k", {"evaluation": {**STRICT, "drawdown_type": "eod_trailing"}, "sim_funded": {"max_minis": 2, "max_micros": 20}}),
-    ("rapid-50k-evalIntraday", "rapid", "50k", {"evaluation": {**STRICT, "drawdown_type": "intraday_trailing"}, "sim_funded": {"max_minis": 2, "max_micros": 20}}),
-    ("rapid-eod-50k", "rapid_eod", "50k", {"evaluation": STRICT, "sim_funded": STRICT}),
-    ("pro-50k", "pro", "50k", {"evaluation": STRICT, "sim_funded": {**STRICT, "max_micros": 3}, "live_hypothetical": STRICT}),
+                                                  "live_hypothetical": {"breach_basis": "eod_equity", "t1_news_allowed": False, "lock_offset": 100.0}}),
+    ("builder-50k-addon", "builder", "50k_addon", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": {**LIVE, "lock_offset": 100.0}}),
+    ("builder-100k", "builder", "100k", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": LIVE}),
+    ("rapid-50k-evalEOD", "rapid", "50k", {"evaluation": {**STRICT, "drawdown_type": "eod_trailing"}, "sim_funded": {"max_minis": 2, "max_micros": 20},
+                                           "live_hypothetical": LIVE}),
+    ("rapid-50k-evalIntraday", "rapid", "50k", {"evaluation": {**STRICT, "drawdown_type": "intraday_trailing"}, "sim_funded": {"max_minis": 2, "max_micros": 20},
+                                                "live_hypothetical": LIVE}),
+    ("rapid-eod-50k", "rapid_eod", "50k", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": LIVE}),
+    ("rapid-eod-dll-50k", "rapid_eod_dll", "50k", {"evaluation": STRICT, "sim_funded": STRICT, "live_hypothetical": LIVE}),
+    ("pro-50k", "pro", "50k", {"evaluation": STRICT, "sim_funded": {**STRICT, "max_micros": 3}, "live_hypothetical": LIVE}),
     ("pro-50k-one-day", "pro", "50k_one_day", {"evaluation": STRICT}),
 ]
 SCENARIOS = ["C2_base", "C3_conservative", "C4_stress", "C1_optimistic"]
@@ -60,12 +64,13 @@ def main():
     ap.add_argument("--root", default="MNQ", choices=sorted(INSTRUMENTS))
     ap.add_argument("--holdout", action="store_true")
     ap.add_argument("--demo", action="store_true")
-    ap.add_argument("--news-csv", help="T1 calendar CSV (time_et,event); without it, stages that prohibit T1 news cannot trade")
+    ap.add_argument("--news", default="union", choices=["union", "official", "mffu_image", "none"],
+                    help="T1 calendar variant (mffu/t1_calendar.py). 'none' blocks every stage that prohibits T1 news")
     ap.add_argument("--configs", default="all")
     ap.add_argument("--scenarios", default=",".join(SCENARIOS))
     a = ap.parse_args()
     spec = INSTRUMENTS[a.root]
-    news = NewsCalendar.from_csv(a.news_csv) if a.news_csv else NewsCalendar(None)
+    news = NewsCalendar(None) if a.news == "none" else NewsCalendar.official(a.news)
     st = Settings()
     hold_start = None
     if a.csv:

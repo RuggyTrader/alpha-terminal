@@ -135,3 +135,7 @@
 .wallet-grid span { font-size: 11px; color: var(--muted); }
 .wallet-grid b { font-size: 16px; font-variant-numeric: tabular-nums; }
 .wallet-grid i { font-size: 11px; color: var(--muted); font-style: normal; }
+/* MFFU research page: long rule texts wrap instead of squeezing the label column */
+.mffu-page .li { align-items: flex-start; }
+.mffu-page .li > span { flex: 0 1 42%; min-width: 0; }
+.mffu-page .li > b { flex: 1 1 58%; min-width: 0; white-space: normal; overflow-wrap: anywhere; }

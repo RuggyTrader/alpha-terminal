@@ -55,7 +55,15 @@ def test_documented_values_match_the_sources():
     assert (b["profit_target"].value, b["max_loss"].value, b["daily_loss_limit"].value, b["max_micros"].value) == (3000, 2000, 1000, 40)
     assert R.PLANS[("rapid_eod", "50k")]["evaluation"]["consistency_pct"].value == 0.30
     assert R.PLANS[("pro", "50k_one_day")]["evaluation"]["profit_target"].value == 4000
-    assert R.PLANS[("rapid", "25k")]["sim_funded"] is None          # article not read -> no invented sim rules
+    assert R.PLANS[("pro", "50k_one_day")]["sim_funded"] is None    # no article states it -> no invented sim rules
+    assert R.PLANS[("rapid", "25k")]["sim_funded"]["max_micros"].value == 30 and R.PLANS[("rapid", "25k")]["sim_funded"]["lock_offset"].value == 100.0
+    assert R.PLANS[("builder", "150k")]["live_hypothetical"]["max_micros"].value == 40
+    assert R.PLANS[("rapid", "100k")]["live_hypothetical"]["lock_offset"].value == 0.0          # S23: stops at $0
+    assert R.PLANS[("rapid_eod_dll", "25k")]["evaluation"]["daily_loss_limit"].value == 500
+    for (p, s_), stages in R.PLANS.items():
+        for stg, rules in stages.items():
+            if rules:
+                assert rules["flat_by_session_end"].value == "16:10" and rules["flat_by_session_end"].src == ("S17",)
 
 
 def test_unresolved_rules_cannot_be_used_silently():
@@ -211,12 +219,42 @@ def test_news_rules_block_restricted_stages_without_a_calendar_and_inside_window
     ce = ComplianceEngine(BASE)
     assert "NEWS_CALENDAR_UNAVAILABLE" in ce.check(intent(client_id="n1"), acct(sim), mkt()).reasons
     cpi = dt.datetime(2026, 3, 11, 8, 30, tzinfo=ET)
-    ce2 = ComplianceEngine(BASE, NewsCalendar([(cpi, "CPI"), (dt.datetime(2026, 5, 1, 8, 30, tzinfo=ET), "Employment")], "test"))
+    ce2 = ComplianceEngine(BASE, NewsCalendar.official())
     at = cpi - dt.timedelta(minutes=2)
     assert "NEWS_WINDOW" in ce2.check(intent(client_id="n2"), acct(sim), mkt(now=at, last_bar_time=at - dt.timedelta(minutes=1), live_from=at)).reasons
     ok_t = cpi + dt.timedelta(minutes=5)
     assert ce2.check(intent(client_id="n3"), acct(sim), mkt(now=ok_t, last_bar_time=ok_t - dt.timedelta(minutes=1), live_from=ok_t)).accepted
     assert ce.check(intent(client_id="n4"), acct(cfg("builder", "50k")), mkt()).accepted   # evaluations allow T1 (S7)
+    late = dt.datetime(2026, 11, 30, 10, 0, tzinfo=ET)                                       # after the calendar's coverage
+    assert "NEWS_CALENDAR_UNAVAILABLE" in ce2.check(intent(client_id="n5"), acct(sim), mkt(now=late, last_bar_time=late - dt.timedelta(minutes=1), live_from=late)).reasons
+    untested = NewsCalendar([(cpi, "CPI")], "csv without coverage")
+    assert not untested.covers(cpi, cpi)                                                   # no stated coverage -> not trusted
+
+
+def test_t1_calendar_is_complete_sourced_and_dst_correct():
+    from mffu import t1_calendar as T
+    ev = T.official_events()
+    n = {k: sum(1 for e in ev if e["event"] == k) for k in ("FOMC statement", "FOMC minutes", "CPI", "Employment Report")}
+    assert n == {"FOMC statement": 65, "FOMC minutes": 63, "CPI": 93, "Employment Report": 93}
+    for e in ev:
+        assert e["source"].startswith(("https://www.federalreserve.gov/", "https://www.bls.gov/"))
+        assert T.COVERAGE[0] <= e["t"] < T.COVERAGE[1]
+        if e["label"] in ("EST", "EDT"):                      # the label printed on the release must match New York DST
+            assert e["t"].tzname() == e["label"], (e["t"], e["label"])
+        if "bls.gov" in e["source"]:                          # BLS archive file name carries the release date (MMDDYYYY)
+            md = e["source"].rsplit("_", 1)[1][:8]
+            assert e["t"].strftime("%m%d%Y") == md and e["t"].strftime("%H:%M") == "08:30"
+    times = {(e["t"].strftime("%Y-%m-%d %H:%M"), e["event"]) for e in ev}
+    assert ("2020-03-15 17:00", "FOMC statement") in times and ("2020-03-03 10:00", "FOMC statement") in times   # unscheduled 2020 meetings
+    assert ("2025-10-24 08:30", "CPI") in times and not any(d.startswith("2025-11-13") and k == "CPI" for d, k in times)  # 2025 lapse: as released
+    assert T.mffu_2026_diffs() == {"official_only": ["2026-02-11 08:30 Employment Report", "2026-02-13 08:30 CPI", "2026-10-28 14:00 FOMC statement"],
+                                   "mffu_image_only": ["2026-02-06 08:30 Employment Report", "2026-02-11 08:30 CPI"]}
+    u = {t for t, _ in T.events("union")}
+    assert all(t in u for t, _ in T.events("official")) and dt.datetime(2026, 2, 6, 8, 30, tzinfo=ET) in u
+    cal = NewsCalendar.official()
+    assert cal.in_window(dt.datetime(2026, 3, 18, 13, 58, tzinfo=ET)) == "FOMC statement"           # 2:00 PM -2 min
+    assert cal.in_window(dt.datetime(2026, 3, 18, 14, 3, tzinfo=ET)) is None
+    assert cal.in_window(dt.datetime(2019, 7, 5, 8, 31, tzinfo=ET)) == "Employment Report"             # EDT date, wall clock 8:30
 
 
 def test_ai_suggestions_get_no_override_and_the_same_verdict():
@@ -333,15 +371,22 @@ def test_breaches_end_attempts_new_attempts_start_next_day_and_failures_are_kept
     assert any(t["reason"].startswith("ACCT_BREACH") for t in ov.trades)
 
 
-def test_session_end_rule_flattens_builder_only_and_the_engine_books_it():
-    t1659, t1800 = dt.datetime(2026, 3, 2, 16, 59, tzinfo=ET), dt.datetime(2026, 3, 2, 18, 0, tzinfo=ET)
+def test_mffu_410pm_flat_and_trading_hours_apply_to_every_plan():
+    t1609, t1610, t1500 = (dt.datetime(2026, 3, 2, h, m, tzinfo=ET) for h, m in ((16, 9), (16, 10), (15, 0)))
     pos = SimpleNamespace(side=1, qty=1, entry=20000.0)
-    b = MffuOverlay("builder", "50k", {"evaluation": STRICT_}, BASE); b.on_bar(0, t1659, 20000, 20001, 19999, 20000, None)
-    assert b.end_of_bar(0, t1659, t1800, pos) == "ACCT_SESSION_END" and b.c["session_flattens"] == 1
-    assert b.end_of_bar(0, t1659, t1659 + dt.timedelta(minutes=1), pos) is None          # same session: no flatten
-    p = MffuOverlay("pro", "50k", {"evaluation": STRICT_}, BASE); p.on_bar(0, t1659, 20000, 20001, 19999, 20000, None)
-    assert p.end_of_bar(0, t1659, t1800, pos) is None and p.c["held_across_session_rule_unresolved"] == 1   # rule not stated: counted, not invented
+    for plan in ("builder", "pro"):
+        o = MffuOverlay(plan, "50k", {"evaluation": STRICT_}, BASE); o.on_bar(0, t1500, 20000, 20001, 19999, 20000, None)
+        assert o.end_of_bar(0, t1500, t1500 + dt.timedelta(minutes=1), pos) is None
+        assert o.end_of_bar(0, t1609, t1610, pos) == "ACCT_SESSION_END"                       # closes at 4:10 PM (S17)
+        assert o.end_of_bar(0, dt.datetime(2026, 3, 2, 15, 40, tzinfo=ET), dt.datetime(2026, 3, 2, 16, 20, tzinfo=ET), pos) == "ACCT_SESSION_END"  # gap over 4:10
+    ce = ComplianceEngine(BASE)
+    late = dt.datetime(2026, 3, 2, 16, 30, tzinfo=ET)
+    assert "OUTSIDE_MFFU_TRADING_HOURS" in ce.check(intent(client_id="h1"), acct(), mkt(now=late, last_bar_time=late - dt.timedelta(minutes=1), live_from=late)).reasons
+    eve = dt.datetime(2026, 3, 2, 18, 5, tzinfo=ET)
+    assert ce.check(intent(client_id="h2"), acct(), mkt(now=eve, last_bar_time=eve - dt.timedelta(minutes=1), live_from=eve)).accepted
 
+
+def test_session_end_flatten_is_booked_by_the_engine():
     class SessionOnly(_PassThrough):   # admits everything; applies only the session-end flatten
         def end_of_bar(self, k, t, t_next, pos):
             return "ACCT_SESSION_END" if pos is not None and (t_next is None or session_day(t_next) != session_day(t)) else None
@@ -371,6 +416,8 @@ def test_payouts_follow_builder_rules_and_pro_mll_turns_static():
     assert x.try_payout(d, T0) is None                          # buffer $2,100 + $500 not reached, 1 qualifying day
     x, d = builder([2500, 2400])
     assert x.try_payout(d, T0) is None                          # cycle consistency: $2,500 > 50% of $4,900
+    q, d = builder([2400, 0.0, 2500])
+    assert q.try_payout(d, T0) is None                          # a flat traded day still counts as qualifying, but consistency fails
     a, d = builder([1700, 1700, 1700])
     po = a.try_payout(d, T0)
     assert po and po["gross"] == 2000.0 and po["trader_share"] == 1600.0 and a.balance == 3100.0   # capped at $2,000, 80/20

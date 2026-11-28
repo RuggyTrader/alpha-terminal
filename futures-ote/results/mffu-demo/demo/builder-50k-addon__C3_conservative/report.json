@@ -14,18 +14,16 @@
   "live_hypothetical": null
  },
  "unresolved_stages": {
-  "live_hypothetical": "builder/50k_addon live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
+  "live_hypothetical": "builder/50k_addon live_hypothetical: 'max_micros' is UNRESOLVED (Builder 50k_addon live contract limit not stated); pass an explicit choice from ()"
  },
  "unresolved_fields": {
-  "evaluation": [
-   "inactivity_days"
-  ],
+  "evaluation": [],
   "sim_funded": [],
   "live_hypothetical": null
  },
  "rules_hash": {
-  "evaluation": "e6ed2c1ad4bbcb76",
-  "sim_funded": "611074872ec985e6",
+  "evaluation": "7b036713f5c34c77",
+  "sim_funded": "bd19f5f69617fa4f",
   "live_hypothetical": null
  },
  "all": {
@@ -53,28 +51,29 @@
    125.0,
    "S12"
   ],
-  "net_pnl_all_accounts": -321.0,
-  "trades": 77,
-  "commissions": 231.0,
-  "slippage": 60.0,
+  "net_pnl_all_accounts": -301.18,
+  "trades": 76,
+  "commissions": 228.0,
+  "slippage": 59.0,
   "dll_soft_pauses": 0,
-  "worst_attempt_drawdown": 524.8
+  "worst_attempt_drawdown": 523.3
  },
  "pooled_trades": {
-  "trades": 77,
-  "win_rate_pct": 33.77,
-  "profit_factor": 0.75,
-  "expectancy": -4.17,
-  "net": -321.0,
+  "trades": 76,
+  "win_rate_pct": 34.21,
+  "profit_factor": 0.761,
+  "expectancy": -3.96,
+  "net": -301.18,
   "exit_reasons": {
-   "SL": 31,
-   "TRAIL": 25,
+   "SL": 30,
+   "TRAIL": 24,
    "TP2": 17,
-   "BE": 4
+   "BE": 4,
+   "ACCT_SESSION_END": 1
   }
  },
  "overlay_counters": {
-  "session_flattens": 0,
+  "session_flattens": 1,
   "news_flattens": 0,
   "breach_flattens": 0,
   "dll_flattens": 0,
@@ -83,8 +82,9 @@
   "stage_unresolved_skips": 0
  },
  "compliance_counts": {
-  "ACCEPTED": 3266,
-  "MARKET_CLOSED": 2
+  "ACCEPTED": 3109,
+  "MARKET_CLOSED": 3,
+  "OUTSIDE_MFFU_TRADING_HOURS": 158
  },
  "attempts": [
   {
@@ -97,21 +97,21 @@
    "reason": "end of data (still open)",
    "calendar_days": 5,
    "trading_days": 5,
-   "net_pnl": -321.0,
-   "balance": -321.0,
-   "floor": -1460.5,
-   "max_drawdown": 524.8,
-   "trades": 77,
-   "win_rate_pct": 33.77,
-   "profit_factor": 0.75,
-   "expectancy": -4.17,
-   "commissions": 231.0,
-   "slippage": 60.0,
+   "net_pnl": -301.18,
+   "balance": -301.18,
+   "floor": -1459.0,
+   "max_drawdown": 523.3,
+   "trades": 76,
+   "win_rate_pct": 34.21,
+   "profit_factor": 0.761,
+   "expectancy": -3.96,
+   "commissions": 228.0,
+   "slippage": 59.0,
    "consistency": {
     "rule": null,
     "ok": true,
-    "best_day": 39.5,
-    "total": -321.0
+    "best_day": 41.0,
+    "total": -301.18
    },
    "payouts": [],
    "events": [],
@@ -119,10 +119,8 @@
    "choices": {
     "breach_basis": "intraday_equity"
    },
-   "unresolved": [
-    "inactivity_days"
-   ],
-   "rules_hash": "e6ed2c1ad4bbcb76",
+   "unresolved": [],
+   "rules_hash": "7b036713f5c34c77",
    "attempt": 1
   }
  ],
@@ -185,12 +183,12 @@
     125.0,
     "S12"
    ],
-   "net_pnl_all_accounts": -321.0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
+   "net_pnl_all_accounts": -301.18,
+   "trades": 76,
+   "commissions": 228.0,
+   "slippage": 59.0,
    "dll_soft_pauses": 0,
-   "worst_attempt_drawdown": 524.8
+   "worst_attempt_drawdown": 523.3
   }
  }
 }

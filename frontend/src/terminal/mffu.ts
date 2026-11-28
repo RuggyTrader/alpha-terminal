@@ -5,7 +5,7 @@ export const MFFU_SNAPSHOT_PATH = "/research/mffu-dashboard.json";
 export const MFFU_SCHEMA = "alpha-terminal.mffu-research.v1";
 
 export interface MffuRun {
-  run: string; plan: string; scenario: string; attempts: number; passed: number; breached: number; open_at_end: number;
+  run: string; evidence: boolean; data: string; plan: string; scenario: string; attempts: number; passed: number; breached: number; open_at_end: number;
   pass_rate_pct: number | null; median_trading_days_to_pass: number | null; failure_reasons: Record<string, number>;
   net_pnl: number; payouts_trader_share: number; trades: number; commissions: number; slippage: number; worst_drawdown: number;
   profit_factor: number | null; win_rate_pct: number | null; expectancy: number | null; consistency_delays: number; refusals: Record<string, number>;
@@ -25,7 +25,7 @@ export interface MffuSnapshot {
   account: MffuAccount | Record<string, never>; results: MffuRun[];
   plans: { plan: string; stages_documented: string[]; evaluation: Record<string, { value: unknown; status: string }> }[];
   sources: { id: string; title: string; url: string; page_date: string }[]; retrieved: string;
-  contradictions: { id: string; topic: string; detail: string; src: string[] }[]; not_stated: string[];
+  contradictions: { id: string; status: "RESOLVED" | "VARIANTS" | "OPEN"; topic: string; detail: string; src: string[] }[]; not_stated: string[];
 }
 
 /** A snapshot is shown only if it declares the expected schema, says it is simulated and keeps external execution DISABLED. */

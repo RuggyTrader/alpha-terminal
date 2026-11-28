@@ -31,7 +31,8 @@ describe("MFFU research page", () => {
     if (s.demo) expect(h).toContain("DEMO DATA");
     for (const r of s.results) expect(h).toContain(`data-run="${r.run}"`);
     for (const x of s.sources) expect(h).toContain(x.url);
-    for (const c of s.contradictions) expect(h).toContain(c.topic);
+    for (const c of s.contradictions) { expect(h).toContain(c.topic); expect(["RESOLVED", "VARIANTS", "OPEN"]).toContain(c.status); }
+    for (const r of s.results) if (!r.evidence) expect(h).toContain("DEMO, NOT EVIDENCE");
     expect(h).toContain("Virtual account (end of replay)");
     expect(h).toContain("REMAINING DRAWDOWN");
   });

@@ -37,7 +37,7 @@ def snapshot(summary: Dict[str, Any], featured: Optional[tuple], data_note: str,
     runs = []
     for name, r in summary["runs"].items():
         x = r["all"]
-        runs.append({"run": name, "plan": r["plan"], "scenario": r["scenario"], "attempts": x["evaluation_attempts"], "passed": x["passed"],
+        runs.append({"run": name, "evidence": not demo, "data": data_note, "plan": r["plan"], "scenario": r["scenario"], "attempts": x["evaluation_attempts"], "passed": x["passed"],
                      "breached": x["breached"], "open_at_end": x["open_at_end"], "pass_rate_pct": x["pass_rate_pct"],
                      "median_trading_days_to_pass": x["median_trading_days_to_pass"], "failure_reasons": x["failure_reasons"],
                      "net_pnl": x["net_pnl_all_accounts"], "payouts_trader_share": x["payouts_trader_share"], "trades": x["trades"],

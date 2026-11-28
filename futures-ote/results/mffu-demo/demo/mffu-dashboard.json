@@ -1,13 +1,13 @@
 {
  "schema": "alpha-terminal.mffu-research.v1",
- "generatedAt": "2026-11-28T02:48:16.626267+00:00",
+ "generatedAt": "2026-11-28T03:23:27.107747+00:00",
  "simulated": true,
  "label": "SIMULATED \u2014 virtual MFFU research accounts. Not an MFFU account. Not approved by MFFU. Historical simulated passes do not guarantee real results.",
  "demo": true,
  "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
  "strategy": "OTE + PD Array, Configuration A (locked), 1 contract",
  "period": "demo",
- "news_calendar": "NONE (stages that prohibit T1 news are blocked)",
+ "news_calendar": "t1_calendar.py (union; Federal Reserve + BLS releases, retrieved 2026-11-27)",
  "external_execution": "DISABLED",
  "integration": {
   "external_execution": "DISABLED",
@@ -27,18 +27,18 @@
   "reason": "end of data (still open)",
   "opened": "2026-04-06",
   "closed": "2026-04-10",
-  "equity_simulated": -237.48,
+  "equity_simulated": -219.68,
   "minimum_balance": -2000.0,
-  "remaining_drawdown": 1762.52,
+  "remaining_drawdown": 1780.32,
   "profit_target": 3000,
-  "target_progress_pct": -7.9,
+  "target_progress_pct": -7.3,
   "daily_loss_limit": 1000,
   "daily_allowance_note": "soft pause (not a breach)",
   "consistency": {
    "rule": null,
    "ok": true,
-   "best_day": 28.32,
-   "total": -237.48
+   "best_day": 31.84,
+   "total": -219.68
   },
   "trading_days": 5,
   "min_trading_days": 1,
@@ -53,21 +53,21 @@
    "max_minis": 4,
    "max_micros": 40,
    "t1_news_allowed": true,
-   "inactivity_days": null,
-   "flat_by_session_end": true,
+   "inactivity_days": 7,
+   "flat_by_session_end": "16:10",
    "breach_basis": "intraday_equity",
    "lock_offset": 100.0
   },
   "choices": {
    "breach_basis": "intraday_equity"
   },
-  "unresolved": [
-   "inactivity_days"
-  ]
+  "unresolved": []
  },
  "results": [
   {
    "run": "builder-50k__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/50k",
    "scenario": "C2_base",
    "attempts": 1,
@@ -77,22 +77,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "builder-50k__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/50k",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -102,72 +105,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-50k__C4_stress",
-   "plan": "builder/50k",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-50k__C1_optimistic",
-   "plan": "builder/50k",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "builder-50k-eodbreach__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/50k",
    "scenario": "C2_base",
    "attempts": 1,
@@ -177,22 +133,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "builder-50k-eodbreach__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/50k",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -202,72 +161,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-50k-eodbreach__C4_stress",
-   "plan": "builder/50k",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-50k-eodbreach__C1_optimistic",
-   "plan": "builder/50k",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "builder-50k-addon__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/50k_addon",
    "scenario": "C2_base",
    "attempts": 1,
@@ -277,22 +189,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "builder-50k-addon__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/50k_addon",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -302,72 +217,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-50k-addon__C4_stress",
-   "plan": "builder/50k_addon",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-50k-addon__C1_optimistic",
-   "plan": "builder/50k_addon",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "builder-100k__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/100k",
    "scenario": "C2_base",
    "attempts": 1,
@@ -377,22 +245,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "builder-100k__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "builder/100k",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -402,72 +273,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-100k__C4_stress",
-   "plan": "builder/100k",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "builder-100k__C1_optimistic",
-   "plan": "builder/100k",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "rapid-50k-evalEOD__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "rapid/50k",
    "scenario": "C2_base",
    "attempts": 1,
@@ -477,22 +301,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "rapid-50k-evalEOD__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "rapid/50k",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -502,72 +329,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "rapid-50k-evalEOD__C4_stress",
-   "plan": "rapid/50k",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "rapid-50k-evalEOD__C1_optimistic",
-   "plan": "rapid/50k",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "rapid-50k-evalIntraday__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "rapid/50k",
    "scenario": "C2_base",
    "attempts": 1,
@@ -577,22 +357,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "rapid-50k-evalIntraday__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "rapid/50k",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -602,72 +385,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "rapid-50k-evalIntraday__C4_stress",
-   "plan": "rapid/50k",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "rapid-50k-evalIntraday__C1_optimistic",
-   "plan": "rapid/50k",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "rapid-eod-50k__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "rapid_eod/50k",
    "scenario": "C2_base",
    "attempts": 1,
@@ -677,22 +413,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "rapid-eod-50k__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "rapid_eod/50k",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -702,72 +441,81 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "rapid-eod-50k__C4_stress",
-   "plan": "rapid_eod/50k",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "rapid-eod-50k__C1_optimistic",
-   "plan": "rapid_eod/50k",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
+   }
+  },
+  {
+   "run": "rapid-eod-dll-50k__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
+   "plan": "rapid_eod_dll/50k",
+   "scenario": "C2_base",
+   "attempts": 1,
+   "passed": 0,
+   "breached": 0,
+   "open_at_end": 1,
+   "pass_rate_pct": null,
+   "median_trading_days_to_pass": null,
+   "failure_reasons": {},
+   "net_pnl": -219.68,
+   "payouts_trader_share": 0,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
+   "consistency_delays": 0,
+   "refusals": {
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
+   }
+  },
+  {
+   "run": "rapid-eod-dll-50k__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
+   "plan": "rapid_eod_dll/50k",
+   "scenario": "C3_conservative",
+   "attempts": 1,
+   "passed": 0,
+   "breached": 0,
+   "open_at_end": 1,
+   "pass_rate_pct": null,
+   "median_trading_days_to_pass": null,
+   "failure_reasons": {},
+   "net_pnl": -301.18,
+   "payouts_trader_share": 0,
+   "trades": 76,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
+   "consistency_delays": 0,
+   "refusals": {
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "pro-50k__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "pro/50k",
    "scenario": "C2_base",
    "attempts": 1,
@@ -777,22 +525,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "pro-50k__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "pro/50k",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -802,72 +553,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "pro-50k__C4_stress",
-   "plan": "pro/50k",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "pro-50k__C1_optimistic",
-   "plan": "pro/50k",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "pro-50k-one-day__C2_base",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "pro/50k_one_day",
    "scenario": "C2_base",
    "attempts": 1,
@@ -877,22 +581,25 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -237.48,
+   "net_pnl": -219.68,
    "payouts_trader_share": 0,
-   "trades": 76,
-   "commissions": 112.48,
-   "slippage": 30.5,
-   "worst_drawdown": 411.54,
-   "profit_factor": 0.791,
-   "win_rate_pct": 35.53,
-   "expectancy": -3.12,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
+   "worst_drawdown": 412.06,
+   "profit_factor": 0.803,
+   "win_rate_pct": 34.67,
+   "expectancy": -2.93,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   },
   {
    "run": "pro-50k-one-day__C3_conservative",
+   "evidence": false,
+   "data": "DEMO ONLY: MNQ-1m-2026-04-06_10.csv (one sample file; not genuine unadjusted multi-year data; not evidence)",
    "plan": "pro/50k_one_day",
    "scenario": "C3_conservative",
    "attempts": 1,
@@ -902,68 +609,19 @@
    "pass_rate_pct": null,
    "median_trading_days_to_pass": null,
    "failure_reasons": {},
-   "net_pnl": -321.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 231.0,
-   "slippage": 60.0,
-   "worst_drawdown": 524.8,
-   "profit_factor": 0.75,
-   "win_rate_pct": 33.77,
-   "expectancy": -4.17,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "pro-50k-one-day__C4_stress",
-   "plan": "pro/50k_one_day",
-   "scenario": "C4_stress",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -458.0,
-   "payouts_trader_share": 0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
-   "worst_drawdown": 595.1,
-   "profit_factor": 0.669,
-   "win_rate_pct": 32.47,
-   "expectancy": -5.95,
-   "consistency_delays": 0,
-   "refusals": {
-    "MARKET_CLOSED": 2
-   }
-  },
-  {
-   "run": "pro-50k-one-day__C1_optimistic",
-   "plan": "pro/50k_one_day",
-   "scenario": "C1_optimistic",
-   "attempts": 1,
-   "passed": 0,
-   "breached": 0,
-   "open_at_end": 1,
-   "pass_rate_pct": null,
-   "median_trading_days_to_pass": null,
-   "failure_reasons": {},
-   "net_pnl": -170.5,
+   "net_pnl": -301.18,
    "payouts_trader_share": 0,
    "trades": 76,
-   "commissions": 76.0,
-   "slippage": 0.0,
-   "worst_drawdown": 384.64,
-   "profit_factor": 0.843,
-   "win_rate_pct": 35.53,
-   "expectancy": -2.24,
+   "commissions": 228.0,
+   "slippage": 59.0,
+   "worst_drawdown": 523.3,
+   "profit_factor": 0.761,
+   "win_rate_pct": 34.21,
+   "expectancy": -3.96,
    "consistency_delays": 0,
    "refusals": {
-    "MARKET_CLOSED": 2
+    "MARKET_CLOSED": 3,
+    "OUTSIDE_MFFU_TRADING_HOURS": 158
    }
   }
  ],
@@ -1013,12 +671,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": true,
-     "status": "ASSUMPTION"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1033,7 +691,9 @@
   {
    "plan": "builder/150k",
    "stages_documented": [
-    "evaluation"
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1073,12 +733,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": true,
-     "status": "ASSUMPTION"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1093,7 +753,9 @@
   {
    "plan": "builder/25k",
    "stages_documented": [
-    "evaluation"
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1133,12 +795,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": true,
-     "status": "ASSUMPTION"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1195,11 +857,11 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": true,
+     "value": "16:10",
      "status": "DOCUMENTED"
     },
     "breach_basis": {
@@ -1216,7 +878,8 @@
    "plan": "builder/50k_addon",
    "stages_documented": [
     "evaluation",
-    "sim_funded"
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1256,11 +919,11 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": true,
+     "value": "16:10",
      "status": "DOCUMENTED"
     },
     "breach_basis": {
@@ -1318,12 +981,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1380,12 +1043,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1442,12 +1105,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1502,12 +1165,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1522,7 +1185,9 @@
   {
    "plan": "rapid/100k",
    "stages_documented": [
-    "evaluation"
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1562,12 +1227,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1582,7 +1247,9 @@
   {
    "plan": "rapid/150k",
    "stages_documented": [
-    "evaluation"
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1622,12 +1289,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1642,7 +1309,9 @@
   {
    "plan": "rapid/25k",
    "stages_documented": [
-    "evaluation"
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1682,12 +1351,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1703,7 +1372,8 @@
    "plan": "rapid/50k",
    "stages_documented": [
     "evaluation",
-    "sim_funded"
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1743,12 +1413,12 @@
      "status": "DOCUMENTED"
     },
     "inactivity_days": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": 7,
+     "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1763,7 +1433,9 @@
   {
    "plan": "rapid_eod/25k",
    "stages_documented": [
-    "evaluation"
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1807,8 +1479,8 @@
      "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
-     "value": null,
-     "status": "UNRESOLVED"
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1824,7 +1496,8 @@
    "plan": "rapid_eod/50k",
    "stages_documented": [
     "evaluation",
-    "sim_funded"
+    "sim_funded",
+    "live_hypothetical"
    ],
    "evaluation": {
     "profit_target": {
@@ -1868,8 +1541,132 @@
      "status": "DOCUMENTED"
     },
     "flat_by_session_end": {
+     "value": "16:10",
+     "status": "DOCUMENTED"
+    },
+    "breach_basis": {
      "value": null,
      "status": "UNRESOLVED"
+    },
+    "lock_offset": {
+     "value": 100.0,
+     "status": "DOCUMENTED"
+    }
+   }
+  },
+  {
+   "plan": "rapid_eod_dll/25k",
+   "stages_documented": [
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
+   ],
+   "evaluation": {
+    "profit_target": {
+     "value": 1500,
+     "status": "DOCUMENTED"
+    },
+    "max_loss": {
+     "value": 1000,
+     "status": "DOCUMENTED"
+    },
+    "drawdown_type": {
+     "value": "eod_trailing",
+     "status": "DOCUMENTED"
+    },
+    "daily_loss_limit": {
+     "value": 500,
+     "status": "DOCUMENTED"
+    },
+    "consistency_pct": {
+     "value": 0.3,
+     "status": "DOCUMENTED"
+    },
+    "min_trading_days": {
+     "value": 4,
+     "status": "DOCUMENTED"
+    },
+    "max_minis": {
+     "value": 2,
+     "status": "DOCUMENTED"
+    },
+    "max_micros": {
+     "value": 20,
+     "status": "DOCUMENTED"
+    },
+    "t1_news_allowed": {
+     "value": true,
+     "status": "DOCUMENTED"
+    },
+    "inactivity_days": {
+     "value": 7,
+     "status": "DOCUMENTED"
+    },
+    "flat_by_session_end": {
+     "value": "16:10",
+     "status": "DOCUMENTED"
+    },
+    "breach_basis": {
+     "value": null,
+     "status": "UNRESOLVED"
+    },
+    "lock_offset": {
+     "value": 100.0,
+     "status": "DOCUMENTED"
+    }
+   }
+  },
+  {
+   "plan": "rapid_eod_dll/50k",
+   "stages_documented": [
+    "evaluation",
+    "sim_funded",
+    "live_hypothetical"
+   ],
+   "evaluation": {
+    "profit_target": {
+     "value": 3000,
+     "status": "DOCUMENTED"
+    },
+    "max_loss": {
+     "value": 2000,
+     "status": "DOCUMENTED"
+    },
+    "drawdown_type": {
+     "value": "eod_trailing",
+     "status": "DOCUMENTED"
+    },
+    "daily_loss_limit": {
+     "value": 1000,
+     "status": "DOCUMENTED"
+    },
+    "consistency_pct": {
+     "value": 0.3,
+     "status": "DOCUMENTED"
+    },
+    "min_trading_days": {
+     "value": 4,
+     "status": "DOCUMENTED"
+    },
+    "max_minis": {
+     "value": 3,
+     "status": "DOCUMENTED"
+    },
+    "max_micros": {
+     "value": 30,
+     "status": "DOCUMENTED"
+    },
+    "t1_news_allowed": {
+     "value": true,
+     "status": "DOCUMENTED"
+    },
+    "inactivity_days": {
+     "value": 7,
+     "status": "DOCUMENTED"
+    },
+    "flat_by_session_end": {
+     "value": "16:10",
+     "status": "DOCUMENTED"
     },
     "breach_basis": {
      "value": null,
@@ -1921,8 +1718,8 @@
   },
   {
    "id": "S7",
-   "title": "News Trading Policy",
-   "url": "https://help.myfundedfutures.com/en/articles/8230009",
+   "title": "News Trading Policy (incl. the '2026 T1 News Calendar' image)",
+   "url": "https://help.myfundedfutures.com/en/articles/8230009-news-trading-policy",
    "page_date": "2026-08-31"
   },
   {
@@ -1941,7 +1738,7 @@
    "id": "S10",
    "title": "Comprehensive Look into Redesigned Pro Plan",
    "url": "https://help.myfundedfutures.com/en/articles/17573707-comprehensive-look-into-redesigned-pro-plan",
-   "page_date": "'updated this week'; multi-account rule effective 2026-11-23"
+   "page_date": "'updated this week'; effective 2026-11-23"
   },
   {
    "id": "S11",
@@ -1980,6 +1777,90 @@
    "page_date": "2026-08-24"
   },
   {
+   "id": "S17",
+   "title": "Permitted Times to Trade (Core Rules)",
+   "url": "https://help.myfundedfutures.com/en/articles/9558251-permitted-times-to-trade",
+   "page_date": "2026-08-24"
+  },
+  {
+   "id": "S18",
+   "title": "Moving from Evaluation to Sim-Funded",
+   "url": "https://help.myfundedfutures.com/en/articles/16498635",
+   "page_date": "2026-09-04"
+  },
+  {
+   "id": "S19",
+   "title": "Inactivity Rule - One-Time Payment Model",
+   "url": "https://help.myfundedfutures.com/en/articles/16596524-inactivity-rule-one-time-payment-model",
+   "page_date": "effective 2026-08-25"
+  },
+  {
+   "id": "S20",
+   "title": "Rapid Plan 25k - A Comprehensive Look",
+   "url": "https://help.myfundedfutures.com/en/articles/14116402",
+   "page_date": "2026-08-14"
+  },
+  {
+   "id": "S21",
+   "title": "Rapid Plan 100k - A Comprehensive Look",
+   "url": "https://help.myfundedfutures.com/en/articles/13286542",
+   "page_date": "2026-07-01"
+  },
+  {
+   "id": "S22",
+   "title": "Rapid Plan 150k - A Comprehensive Look",
+   "url": "https://help.myfundedfutures.com/en/articles/13286582",
+   "page_date": "2026-07-01"
+  },
+  {
+   "id": "S23",
+   "title": "Understanding Rapid Live",
+   "url": "https://help.myfundedfutures.com/en/articles/13134718",
+   "page_date": "2026-09-08"
+  },
+  {
+   "id": "S24",
+   "title": "Rapid EOD 25k - A Comprehensive Look",
+   "url": "https://help.myfundedfutures.com/en/articles/16727601",
+   "page_date": "2026-09-02"
+  },
+  {
+   "id": "S25",
+   "title": "Rapid EOD with DLL - A Detailed Look",
+   "url": "https://help.myfundedfutures.com/en/articles/18337038",
+   "page_date": "'updated over 2 weeks ago'"
+  },
+  {
+   "id": "S26",
+   "title": "Builder Plan 25k - A Comprehensive Look",
+   "url": "https://help.myfundedfutures.com/en/articles/17036130",
+   "page_date": "'updated over 2 weeks ago'"
+  },
+  {
+   "id": "S27",
+   "title": "Builder Plan 150k - Comprehensive Guide",
+   "url": "https://help.myfundedfutures.com/en/articles/17035331",
+   "page_date": "2026-09-25"
+  },
+  {
+   "id": "S28",
+   "title": "Legacy Pro Plan Sim-Funded and Live Account Highlights",
+   "url": "https://help.myfundedfutures.com/en/articles/11802674",
+   "page_date": "2026-10-20"
+  },
+  {
+   "id": "S29",
+   "title": "Payout Policy Overview",
+   "url": "https://help.myfundedfutures.com/en/articles/13745661",
+   "page_date": "'updated this week'"
+  },
+  {
+   "id": "S30",
+   "title": "Hedging - What You Should Know",
+   "url": "https://help.myfundedfutures.com/en/articles/12011241",
+   "page_date": "2025-11-10"
+  },
+  {
    "id": "C1",
    "title": "CME Micro E-mini Nasdaq-100 contract specs",
    "url": "https://www.cmegroup.com/markets/equities/nasdaq/micro-e-mini-nasdaq-100.contractSpecs.html",
@@ -1996,119 +1877,191 @@
    "title": "CME Group Holiday and Trading Hours",
    "url": "https://www.cmegroup.com/trading-hours.html",
    "page_date": "2026 schedule; 'subject to change'"
+  },
+  {
+   "id": "F1",
+   "title": "Federal Reserve: FOMC meeting calendars 2021-2027 and historical 2019-2020",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+   "page_date": "last update 2026-11-18"
+  },
+  {
+   "id": "F2",
+   "title": "Federal Reserve press releases (FOMC statements and minutes; 'For release at ...')",
+   "url": "https://www.federalreserve.gov/newsevents/pressreleases.htm",
+   "page_date": "each release"
+  },
+  {
+   "id": "B1",
+   "title": "BLS Consumer Price Index archived news releases ('embargoed until 8:30 a.m.')",
+   "url": "https://www.bls.gov/bls/news-release/cpi.htm",
+   "page_date": "each release"
+  },
+  {
+   "id": "B2",
+   "title": "BLS Employment Situation archived news releases ('embargoed until 8:30 a.m.')",
+   "url": "https://www.bls.gov/bls/news-release/empsit.htm",
+   "page_date": "each release"
   }
  ],
  "retrieved": "2026-11-27",
  "contradictions": [
   {
    "id": "X1",
+   "status": "VARIANTS",
    "src": [
     "S1",
     "S2",
-    "S9"
+    "S9",
+    "S20",
+    "S21",
+    "S22"
    ],
-   "topic": "Rapid (intraday) evaluation drawdown type",
-   "detail": "S2 says Rapid plans use intraday trailing drawdown; S1 and S9 label the Rapid evaluation loss limit 'EOD' and S9 says only the sim-funded stage trails intraday."
+   "topic": "Rapid evaluation drawdown type",
+   "detail": "Every Rapid plan article labels the evaluation loss limit 'EOD' and only the sim stage 'intra-day trailing'; S2 says Rapid plans use intraday drawdown. Evidence favours EOD; both are run."
   },
   {
    "id": "X2",
+   "status": "RESOLVED",
    "src": [
     "S1",
-    "S2"
+    "S2",
+    "S13",
+    "S24",
+    "S25"
    ],
-   "topic": "Minimum trading days for Rapid",
-   "detail": "S2: Rapid and Pro need 2 days. S1: Rapid intraday 2 days but Rapid EOD 4 days."
+   "topic": "Minimum trading days for Rapid EOD",
+   "detail": "S2's generic '2 days' is superseded by the Rapid EOD plan articles (4 days)."
   },
   {
    "id": "X3",
+   "status": "RESOLVED",
    "src": [
-    "S4"
+    "S4",
+    "S18"
    ],
    "topic": "EOD drawdown lock level",
-   "detail": "S4 states the trail locks at starting balance + $100, but its examples (52.1k, 103.1k, 154.6k) add the MLL to the start."
+   "detail": "S18: the drawdown 'will now lock at +$100 after the drawdown % + $100 has been reached'. S4's 52.1k / 103.1k / 154.6k examples are the balance highs at which the lock happens."
   },
   {
    "id": "X4",
+   "status": "VARIANTS",
    "src": [
     "S4",
-    "S12",
-    "S8"
+    "S12"
    ],
-   "topic": "EOD drawdown breach test",
-   "detail": "S4: open equity losses below the minimum balance fail the account at any time. S8: the MLL 'does not move intraday'. S12: open equity losses are counted 'at the end of the trading day'. Whether an intraday dip that recovers is a breach is not consistent."
+   "topic": "EOD-trailing breach test",
+   "detail": "S4: open equity below the minimum balance fails the account; S12: open equity losses are counted 'at the end of the trading day'. Both readings are run."
   },
   {
    "id": "X5",
+   "status": "VARIANTS",
    "src": [
-    "S12"
+    "S12",
+    "S26",
+    "S27"
    ],
-   "topic": "Builder live MLL lock",
-   "detail": "S12 live table: 'static once MLL reaches $0'; S12 account rules: locks at $100 above the starting balance."
+   "topic": "Builder live MLL lock (25k / 50k)",
+   "detail": "Live tables say 'static once MLL reaches $0'; account rules say 'locks at $100 above the starting balance'. S27 (150k) and S8 (100k) say $100 only."
   },
   {
    "id": "X6",
+   "status": "RESOLVED",
    "src": [
     "S11",
-    "S9"
+    "S9",
+    "S20",
+    "S21",
+    "S22"
    ],
    "topic": "Intraday trailing lock",
-   "detail": "S11: the drawdown 'will not exceed the starting balance'. S9: the sim trailing max loss locks at $100 (start $0)."
+   "detail": "All four Rapid plan articles: 'Once your trailing Max Loss reaches $100, it locks there'. S11's 'will not exceed the starting balance' is the generic statement."
   },
   {
    "id": "X7",
+   "status": "VARIANTS",
    "src": [
-    "S10"
+    "S10",
+    "S28"
    ],
    "topic": "Pro sim-funded contract limits",
-   "detail": "S10 lists sim-funded limits as '3 mini / 3 micro', '6 / 6', '9 / 9' while the evaluation uses 3/30, 6/60, 9/90 (probably a typo, not confirmed)."
+   "detail": "The redesigned plan lists '3 mini / 3 micro' (6/6, 9/9) while its evaluation allows 30/60/90 micros; legacy accounts list 5/5, 10/10, 15/15. The stricter micro count is the default."
   },
   {
    "id": "X8",
+   "status": "VARIANTS",
    "src": [
     "S9",
-    "S15"
+    "S15",
+    "S20",
+    "S21",
+    "S22"
    ],
    "topic": "Rapid 50k sim contract limit",
-   "detail": "S9: 5 minis / 50 micros. S15: a Rapid 50k sim account 'starts off with 2 contracts' under a scaling plan that is not published."
+   "detail": "S9: 5 minis / 50 micros; S15: a Rapid 50k sim account 'starts off with 2 contracts' under a scaling plan no Rapid article describes. The stricter 20 micros is the default."
   },
   {
    "id": "X9",
+   "status": "RESOLVED",
    "src": [
     "S7",
-    "S8",
-    "S12"
+    "S13",
+    "S25",
+    "S26",
+    "S27"
    ],
-   "topic": "News rule scope",
-   "detail": "S7's 2-minute flat protocol says it applies to all releases, but S7 also allows trading other releases; Builder articles allow holding through T1 news without limitation."
+   "topic": "T1 news scope",
+   "detail": "T1 is prohibited on Rapid, Rapid EOD and Pro sim funded; allowed on all evaluations and Builder. S7's '2-minute protocol for all releases' for non-T1 news is not simulated (no complete calendar of all releases)."
   },
   {
    "id": "X10",
+   "status": "OPEN",
    "src": [
     "S3"
    ],
    "topic": "Consistency denominator",
-   "detail": "S3 defines the cap as a share of 'total evaluation profits made' but its worked example divides the profit target."
+   "detail": "Defined as a share of 'total evaluation profits made' but the worked example divides the profit target. The literal definition is used; the example would only change attempts that exceed the target."
   },
   {
    "id": "X11",
+   "status": "OPEN",
    "src": [
     "S14"
    ],
    "topic": "2% price-limit example",
-   "detail": "S14's text refers to a 5% limit while its formulas use 7%."
+   "detail": "Text refers to a 5% limit while formulas use 7%. Price-limit levels are not in the data, so the rule is reported as unverified, not enforced."
+  },
+  {
+   "id": "X12",
+   "status": "VARIANTS",
+   "src": [
+    "S7",
+    "B1",
+    "B2",
+    "F2"
+   ],
+   "topic": "MFFU 2026 T1 image vs official release times",
+   "detail": "MFFU's image lists the January Employment Report on Feb 6 and CPI on Feb 11 (released Feb 11 and Feb 13) and omits the Oct 28 FOMC statement. Default blocks the union of both."
+  },
+  {
+   "id": "X13",
+   "status": "OPEN",
+   "src": [
+    "S24",
+    "S23"
+   ],
+   "topic": "Rapid EOD 25k live",
+   "detail": "S24 says live follows standard Rapid 25k, but the Rapid live table (S23) is used because it is the only stated live table."
   }
  ],
  "not_stated": [
-  "The time and time zone at which an MFFU trading day ends and EOD balances are taken (no page states it).",
+  "The exact time an MFFU EOD balance is snapshotted (S17 fixes the 4:10 PM ET auto-flat; day-end is taken after it).",
   "Whether unrealized P&L counts toward the EOD high-water mark (S4 states only that open losses count toward a breach).",
-  "Whether the soft daily loss limit uses realized or open (equity) P&L, and its trigger time.",
-  "What counts as a 'trading day' or 'qualifying day' for minimum-day and payout rules.",
-  "The consequence of breaking the inactivity rule.",
-  "Session flat-by times for plans other than Builder (S12: positions must be closed before the session ends; no time given).",
-  "Contract limits for Builder 50k live and for Rapid live; Rapid 25k/100k/150k and Builder 25k/150k sim-funded parameters (articles not read).",
+  "Whether the soft daily loss limit uses realized or open (equity) P&L.",
+  "Whether every plan uses the 'one-time payment model' inactivity rule (S19).",
+  "Builder 25k / 50k live contract limits; Rapid live DLL; Pro live micro limits and lock; Pro 50k One Day sim-funded rules.",
   "Penalties for T1 news violations (S7 gives none).",
   "Whether ALPHA TERMINAL's unattended automated execution is permitted: S5 allows automated strategies 'tailored to their own specific settings' that do not exploit simulated fills; nothing approves this application.",
-  "Which platform API (if any) MFFU supports for automation: S6 lists platforms with no API or automation statement.",
-  "CME exchange and clearing fees for MNQ/MES (fee pages not read): all commissions are labelled scenarios."
+  "Which platform API (if any) MFFU supports for automation: S6 and 'Connecting to Different Platforms' list platforms with no API or automation statement.",
+  "CME exchange and clearing fees and broker commissions (fee pages not read): all commissions are labelled scenarios."
  ]
 }

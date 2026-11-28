@@ -26,6 +26,20 @@
 * **Where it is stored:** as a normal user environment variable (registry `HKCU\Environment`). It is readable by your Windows account, not by other users.
 * **Afterwards:** you can revoke or rotate the key in the Databento portal at any time, for example after the download.
 
+## Expected cost (not a quote)
+
+**Published price:** $70 per GB for CME OHLCV-1m on the usage-based plan. Read on databento.com/pricing on 2026-11-27; OHLCV-1s is the same rate.
+
+**Rough sizes:**
+* **MNQ, May 2019 to now:** about 0.2 GB, roughly $15. In the worst case, where every listed contract and spread trades every minute, about 2.3 GB, roughly $160.
+* **MES:** about the same again (`--root MES`).
+
+**Within the free credit:** new accounts get $125 of free credit.
+* Without a payment method on file, nothing can be charged.
+* With the default `--max-cost 5`, the download refuses if the total estimate is above $5. Raise it only up to what you approve.
+
+The exact figure comes from `--estimate`, which asks Databento itself and downloads nothing.
+
 ## What the download does
 
 **Estimate first:**

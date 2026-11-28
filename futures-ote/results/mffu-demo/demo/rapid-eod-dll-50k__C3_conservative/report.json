@@ -1,9 +1,9 @@
 {
  "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
- "plan": "rapid_eod/50k",
- "run_label": "rapid-eod-50k",
- "scenario": "C4_stress",
- "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+ "plan": "rapid_eod_dll/50k",
+ "run_label": "rapid-eod-dll-50k",
+ "scenario": "C3_conservative",
+ "scenario_label": "ASSUMPTION: $1.50/side, 2 ticks, limits need a 1-tick trade-through, adverse-first path",
  "choices": {
   "evaluation": {
    "breach_basis": "intraday_equity"
@@ -11,24 +11,23 @@
   "sim_funded": {
    "breach_basis": "intraday_equity"
   },
-  "live_hypothetical": null
+  "live_hypothetical": {
+   "breach_basis": "intraday_equity",
+   "t1_news_allowed": false
+  }
  },
- "unresolved_stages": {
-  "live_hypothetical": "rapid_eod/50k live_hypothetical: no MFFU article for this stage was read; parameters unresolved"
- },
+ "unresolved_stages": {},
  "unresolved_fields": {
-  "evaluation": [
-   "flat_by_session_end"
-  ],
-  "sim_funded": [
-   "flat_by_session_end"
-  ],
-  "live_hypothetical": null
+  "evaluation": [],
+  "sim_funded": [],
+  "live_hypothetical": [
+   "daily_loss_limit"
+  ]
  },
  "rules_hash": {
-  "evaluation": "be67b2d805962544",
-  "sim_funded": "5de28634312c7cac",
-  "live_hypothetical": null
+  "evaluation": "cc39160666279077",
+  "sim_funded": "59f1e88d5891f9cf",
+  "live_hypothetical": "ddcebd6c96bd2d8b"
  },
  "all": {
   "evaluation_attempts": 1,
@@ -52,27 +51,29 @@
   "payouts_gross": 0,
   "payouts_trader_share": 0,
   "evaluation_fees_if_documented": "price not read",
-  "net_pnl_all_accounts": -458.0,
-  "trades": 77,
-  "commissions": 308.0,
-  "slippage": 120.0,
+  "net_pnl_all_accounts": -301.18,
+  "trades": 76,
+  "commissions": 228.0,
+  "slippage": 59.0,
   "dll_soft_pauses": 0,
-  "worst_attempt_drawdown": 595.1
+  "worst_attempt_drawdown": 523.3
  },
  "pooled_trades": {
-  "trades": 77,
-  "win_rate_pct": 32.47,
-  "profit_factor": 0.669,
-  "expectancy": -5.95,
-  "net": -458.0,
+  "trades": 76,
+  "win_rate_pct": 34.21,
+  "profit_factor": 0.761,
+  "expectancy": -3.96,
+  "net": -301.18,
   "exit_reasons": {
-   "SL": 35,
-   "TRAIL": 25,
-   "TP2": 17
+   "SL": 30,
+   "TRAIL": 24,
+   "TP2": 17,
+   "BE": 4,
+   "ACCT_SESSION_END": 1
   }
  },
  "overlay_counters": {
-  "session_flattens": 0,
+  "session_flattens": 1,
   "news_flattens": 0,
   "breach_flattens": 0,
   "dll_flattens": 0,
@@ -81,36 +82,37 @@
   "stage_unresolved_skips": 0
  },
  "compliance_counts": {
-  "ACCEPTED": 3266,
-  "MARKET_CLOSED": 2
+  "ACCEPTED": 3109,
+  "MARKET_CLOSED": 3,
+  "OUTSIDE_MFFU_TRADING_HOURS": 158
  },
  "attempts": [
   {
-   "account_id": "rapid_eod/50k#1:evaluation",
+   "account_id": "rapid_eod_dll/50k#1:evaluation",
    "stage": "evaluation",
-   "plan": "rapid_eod/50k",
+   "plan": "rapid_eod_dll/50k",
    "status": "ENDED",
    "opened": "2026-04-06",
    "closed": "2026-04-10",
    "reason": "end of data (still open)",
    "calendar_days": 5,
    "trading_days": 5,
-   "net_pnl": -458.0,
-   "balance": -458.0,
-   "floor": -1986.5,
-   "max_drawdown": 595.1,
-   "trades": 77,
-   "win_rate_pct": 32.47,
-   "profit_factor": 0.669,
-   "expectancy": -5.95,
-   "commissions": 308.0,
-   "slippage": 120.0,
+   "net_pnl": -301.18,
+   "balance": -301.18,
+   "floor": -1959.0,
+   "max_drawdown": 523.3,
+   "trades": 76,
+   "win_rate_pct": 34.21,
+   "profit_factor": 0.761,
+   "expectancy": -3.96,
+   "commissions": 228.0,
+   "slippage": 59.0,
    "consistency": {
     "rule": 0.3,
     "ok": false,
-    "best_day": 13.5,
-    "total": -458.0,
-    "cap_now": -137.4
+    "best_day": 41.0,
+    "total": -301.18,
+    "cap_now": -90.35
    },
    "payouts": [],
    "events": [],
@@ -118,10 +120,8 @@
    "choices": {
     "breach_basis": "intraday_equity"
    },
-   "unresolved": [
-    "flat_by_session_end"
-   ],
-   "rules_hash": "be67b2d805962544",
+   "unresolved": [],
+   "rules_hash": "cc39160666279077",
    "attempt": 1
   }
  ],
@@ -178,12 +178,12 @@
    "payouts_gross": 0,
    "payouts_trader_share": 0,
    "evaluation_fees_if_documented": "price not read",
-   "net_pnl_all_accounts": -458.0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
+   "net_pnl_all_accounts": -301.18,
+   "trades": 76,
+   "commissions": 228.0,
+   "slippage": 59.0,
    "dll_soft_pauses": 0,
-   "worst_attempt_drawdown": 595.1
+   "worst_attempt_drawdown": 523.3
   }
  }
 }

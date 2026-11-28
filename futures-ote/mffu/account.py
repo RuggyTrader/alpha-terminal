@@ -177,8 +177,10 @@ class VirtualAccount:
             if above < float(p["min"]) or since < need:
                 return None
             if p.get("min_qualifying_days"):
-                cyc = [v for d, v in self.daily.items() if d >= self.cycle_start_day.isoformat()]
-                if sum(1 for v in cyc if v > 0) < int(p["min_qualifying_days"]):
+                c0 = self.cycle_start_day.isoformat()
+                cyc = [v for d, v in self.daily.items() if d >= c0]
+                traded = [d for d in self.trading_days if d >= c0]     # S26/S27: a qualifying day is a day traded
+                if len(traded) < int(p["min_qualifying_days"]):
                     return None
                 cp = p.get("consistency_pct")
                 prof = sum(cyc)

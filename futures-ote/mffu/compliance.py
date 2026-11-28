@@ -17,7 +17,7 @@ import math
 from dataclasses import dataclass, field, asdict
 from typing import Any, Dict, List, Optional, Tuple
 
-from .calendar import is_open, NewsCalendar
+from .calendar import is_open, mffu_permitted, NewsCalendar
 from .instruments import INSTRUMENTS, CostScenario, validate_qty
 
 EXTERNAL_EXECUTION = "DISABLED"
@@ -133,6 +133,8 @@ class ComplianceEngine:
         live_from = market.live_from or market.now
         if not is_open(live_from):
             R.append("MARKET_CLOSED")
+        elif cfg.get("flat_by_session_end") and not mffu_permitted(live_from):
+            R.append("OUTSIDE_MFFU_TRADING_HOURS")      # S17: 4:10 PM to 6:00 PM ET
         opening = not intent.reduce_only
         if opening and intent.stop_loss is None:
             R.append("NO_PROTECTIVE_STOP")

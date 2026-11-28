@@ -15,7 +15,8 @@ from typing import Dict, Iterable, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
 ET = ZoneInfo("America/New_York")
-DAY_BOUNDARY = {"time_et": "17:00", "status": "ASSUMPTION", "why": "MFFU states no day-end time; the CME equity session ends at 17:00 ET (C1/C2)."}
+DAY_BOUNDARY = {"flat_et": "16:10", "status": "DOCUMENTED (S17)", "why": "MFFU Core Rules: trading from 6:00 PM (Globex open) until 4:10 PM; open positions auto-closed at 4:10 PM ET."}
+MFFU_FLAT = (16, 10)   # S17, New York wall clock
 
 # C3, 2026 CME Globex holiday windows (dates the holiday schedule covers). Hours: see HOLIDAY_HOURS.
 HOLIDAYS_2026 = {
@@ -36,6 +37,17 @@ HOLIDAY_HOURS = {
 
 def session_day(t: dt.datetime) -> dt.date:
     return (t.astimezone(ET) + dt.timedelta(hours=6)).date()
+
+
+def mffu_flat_time(t: dt.datetime) -> dt.datetime:
+    """4:10 PM ET of the bar's session day (S17)."""
+    d = session_day(t)
+    return dt.datetime(d.year, d.month, d.day, MFFU_FLAT[0], MFFU_FLAT[1], tzinfo=ET)
+
+
+def mffu_permitted(t: dt.datetime) -> bool:
+    """S17: orders may be live from the 6:00 PM ET Globex open until 4:10 PM ET (and only while CME is open)."""
+    return is_open(t) and t.astimezone(ET) < mffu_flat_time(t)
 
 
 def regular_open(t: dt.datetime) -> bool:
@@ -89,22 +101,32 @@ class NewsCalendar:
 
     WINDOW = dt.timedelta(minutes=2)   # S7: no positions or orders 2 minutes before and after the release
 
-    def __init__(self, events: Optional[Iterable[Tuple[dt.datetime, str]]] = None, source: str = ""):
+    def __init__(self, events: Optional[Iterable[Tuple[dt.datetime, str]]] = None, source: str = "",
+                 coverage: Optional[Tuple[dt.datetime, dt.datetime]] = None):
         self.events: List[Tuple[dt.datetime, str]] = sorted(events or [])
         self.source = source
         self.available = events is not None
+        self.coverage = coverage   # the period the source is complete for; outside it nothing is assumed
 
     @classmethod
-    def from_csv(cls, path: str) -> "NewsCalendar":
+    def official(cls, variant: str = "union") -> "NewsCalendar":
+        """Primary-source T1 calendar (t1_calendar.py): Federal Reserve and BLS releases, plus MFFU's 2026 list."""
+        from . import t1_calendar as T
+        return cls(T.events(variant), source=f"t1_calendar.py ({variant}; Federal Reserve + BLS releases, retrieved {T.RETRIEVED})", coverage=T.COVERAGE)
+
+    @classmethod
+    def from_csv(cls, path: str, coverage: Optional[Tuple[dt.datetime, dt.datetime]] = None) -> "NewsCalendar":
         ev = []
         with open(path, newline="") as f:
             for r in csv.DictReader(f):
                 ev.append((dt.datetime.strptime(r["time_et"], "%Y-%m-%d %H:%M").replace(tzinfo=ET), r["event"]))
-        return cls(ev, source=path)
+        if coverage is None:
+            raise ValueError("a news CSV needs an explicit coverage period (start, end) for which it is complete")
+        return cls(ev, source=path, coverage=coverage)
 
     def covers(self, a: dt.datetime, b: dt.datetime) -> bool:
-        """True when the calendar's own span includes [a, b]."""
-        return self.available and bool(self.events) and self.events[0][0] - dt.timedelta(days=45) <= a and b <= self.events[-1][0] + dt.timedelta(days=45)
+        """True only when [a, b] lies inside the period the source is known to be complete for."""
+        return self.available and self.coverage is not None and self.coverage[0] <= a and b <= self.coverage[1]
 
     def in_window(self, a: dt.datetime, b: Optional[dt.datetime] = None) -> Optional[str]:
         """Event name if [a, b] overlaps any event's +/- 2 minute window."""
@@ -113,8 +135,3 @@ class NewsCalendar:
             if a <= t + self.WINDOW and b >= t - self.WINDOW:
                 return name
         return None
-
-
-def load_dates(path: str) -> Dict[str, str]:
-    with open(path) as f:
-        return {r["date"]: r.get("note", "") for r in csv.DictReader(f)}

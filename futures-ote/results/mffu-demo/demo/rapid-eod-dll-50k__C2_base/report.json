@@ -1,9 +1,9 @@
 {
  "label": "SIMULATED MFFU accounts (historical research). Not an MFFU account, not a guarantee of evaluation results.",
- "plan": "builder/100k",
- "run_label": "builder-100k",
- "scenario": "C4_stress",
- "scenario_label": "STRESS: $2.00/side, 4 ticks, 1-tick trade-through, adverse-first path",
+ "plan": "rapid_eod_dll/50k",
+ "run_label": "rapid-eod-dll-50k",
+ "scenario": "C2_base",
+ "scenario_label": "ASSUMPTION: $0.74/side all-in, 1 tick on stops and forced exits",
  "choices": {
   "evaluation": {
    "breach_basis": "intraday_equity"
@@ -12,23 +12,22 @@
    "breach_basis": "intraday_equity"
   },
   "live_hypothetical": {
-   "breach_basis": "intraday_equity"
+   "breach_basis": "intraday_equity",
+   "t1_news_allowed": false
   }
  },
  "unresolved_stages": {},
  "unresolved_fields": {
-  "evaluation": [
-   "inactivity_days"
-  ],
+  "evaluation": [],
   "sim_funded": [],
   "live_hypothetical": [
-   "t1_news_allowed"
+   "daily_loss_limit"
   ]
  },
  "rules_hash": {
-  "evaluation": "f41ecd86ae45bfe7",
-  "sim_funded": "f36cbceb87d5e87a",
-  "live_hypothetical": "9bd6dfd12c125ecc"
+  "evaluation": "cc39160666279077",
+  "sim_funded": "59f1e88d5891f9cf",
+  "live_hypothetical": "ddcebd6c96bd2d8b"
  },
  "all": {
   "evaluation_attempts": 1,
@@ -52,27 +51,29 @@
   "payouts_gross": 0,
   "payouts_trader_share": 0,
   "evaluation_fees_if_documented": "price not read",
-  "net_pnl_all_accounts": -458.0,
-  "trades": 77,
-  "commissions": 308.0,
-  "slippage": 120.0,
+  "net_pnl_all_accounts": -219.68,
+  "trades": 75,
+  "commissions": 111.0,
+  "slippage": 30.0,
   "dll_soft_pauses": 0,
-  "worst_attempt_drawdown": 595.1
+  "worst_attempt_drawdown": 412.06
  },
  "pooled_trades": {
-  "trades": 77,
-  "win_rate_pct": 32.47,
-  "profit_factor": 0.669,
-  "expectancy": -5.95,
-  "net": -458.0,
+  "trades": 75,
+  "win_rate_pct": 34.67,
+  "profit_factor": 0.803,
+  "expectancy": -2.93,
+  "net": -219.68,
   "exit_reasons": {
-   "SL": 35,
-   "TRAIL": 25,
-   "TP2": 17
+   "SL": 28,
+   "TRAIL": 26,
+   "TP2": 15,
+   "BE": 5,
+   "ACCT_SESSION_END": 1
   }
  },
  "overlay_counters": {
-  "session_flattens": 0,
+  "session_flattens": 1,
   "news_flattens": 0,
   "breach_flattens": 0,
   "dll_flattens": 0,
@@ -81,35 +82,37 @@
   "stage_unresolved_skips": 0
  },
  "compliance_counts": {
-  "ACCEPTED": 3266,
-  "MARKET_CLOSED": 2
+  "ACCEPTED": 3128,
+  "MARKET_CLOSED": 3,
+  "OUTSIDE_MFFU_TRADING_HOURS": 158
  },
  "attempts": [
   {
-   "account_id": "builder/100k#1:evaluation",
+   "account_id": "rapid_eod_dll/50k#1:evaluation",
    "stage": "evaluation",
-   "plan": "builder/100k",
+   "plan": "rapid_eod_dll/50k",
    "status": "ENDED",
    "opened": "2026-04-06",
    "closed": "2026-04-10",
    "reason": "end of data (still open)",
    "calendar_days": 5,
    "trading_days": 5,
-   "net_pnl": -458.0,
-   "balance": -458.0,
-   "floor": -2986.5,
-   "max_drawdown": 595.1,
-   "trades": 77,
-   "win_rate_pct": 32.47,
-   "profit_factor": 0.669,
-   "expectancy": -5.95,
-   "commissions": 308.0,
-   "slippage": 120.0,
+   "net_pnl": -219.68,
+   "balance": -219.68,
+   "floor": -2000.0,
+   "max_drawdown": 412.06,
+   "trades": 75,
+   "win_rate_pct": 34.67,
+   "profit_factor": 0.803,
+   "expectancy": -2.93,
+   "commissions": 111.0,
+   "slippage": 30.0,
    "consistency": {
-    "rule": null,
-    "ok": true,
-    "best_day": 13.5,
-    "total": -458.0
+    "rule": 0.3,
+    "ok": false,
+    "best_day": 31.84,
+    "total": -219.68,
+    "cap_now": -65.9
    },
    "payouts": [],
    "events": [],
@@ -117,10 +120,8 @@
    "choices": {
     "breach_basis": "intraday_equity"
    },
-   "unresolved": [
-    "inactivity_days"
-   ],
-   "rules_hash": "f41ecd86ae45bfe7",
+   "unresolved": [],
+   "rules_hash": "cc39160666279077",
    "attempt": 1
   }
  ],
@@ -177,12 +178,12 @@
    "payouts_gross": 0,
    "payouts_trader_share": 0,
    "evaluation_fees_if_documented": "price not read",
-   "net_pnl_all_accounts": -458.0,
-   "trades": 77,
-   "commissions": 308.0,
-   "slippage": 120.0,
+   "net_pnl_all_accounts": -219.68,
+   "trades": 75,
+   "commissions": 111.0,
+   "slippage": 30.0,
    "dll_soft_pauses": 0,
-   "worst_attempt_drawdown": 595.1
+   "worst_attempt_drawdown": 412.06
   }
  }
 }

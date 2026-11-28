@@ -65,7 +65,8 @@ function ResultRow({ r }: { r: MffuRun }) {
   const fails = Object.entries(r.failure_reasons).map(([k, v]) => `${k} ×${v}`).join("; ");
   return (
     <div className="card list-card" data-run={r.run}>
-      <div className="li"><span><b>{r.plan}</b> · {r.scenario}</span><b>{r.passed}/{r.attempts} passed · {r.breached} breached · {r.open_at_end} open</b></div>
+      <div className="li"><span><b>{r.plan}</b> · {r.scenario} · SIMULATED{r.evidence ? "" : " · DEMO, NOT EVIDENCE"}</span><b>{r.passed}/{r.attempts} passed · {r.breached} breached · {r.open_at_end} open</b></div>
+      <div className="li"><span>Recorded from</span><b>{r.data}</b></div>
       <div className="li"><span>Pass rate (completed attempts)</span><b>{pct(r.pass_rate_pct)}</b></div>
       <div className="li"><span>Median trading days to pass</span><b>{r.median_trading_days_to_pass ?? NA}</b></div>
       <div className="li"><span>Net P&L, all simulated accounts</span><b className={r.net_pnl < 0 ? "t-neg" : "t-pos"}>{signedMoney(r.net_pnl)}</b></div>
@@ -82,7 +83,7 @@ function ResultRow({ r }: { r: MffuRun }) {
 export function MffuView({ s }: { s: MffuSnapshot }) {
   const a = "account_id" in s.account ? (s.account as MffuAccount) : null;
   return (
-    <div className="page-narrow mirror-page m-stagger">
+    <div className="page-narrow mirror-page mffu-page m-stagger">
       <h1 className="page-title">Research · MFFU (simulated)</h1>
       <SimulatedBanner s={s} />
       <section className="card dark-card" aria-label="Integration readiness">
@@ -117,7 +118,7 @@ export function MffuView({ s }: { s: MffuSnapshot }) {
       ))}
       <SectionHeader title="Unresolved and contradictory rules" />
       <div className="card list-card">
-        {s.contradictions.map((c) => <div className="li" key={c.id}><span>{c.id} · {c.topic}</span><b>{c.detail}</b></div>)}
+        {s.contradictions.map((c) => <div className="li" key={c.id}><span>{c.id} · {c.status} · {c.topic}</span><b>{c.detail}</b></div>)}
         {s.not_stated.map((n, i) => <div className="li" key={`n${i}`}><span>Not stated</span><b>{n}</b></div>)}
       </div>
       <SectionHeader title="Sources" sub={`Retrieved ${s.retrieved}. MFFU rules change; re-verify before relying on them.`} />

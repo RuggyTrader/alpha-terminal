@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 
 from . import rules as R
 from .account import VirtualAccount, ACTIVE, PAUSED_DLL, BREACHED, PASSED, INACTIVE, ENDED
-from .calendar import session_day, NewsCalendar
+from .calendar import session_day, mffu_flat_time, NewsCalendar
 from .compliance import ComplianceEngine, OrderIntent, MarketState
 from .instruments import FuturesSpec, MNQ, CostScenario
 
@@ -101,9 +101,13 @@ class MffuOverlay:
             return
         a.end_day(self.day, t, self.last_eq_close, flat)
         if a.status == ACTIVE and a.stage == "sim_funded" and flat:
-            a.try_payout(self.day, t)
-            if self._promotion_due():
-                a.status, a.closed_day, a.end_reason = "PROMOTED_TO_LIVE", self.day, "documented payout count reached"
+            lim = a.cfg.get("to_live_session_profit")
+            if lim and a.daily.get(self.day.isoformat(), 0.0) >= float(lim):
+                a.status, a.closed_day, a.end_reason = "PROMOTED_TO_LIVE", self.day, f"net profit >= ${lim:,.0f} in one session (S23; excess forfeited, not simulated)"
+            else:
+                a.try_payout(self.day, t)
+                if self._promotion_due():
+                    a.status, a.closed_day, a.end_reason = "PROMOTED_TO_LIVE", self.day, "documented payout count reached"
         if a.status not in (ACTIVE, PAUSED_DLL):
             self._close(t)
 
@@ -184,12 +188,13 @@ class MffuOverlay:
         new_day = t_next is None or session_day(t_next) != session_day(t)
         why = None
         if a is not None and pos is not None:
-            if new_day:
-                f = a.cfg.get("flat_by_session_end")
-                if f is True:
-                    why = "ACCT_SESSION_END"; self.c["session_flattens"] += 1
-                elif f is None:
-                    self.c["held_across_session_rule_unresolved"] += 1
+            f = a.cfg.get("flat_by_session_end")
+            flat_t = mffu_flat_time(t)
+            due = new_day or t + ONE_MIN >= flat_t or (t_next is not None and t_next >= flat_t)
+            if f and due:
+                why = "ACCT_SESSION_END"; self.c["session_flattens"] += 1      # S17: auto-close at 4:10 PM ET / before a holiday close
+            elif f is None and new_day:
+                self.c["held_across_session_rule_unresolved"] += 1
             if why is None and a.cfg.get("t1_news_allowed") is False and self.compliance.news.covers(t, t + ONE_MIN):
                 if self.compliance.news.in_window(t + ONE_MIN, (t_next or t) + ONE_MIN):
                     why = "ACCT_NEWS_FLAT"; self.c["news_flattens"] += 1

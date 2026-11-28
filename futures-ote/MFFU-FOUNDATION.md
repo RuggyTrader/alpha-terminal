@@ -2,7 +2,7 @@
 
 ## What this is (and what it is not)
 
-**What it is:** a local, educational simulator that replays the locked OTE strategy through virtual MyFundedFutures-style accounts.
+**What it is:** a local, educational simulator that replays the locked OTE strategy (Configuration A, 1 contract) through virtual MyFundedFutures-style accounts.
 
 **What it is not:**
 * It is not an MFFU account.
@@ -15,11 +15,12 @@
 * A historical simulated pass does not mean a real evaluation would pass.
 * The simulated protections are not a guarantee against losses.
 
-## Sources (retrieved 2026-11-27)
+## Sources (all read 2026-11-27)
 
 `mffu/sources.py` lists every page, with its URL and the date printed on it:
-* **MFFU help-centre articles S1 to S16**, including the six pages the owner named. The "EOD drawdown" link given was article 8348565; article 8444599 is the Fair Play page.
+* **MFFU help-centre articles S1 to S30:** every plan size of Builder, Rapid, Rapid EOD, Rapid EOD with DLL and Pro; drawdown; consistency; news; Core Rules "Permitted Times to Trade"; inactivity; payouts; hedging.
 * **CME C1 to C3:** the MNQ and MES contract specs and the holiday calendar.
+* **Federal Reserve F1 and F2, and BLS B1 and B2:** the news calendar.
 
 MFFU rules change, so re-verify them before relying on any of this.
 
@@ -33,104 +34,124 @@ In `mffu/rules.py`, each field of each plan, size and stage is recorded in one o
   * The simulator refuses to use the field unless the run picks one of the documented candidates explicitly.
   * That choice is stored in every result.
 
-## Contradictions and unresolved rules
+## Session rules (S17, MFFU Core Rules)
 
-There are 11 contradictions (X1 to X11) and a list of facts no page states. Both are in `sources.py` and on the dashboard. The most important:
+* **Trading hours:** orders may be placed from the 6:00 PM ET Globex open until 4:10 PM ET. The compliance gate refuses orders that would be live between 4:10 and 6:00 PM (`OUTSIDE_MFFU_TRADING_HOURS`).
+* **4:10 PM flatten:** open positions are closed at 4:10 PM ET on every plan and stage (`ACCT_SESSION_END`).
+* **Holiday half days:** MFFU does not auto-close, and the trader must be flat before the close. The simulator flattens at the last bar of the session.
+* **"EST" in MFFU's text:** read as New York wall-clock time. A literal EST 4:10 PM in summer would fall after the CME close.
 
-| Id | Topic | What was found |
+## T1 news calendar (`mffu/t1_calendar.py`)
+
+**Events:** MFFU's Tier 1 list is FOMC statement, FOMC minutes, Employment Report and CPI (S7). Both the text and MFFU's own 2026 calendar image confirm it.
+
+**Window:** no positions or orders from 2 minutes before to 2 minutes after the release.
+
+**Where it applies:**
+* Restricted: Rapid, Rapid EOD and Pro sim funded.
+* Allowed: all evaluations and Builder.
+* Live accounts: not addressed, so the stricter reading is used.
+
+**Coverage:** 314 releases from 2019-01-01 to 2026-11-27, each read from the release itself.
+
+| Event | Count | Source |
 |---|---|---|
-| X1 | Rapid evaluation drawdown type | EOD in S1 and S9, intraday in S2. Both variants are run. |
-| X4 | EOD-trailing breach test | S4: any open-equity dip below the minimum balance fails the account. S12: tested at day end. Both are run for Builder 50k; the stricter reading is the default. |
-| X3 | Lock level | S4's examples contradict its own "start + $100" lock. |
-| X5 | Builder live lock | $0 vs start + $100. |
-| X7, X8 | Contract limits | Pro and Rapid sim-funded limits are unclear. The stricter value is used. |
-| — | Day end | MFFU states no day-end time. The CME 17:00 ET session end is used (an ASSUMPTION). |
-| — | Automation | S5 allows automated strategies that do not exploit simulated fills. Nothing approves ALPHA TERMINAL, and no API route is documented (S6). |
+| FOMC statements | 65 | Federal Reserve press releases ("For release at ... EST/EDT"); includes the 2020 unscheduled meetings |
+| FOMC minutes | 63 | Federal Reserve "Minutes of the FOMC" press releases. The 2:00 p.m. sentence inside the minutes is the desk directive and is not used |
+| CPI | 93 | BLS archived releases ("embargoed until 8:30 a.m."), as actually released. The 2025 appropriations lapse is included: September CPI came out on 2025-10-24 and October 2025 was never published |
+| Employment Report | 93 | BLS archived releases, as actually released |
 
-## Modules (`futures-ote/mffu/`)
+**Time zones and DST:**
+* Every time is New York wall-clock time.
+* Tests check each printed EST/EDT label against the date's daylight-saving state.
+* Tests also check each BLS file-name date against the release date.
 
-| File | Purpose |
-|---|---|
-| `sources.py` | Source register, contradictions, not-stated list |
-| `rules.py` | Plan catalogue with provenance: 15 plan/size combinations. Evaluation for all of them; sim funded and hypothetical live only where the article was read |
-| `instruments.py` | MNQ ($2/pt, 0.25 tick = $0.50) and MES ($5/pt, 0.25 tick = $1.25) from CME pages; whole-contract quantity validation; 3rd-Friday 9:30 ET expiry; cost scenarios C1 to C4 (labelled assumptions) |
-| `calendar.py` | CME Globex hours (Sun 18:00 to Fri 17:00 ET, daily 17:00 to 18:00 halt); session day; 2026 holiday list and Thanksgiving 2026 equity hours (C3); a T1 news-calendar loader (none bundled) |
-| `account.py` | Virtual account: EOD or intraday trailing floor with lock, open-equity breach test, soft daily-loss pause, consistency, minimum days, target, inactivity, simulated payouts (Builder, Rapid, Pro rules as read), Pro static MLL after the first payout |
-| `compliance.py` | Deterministic pre-trade gate (see the list below) |
-| `execution.py` | Broker-independent contract (`OrderIntent`, `ExecutionAdapter`, `OrderRouter`), with only `MockAdapter` and `PaperSimAdapter`. `NinjaTraderAdapter` and `TradovateAdapter` raise `ExternalExecutionDisabled` on construction |
-| `evaluate.py` | `MffuOverlay` for `ote_engine.strategy.run(overlay=...)`: chains evaluation, then sim funded, then hypothetical live, and restarts after each failure, keeping every attempt |
-| `store.py` | Atomic state files for restart recovery |
-| `dashboard.py` | Snapshot JSON for the dashboard page |
+**MFFU's own 2026 list differs from the official record (X12):**
+* MFFU puts the January Employment Report on Feb 6 and CPI on Feb 11. The actual releases were Feb 11 and Feb 13.
+* MFFU's list omits the Oct 28 FOMC statement.
+* The default (`union`) blocks both sources' times.
 
-**What the compliance gate checks:**
-* external route;
-* emergency pause (only the owner can lift it);
-* account status (breached, paused, passed, inactive);
-* duplicate order ids;
-* missing or stale data;
-* market closed;
-* whole contracts and the contract limit;
-* hedging the same underlying;
-* a protective stop is required;
-* T1 news windows (blocked when no calendar is available);
-* worst-case loss against the remaining drawdown and the daily allowance;
-* the 2% price-limit rule (a warning when limit levels are unknown).
+**Missing coverage:** outside the coverage period, stages that prohibit T1 news are blocked. Nothing is ever assumed news-free.
 
-**Gate guarantees:**
-* There is no override argument.
-* AI-suggested orders get the same verdict.
-* Decisions are bound to the order's digest and can be used once.
-* The audit log is always on.
+## Contradictions: status
 
-## Engine integration
+| Id | Topic | Status | How it is handled |
+|---|---|---|---|
+| X1 | Rapid evaluation drawdown type | VARIANTS | Plan articles say EOD; S2 says intraday. Both are run |
+| X2 | Rapid EOD minimum days | RESOLVED | 4 days (plan articles) |
+| X3 | EOD lock level | RESOLVED | +$100 once the balance high reaches start + MLL + $100 (S18) |
+| X4 | EOD breach test (intraday vs end of day) | VARIANTS | Both are run for Builder 50k; intraday is the default |
+| X5 | Builder 25k/50k live lock ($0 vs $100) | VARIANTS | Explicit choice required |
+| X6 | Intraday trailing lock | RESOLVED | $100 (all Rapid plan articles) |
+| X7 | Pro sim contract limits | VARIANTS | Stricter micro count by default |
+| X8 | Rapid 50k sim scaling | VARIANTS | Stricter 20 micros by default |
+| X9 | News scope | RESOLVED | See the T1 section above |
+| X10 | Consistency denominator | OPEN | Literal definition (total profit) used |
+| X11 | 2% price-limit example | OPEN | Reported as unverified, not enforced |
+| X12 | MFFU 2026 image vs official times | VARIANTS | Union by default |
+| X13 | Rapid EOD 25k live | OPEN | Rapid live table (S23) used |
 
-* **Default unchanged:** `ote_engine.strategy.run()` gained an optional `overlay` argument. It defaults to `None`, which gives exactly the same results as before (all earlier tests pass, and a test checks that a permissive overlay changes nothing).
-* **Strategy untouched:** Configuration A's inputs and logic are unchanged.
-* **What the overlay can do:**
-  * refuse an order at placement;
-  * flatten inside a bar at an account threshold (breach or soft pause), priced at the threshold and clamped to the bar;
-  * flatten at a bar's close (Builder session end, news window).
-* **Counting:** every refusal and every flatten is counted.
+## Execution accuracy (tests)
+
+* **Rolls:** each contract is traded only while it is front month by the previous day's volume, and never past its last trading time (9:30 AM ET on the 3rd Friday).
+* **Ticks:** every fill, including account-forced exits, is on the 0.25 tick.
+* **Quantities:** whole contracts only. The "whole" sizing floors and never rounds up.
+* **Commission:** 2 × per side × contracts.
+* **Stop slippage:** ticks × tick value × contracts.
+* **Ledger identity:** net = gross − commission.
+* **Drawdown:**
+  * EOD floor moves only at day end and locks;
+  * intraday floor uses unrealized peaks;
+  * open-equity breach is checked;
+  * the soft daily-loss pause is not a breach.
+
+## Data (still needed for any real result)
+
+**Requirement:** genuine Databento GLBX.MDP3 `ohlcv-1m` data, unadjusted and per contract, for MNQ (and MES for the second instrument).
+
+**Status:** the API key is not configured yet, so no exact quote and no download has happened. Setup steps are in `DATABENTO-SETUP.md`.
+
+**Published usage price (read 2026-11-27):** $70 per GB for CME OHLCV-1m (OHLCV-1s is also $70/GB).
+
+**Rough size, not a quote:** an OHLCV record is 56 bytes uncompressed. MNQ 2019-05 to 2026-11 is about 1,950 sessions.
+
+| Case | Assumption | Records | Size | Cost |
+|---|---|---|---|---|
+| Typical | about 2,000 records a day across the front month, next month and spreads | about 4 million | about 0.22 GB | about $15 |
+| Worst case | every listed MNQ outright and spread trading every minute | — | about 2.3 GB | about $160 |
+
+**Exact quote:** `fetch_databento.py --estimate` asks Databento for the exact cost before anything is requested. The download refuses if the estimate is above `--max-cost`. Databento gives $125 of free credit to new accounts.
+
+**Free alternatives:** no free, account-free source of multi-year, per-contract, unadjusted 1-minute MNQ data was found. The one-week free sample used in the demo is ratio-adjusted and is never used as evidence.
+
+## Dashboard
+
+**Location:** "Research · MFFU (simulated)", at `/research/mffu`, linked from Settings.
+
+**Browser check:** verified in an authenticated local browser session against a fully local Worker (`wrangler dev --local`, local D1 and a generated test passphrase).
+
+**What the check confirmed:**
+* All 20 result rows match the recorded run files.
+* Every row is labelled SIMULATED, and DEMO, NOT EVIDENCE while only demo data exists.
+* No horizontal scroll at phone width.
+* External execution shows DISABLED.
 
 ## How to run
 
 ```powershell
-# demo (pipeline check on the free one-week sample; NOT evidence)
-.venv\Scripts\python run_mffu.py results\mffu-demo --csv <sample.csv> --demo
-# development period on Databento data (after the download)
-.venv\Scripts\python run_mffu.py results\mffu --cache <databento cache> --root MNQ
-# holdout: refused until results\mffu\dev\MFFU-SUMMARY.json is committed
-.venv\Scripts\python run_mffu.py results\mffu --cache <databento cache> --root MNQ --holdout
-# MES needs its own download first
-.venv\Scripts\python fetch_databento.py <cache> --root MES --estimate
+.venv\Scripts\python run_mffu.py results\mffu --cache <databento cache> --root MNQ            # development period
+.venv\Scripts\python run_mffu.py results\mffu --cache <databento cache> --root MNQ --holdout  # refused until dev summary is committed
 ```
 
-**Pre-registered before any result:**
-* **9 plan variants**, listed in `CONFIGS` in `run_mffu.py`.
-* **4 cost scenarios:** C1 optimistic, C2 base, C3 conservative, C4 stress.
-* **Sizing:** 1 contract.
-* **Holdout:** the last 12 months.
-* **No tuning:** nothing is tuned on these results.
-
-## Current results
-
-**Only the pipeline demo has been run so far:** one sample week of ratio-adjusted MNQ prices. These figures are not evidence. The full historical evaluation needs the Databento MNQ download, which is still waiting on the owner's API key.
-
-**Demo figures (C2 base costs):**
-* 76 trades, profit factor 0.79, net −$237;
-* no attempt reached a target or breached in one week.
+**Options:**
+* `--news union|official|mffu_image|none` selects the T1 calendar variant.
+* The plan variants are pre-registered in `CONFIGS` (10 variants) and run under 4 cost scenarios.
 
 ## Remaining integration requirements (all open)
 
-1. **MFFU automation approval:** written confirmation from MFFU that unattended automated execution by ALPHA TERMINAL is allowed, and on which accounts.
-2. **Technical route:** MFFU's confirmed platform and API (NinjaTrader, Tradovate or other). No adapter will be written before then.
+1. **MFFU automation approval:** written confirmation that unattended automated execution by ALPHA TERMINAL is allowed, and on which accounts.
+2. **Technical route:** MFFU's confirmed platform and API. No adapter exists beyond local mock and paper adapters.
 3. **Owner authorization:** a separate authorization for any external integration.
-4. **T1 news calendar:** FOMC, FOMC minutes, Employment Report and CPI release times for the test period. Without it, Rapid and Pro sim-funded stages cannot trade in simulation.
-5. **Missing articles:**
-   * Rapid 25k, 100k and 150k, and Builder 25k and 150k, sim-funded rules;
-   * Rapid live rules;
-   * Builder 50k live contract limit;
-   * the "qualifying day" definition;
-   * MFFU's day-end time.
-6. **Cost basis:** broker commissions and CME exchange fees for the chosen route. All costs are currently scenarios.
-7. **Historical holiday hours:** detected from data gaps. Only Thanksgiving 2026 hours are documented.
+4. **Historical data:** the Databento key, then the estimate, then a download within free credit.
+5. **News calendar after 2026-11-27:** extend `t1_calendar.py` from the official releases.
+6. **Cost basis:** broker commissions and CME fees for the chosen route. All costs are currently scenarios.

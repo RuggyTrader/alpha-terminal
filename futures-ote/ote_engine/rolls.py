@@ -78,4 +78,16 @@ def segments(schedule: pd.DataFrame) -> List[Dict]:
     for s in segs:   # session of day D runs from 18:00 ET of D-1 to 17:00 ET of D
         s["start"] = pd.Timestamp(s["first_day"]).tz_localize(ET) - pd.Timedelta(hours=6)
         s["end"] = pd.Timestamp(s["last_day"]).tz_localize(ET) + pd.Timedelta(hours=17)
-    return segs
+        y, m = expiry_key(s["symbol"], pd.Timestamp(s["first_day"]).year)
+        ltt = last_trade_time(y, m)
+        if s["end"] > ltt:   # never trade a contract past its final trading time (CME: 9:30 a.m. ET, 3rd Friday)
+            s["end"] = ltt
+            s["capped_at_expiry"] = True
+    return [s for s in segs if s["start"] < s["end"]]
+
+
+def last_trade_time(year: int, month: int) -> pd.Timestamp:
+    """CME equity index futures (MNQ, MES): trading terminates at 9:30 a.m. ET on the 3rd Friday of the contract month."""
+    first = pd.Timestamp(year=year, month=month, day=1)
+    friday = first + pd.Timedelta(days=(4 - first.weekday()) % 7) + pd.Timedelta(weeks=2)
+    return pd.Timestamp(year=year, month=month, day=friday.day, hour=9, minute=30).tz_localize(ET)
