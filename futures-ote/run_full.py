@@ -34,12 +34,17 @@ WARMUP = pd.Timedelta(days=10)
 
 def load_cache(cache, root="MNQ"):
     import databento as db   # reading local DBN files needs no API key
-    frames = []
+    frames, unmapped = [], 0
+    pat = outright(root)
     for p in sorted(glob.glob(os.path.join(cache, "GLBX.MDP3", "ohlcv-1m", f"{root}.FUT", "*.dbn.zst"))):
-        d = db.DBNStore.from_file(p).to_df()
-        frames.append(d.reset_index()[["ts_event", "symbol", "open", "high", "low", "close", "volume"]])
+        d = db.DBNStore.from_file(p).to_df().reset_index()[["ts_event", "symbol", "open", "high", "low", "close", "volume"]]
+        unmapped += int(d["symbol"].isna().sum())
+        frames.append(d[d["symbol"].str.match(pat, na=False)])   # outright contracts only: spreads are dropped per file, before they use memory
+    if not frames:
+        raise SystemExit(f"no cached {root} DBN files under {cache} (run fetch_databento.py first)")
+    if unmapped:   # records whose instrument id has no symbology mapping are dropped, never guessed
+        print(f"WARNING: {unmapped} records without a symbol mapping were dropped")
     df = pd.concat(frames, ignore_index=True)
-    df = df[df["symbol"].str.match(outright(root))].copy()            # outright contracts only (no calendar spreads)
     df["time"] = pd.to_datetime(df["ts_event"], utc=True).dt.tz_convert(ET)
     return df.drop(columns=["ts_event"]).sort_values(["symbol", "time"]).drop_duplicates(["symbol", "time"]).reset_index(drop=True)
 
@@ -64,6 +69,8 @@ def run_period(df, segs, lo, hi, st, ex, overlay=None):
         offset += sum(x.net for x in r["trades"])
         for k, v in r["diag"].items():
             diag[k] = diag.get(k, 0) + v
+    if not times:
+        raise SystemExit(f"no front-contract bars between {lo} and {hi}: the cache does not cover this period")
     return {"trades": trades, "eq_close": eqc, "eq_low": eql, "diag": diag, "settings": r["settings"], "execution": r["execution"]}, times
 
 
@@ -87,6 +94,9 @@ def ambiguous(df, trades):
 def main():
     cache, out = sys.argv[1], sys.argv[2]
     holdout = "--holdout" in sys.argv
+    synthetic = os.path.exists(os.path.join(cache, "SYNTHETIC-NOT-MARKET-DATA.txt"))   # tests/synthetic_dbn.py rehearsal cache
+    if synthetic and os.path.abspath(out).startswith(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "results"))):
+        sys.exit("REFUSED: a synthetic rehearsal cache must not write under results/ (it is not evidence)")
     df = load_cache(cache)
     data_end = df["time"].max()
     hold_start = (data_end - pd.Timedelta(days=365)).normalize()
@@ -102,7 +112,8 @@ def main():
     lo, hi = (hold_start, data_end + pd.Timedelta(minutes=1)) if holdout else (df["time"].min(), hold_start)
     tag = "holdout" if holdout else "dev"
     st = Settings()
-    summary = {"period": tag, "from": str(lo), "to": str(hi), "holdout_start": str(hold_start), "data_end": str(data_end),
+    summary = {"period": tag, "synthetic": synthetic,
+               "data": "SYNTHETIC REHEARSAL FIXTURE (not market data, not evidence)" if synthetic else "Databento GLBX.MDP3 ohlcv-1m MNQ.FUT, unadjusted per contract", "from": str(lo), "to": str(hi), "holdout_start": str(hold_start), "data_end": str(data_end),
                "contracts": sorted(df["symbol"].unique().tolist()), "rolls": [{k: str(v) for k, v in s.items()} for s in segs],
                "validation_front": {}, "runs": {}}
     for s in segs:   # validate each contract's bars inside its window

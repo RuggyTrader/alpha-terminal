@@ -55,7 +55,7 @@ def snapshot(summary: Dict[str, Any], featured: Optional[tuple], data_note: str,
         "label": "SIMULATED — virtual MFFU research accounts. Not an MFFU account. Not approved by MFFU. Historical simulated passes do not guarantee real results.",
         "demo": demo, "data": data_note, "strategy": summary["strategy"], "period": summary["period"], "news_calendar": summary["news_calendar"],
         "external_execution": INTEGRATION_STATUS["external_execution"], "integration": INTEGRATION_STATUS,
-        "account": account_view(*featured) if featured else {}, "results": runs, "plans": plans,
+        "account": (featured if isinstance(featured, dict) else account_view(*featured)) if featured else {}, "results": runs, "plans": plans,
         "sources": [{"id": k, "title": v[0], "url": v[1], "page_date": v[2]} for k, v in SOURCES.items()], "retrieved": RETRIEVED,
         "contradictions": CONTRADICTIONS, "not_stated": NOT_STATED,
     }

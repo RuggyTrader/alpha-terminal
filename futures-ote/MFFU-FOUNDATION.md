@@ -109,7 +109,7 @@ In `mffu/rules.py`, each field of each plan, size and stage is recorded in one o
 
 **Requirement:** genuine Databento GLBX.MDP3 `ohlcv-1m` data, unadjusted and per contract, for MNQ (and MES for the second instrument).
 
-**Status:** the API key is not configured yet, so no exact quote and no download has happened. Setup steps are in `DATABENTO-SETUP.md`.
+**Status:** the API key is not configured yet, so no exact quote and no download has happened. Setup steps and the runbook are in `DATABENTO-SETUP.md`. The whole pipeline after the key has been rehearsed offline on a synthetic DBN fixture (`tests/test_pipeline_ready.py`).
 
 **Published usage price (read 2026-11-27):** $70 per GB for CME OHLCV-1m (OHLCV-1s is also $70/GB).
 
@@ -143,8 +143,11 @@ In `mffu/rules.py`, each field of each plan, size and stage is recorded in one o
 .venv\Scripts\python run_mffu.py results\mffu --cache <databento cache> --root MNQ --holdout  # refused until dev summary is committed
 ```
 
+The full sequence, from readiness check to holdout, is the runbook in `DATABENTO-SETUP.md`. `preflight.py` checks readiness offline.
+
 **Options:**
 * `--news union|official|mffu_image|none` selects the T1 calendar variant.
+* `--jobs N` runs the pre-registered runs in N processes. Output is identical to `--jobs 1`.
 * The plan variants are pre-registered in `CONFIGS` (10 variants) and run under 4 cost scenarios.
 
 ## Remaining integration requirements (all open)
