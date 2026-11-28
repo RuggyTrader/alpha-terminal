@@ -86,14 +86,13 @@ Historical simulation only: no broker connection, no orders, no paid services. T
 3. **The trade rate is high: about 15 trades a day** (76 in 5 days). Commissions at $1.48–3.00 per round trip matter a lot at fixed size.
 4. **Early trailing (0.05 of the way to TP2) dominates exits.** About a third of trades exit by trailing near break-even before the BE trigger (0.45) is reached.
 
-## Data needed to finish (owner decision; nothing has been purchased or signed up for)
+## Data (owner decision, 2026-11-28)
 
-| Option | What it gives | Cost / action |
-|---|---|---|
-| **Databento** (recommended) | CME Globex `ohlcv-1m`, **raw per-contract prices on the tick grid**, MNQ since its 2019 launch, plus NQ; rolls handled explicitly | Free account with $125 of credit, which should cover these OHLCV bars (the exact cost is shown before download). **You create the account and set the API key as an environment variable; I never handle the key.** |
-| NinjaTrader free simulation account | Market Replay data, about 1 year, exportable | Free account; manual export by you |
-| MarketParquet Complete Archive | NQ / MNQ since 2007 | $79 one-off (purchase needs approval); ratio-adjusted (off-tick) |
-| TradingView export | The same data as your chart | Paid plan; limited 1-minute depth |
+**QuantConnect Cloud** (free tier): MNQ 1-minute trade bars from QuantConnect's US Futures dataset, individual contracts, raw prices. The backtest runs inside QuantConnect and exports summary results only. See `QUANTCONNECT.md`.
+
+**Not used:**
+* **Databento:** the owner decided not to use it under any circumstances. The fetcher, setup guide and key handling were removed.
+* **The other options considered earlier** (NinjaTrader replay export, MarketParquet, TradingView export): not used.
 
 ## Future prop-firm compatibility (not built; firm not chosen)
 

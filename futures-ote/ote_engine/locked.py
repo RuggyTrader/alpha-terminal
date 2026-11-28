@@ -1,6 +1,6 @@
 """Configuration A (the owner-approved OTE settings) is LOCKED for every historical run.
 
-The literal values below are the approved inputs listed in PHASE1-STATUS.md. Tests and preflight.py check that the engine
+The literal values below are the approved inputs listed in PHASE1-STATUS.md. Tests and the QuantConnect self-check verify that the engine
 defaults (ote_engine.strategy.Settings) still equal them and that their hash is unchanged, so a strategy edit cannot slip
 into a backtest unnoticed. Changing them requires a new, separately approved configuration, not an edit here.
 """

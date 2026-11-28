@@ -1,13 +1,10 @@
-"""Roll selection without lookahead, trade windows (no orders outside, flat at the end), and API-key hygiene."""
-import io
-import contextlib
+"""Roll selection without lookahead, and trade windows (no orders outside, flat at the end)."""
 
 import pandas as pd
 import pytest
 
 from ote_engine.rolls import front_schedule, segments, expiry_key, trading_day
 from ote_engine.strategy import Settings, Execution, run
-from ote_engine import secret
 from tests.test_engine import _walk
 
 ET = "America/New_York"
@@ -53,22 +50,8 @@ def test_window_blocks_orders_outside_and_flattens_at_the_end():
     assert first_inside and r["trades"][0].entry_time >= first_inside[0].entry_time
 
 
-def test_secret_never_echoed(monkeypatch):
-    k = "db-" + "A1b2C3d4E5f6G7h8I9j0K1l2M3n4P"
-    monkeypatch.setenv(secret.ENV, k)
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        got = secret.get_key()
-    assert got == k and buf.getvalue() == ""
-    assert k not in secret.redact(f"401 for key {k}", k) and "REDACTED" in secret.redact(f"x {k}", None)
-    monkeypatch.setenv(secret.ENV, "not-a-key")
-    with pytest.raises(RuntimeError) as e:
-        secret.get_key()
-    assert "not-a-key" not in str(e.value)
-
-
 def test_roll_gap_cannot_create_trades_and_each_contract_uses_its_own_prices():
-    from run_full import run_period
+    from ote_engine.replay import run_period
     a = _walk(6000, seed=3, start=20000.0); b = _walk(6000, seed=3, start=21000.0)   # identical shape, +1000 points (a roll gap)
     rows = [{"symbol": "MNQH4", "time": t, "open": o, "high": h, "low": l, "close": c, "volume": 1} for t, o, h, l, c in zip(a["t"], a["o"], a["h"], a["l"], a["c"])]
     rows += [{"symbol": "MNQM4", "time": t, "open": o, "high": h, "low": l, "close": c, "volume": 1} for t, o, h, l, c in zip(b["t"], b["o"], b["h"], b["l"], b["c"])]

@@ -40,6 +40,8 @@ def metrics(res: Dict[str, Any], times: List[pd.Timestamp]) -> Dict[str, Any]:
     peak = ddi = 0.0
     for c, lo in zip(eqc, eql):
         ddi = max(ddi, peak - lo); peak = max(peak, c)
+    if "max_drawdown_intraday" in res:   # computed by replay.PeriodAccumulator with the same loop while streaming segments
+        ddi = res["max_drawdown_intraday"]
     m["max_drawdown_intraday"] = _r(ddi)
     # by side / exit reason
     for s, nm in ((1, "long"), (-1, "short")):

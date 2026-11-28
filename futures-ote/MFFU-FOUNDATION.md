@@ -105,24 +105,18 @@ In `mffu/rules.py`, each field of each plan, size and stage is recorded in one o
   * open-equity breach is checked;
   * the soft daily-loss pause is not a breach.
 
-## Data (still needed for any real result)
+## Data: QuantConnect Cloud (owner decision 2026-11-28; Databento is not used)
 
-**Requirement:** genuine Databento GLBX.MDP3 `ohlcv-1m` data, unadjusted and per contract, for MNQ (and MES for the second instrument).
+**Source:** QuantConnect's US Futures dataset (AlgoSeek), MNQ 1-minute trade bars, inside QuantConnect Cloud backtests on the free tier. No subscription or data purchase.
 
-**Status:** the API key is not configured yet, so no exact quote and no download has happened. Setup steps and the runbook are in `DATABENTO-SETUP.md`. The whole pipeline after the key has been rehearsed offline on a synthetic DBN fixture (`tests/test_pipeline_ready.py`).
+**How it is used:**
+* Individual contracts at raw (unadjusted) prices. Fill-forward bars are skipped, and so is the continuous series.
+* The roll rule (previous day's volume, forward only, never past expiry), the strategy and the MFFU simulator are the same code as the local reference (`qc/at_stream.py`).
+* Tests check that the streamed results are identical to the local reference.
 
-**Published usage price (read 2026-11-27):** $70 per GB for CME OHLCV-1m (OHLCV-1s is also $70/GB).
+**Terms:** the bars never leave QuantConnect. Each backtest logs only summary results (statistics, roll dates, data-coverage dates). QuantConnect's terms (section 2.6) forbid exporting market data and permit exporting the summary results of your own backtests.
 
-**Rough size, not a quote:** an OHLCV record is 56 bytes uncompressed. MNQ 2019-05 to 2026-11 is about 1,950 sessions.
-
-| Case | Assumption | Records | Size | Cost |
-|---|---|---|---|---|
-| Typical | about 2,000 records a day across the front month, next month and spreads | about 4 million | about 0.22 GB | about $15 |
-| Worst case | every listed MNQ outright and spread trading every minute | — | about 2.3 GB | about $160 |
-
-**Exact quote:** `fetch_databento.py --estimate` asks Databento for the exact cost before anything is requested. The download refuses if the estimate is above `--max-cost`. Databento gives $125 of free credit to new accounts.
-
-**Free alternatives:** no free, account-free source of multi-year, per-contract, unadjusted 1-minute MNQ data was found. The one-week free sample used in the demo is ratio-adjusted and is never used as evidence.
+**Status:** code ready; no cloud backtest has run yet. Setup, the backtest plan and the import steps are in `QUANTCONNECT.md`. Coverage is verified by the first (coverage) backtest.
 
 ## Dashboard
 
@@ -138,23 +132,24 @@ In `mffu/rules.py`, each field of each plan, size and stage is recorded in one o
 
 ## How to run
 
-```powershell
-.venv\Scripts\python run_mffu.py results\mffu --cache <databento cache> --root MNQ            # development period
-.venv\Scripts\python run_mffu.py results\mffu --cache <databento cache> --root MNQ --holdout  # refused until dev summary is committed
-```
+**Genuine results:** QuantConnect Cloud backtests, imported with `qc/qc_import.py` (see `QUANTCONNECT.md`).
 
-The full sequence, from readiness check to holdout, is the runbook in `DATABENTO-SETUP.md`. `preflight.py` checks readiness offline.
+**Local pipeline demonstration (not evidence):**
+
+```powershell
+.venv\Scripts\python run_mffu.py results\mffu-demo --csv <sample 1m csv> --demo [--jobs N]
+```
 
 **Options:**
 * `--news union|official|mffu_image|none` selects the T1 calendar variant.
 * `--jobs N` runs the pre-registered runs in N processes. Output is identical to `--jobs 1`.
-* The plan variants are pre-registered in `CONFIGS` (10 variants) and run under 4 cost scenarios.
+* The plan variants are pre-registered in `mffu/experiments.py` (10 variants) and run under 4 cost scenarios. QuantConnect runs the same file.
 
 ## Remaining integration requirements (all open)
 
 1. **MFFU automation approval:** written confirmation that unattended automated execution by ALPHA TERMINAL is allowed, and on which accounts.
 2. **Technical route:** MFFU's confirmed platform and API. No adapter exists beyond local mock and paper adapters.
 3. **Owner authorization:** a separate authorization for any external integration.
-4. **Historical data:** the Databento key, then the estimate, then a download within free credit.
+4. **Historical results:** the QuantConnect backtests in `QUANTCONNECT.md` (coverage, then development, then holdout).
 5. **News calendar after 2026-11-27:** extend `t1_calendar.py` from the official releases.
 6. **Cost basis:** broker commissions and CME fees for the chosen route. All costs are currently scenarios.
